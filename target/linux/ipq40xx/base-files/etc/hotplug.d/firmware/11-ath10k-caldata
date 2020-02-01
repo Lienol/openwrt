@@ -50,6 +50,7 @@ case "$FIRMWARE" in
 	cilab,meshpoint-one |\
 	ezviz,cs-w3-wd1200g-eup |\
 	glinet,gl-b1300 |\
+	canbox,cm520-79f |\
 	linksys,ea6350v3 |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x1000 0x2f20
@@ -132,6 +133,7 @@ case "$FIRMWARE" in
 	ezviz,cs-w3-wd1200g-eup |\
 	glinet,gl-b1300 |\
 	linksys,ea6350v3 |\
+	canbox,cm520-79f |\
 	qcom,ap-dk01.1-c1)
 		caldata_extract "ART" 0x5000 0x2f20
 		;;
