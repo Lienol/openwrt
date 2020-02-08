@@ -29,7 +29,10 @@ DEFAULT_PACKAGES:=\
 	uci \
 	uclient-fetch \
 	urandom-seed \
-	urngd
+	urngd \
+	luci luci-compat wget curl \
+	default-settings luci-app-wol luci-app-vlmcsd luci-app-ramfree \
+	luci-app-ddns ddns-scripts_aliyun ddns-scripts_dnspod
 # For the basic set
 DEFAULT_PACKAGES.basic:=
 # For nas targets
@@ -40,11 +43,10 @@ DEFAULT_PACKAGES.nas:=\
 	mdadm
 # For router targets
 DEFAULT_PACKAGES.router:=\
-	dnsmasq \
+	dnsmasq-full \
 	firewall \
 	ip6tables \
 	iptables \
-	kmod-ipt-offload \
 	odhcp6c \
 	odhcpd-ipv6only \
 	ppp \
