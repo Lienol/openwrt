@@ -25,6 +25,10 @@ DEFAULT_PACKAGES:=\
 	uci \
 	uclient-fetch \
 	urandom-seed \
+	luci luci-compat wget-ssl curl ca-certificates htop \
+	default-settings luci-app-upnp luci-app-wol luci-app-vlmcsd luci-app-ramfree \
+	luci-app-ddns ddns-scripts-cloudflare ddns-scripts_aliyun ddns-scripts_dnspod \
+	luci-app-timecontrol luci-app-control-timewol luci-app-control-webrestriction luci-app-control-weburl \
 	urngd
 
 ifneq ($(CONFIG_SELINUX),)
@@ -53,10 +57,9 @@ DEFAULT_PACKAGES.nas:=\
 	mdadm
 # For router targets
 DEFAULT_PACKAGES.router:=\
-	dnsmasq \
+	dnsmasq-full \
 	firewall4 \
 	nftables \
-	kmod-nft-offload \
 	odhcp6c \
 	odhcpd-ipv6only \
 	ppp \
