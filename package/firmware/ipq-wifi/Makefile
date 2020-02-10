@@ -34,7 +34,8 @@ ALLWIFIBOARDS:= \
 	ezviz_cs-w3-wd1200g-eup \
 	linksys_ea8300 \
 	qxwlan_e2600ac \
-	canbox_cm520-79f
+	canbox_cm520-79f \
+	p2w_r619ac
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
 
@@ -105,5 +106,6 @@ $(eval $(call generate-ipq-wifi-package,ezviz_cs-w3-wd1200g-eup,EZVIZ CS-W3-WD12
 $(eval $(call generate-ipq-wifi-package,linksys_ea8300,Linksys EA8300))
 $(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 $(eval $(call generate-ipq-wifi-package,canbox_cm520-79f,CanBox CM520-79F))
+$(eval $(call generate-ipq-wifi-package,p2w_r619ac,P&W R619AC))
 
 $(foreach PACKAGE,$(ALLWIFIPACKAGES),$(eval $(call BuildPackage,$(PACKAGE))))
