@@ -11,8 +11,8 @@ name: OpenWrt-acgl17
 
 on:
    push:
-  #  branches: 
-  #    - master
+    branches: 
+     - master
   # schedule:
   #   - cron: 0 20 * * *
   # release:
