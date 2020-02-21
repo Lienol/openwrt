@@ -65,7 +65,7 @@ jobs:
           ./scripts/feeds install -a
       - name: 生成配置文件
         run: |
-          cp ./makeconfig.d/pc2.config ./.config
+          cp ./makeconfig.d/pc.config ./.config
           make defconfig
           
       - name: 制作下载
