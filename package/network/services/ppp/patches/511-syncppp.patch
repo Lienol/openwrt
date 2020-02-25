@@ -187,16 +187,17 @@ diff -Naur ppp-2.4.5.0/pppd/upap.c ppp-2.4.5/pppd/upap.c
 @@ -52,6 +52,8 @@
  #include "pppd.h"
  #include "upap.h"
- 
+
 +#include "syncppp.h"
 +
- static const char rcsid[] = RCSID;
- 
+
  static bool hide_password = 1;
-@@ -568,6 +570,18 @@
+
+@@ -566,6 +568,18 @@
+     INCPTR(u->us_userlen, outp);
      PUTCHAR(u->us_passwdlen, outp);
      BCOPY(u->us_passwd, outp, u->us_passwdlen);
- 
++
 +    if (npppd > 1) {
 +        if (syncppp(npppd) < 0) {
 +            error("syncppp sync fail");
@@ -207,8 +208,7 @@ diff -Naur ppp-2.4.5.0/pppd/upap.c ppp-2.4.5/pppd/upap.c
 +        }
 +    } else {
 +        info("syncppp not active");
-+    }   
-+
++    }
+
      output(u->us_unit, outpacket_buf, outlen + PPP_HDRLEN);
- 
-     TIMEOUT(upap_timeout, u, u->us_timeouttime);
+
