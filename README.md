@@ -3,14 +3,16 @@
 
 本源码生成的固件禁止使用在任何非法、商业用途！
 
-[OpenWRT讨论群](https://t.me/joinchat/IUAfG09LxGyUlfBz8YZNWA)
+[OpenWRT吹水讨论群](https://t.me/joinchat/IUAfG09LxGwx4PIcc3k76w)
+
+[Lienol的源码反馈群](https://t.me/passwallQA)
 
 编译命令如下（引用大雕的README）:
 
 1. 首先装好 Ubuntu 64bit，推荐  Ubuntu  14 LTS x64
 
 2. 命令行输入 sudo apt-get update ，然后输入
-sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3.5 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
 
 3. git clone -b dev-19.07 https://github.com/Lienol/openwrt 命令下载好源代码，然后 cd openwrt 进入目录
 
