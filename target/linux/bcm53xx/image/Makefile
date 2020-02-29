@@ -140,6 +140,7 @@ B43 := $(IEEE8021X) kmod-b43
 BRCMFMAC_43602A1 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-43602a1-pcie
 BRCMFMAC_4366B1 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-4366b1-pcie
 BRCMFMAC_4366C0 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-4366c0-pcie
+K3_PACKAGES := $(IEEE8021X) kmod-brcmfmac k3wifi k3screenctrl
 USB2_PACKAGES := kmod-usb-ohci kmod-usb2 kmod-phy-bcm-ns-usb2
 USB2_PACKAGES += kmod-usb-ledtrig-usbport
 USB3_PACKAGES := $(USB2_PACKAGES) kmod-usb3 kmod-phy-bcm-ns-usb3
@@ -532,7 +533,7 @@ define Device/phicomm_k3
   DEVICE_ALT0_MODEL := QUANTUM DAX
   DEVICE_ALT1_VENDOR := Wavlink
   DEVICE_ALT1_MODEL := WL-WN538A8
-  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES)
+  DEVICE_PACKAGES := $(K3_PACKAGES) $(USB3_PACKAGES)
   IMAGES := trx
 endef
 TARGET_DEVICES += phicomm_k3
