@@ -117,7 +117,7 @@ IEEE8021X := wpad-basic
 B43 := $(IEEE8021X) kmod-b43
 BRCMFMAC_43602A1 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-43602a1-pcie
 BRCMFMAC_4366B1 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-4366b1-pcie
-BRCMFMAC_4366C0 := $(IEEE8021X) kmod-brcmfmac brcmfmac-firmware-4366c0-pcie
+BRCMFMAC_4366C0 := $(IEEE8021X) kmod-brcmfmac k3wifi
 USB2_PACKAGES := kmod-usb-ohci kmod-usb2 kmod-phy-bcm-ns-usb2
 USB2_PACKAGES += kmod-usb-ledtrig-usbport
 USB3_PACKAGES := $(USB2_PACKAGES) kmod-usb3 kmod-phy-bcm-ns-usb3
@@ -138,6 +138,14 @@ define Device/Default
   PAGESIZE := 2048
   IMAGE/trx := append-ubi | trx-nand
 endef
+
+define Device/phicomm-k3
+  DEVICE_VENDOR := PHICOMM
+  DEVICE_MODEL := K3
+  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) k3screenctrl
+  IMAGES := trx
+endef
+TARGET_DEVICES += phicomm-k3
 
 define Device/asus
   DEVICE_VENDOR := ASUS
@@ -383,14 +391,6 @@ define Device/smartrg-sr400ac
   KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma-d16
 endef
 TARGET_DEVICES += smartrg-sr400ac
-
-define Device/phicomm-k3
-  DEVICE_VENDOR := PHICOMM
-  DEVICE_MODEL := K3
-  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES)
-  IMAGES := trx
-endef
-TARGET_DEVICES += phicomm-k3
 
 define Device/tenda-ac9
   DEVICE_VENDOR := Tenda
