@@ -73,7 +73,7 @@ TARGET_DEVICES += glinet_vixmini
 
 define Device/hc5611
   DTS := HC5611
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  IMAGE_SIZE := 15808k
   DEVICE_TITLE := HiWiFi HC5611
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
 endef

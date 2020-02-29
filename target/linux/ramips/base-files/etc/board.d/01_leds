@@ -190,7 +190,7 @@ gl-mt300n-v2)
 	ucidef_set_led_switch "wan" "wan" "$boardname:green:wan" "switch0" "0x1"
 	;;
 hc5611)
-	ucidef_set_led_default "system" "system" "$boardname:green:system" "1"
+	ucidef_set_led_default "system" "system" "$boardname:blue:system" "1"
 	;;
 hc5661|\
 hc5661a)
