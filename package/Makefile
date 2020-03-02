@@ -109,3 +109,4 @@ $(eval $(call stampfile,$(curdir),package,install,$(TMP_DIR)/.build))
 $(eval $(call stampfile,$(curdir),package,check,$(TMP_DIR)/.build))
 
 $(eval $(call subdir,$(curdir)))
+$(eval $(call theme,bootstrap,Bootstrap Theme (default)))
