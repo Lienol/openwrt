@@ -137,6 +137,13 @@ define Device/Default
   IMAGE/trx := append-ubi | trx-nand
 endef
 
+define Device/phicomm-k3
+  DEVICE_TITLE := PHICOMM K3
+  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) k3screenctrl
+  IMAGES := trx
+endef
+TARGET_DEVICES += phicomm-k3
+
 define Device/asus
   IMAGES := trx
   IMAGE/trx := append-ubi | trx-nand | asus-trx
@@ -341,13 +348,6 @@ define Device/smartrg-sr400ac
   KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma-d16
 endef
 TARGET_DEVICES += smartrg-sr400ac
-
-define Device/phicomm-k3
-  DEVICE_TITLE := PHICOMM K3
-  DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) k3screenctrl
-  IMAGES := trx
-endef
-TARGET_DEVICES += phicomm-k3
 
 define Device/tenda-ac9
   DEVICE_TITLE := Tenda AC9
