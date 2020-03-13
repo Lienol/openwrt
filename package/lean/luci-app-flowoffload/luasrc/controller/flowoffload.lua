@@ -24,17 +24,12 @@ local function is_fullcone()
 	return luci.sys.call("[ `cat /sys/module/xt_FULLCONENAT/refcnt 2>/dev/null` -gt 0 ] 2>/dev/null") == 0
 end
 
-local function is_dns()
-	return luci.sys.call("pgrep dnscache >/dev/null") == 0
-end
-
 function action_status()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		run_state = is_running(),
 		down_state = is_bbr(),
-		up_state = is_fullcone(),
-		dns_state = is_dns()
+		up_state = is_fullcone()
 	})
 end
 
