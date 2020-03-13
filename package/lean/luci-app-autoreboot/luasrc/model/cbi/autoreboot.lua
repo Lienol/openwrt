@@ -29,10 +29,4 @@ pass=s:option(Value,"minute",translate("Minute"))
 pass.datatype = "range(0,59)"
 pass.rmempty = false
 
-
-local e=luci.http.formvalue("cbi.apply")
-if e then
-  io.popen("/etc/init.d/autoreboot restart")
-end
-
 return m
