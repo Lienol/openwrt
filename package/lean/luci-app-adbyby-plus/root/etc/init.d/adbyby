@@ -186,6 +186,10 @@ reload_rule()
 	iptables-save | grep ADBYBY >/dev/null || add_rule
 }
 
+service_triggers() {
+    procd_add_reload_trigger "adbyby"
+}
+
 start_service()
 {
 	config_load adbyby
