@@ -6,6 +6,6 @@ config nps
 	option protocol 'tcp'
 	option compress '1'
 	option crypt '1'
+	option auto_reconnection '1'
 	option vkey 'aaa'
 	option log_level '4'
-
