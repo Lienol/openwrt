@@ -21,7 +21,7 @@ nps_header() {
 	config_get vkey $1 vkey
 	config_get compress $1 compress
 	config_get crypt $1 crypt
-	config_get autoreconnection $1 autoreconnection
+	config_get auto_reconnection $1 auto_reconnection
 	config_get log_level $1 log_level
 
 	[ -f $tmpconf ] && rm $tmpconf
@@ -32,7 +32,7 @@ nps_header() {
 
 	nps_write_bool compress $1
 	nps_write_bool crypt $1
-	nps_write_bool autoreconnection $1
+	nps_write_bool auto_reconnection $1
 
 	Log_level=$log_level
 	Enabled=$enabled
