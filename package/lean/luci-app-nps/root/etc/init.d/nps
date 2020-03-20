@@ -12,7 +12,7 @@ service_triggers() {
 }
 
 nps_header() {
-	local enabled server_addr server_port protocol vkey compress crypt log_level
+	local enabled server_addr server_port protocol vkey compress crypt auto_reconnection log_level
 
 	config_get enabled $1 enabled
 	config_get server_addr $1 server_addr
