@@ -34,6 +34,9 @@ compress.rmempty=false
 crypt=s:taboption("basic",Flag,"crypt",translate("Enable Encryption"),translate("Encrypted the communication between Npc and Nps, will effectively prevent the traffic intercepted."))
 crypt.default="1"
 crypt.rmempty=false
+auto_reconnection=s:taboption("basic",Flag,"auto_reconnection",translate("Enable AutoReconnection"),translate("Auto reconnect to the server when the connection is down."))
+auto_reconnection.default="1"
+auto_reconnection.rmempty=false
 log_level=s:taboption("basic",ListValue,"log_level",translate("Log Level"))
 log_level:value(0,"Emergency")
 log_level:value(2,"Critical")
