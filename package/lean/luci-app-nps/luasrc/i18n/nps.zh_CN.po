@@ -21,8 +21,14 @@ msgstr "使用压缩传输"
 msgid "Enable Encryption"
 msgstr "使用加密传输"
 
+msgid "Enable auto_reconnection"
+msgstr "开启断线自动重连"
+
 msgid "The contents will be compressed to speed up the traffic forwarding speed, but this will consume some additional cpu resources"
 msgstr "压缩传输内容，加快流量转发速度，会额外消耗 cpu 资源"
 
 msgid "Encrypted the communication between Npc and Nps, will effectively prevent the traffic intercepted."
 msgstr "加密传输 npc 与 nps 之间的通信内容，会有效防止流量被拦截"
+
+msgid "auto_reconnection."
+msgstr "断线自动重连"
