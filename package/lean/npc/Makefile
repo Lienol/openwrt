@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=npc
-PKG_VERSION:=0.26.3
+PKG_VERSION:=$(shell curl --silent "https://api.github.com/repos/ehang-io/nps/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
 PKG_RELEASE:=1
 
 ifeq ($(ARCH),mipsel)
@@ -55,7 +55,7 @@ npc is a fast reverse proxy to help you expose a local server behind a NAT or fi
 endef
 
 define Build/Prepare
-	[ ! -f $(PKG_BUILD_DIR)/linux_$(NPC_ARCH)_client.tar.gz ] && wget https://github.com/cnlh/nps/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz -O $(PKG_BUILD_DIR)/linux_$(NPC_ARCH)_client.tar.gz
+	[ ! -f $(PKG_BUILD_DIR)/linux_$(NPC_ARCH)_client.tar.gz ] && wget https://github.com/cnlh/nps/releases/download/$(PKG_VERSION)/linux_$(NPC_ARCH)_client.tar.gz -O $(PKG_BUILD_DIR)/linux_$(NPC_ARCH)_client.tar.gz
 	tar -zxvf $(PKG_BUILD_DIR)/linux_$(NPC_ARCH)_client.tar.gz -C $(PKG_BUILD_DIR)
 endef
 
