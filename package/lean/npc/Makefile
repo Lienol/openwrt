@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=npc
-PKG_VERSION:=$(curl --silent "https://api.github.com/repos/ehang-io/nps/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+PKG_VERSION:=$(shell curl --silent "https://api.github.com/repos/ehang-io/nps/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
 PKG_RELEASE:=1
 
 ifeq ($(ARCH),mipsel)
