@@ -5,8 +5,8 @@
 module("luci.controller.webconsole", package.seeall)
 local http = require("luci.http")
 function index()
-    entry({"admin", "mtk", "console"}, template("mtk_web_console"), _("Web Console"), 4)
-    entry({"admin", "mtk", "webcmd"}, call("webcmd"))
+    entry({"admin", "network", "console"}, template("mtk_web_console"), _("Web Console"), 4)
+    entry({"admin", "network", "webcmd"}, call("webcmd"))
 end
 
 function webcmd()

@@ -40,31 +40,31 @@ function index()
     page.order  = 80
     page.index  = true
 
-    entry({"admin", "mtk", "wifi"}, template("admin_mtk/mtk_wifi_overview"), _("WiFi configuration"), 1)
-    entry({"admin", "mtk", "wifi", "dev_cfg_view"}, template("admin_mtk/mtk_wifi_dev_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "dev_cfg"}, call("dev_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "dev_cfg_reset"}, call("dev_cfg_reset")).leaf = true
-    entry({"admin", "mtk", "wifi", "dev_cfg_raw"}, call("dev_cfg_raw")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_cfg_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_cfg"}, call("vif_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_add_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_add"}, call("vif_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_del"}, call("vif_del")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_disable"}, call("vif_disable")).leaf = true
-    entry({"admin", "mtk", "wifi", "vif_enable"}, call("vif_enable")).leaf = true
-    entry({"admin", "mtk", "wifi", "get_station_list"}, call("get_station_list"))
-    entry({"admin", "mtk", "wifi", "get_country_region_list"}, call("get_country_region_list")).leaf = true
-    entry({"admin", "mtk", "wifi", "get_channel_list"}, call("get_channel_list"))
-    entry({"admin", "mtk", "wifi", "get_HT_ext_channel_list"}, call("get_HT_ext_channel_list"))
-    entry({"admin", "mtk", "wifi", "get_5G_2nd_80Mhz_channel_list"}, call("get_5G_2nd_80Mhz_channel_list"))
-    entry({"admin", "mtk", "wifi", "reset"}, call("reset_wifi")).leaf = true
-    entry({"admin", "mtk", "wifi", "reload"}, call("reload_wifi")).leaf = true
-    entry({"admin", "mtk", "wifi", "get_raw_profile"}, call("get_raw_profile"))
-    entry({"admin", "mtk", "wifi", "apcli_cfg_view"}, template("admin_mtk/mtk_wifi_apcli")).leaf = true
-    entry({"admin", "mtk", "wifi", "apcli_cfg"}, call("apcli_cfg")).leaf = true
-    entry({"admin", "mtk", "wifi", "apcli_disconnect"}, call("apcli_disconnect")).leaf = true
-    entry({"admin", "mtk", "wifi", "apcli_connect"}, call("apcli_connect")).leaf = true
-    entry({"admin", "mtk", "wifi", "apcli_scan"}, call("apcli_scan")).leaf = true;
+    entry({"admin", "network", "wifi"}, template("admin_mtk/mtk_wifi_overview"), _("WiFi configuration"), 1)
+    entry({"admin", "network", "wifi", "dev_cfg_view"}, template("admin_mtk/mtk_wifi_dev_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "dev_cfg"}, call("dev_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "dev_cfg_reset"}, call("dev_cfg_reset")).leaf = true
+    entry({"admin", "network", "wifi", "dev_cfg_raw"}, call("dev_cfg_raw")).leaf = true
+    entry({"admin", "network", "wifi", "vif_cfg_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "vif_cfg"}, call("vif_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "vif_add_view"}, template("admin_mtk/mtk_wifi_vif_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "vif_add"}, call("vif_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "vif_del"}, call("vif_del")).leaf = true
+    entry({"admin", "network", "wifi", "vif_disable"}, call("vif_disable")).leaf = true
+    entry({"admin", "network", "wifi", "vif_enable"}, call("vif_enable")).leaf = true
+    entry({"admin", "network", "wifi", "get_station_list"}, call("get_station_list"))
+    entry({"admin", "network", "wifi", "get_country_region_list"}, call("get_country_region_list")).leaf = true
+    entry({"admin", "network", "wifi", "get_channel_list"}, call("get_channel_list"))
+    entry({"admin", "network", "wifi", "get_HT_ext_channel_list"}, call("get_HT_ext_channel_list"))
+    entry({"admin", "network", "wifi", "get_5G_2nd_80Mhz_channel_list"}, call("get_5G_2nd_80Mhz_channel_list"))
+    entry({"admin", "network", "wifi", "reset"}, call("reset_wifi")).leaf = true
+    entry({"admin", "network", "wifi", "reload"}, call("reload_wifi")).leaf = true
+    entry({"admin", "network", "wifi", "get_raw_profile"}, call("get_raw_profile"))
+    entry({"admin", "network", "wifi", "apcli_cfg_view"}, template("admin_mtk/mtk_wifi_apcli")).leaf = true
+    entry({"admin", "network", "wifi", "apcli_cfg"}, call("apcli_cfg")).leaf = true
+    entry({"admin", "network", "wifi", "apcli_disconnect"}, call("apcli_disconnect")).leaf = true
+    entry({"admin", "network", "wifi", "apcli_connect"}, call("apcli_connect")).leaf = true
+    entry({"admin", "network", "wifi", "apcli_scan"}, call("apcli_scan")).leaf = true;
 end
 
 function dev_cfg(devname)
