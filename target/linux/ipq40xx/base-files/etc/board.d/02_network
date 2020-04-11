@@ -12,32 +12,34 @@ ipq40xx_setup_interfaces()
 	local board="$1"
 
 	case "$board" in
-	8dev,jalapeno)
-		ucidef_add_switch "switch0" \
-			"0t@eth0" "4:lan" "5:wan"
-		;;
-	p2w,r619ac|\
-	p2w,r619ac-128m|\
-	zyxel,nbg6617)
-		ucidef_add_switch "switch0" \
-			"0t@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "5:wan:5"
+	8dev,jalapeno|\
+	alfa-network,ap120c-ac|\
+	engenius,ens620ext)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		;;
 	asus,map-ac2200|\
 	openmesh,a42|\
 	openmesh,a62)
-		ucidef_add_switch "switch0" \
-			"0t@eth0" "5:lan" "4:wan"
+		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
-	asus,rt-acrh17|\
 	asus,rt-ac58u|\
-	avm,fritzbox-4040|\
-	linksys,ea6350v3)
+	zyxel,nbg6617)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "1:lan" "2:lan" "3:lan" "4:lan" "5:wan"
+			"0u@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
-	compex,wpj428)
-		ucidef_set_interface_lan "eth0 eth1"
+	avm,fritzbox-4040|\
+	linksys,ea6350v3|\
+	linksys,ea8300)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
 		;;
+	avm,fritzbox-7530)
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
+		;;
+	avm,fritzrepeater-1200|\
 	engenius,eap1300|\
 	meraki,mr33|\
 	netgear,ex6100v2|\
@@ -45,17 +47,31 @@ ipq40xx_setup_interfaces()
 	zyxel,wre6606)
 		ucidef_set_interface_lan "eth0"
 		;;
+	canbox,cm520-79f)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0u@eth0" "3:lan" "4:lan"
+		;;
+	avm,fritzrepeater-3000|\
+	compex,wpj428)
+		ucidef_set_interface_lan "eth0 eth1"
+		;;
 	glinet,gl-b1300)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "3:lan" "4:lan" "5:wan"
+			"0u@eth0" "3:lan" "4:lan"
 		;;
-	hugo,ac1200)
+	p2w,r619ac|\
+	p2w,r619ac-128m)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "5:wan" "3:lan"
+			"0u@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
-	mobipromo,cm520-79f)
+	qxwlan,e2600ac-c1 |\
+	qxwlan,e2600ac-c2)
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "3:lan:2" "4:lan:1" "5:wan"
+			"0u@eth0" "3:lan" "4:lan" "0u@eth1" "5:wan"
 		;;
 	*)
 		echo "Unsupported hardware. Network interfaces not initialized"
@@ -68,15 +84,13 @@ ipq40xx_setup_macs()
 	local board="$1"
 
 	case "$board" in
-	asus,rt-acrh17|\
 	asus,rt-ac58u)
 		CI_UBIPART=UBI_DEV
-		lan_mac=$(cat /sys/class/net/eth0/address)
-		wan_mac=$(macaddr_add "$lan_mac" 1)
+		wan_mac=$(mtd_get_mac_binary_ubi Factory 20486)
+		lan_mac=$(mtd_get_mac_binary_ubi Factory 4102)
 		;;
-	p2w,r619ac|\
-	p2w,r619ac-128m)
-		wan_mac=$(cat /sys/class/net/eth0/address)
+	engenius,ens620ext)
+		wan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		;;
 	linksys,ea6350v3)
@@ -85,8 +99,8 @@ ipq40xx_setup_macs()
 		;;
 	esac
 
-        [ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
-        [ -n "$wan_mac" ] && ucidef_set_interface_macaddr "wan" $wan_mac
+	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
+	[ -n "$wan_mac" ] && ucidef_set_interface_macaddr "wan" $wan_mac
 }
 
 board_config_update
