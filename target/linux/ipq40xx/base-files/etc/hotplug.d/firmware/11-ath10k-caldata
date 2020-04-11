@@ -93,6 +93,7 @@ ath10kcal_is_caldata_valid() {
 
 board=$(board_name)
 
+
 case "$FIRMWARE" in
 "ath10k/cal-pci-0000:01:00.0.bin")
 	case "$board" in
@@ -110,18 +111,9 @@ case "$FIRMWARE" in
 		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
 			/lib/firmware/ath10k/QCA9888/hw2.0/board.bin
 		;;
-	avm,fritzrepeater-3000)
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x212 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1")
-		;;
-	linksys,ea8300)
-		ath10kcal_extract "ART" 36864 12064
-		# OEM assigns 4 sequential MACs
-		ath10kcal_patch_mac_crc $(macaddr_setbit_la $(macaddr_add "$(cat /sys/class/net/eth0/address)" 4))
+	asus,rt-acrh17)
+		CI_UBIPART=UBI_DEV
+		ath10kcal_ubi_extract "Factory" 36864 12064
 		;;
 	openmesh,a62)
 		ath10kcal_extract "0:ART" 36864 12064
@@ -135,10 +127,9 @@ case "$FIRMWARE" in
 "ath10k/pre-cal-ahb-a000000.wifi.bin")
 	case "$board" in
 	8dev,jalapeno |\
-	alfa-network,ap120c-ac |\
 	glinet,gl-b1300 |\
-	canbox,cm520-79f |\
 	linksys,ea6350v3 |\
+	mobipromo,cm520-79f |\
 	p2w,r619ac |\
 	p2w,r619ac-128m |\
 	qcom,ap-dk01.1-c1)
@@ -147,38 +138,13 @@ case "$FIRMWARE" in
 	asus,map-ac2200)
 		ath10kcal_ubi_extract "Factory" 4096 12064
 		;;
+	asus,rt-acrh17|\
 	asus,rt-ac58u)
 		CI_UBIPART=UBI_DEV
 		ath10kcal_ubi_extract "Factory" 4096 12064
 		;;
 	avm,fritzbox-4040)
 		/usr/bin/fritz_cal_extract -i 1 -s 0x400 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader_config")
-		;;
-	avm,fritzbox-7530 |\
-	avm,fritzrepeater-1200 |\
-	avm,fritzrepeater-3000)
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x207 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1")
-		;;
-	compex,wpj428 |\
-	engenius,eap1300 |\
-	openmesh,a42 |\
-	openmesh,a62 |\
-	qxwlan,e2600ac-c1 |\
-	qxwlan,e2600ac-c2)
-		ath10kcal_extract "0:ART" 4096 12064
-		;;
-	engenius,ens620ext)
-		ath10kcal_extract "ART" 4096 12064
-		ath10kcal_patch_mac_crc $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) +2)
-		;;
-	linksys,ea8300)
-		ath10kcal_extract "ART" 4096 12064
-		ath10kcal_patch_mac_crc $(macaddr_add "$(cat /sys/class/net/eth0/address)" 2)
 		;;
 	meraki,mr33)
 		ath10kcal_ubi_extract "ART" 4096 12064
@@ -190,6 +156,13 @@ case "$FIRMWARE" in
 		ath10kcal_extract "ART" 4096 12064
 		ath10kcal_patch_mac_crc $(mtd_get_mac_binary dnidata 0)
 		;;
+	compex,wpj428 |\
+	engenius,eap1300 |\
+	hugo,ac1200 |\
+	openmesh,a42 |\
+	openmesh,a62)
+		ath10kcal_extract "0:ART" 4096 12064
+		;;
 	zyxel,nbg6617 |\
 	zyxel,wre6606)
 		ath10kcal_extract "ART" 4096 12064
@@ -200,10 +173,9 @@ case "$FIRMWARE" in
 "ath10k/pre-cal-ahb-a800000.wifi.bin")
 	case "$board" in
 	8dev,jalapeno |\
-	alfa-network,ap120c-ac |\
 	glinet,gl-b1300 |\
 	linksys,ea6350v3 |\
-	canbox,cm520-79f |\
+	mobipromo,cm520-79f |\
 	p2w,r619ac |\
 	p2w,r619ac-128m |\
 	qcom,ap-dk01.1-c1)
@@ -219,32 +191,6 @@ case "$FIRMWARE" in
 	avm,fritzbox-4040)
 		/usr/bin/fritz_cal_extract -i 1 -s 0x400 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader_config")
 		;;
-	avm,fritzbox-7530 |\
-	avm,fritzrepeater-1200 |\
-	avm,fritzrepeater-3000)
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader0") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C800 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3D000 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1") || \
-		/usr/bin/fritz_cal_extract -i 1 -s 0x3C000 -e 0x208 -l 12064 -o /lib/firmware/$FIRMWARE $(find_mtd_chardev "urlader1")
-		;;
-	compex,wpj428 |\
-	engenius,eap1300 |\
-	openmesh,a42 |\
-	openmesh,a62 |\
-	qxwlan,e2600ac-c1 |\
-	qxwlan,e2600ac-c2)
-		ath10kcal_extract "0:ART" 20480 12064
-		;;
-	engenius,ens620ext)
-		ath10kcal_extract "ART" 20480 12064
-		ath10kcal_patch_mac_crc $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) +3)
-		;;
-	linksys,ea8300)
-		ath10kcal_extract "ART" 20480 12064
-		ath10kcal_patch_mac_crc $(macaddr_add "$(cat /sys/class/net/eth0/address)" 3)
-		;;
 	meraki,mr33)
 		ath10kcal_ubi_extract "ART" 20480 12064
 		ath10kcal_is_caldata_valid "202f" || ath10kcal_extract "ART" 20480 12064
@@ -254,6 +200,13 @@ case "$FIRMWARE" in
 	netgear,ex6150v2)
 		ath10kcal_extract "ART" 20480 12064
 		ath10kcal_patch_mac_crc $(mtd_get_mac_binary dnidata 12)
+		;;
+	compex,wpj428 |\
+	engenius,eap1300 |\
+	hugo,ac1200 |\
+	openmesh,a42 |\
+	openmesh,a62)
+		ath10kcal_extract "0:ART" 20480 12064
 		;;
 	zyxel,nbg6617 |\
 	zyxel,wre6606)

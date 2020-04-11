@@ -159,10 +159,10 @@ Signed-off-by: Vinod Koul <vinod.koul@intel.com>
 -		bam_chan_init_hw(bchan, bchan->curr_txd->dir);
 -		list_add(&bchan->curr_txd->vd.node, &bchan->vc.desc_issued);
 -		bchan->curr_txd = NULL;
-+        list_for_each_entry_safe(async_desc, tmp,
-+                                &bchan->desc_list, desc_node) {
-+                list_add(&async_desc->vd.node, &bchan->vc.desc_issued);
-+                list_del(&async_desc->desc_node);
++	list_for_each_entry_safe(async_desc, tmp,
++				&bchan->desc_list, desc_node) {
++		list_add(&async_desc->vd.node, &bchan->vc.desc_issued);
++		list_del(&async_desc->desc_node);
  	}
  
  	vchan_get_all_descriptors(&bchan->vc, &head);
