@@ -10,7 +10,7 @@ MAINTAINER:=John Crispin <john@phrozen.org>
 #SUBTARGETS:=generic
 
 # TODO: drop kmod-usb-dwc3-of-simple when migrating to 4.19
-KERNEL_PATCHVER:=4.14
+KERNEL_PATCHVER:=4.19
 
 KERNELNAME:=zImage Image dtbs
 
@@ -24,7 +24,7 @@ DEFAULT_PACKAGES += \
 #	ca-certificates htop fdisk e2fsprogs
 	kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom \
 	kmod-leds-gpio kmod-gpio-button-hotplug swconfig \
-	kmod-ath10k-ct wpad-basic \
+	kmod-ath10k-ct wpad-openssl \
 	kmod-usb3 kmod-usb-dwc3 ath10k-firmware-qca4019-ct \
 	automount autosamba \
 	ca-certificates htop fdisk e2fsprogs
