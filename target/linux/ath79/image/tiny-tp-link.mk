@@ -51,25 +51,6 @@ define Device/tplink_tl-mr3420-v1
 endef
 TARGET_DEVICES += tplink_tl-mr3420-v1
 
-define Device/tplink_tl-wa850re-v1
-  $(Device/tplink-4mlzma)
-  ATH_SOC := ar9341
-  DEVICE_TITLE := TP-Link TL-WA850RE v1
-  TPLINK_HWID := 0x08500001
-  DEVICE_PACKAGES := rssileds
-  SUPPORTED_DEVICES += tl-wa850re
-endef
-TARGET_DEVICES += tplink_tl-wa850re-v1
-
-define Device/tplink_tl-wa860re-v1
-  $(Device/tplink-4mlzma)
-  ATH_SOC := ar9341
-  DEVICE_TITLE := TP-Link TL-WA860RE v1
-  TPLINK_HWID := 0x08600001
-  SUPPORTED_DEVICES += tl-wa860re
-endef
-TARGET_DEVICES += tplink_tl-wa860re-v1
-
 define Device/tplink_tl-wa901nd-v2
   $(Device/tplink-4m)
   ATH_SOC := ar9132
@@ -111,14 +92,6 @@ define Device/tplink_tl-wr740n-v4
   TPLINK_HWID := 0x07400004
 endef
 TARGET_DEVICES += tplink_tl-wr740n-v4
-
-define Device/tplink_tl-wr740n-v5
-  $(Device/tplink-4mlzma)
-  ATH_SOC := ar9331
-  DEVICE_TITLE := TP-Link TL-WR740N v5
-  TPLINK_HWID := 0x07400005
-endef
-TARGET_DEVICES += tplink_tl-wr740n-v5
 
 define Device/tplink_tl-wr741-v1
   $(Device/tplink-4m)

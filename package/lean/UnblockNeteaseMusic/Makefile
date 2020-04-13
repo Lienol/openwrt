@@ -1,21 +1,24 @@
 #
-# Copyright (C) 2015-2020 OpenWrt.org
+# Copyright (C) 2015-2016 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v3.
 #
+# licheng
+# www.maxlicheng.com
+# 2019-07-28
 #
 
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=UnblockNeteaseMusic
 PKG_VERSION:=0.24.1
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 
 PKG_LICENSE:=MIT
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/nondanee/UnblockNeteaseMusic.git
-PKG_SOURCE_VERSION:=91e631db87920c67f92161a724a2d96472ad33cd
+PKG_SOURCE_VERSION:=436046c63b1d985c62e6695beaa21672423a747a
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR)-$(PKG_VERSION).tar.gz
@@ -27,7 +30,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
-	TITLE:=Revive Netease Cloud Music (NodeJS)
+	TITLE:=Revive unavailable songs for Netease Cloud Music
 	DEPENDS:=+node 
 	URL:=https://github.com/nondanee/UnblockNeteaseMusic/releases
 	SUBMENU:=NeteaseMusic
@@ -35,7 +38,7 @@ define Package/$(PKG_NAME)
 endef
 
 define Package/$(PKG_NAME)/description
-Revive Netease Cloud Music (NodeJS)
+Revive unavailable songs for Netease Cloud Music
 endef
 
 define Build/Prepare

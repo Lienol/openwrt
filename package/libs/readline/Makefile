@@ -25,8 +25,6 @@ PKG_INSTALL:=1
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
 
-HOST_BUILD_DEPENDS:=ncurses/host
-
 define Package/libreadline
   SECTION:=libs
   CATEGORY:=Libraries

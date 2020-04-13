@@ -905,9 +905,10 @@ TARGET_DEVICES += xdxrn502j
 define Device/kn
   DTS := kn
   BLOCKSIZE := 64k
-  IMAGE_SIZE := 7872k
+  IMAGE_SIZE := $(ralink_default_fw_size_4M)
   DEVICE_TITLE := ZyXEL Keenetic
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ehci kmod-usb-ledtrig-usbport
+  DEFAULT := n
 endef
 TARGET_DEVICES += kn
 

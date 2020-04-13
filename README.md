@@ -1,4 +1,11 @@
+
+我的APP源码：https://github.com/Lienol/openwrt-package
+
 本源码生成的固件禁止使用在任何非法、商业用途！
+
+[OpenWRT吹水讨论群](https://t.me/joinchat/IUAfG09LxGwx4PIcc3k76w)
+
+[Lienol的源码反馈群](https://t.me/passwallQA)
 
 编译命令如下（引用大雕的README）:
 

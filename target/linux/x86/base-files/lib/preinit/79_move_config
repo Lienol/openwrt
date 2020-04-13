@@ -2,15 +2,13 @@
 # Copyright (C) 2012-2015 OpenWrt.org
 
 move_config() {
-	local partdev magic parttype=ext4
+	local partdev
 
 	. /lib/upgrade/common.sh
 
 	if export_bootdevice && export_partdevice partdev 1; then
 		mkdir -p /boot
-		magic=$(dd if="/dev/$partdev" bs=1 count=3 skip=54 2>/dev/null)
-		[ "$magic" = "FAT" ] && parttype=vfat
-		mount -t $parttype -o rw,noatime "/dev/$partdev" /boot
+		mount -t ext4 -o rw,noatime "/dev/$partdev" /boot
 		if [ -f "/boot/$BACKUP_FILE" ]; then
 			mv -f "/boot/$BACKUP_FILE" /
 		fi

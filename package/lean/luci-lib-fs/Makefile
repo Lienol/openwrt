@@ -23,7 +23,7 @@ define Package/luci-lib-fs
   TITLE:=luci-lib-fs
   PKGARCH:=all
   URL:=https://github.com/lbthomsen/openwrt-luci
-  DEPENDS:=+luci-lib-nixio
+  DEPENDS:=+luci +luci-lib-nixio
 endef
 
 define Package/luci-lib-fs/description
