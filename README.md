@@ -17,10 +17,12 @@ sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git
    
    make menuconfig 
    
+   make -j8 download v=s 下载dl库(可增加99%编译成功率。需全程科学上网）
+   
    编译完成后输出路径：
    固件：/lede/bin/targets
 
-5. 最后选好你要的路由，输入 make -j1 V=s （-j1 后面是线程数。第一次编译推荐用单线程，国内请尽量全局科学上网）即可开始编译你要的固件了。
+5. 最后选好你要的路由，输入 make -j1 V=s （-j1 后面是线程数。第一次编译推荐用单线程）即可开始编译你要的固件了。
 
 你可以自由使用，但源码编译二次发布请注明我的 GitHub 仓库链接。谢谢合作！
  
