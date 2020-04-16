@@ -6,7 +6,7 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=frpc
+PKG_NAME:=frp
 PKG_VERSION:=0.32.1
 PKG_RELEASE:=1
 
@@ -38,19 +38,31 @@ PKG_HASH:=skip
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/$(PKG_NAME)
-	SECTION:=net
-	CATEGORY:=Network
-	TITLE:=FRPC Client
-	DEPENDS:=
-	URL:=https://github.com/fatedier/frp/releases
+define Package/$(PKG_NAME)/template
+  SECTION:=net
+  CATEGORY:=Network
+  SUBMENU:=Web Servers/Proxies
+  TITLE:=FRP
+  DEPENDS:=
+  URL:=https://github.com/fatedier/frp/releases
 endef
 
+define Package/frpc
+  $(call Package/$(PKG_NAME)/template)
+  TITLE+= (Client)
+endef
 
+define Package/frps
+  $(call Package/$(PKG_NAME)/template)
+  TITLE+= (Server)
+endef
 
 define Package/$(PKG_NAME)/description
 frp is a fast reverse proxy to help you expose a local server behind a NAT or firewall to the internet
 endef
+
+Package/frpc/description = $(Package/$(PKG_NAME)/description)
+Package/frps/description = $(Package/$(PKG_NAME)/description)
 
 define Build/Prepare
 	$(PKG_UNPACK)
@@ -64,7 +76,16 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/frpc $(1)/usr/bin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(2) $(1)/usr/bin/
 endef
 
-$(eval $(call BuildPackage,$(PKG_NAME)))
+define Package/frpc/install
+  $(call Package/$(PKG_NAME)/install,$(1),frpc)
+endef
+
+define Package/frps/install
+  $(call Package/$(PKG_NAME)/install,$(1),frps)
+endef
+
+$(eval $(call BuildPackage,frpc))
+$(eval $(call BuildPackage,frps))
