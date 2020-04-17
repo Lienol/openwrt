@@ -20,7 +20,7 @@ define Package/wifi-l1profile
   SECTION:=Kernel modules
   CATEGORY:=Kernel modules
   SUBMENU:=Wireless Drivers
-  DEPENDS:=
+  DEPENDS:=@TARGET_ramips
   TITLE:=Build WiFi l1profile.data on demand.
   VERSION:=$(PKG_RELEASE)-$(REVISION)
   MENU:=1
