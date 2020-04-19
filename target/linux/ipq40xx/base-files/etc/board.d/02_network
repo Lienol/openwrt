@@ -49,6 +49,7 @@ ipq40xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
 		;;
 	asus,rt-ac58u|\
+	asus,rt-acrh17|\
 	mikrotik,hap-ac2|\
 	p2w,r619ac|\
 	p2w,r619ac-128m|\
@@ -136,6 +137,7 @@ ipq40xx_setup_macs()
 	8dev,habanero-dvk)
 		label_mac=$(mtd_get_mac_binary "ART" 0x1006)
 		;;
+	asus,rt-acrh17|\
 	asus,rt-ac58u)
 		CI_UBIPART=UBI_DEV
 		wan_mac=$(mtd_get_mac_binary_ubi Factory 0x1006)
