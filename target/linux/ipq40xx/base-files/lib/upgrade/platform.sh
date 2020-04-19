@@ -6,6 +6,7 @@ RAMFS_COPY_DATA='/etc/fw_env.config /var/lock/fw_printenv.lock'
 
 platform_check_image() {
 	case "$(board_name)" in
+	asus,rt-acrh17 |\
 	asus,rt-ac58u)
 		CI_UBIPART="UBI_DEV"
 		local ubidev=$(nand_find_ubi $CI_UBIPART)
@@ -89,6 +90,7 @@ platform_do_upgrade() {
 		CI_KERNPART="linux"
 		nand_do_upgrade "$1"
 		;;
+	asus,rt-acrh17 |\
 	asus,rt-ac58u)
 		CI_UBIPART="UBI_DEV"
 		CI_KERNPART="linux"
