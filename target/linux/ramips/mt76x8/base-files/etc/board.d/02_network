@@ -92,6 +92,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "0:wan" "6@eth0"
 		;;
+	hiwifi,hc5611)
+		ucidef_add_switch "switch0" \
+			"3:lan" "6@eth0"
+		;;
 	hiwifi,hc5761a)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "4:wan" "6@eth0"
@@ -204,6 +208,7 @@ ramips_setup_macs()
 	zyxel,keenetic-extra-ii)
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary factory 0x4)" 1)
 		;;
+	hiwifi,hc5611|\
 	hiwifi,hc5661a|\
 	hiwifi,hc5761a|\
 	hiwifi,hc5861b)
