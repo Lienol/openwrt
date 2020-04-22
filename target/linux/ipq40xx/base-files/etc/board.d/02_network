@@ -64,9 +64,9 @@ ipq40xx_setup_interfaces()
 		;;
 	p2w,r619ac|\
 	p2w,r619ac-128m)
-		ucidef_set_interfaces_lan_wan "eth0"
+		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "5:wan:5"
+			"0u@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1" "0u@eth1" "5:wan:5"
 		;;
 	qxwlan,e2600ac-c1 |\
 	qxwlan,e2600ac-c2)
