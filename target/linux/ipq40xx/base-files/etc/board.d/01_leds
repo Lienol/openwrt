@@ -14,22 +14,22 @@ alfa-network,ap120c-ac)
 	ucidef_set_led_netdev "wan" "WAN" "amber:wan" "eth1"
 	;;
 asus,rt-ac58u)
-	ucidef_set_led_netdev "wan" "WAN" "blue:wan" "eth1"
+	ucidef_set_led_switch "wan" "WAN" "blue:wan" "switch0" "0x20"
 	ucidef_set_led_switch "lan" "LAN" "blue:lan" "switch0" "0x1e"
 	;;
 asus,rt-acrh17)
-	ucidef_set_led_default "status" "STATUS" "${boardname}:blue:status" "1"
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "${boardname}:blue:wlan2g" "phy1tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "${boardname}:blue:wlan5g" "phy0tpt"
-	ucidef_set_led_netdev "wan" "WAN(blue)" "${boardname}:blue:wan" "eth1"
-	ucidef_set_led_switch "lan1" "LAN1" "${boardname}:blue:lan1" "switch0" "0x02"
-	ucidef_set_led_switch "lan2" "LAN2" "${boardname}:blue:lan2" "switch0" "0x04"
-	ucidef_set_led_switch "lan3" "LAN3" "${boardname}:blue:lan3" "switch0" "0x08"
-	ucidef_set_led_switch "lan4" "LAN4" "${boardname}:blue:lan4" "switch0" "0x10"
+	ucidef_set_led_default "status" "STATUS" "blue:status" "1"
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy1tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "phy0tpt"
+	ucidef_set_led_switch "wan" "WAN(blue)" "blue:wan" "switch0" "0x20"
+	ucidef_set_led_switch "lan1" "LAN1" "blue:lan1" "switch0" "0x02"
+	ucidef_set_led_switch "lan2" "LAN2" "blue:lan2" "switch0" "0x04"
+	ucidef_set_led_switch "lan3" "LAN3" "blue:lan3" "switch0" "0x08"
+	ucidef_set_led_switch "lan4" "LAN4" "blue:lan4" "switch0" "0x10"
 	;;
 avm,fritzbox-4040)
 	ucidef_set_led_wlan "wlan" "WLAN" "green:wlan" "phy0tpt" "phy1tpt"
-	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1"
+	ucidef_set_led_switch "wan" "WAN" "green:wan" "switch0" "0x20"
 	ucidef_set_led_switch "lan" "LAN" "green:lan" "switch0" "0x1e"
 	;;
 avm,fritzbox-7530 |\
@@ -41,7 +41,7 @@ edgecore,oap100)
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "blue:wlan5g" "phy1tpt"
 	;;
 engenius,eap1300)
-	ucidef_set_led_netdev "lan" "LAN" "blue:lan" "eth0"
+	ucidef_set_led_switch "lan" "LAN" "blue:lan" "switch0" "0x20"
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "yellow:wlan5g" "phy1tpt"
 	ucidef_set_led_default "mesh" "MESH" "blue:mesh" "0"
@@ -51,13 +51,13 @@ engenius,eap2200)
 	ucidef_set_led_netdev "lan2" "LAN2" "blue:lan2" "eth1"
 	;;
 engenius,ens620ext)
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan2g" "phy0tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan5g" "phy1tpt"
-	ucidef_set_led_netdev "lan1" "LAN1" "green:lan1" "eth0"
-	ucidef_set_led_netdev "lan2" "LAN2" "green:lan2" "eth1"
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan2G" "phy0tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan5G" "phy1tpt"
+	ucidef_set_led_switch "lan1" "LAN1" "green:lan1" "switch0" "0x10"
+	ucidef_set_led_switch "lan2" "LAN2" "green:lan2" "switch0" "0x20"
 	;;
 mobipromo,cm520-79f)
-	ucidef_set_led_netdev "wan" "WAN" "blue:wan" "eth1"
+	ucidef_set_led_switch "wan" "WAN" "blue:wan" "switch0" "0x20"
 	ucidef_set_led_switch "lan1" "LAN1" "blue:lan1" "switch0" "0x10"
 	ucidef_set_led_switch "lan2" "LAN2" "blue:lan2" "switch0" "0x08"
 	;;
