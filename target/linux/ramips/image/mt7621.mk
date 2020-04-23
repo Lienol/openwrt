@@ -298,6 +298,14 @@ define Device/xiaomi_mir3g
 endef
 TARGET_DEVICES += xiaomi_mir3g
 
+define Device/xiaoyu_xy-c5
+  DTS := XIAOYU-C5
+  IMAGE_SIZE := 32448k
+  DEVICE_TITLE := XiaoYu XY-C5
+  DEVICE_PACKAGES := kmod-ata-core kmod-ata-ahci kmod-usb3
+endef
+TARGET_DEVICES += xiaoyu_xy-c5
+
 define Device/mt7621
   DTS := MT7621
   BLOCKSIZE := 64k
