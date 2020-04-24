@@ -174,6 +174,18 @@ define Device/avm_fritzrepeater-3000
 endef
 TARGET_DEVICES += avm_fritzrepeater-3000
 
+define Device/canbox_cm520-79f
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_TITLE := CanBox CM520-79F
+	BOARD_NAME := cm520-79f
+	DEVICE_DTS := qcom-ipq4019-canbox-cm520-79f
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := ipq-wifi-canbox_cm520-79f
+endef
+TARGET_DEVICES += canbox_cm520-79f
+
 define Device/compex_wpj428
 	$(call Device/FitImage)
 	DEVICE_DTS := qcom-ipq4028-wpj428
@@ -350,8 +362,35 @@ define Device/openmesh_a62
 	IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-rootfs | sysupgrade-tar rootfs=$$$$@ | append-metadata
 	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct uboot-envtools
 endef
-
 TARGET_DEVICES += openmesh_a62
+
+define Device/p2w_r619ac
+	$(call Device/FitzImage)
+	$(call Device/UbiFit)
+	DEVICE_TITLE := P&W R619AC
+	BOARD_NAME := p2w-r619ac
+	DEVICE_DTS := qcom-ipq4019-r619ac
+	DEVICE_DTS_CONFIG := config@10
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	IMAGES += nand-factory.bin
+	IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
+	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac
+endef
+TARGET_DEVICES += p2w_r619ac
+
+define Device/p2w_r619ac-128m
+	$(call Device/FitzImage)
+	$(call Device/UbiFit)
+	DEVICE_TITLE := P&W R619AC 128M
+	BOARD_NAME := p2w-r619ac-128m
+	DEVICE_DTS := qcom-ipq4019-r619ac-128m
+	DEVICE_DTS_CONFIG := config@10
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac
+endef
+TARGET_DEVICES += p2w_r619ac-128m
 
 define Device/qcom_ap-dk01.1-c1
 	DEVICE_TITLE := QCA AP-DK01.1-C1
@@ -378,46 +417,6 @@ define Device/qcom_ap-dk04.1-c1
 	DEVICE_TITLE := QCA AP-DK04.1-C1
 endef
 TARGET_DEVICES += qcom_ap-dk04.1-c1
-
-define Device/canbox_cm520-79f
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_TITLE :=  CanBox CM520-79F
-	BOARD_NAME := cm520-79f
-	DEVICE_DTS := qcom-ipq4019-canbox-cm520-79f
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	DEVICE_PACKAGES := ipq-wifi-canbox_cm520-79f
-endef
-TARGET_DEVICES += canbox_cm520-79f
-
-define Device/p2w_r619ac
-	$(call Device/FitzImage)
-	$(call Device/UbiFit)
-	DEVICE_TITLE :=  P&W R619AC
-	BOARD_NAME := p2w-r619ac
-	DEVICE_DTS := qcom-ipq4019-r619ac
-	DEVICE_DTS_CONFIG := config@10
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	IMAGES += nand-factory.bin
-	IMAGE/nand-factory.bin := append-ubi | qsdk-ipq-factory-nand
-	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac kmod-sdhci
-endef
-TARGET_DEVICES += p2w_r619ac
-
-define Device/p2w_r619ac-128m
-	$(call Device/FitzImage)
-	$(call Device/UbiFit)
-	DEVICE_TITLE :=  P&W R619AC 128M
-	BOARD_NAME := p2w-r619ac-128m
-	DEVICE_DTS := qcom-ipq4019-r619ac-128m
-	DEVICE_DTS_CONFIG := config@10
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	DEVICE_PACKAGES := ipq-wifi-p2w_r619ac kmod-sdhci
-endef
-TARGET_DEVICES += p2w_r619ac-128m
 
 define Device/qxwlan_e2600ac-c1
 	$(call Device/FitImage)
