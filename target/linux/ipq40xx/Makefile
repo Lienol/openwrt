@@ -16,7 +16,7 @@ KERNELNAME:=zImage Image dtbs
 
 include $(INCLUDE_DIR)/target.mk
 DEFAULT_PACKAGES += \
-	kmod-usb-dwc3-of-simple kmod-usb-dwc3-qcom \
+	kmod-usb-dwc3-of-simple \
 	kmod-leds-gpio kmod-gpio-button-hotplug swconfig \
 	kmod-ath10k-ct wpad \
 	kmod-usb3 kmod-usb-dwc3 ath10k-firmware-qca4019-ct \
