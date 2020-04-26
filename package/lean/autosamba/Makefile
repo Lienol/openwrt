@@ -17,7 +17,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/autosamba
   TITLE:=Samba autoconfig hotplug script.
   MAINTAINER:=Lean
-  DEPENDS:=+luci-app-samba
+  DEPENDS:=+luci-app-samba +luci-i18n-samba-zh-cn
 endef
 
 define Package/autosamba/description
