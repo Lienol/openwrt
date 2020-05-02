@@ -130,6 +130,7 @@ ramips_setup_interfaces()
 	whr-g300n|\
 	mqmaker,witi-256m|\
 	mqmaker,witi-512m|\
+	xiaoyu,xy-c5|\
 	youku-yk1|\
 	youku,yk-l2|\
 	zbt-ape522ii|\
@@ -471,6 +472,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan:3" "2:lan:2" "3:lan:1" "4:wan" "6@eth0"
 		;;
+	xiaomi,redmi-router-ac2100)
+		ucidef_add_switch "switch0" \
+			"1:lan:2" "2:lan:3" "3:lan:4" "0:wan" "6@eth0"
+		;;
 	xiaomi,mir4a-100m)
 		ucidef_add_switch "switch0" \
 			"4:lan:1" "2:lan:2" "0:wan" "6@eth0"
@@ -689,8 +694,12 @@ ramips_setup_macs()
 		wan_mac=$(macaddr_add "$(mtd_get_mac_binary factory 32772)" 2)
 		;;
 	xiaomi,mir3g|\
-	xiaomi,mir3p)
+	xiaomi,mir3p|\
+	xiaomi,redmi-router-ac2100)
 		lan_mac=$(mtd_get_mac_binary Factory 0xe006)
+		;;
+	xiaoyu,xy-c5)
+		wan_mac=$(macaddr_add "$(mtd_get_mac_binary factory 0x4)" 1)
 		;;
 	zyxel,keenetic-start)
 		wan_mac=$(mtd_get_mac_binary factory 40)

@@ -26,16 +26,17 @@ endef
 ALLWIFIBOARDS:= \
 	alfa-network_ap120c-ac \
 	asus_map-ac2200 \
+	asus_rt-acrh17 \
 	avm_fritzbox-7530 \
 	avm_fritzrepeater-1200 \
 	avm_fritzrepeater-3000 \
+	canbox_cm520-79f \
 	engenius_eap1300 \
 	engenius_ens620ext \
 	linksys_ea6350v3 \
 	linksys_ea8300 \
-	qxwlan_e2600ac \
-	canbox_cm520-79f \
-	p2w_r619ac
+	p2w_r619ac \
+	qxwlan_e2600ac
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
 
@@ -100,15 +101,16 @@ endef
 
 $(eval $(call generate-ipq-wifi-package,alfa-network_ap120c-ac,ALFA Network AP120C-AC))
 $(eval $(call generate-ipq-wifi-package,asus_map-ac2200,ASUS MAP-AC2200))
+$(eval $(call generate-ipq-wifi-package,asus_rt-acrh17,ASUS RT-ACRH17/RT-AC82U/RT-AC42U))
 $(eval $(call generate-ipq-wifi-package,avm_fritzbox-7530,AVM FRITZ!Box 7530))
 $(eval $(call generate-ipq-wifi-package,avm_fritzrepeater-1200,AVM FRITZRepeater 1200))
 $(eval $(call generate-ipq-wifi-package,avm_fritzrepeater-3000,AVM FRITZ!Repeater 3000))
+$(eval $(call generate-ipq-wifi-package,canbox_cm520-79f,CanBox CM520-79F))
 $(eval $(call generate-ipq-wifi-package,engenius_eap1300,EnGenius EAP1300))
 $(eval $(call generate-ipq-wifi-package,engenius_ens620ext,EnGenius ENS620EXT))
 $(eval $(call generate-ipq-wifi-package,linksys_ea6350v3,Linksys EA6350v3))
 $(eval $(call generate-ipq-wifi-package,linksys_ea8300,Linksys EA8300))
-$(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
-$(eval $(call generate-ipq-wifi-package,canbox_cm520-79f,CanBox CM520-79F))
 $(eval $(call generate-ipq-wifi-package,p2w_r619ac,P&W R619AC))
+$(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 
 $(foreach PACKAGE,$(ALLWIFIPACKAGES),$(eval $(call BuildPackage,$(PACKAGE))))
