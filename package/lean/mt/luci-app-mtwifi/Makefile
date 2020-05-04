@@ -4,10 +4,14 @@ PKG_LICENSE:=GPLv2
 PKG_MAINTAINER:=Hua Shao <nossiac@163.com>
 
 LUCI_TITLE:=LuCI support for mt wifi driver
-LUCI_DEPENDS:=+kmod-mt_wifi @TARGET_ramips_mt7621_DEVICE_k2p
+LUCI_DEPENDS:=@TARGET_ramips +kmod-mt_wifi
 LUCI_PKGARCH:=all
-PKG_VERSION:=1
-PKG_RELEASE:=8
+PKG_VERSION:=2
+PKG_RELEASE:=1
+
+define Package/luci-app-mtwifi/conffiles
+/etc/wireless/mt7615/
+endef
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
