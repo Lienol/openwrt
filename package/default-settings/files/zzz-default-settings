@@ -1,5 +1,7 @@
 #!/bin/sh
 
+touch /etc/crontabs/root
+
 uci set luci.main.lang=zh_cn
 uci set luci.main.mediaurlbase=/luci-static/bootstrap_mod
 uci commit luci
