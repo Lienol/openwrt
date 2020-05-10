@@ -90,6 +90,7 @@ start_instance() {
 }
 
 start_service() {
+	/etc/zerotier.stop
 	config_load 'zerotier'
 	config_foreach start_instance 'zerotier'
 	touch /tmp/zero.log && /etc/zerotier.start > /tmp/zero.log 2>&1 &
@@ -106,6 +107,7 @@ stop_instance() {
 }
 
 stop_service() {
+	/etc/zerotier.stop
 	config_load 'zerotier'
 	config_foreach stop_instance 'zerotier'
 }
