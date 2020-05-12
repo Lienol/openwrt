@@ -135,7 +135,7 @@ ${EXTRA_HELP}"
 	}
 
 	stop() {
-		procd_lock
+		#procd_lock
 		stop_service "$@"
 		procd_kill "$(basename ${basescript:-$initscript})" "$1"
 		if eval "type service_stopped" 2>/dev/null >/dev/null; then
@@ -145,7 +145,7 @@ ${EXTRA_HELP}"
 
 	reload() {
 		if eval "type reload_service" 2>/dev/null >/dev/null; then
-			procd_lock
+			#procd_lock
 			reload_service "$@"
 		else
 			start
