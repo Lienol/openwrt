@@ -68,7 +68,7 @@ _procd_call() {
 }
 
 _procd_wrapper() {
-	procd_lock
+	#procd_lock
 	while [ -n "$1" ]; do
 		eval "$1() { _procd_call _$1 \"\$@\"; }"
 		shift
