@@ -611,7 +611,7 @@ endif
 
 config KERNEL_LXC_MISC
 	bool "Enable miscellaneous LXC related options"
-	default n
+	default y if !SMALL_FLASH
 
 if KERNEL_LXC_MISC
 
