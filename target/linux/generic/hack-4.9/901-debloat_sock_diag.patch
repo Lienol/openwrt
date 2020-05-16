@@ -41,7 +41,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  obj-$(CONFIG_PROC_FS) += net-procfs.o
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -1458,9 +1458,11 @@ void sk_destruct(struct sock *sk)
+@@ -1463,9 +1463,11 @@ void sk_destruct(struct sock *sk)
  
  static void __sk_free(struct sock *sk)
  {
@@ -55,7 +55,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/net/ipv4/Kconfig
 +++ b/net/ipv4/Kconfig
-@@ -408,6 +408,7 @@ config INET_XFRM_MODE_BEET
+@@ -409,6 +409,7 @@ config INET_XFRM_MODE_BEET
  
  config INET_DIAG
  	tristate "INET: socket monitoring interface"
