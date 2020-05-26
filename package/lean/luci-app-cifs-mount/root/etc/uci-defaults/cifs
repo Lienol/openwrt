@@ -1,9 +1,9 @@
 #!/bin/sh
 
 uci -q batch <<-EOF >/dev/null
-	delete ucitrack.@ksmbd[-1]
-	add ucitrack ksmbd
-	set ucitrack.@ksmbd[-1].init=ksmbd
+	delete ucitrack.@cifs[-1]
+	add ucitrack cifs
+	set ucitrack.@cifs[-1].init=cifs
 	commit ucitrack
 EOF
 
