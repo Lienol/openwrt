@@ -1,0 +1,246 @@
+<%#
+LuCI - Lua Configuration Interface
+
+Copyright (C) 2013-2014, Diego Manas <diegomanas.dev@gmail.com>
+
+Initial layout based on cshark project: https://github.com/cloudshark/cshark
+Copyright (C) 2014, QA Cafe, Inc.
+
+Copyright (C) 2019, KFERMercer <iMercer@yeah.net>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+$Id$
+
+2019-07-12  modified by KFERMercer <iMercer@yeah.com>:
+	format code & change tag name
+
+-%>
+<%+header%>
+
+<fieldset class="cbi-section">
+	<legend><%:Start network capture%></legend>
+	<div class="cbi-section-node">
+		<table class="cbi-section-table">
+			<tr>
+				<th><%:Interface%></th>
+				<th colspan='2'><%:seconds, packets%></th>
+				<th><%:Filter%></th>
+				<th><%:Actions%></th>
+			</tr>
+			<tr>
+				<td>
+					<select title="<%:Interface%>" style="width:auto" id="cap_ifname">
+						<%
+					 local nixio = require "nixio"
+					 for k, v in ipairs(nixio.getifaddrs()) do
+						if v.family == "packet" then
+				  %>
+						<option value="<%=v.name%>"><%=v.name%> </option>
+						<%
+						end
+					  end
+				  %>
+						<option value="any"><%:any%></option>
+					</select>
+				</td>
+				<td colspan='2'>
+					<input id="cap_stop_value" type="text" value="0" />
+					<select title="<%:timeout, bytes, seconds%>" id="cap_stop_unit" style="width:auto">
+						<option value="T"><%:seconds%></option>
+						<option value="P"><%:packets%></option>
+					</select>
+				</td>
+				<td>
+					<input style="margin: 5px 0" type="text" title="<%:Filter%>" placeholder="filter" id="cap_filter" />
+				</td>
+				<td>
+					<input type="button" id="bt_capture" value="<%:Disabled%>" class="cbi-button" disabled />
+				</td>
+			</tr>
+		</table>
+	</div>
+</fieldset>
+
+<fieldset class="cbi-section">
+	<legend><%:Output%></legend>
+	<span id="tcpdump-message"></span>
+	<span id="tcpdump-log"></span>
+</fieldset>
+
+<hr />
+
+<fieldset class="cbi-section">
+	<legend><%:Capture links%></legend>
+	<div class="cbi-section-node">
+		<table id="t_list" class="cbi-section-table">
+			<tr class="cbi-section-table-titles">
+				<th class="cbi-section-table-cell"><%:Capture file%></th>
+				<th class="cbi-section-table-cell"><%:Modification date%></th>
+				<th class="cbi-section-table-cell"><%:Capture size%></th>
+				<th class="cbi-section-table-cell"><%:Actions%></th>
+			</tr>
+		</table>
+	</div>
+</fieldset>
+
+<hr />
+
+<script type="text/javascript" src="<%=resource%>/cbi.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+	var capture_active = false;
+	var capture_name;
+
+	function update_button() {
+		var bt_capture = document.getElementById('bt_capture');
+		if (!capture_active) {
+			bt_capture.value = '<%:Start capture%>';
+			bt_capture.onclick = capture_start;
+		} else {
+			bt_capture.value = '<%:Stop capture%>';
+			bt_capture.onclick = capture_stop;
+		}
+		bt_capture.disabled = false;
+	}
+
+	function capture_start() {
+		var elem_ifname = document.getElementById('cap_ifname');
+		var elem_stop_value = document.getElementById('cap_stop_value');
+		var elem_stop_unit = document.getElementById('cap_stop_unit');
+		var elem_filter = document.getElementById('cap_filter');
+
+		var ifname = elem_ifname.options[elem_ifname.selectedIndex].value;
+		var stop_value = elem_stop_value.value;
+		var stop_unit = elem_stop_unit.options[elem_stop_unit.selectedIndex].value;
+		var filter = elem_filter.value;
+		// TODO Implement checks?
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>/capture_start/' +
+			ifname + '/' + stop_value + '/' + stop_unit + '/' + filter,
+			null, update_callback)
+	}
+
+	function capture_stop() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>/capture_stop',
+			null, update_callback)
+	}
+
+	function update_poll() {
+		XHR.poll(10, '<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>/update',
+			null, update_callback)
+	}
+
+	function update_callback(xhr, json) {
+		console.log(xhr)
+		console.log(json)
+		update_table(xhr, json)
+		update_status(xhr, json)
+	}
+
+	function update_table(xhr, json) {
+		var table = document.getElementById("t_list");
+		if (!table) return;
+		// Remove all rows except headers
+		while (table.rows.length > 1) {
+			table.deleteRow(-1);
+		}
+
+		if (!xhr) {
+			var cell = table.insertRow(-1).insertCell(0);
+			cell.colSpan = table.rows[0].cells.length;
+			cell.innerHTML = '<em><br />Could not retrieve captures.</em>';
+			return;
+		}
+		var entries = json.list.entries;
+		if (!entries || !entries.length) {
+			var cell = table.insertRow(-1).insertCell(0);
+			cell.colSpan = table.rows[0].cells.length;
+			cell.innerHTML = '<em><br />There are no captures available yet.</em>';
+			return;
+		}
+		// Add rows
+		var total_size = 0
+		for (var i = 0; i < entries.length; i++) {
+			var row = table.insertRow(-1);
+			total_size += entries[i].size;
+			var url = '<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>'
+			row.insertCell().innerHTML = '<a href="#"  onclick="capture_get(\'pcap\', \'' + entries[i].name + '\')">' + entries[i].name + '</a>';
+			row.insertCell().innerHTML = human_date(entries[i].mtime);
+			row.insertCell().innerHTML = human_size(entries[i].size);
+			var cell = row.insertCell();
+			cell.innerHTML += '<input type="button" onclick="capture_get(\'pcap\', \'' + entries[i].name + '\')" class="cbi-button cbi-button-download" value ="<%:pcap file%>" />';
+			cell.innerHTML += '<input type="button" onclick="capture_get(\'filter\', \'' + entries[i].name + '\')" class="cbi-button cbi-button-download" value ="<%:filter file%>" />';
+			cell.lastChild.disabled = !entries[i].filter;
+			cell.innerHTML += '<input type="button" onclick="capture_remove(\'' + entries[i].name + '\')" class="cbi-button cbi-button-reset" value ="<%:Remove%>" />';
+		}
+		// Add summary row at the end
+		var row = table.insertRow(-1);
+		row.insertCell().innerHTML = '<b><%:All files%></b>';
+		row.insertCell();
+		row.insertCell().innerHTML = human_size(total_size);
+		row.insertCell().innerHTML = '<input type="button" onclick="capture_get(\'all\')" class="cbi-button cbi-button-download" value ="<%:Download%>" />';
+		row.cells[row.cells.length - 1].innerHTML += '<input type="button" onclick="capture_remove(\'all\')" class="cbi-button cbi-button-reset" value ="<%:Remove%>" />';
+	}
+
+	function update_status(xhr, json) {
+		capture_active = json.capture.active;
+		capture_name = json.capture.cap_name;
+		var in_use;
+		in_use = document.getElementById("tcpdump-message");
+		var msg = ""
+		if (json.cmd.hasOwnProperty("msg")) {
+			for (var i = 0; i < json.cmd.msg.length; i++) {
+				msg += json.cmd.msg[i] + "\n";
+			}
+		} else {
+			msg = json.capture.msg;
+		}
+		in_use.innerHTML = "<pre>" + msg + "</pre>";
+		in_use = document.getElementById("tcpdump-log");
+		if (capture_active) {
+			in_use.innerHTML = "<pre>" + json.capture.log + "</pre>";
+		} else {
+			in_use.innerHTML = ""
+		}
+		update_button()
+	}
+
+	function human_size(size) {
+		var units = ["B", "KiB", "MiB", "GiB"]
+		var unit_index = 0
+		while (size > 1024 && unit_index < 3) {
+			unit_index += 1
+			size /= 1024
+		}
+		return Math.round(size * 100) / 100 + " " + units[unit_index]
+	}
+
+	function human_date(date_seconds) {
+		var date = new Date(date_seconds * 1000)
+		return date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + " " +
+			date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+	}
+
+	function capture_get(type, cap_name) {
+		var iframe;
+		iframe = document.getElementById("hiddenDownloader");
+		if (iframe == null) {
+			iframe = document.createElement('iframe');
+			iframe.id = "hiddenDownloader";
+			iframe.style.visibility = 'hidden';
+			document.body.appendChild(iframe);
+		}
+		iframe.src = '<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>/capture_get/' + type + '/' + cap_name;
+	}
+
+	function capture_remove(cap_name) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "tcpdump")%>/capture_remove/' + cap_name, null, update_callback)
+	}
+
+	document.onload = update_poll();
+//]]></script>
+<%+footer%>
