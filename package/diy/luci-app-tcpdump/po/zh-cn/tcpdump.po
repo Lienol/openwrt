@@ -1,0 +1,107 @@
+msgid "Tcpdump"
+msgstr "Tcpdump 流量监控"
+
+msgid "Start network capture"
+msgstr "Tcpdump 流量监控"
+
+msgid "Interface"
+msgstr "捕获指定的接口"
+
+msgid "seconds, packets"
+msgstr "捕获限制"
+
+msgid "Filter"
+msgstr "过滤"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "any"
+msgstr "所有"
+
+msgid "timeout, bytes, seconds"
+msgstr "超时, 字节, 秒"
+
+msgid "seconds"
+msgstr "秒"
+
+msgid "packets"
+msgstr "数据包"
+
+msgid "Disabled"
+msgstr "已禁用"
+
+msgid "Output"
+msgstr "输出"
+
+msgid "Capture links"
+msgstr "捕获结果"
+
+msgid "Capture file"
+msgstr "文件名"
+
+msgid "Modification date"
+msgstr "停止时间"
+
+msgid "Capture size"
+msgstr "文件大小"
+
+msgid "Start capture"
+msgstr "开始捕获"
+
+msgid "Stop capture"
+msgstr "停止捕获"
+
+msgid "pcap file"
+msgstr ".pcap文件"
+
+msgid "filter file"
+msgstr ".filter文件"
+
+msgid "Remove"
+msgstr "删除"
+
+msgid "All files"
+msgstr "所有文件"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Interface name is null or blank."
+msgstr "请指定要捕获的接口."
+
+msgid "Interface does not exist or is not valid."
+msgstr "接口不存在或无效."
+
+msgid "Capture length parameter must be a number."
+msgstr "捕获长度参数必须是数字."
+
+msgid "Capture unit is null or blank."
+msgstr "捕获单位为空或空白."
+
+msgid "Capture unit must be Time(T) or packet(P)."
+msgstr "捕获单位必须是时间(T)或包(P)."
+
+msgid "Previous capture is still ongoing!"
+msgstr "先前的捕获未停止!"
+
+msgid "Capture in progress.."
+msgstr "正在捕获..."
+
+msgid "Capture has been terminated"
+msgstr "捕获已被终止"
+
+msgid "There was not active capture!"
+msgstr "捕获活动未运行!"
+
+msgid "Process seems to be dead, removing pid file!"
+msgstr "进程失去响应, 正在删除pid文件!"
+
+msgid "No capture in progress"
+msgstr "没有正在进行的捕获"
+
+msgid "Could not retrieve captures."
+msgstr "无法检索捕获."
+
+msgid "There are no captures available yet."
+msgstr "目前没有可用的捕获."
