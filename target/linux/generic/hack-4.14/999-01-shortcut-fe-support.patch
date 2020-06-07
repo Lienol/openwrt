@@ -1,0 +1,373 @@
+--- a/include/linux/skbuff.h	2019-01-16 20:16:08.325745306 +0800
++++ b/include/linux/skbuff.h	2019-01-16 20:31:47.288028493 +0800
+@@ -783,6 +783,9 @@ struct sk_buff {
+ 	__u8			tc_from_ingress:1;
+ #endif
+ 	__u8			gro_skip:1;
++#ifdef CONFIG_SHORTCUT_FE
++	__u8			fast_forwarded:1;
++#endif
+ 
+ #ifdef CONFIG_NET_SCHED
+ 	__u16			tc_index;	/* traffic control index */
+--- a/include/linux/if_bridge.h	2019-01-16 20:51:47.871445535 +0800
++++ b/include/linux/if_bridge.h	2019-01-16 20:52:26.220269649 +0800
+@@ -54,6 +54,8 @@ struct br_ip_list {
+ #define BR_DEFAULT_AGEING_TIME	(300 * HZ)
+ 
+ extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
++extern void br_dev_update_stats(struct net_device *dev,
++				struct rtnl_link_stats64 *nlstats);
+ 
+ typedef int br_should_route_hook_t(struct sk_buff *skb);
+ extern br_should_route_hook_t __rcu *br_should_route_hook;
+--- a/include/net/netns/conntrack.h	2019-01-16 21:58:50.867460999 +0800
++++ b/include/net/netns/conntrack.h	2019-01-16 22:00:24.139460999 +0800
+@@ -114,7 +114,11 @@ struct netns_ct {
+ 
+ 	struct ct_pcpu __percpu *pcpu_lists;
+ 	struct ip_conntrack_stat __percpu *stat;
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	struct atomic_notifier_head nf_conntrack_chain;
++#else
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
++#endif
+ 	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
+ 	struct nf_ip_net	nf_ct_proto;
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+--- a/include/net/netfilter/nf_conntrack_ecache.h	2019-01-16 20:58:03.131465663 +0800
++++ b/include/net/netfilter/nf_conntrack_ecache.h	2019-01-16 21:03:22.815469113 +0800
+@@ -71,6 +71,10 @@ struct nf_ct_event {
+ 	int report;
+ };
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++extern int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb);
++extern int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb);
++#else
+ struct nf_ct_event_notifier {
+ 	int (*fcn)(unsigned int events, struct nf_ct_event *item);
+ };
+@@ -79,6 +83,7 @@ int nf_conntrack_register_notifier(struc
+ 				   struct nf_ct_event_notifier *nb);
+ void nf_conntrack_unregister_notifier(struct net *net,
+ 				      struct nf_ct_event_notifier *nb);
++#endif
+ 
+ void nf_ct_deliver_cached_events(struct nf_conn *ct);
+ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
+@@ -87,11 +92,13 @@ int nf_conntrack_eventmask_report(unsign
+ static inline void
+ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
+-	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *e;
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return;
++#endif
+ 
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+@@ -104,10 +111,12 @@ static inline int
+ nf_conntrack_event_report(enum ip_conntrack_events event, struct nf_conn *ct,
+ 			  u32 portid, int report)
+ {
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	const struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return 0;
++#endif
+ 
+ 	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
+ }
+@@ -115,10 +124,12 @@ nf_conntrack_event_report(enum ip_conntr
+ static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	const struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return 0;
++#endif
+ 
+ 	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
+ }
+--- a/include/linux/timer.h
++++ b/include/linux/timer.h
+@@ -20,6 +20,9 @@ struct timer_list {
+ 	void			(*function)(unsigned long);
+ 	unsigned long		data;
+ 	u32			flags;
++#ifdef CONFIG_SHORTCUT_FE
++	unsigned long		cust_data;
++#endif
+ 
+ #ifdef CONFIG_LOCKDEP
+ 	struct lockdep_map	lockdep_map;
+--- a/net/Kconfig	2019-01-16 20:36:30.266465286 +0800
++++ b/net/Kconfig	2019-01-16 20:36:41.980609067 +0800
+@@ -463,3 +463,6 @@ config HAVE_CBPF_JIT
+ # Extended BPF JIT (eBPF)
+ config HAVE_EBPF_JIT
+ 	bool
++
++config SHORTCUT_FE
++	bool "Enables kernel network stack path for Shortcut  Forwarding Engine
+--- a/net/core/dev.c	2019-01-16 20:38:37.274933833 +0800
++++ b/net/core/dev.c	2019-01-16 20:44:07.773594898 +0800
+@@ -3001,8 +3001,17 @@ static int xmit_one(struct sk_buff *skb,
+ 	unsigned int len;
+ 	int rc;
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	/* If this skb has been fast forwarded then we don't want it to
++	 * go to any taps (by definition we're trying to bypass them).
++	 */
++	if (!skb->fast_forwarded) {
++#endif
+ 	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
+ 		dev_queue_xmit_nit(skb, dev);
++#ifdef CONFIG_SHORTCUT_FE
++	}
++#endif
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
+ 	if (!dev->eth_mangle_tx ||
+@@ -4315,6 +4324,11 @@ void netdev_rx_handler_unregister(struct
+ }
+ EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
+ 
++#ifdef CONFIG_SHORTCUT_FE
++int (*athrs_fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
++EXPORT_SYMBOL_GPL(athrs_fast_nat_recv);
++#endif
++
+ /*
+  * Limit the use of PFMEMALLOC reserves to those protocols that implement
+  * the special handling of PFMEMALLOC skbs.
+@@ -4362,6 +4376,9 @@ static int __netif_receive_skb_core(stru
+ 	bool deliver_exact = false;
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
++#ifdef CONFIG_SHORTCUT_FE
++	int (*fast_recv)(struct sk_buff *skb);
++#endif
+ 
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+@@ -4388,6 +4405,16 @@ another_round:
+ 			goto out;
+ 	}
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	fast_recv = rcu_dereference(athrs_fast_nat_recv);
++	if (fast_recv) {
++		if (fast_recv(skb)) {
++			ret = NET_RX_SUCCESS;
++			goto out;
++		}
++	}
++#endif
++
+ 	if (skb_skip_tc_classify(skb))
+ 		goto skip_classify;
+ 
+--- a/net/netfilter/nf_conntrack_proto_tcp.c	2019-01-16 20:47:40.886993297 +0800
++++ b/net/netfilter/nf_conntrack_proto_tcp.c	2019-01-16 20:48:57.700570104 +0800
+@@ -35,11 +35,17 @@
+ 
+ /* Do not check the TCP window for incoming packets  */
+ static int nf_ct_tcp_no_window_check __read_mostly = 1;
++#ifdef CONFIG_SHORTCUT_FE
++EXPORT_SYMBOL_GPL(nf_ct_tcp_no_window_check);
++#endif
+ 
+ /* "Be conservative in what you do,
+     be liberal in what you accept from others."
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+ static int nf_ct_tcp_be_liberal __read_mostly = 0;
++#ifdef CONFIG_SHORTCUT_FE
++EXPORT_SYMBOL_GPL(nf_ct_tcp_be_liberal);
++#endif
+ 
+ /* If it is set to zero, we disable picking up already established
+    connections. */
+--- a/net/bridge/br_if.c	2019-01-16 20:54:51.919367044 +0800
++++ b/net/bridge/br_if.c	2019-01-16 20:55:53.812401263 +0800
+@@ -653,3 +653,26 @@ void br_port_flags_change(struct net_bri
+ 	if (mask & BR_AUTO_MASK)
+ 		nbp_update_port_count(br);
+ }
++
++/* Update bridge statistics for bridge packets processed by offload engines */
++void br_dev_update_stats(struct net_device *dev,
++			 struct rtnl_link_stats64 *nlstats)
++{
++	struct net_bridge *br;
++	struct pcpu_sw_netstats *stats;
++
++	/* Is this a bridge? */
++	if (!(dev->priv_flags & IFF_EBRIDGE))
++		return;
++
++	br = netdev_priv(dev);
++	stats = this_cpu_ptr(br->stats);
++
++	u64_stats_update_begin(&stats->syncp);
++	stats->rx_packets += nlstats->rx_packets;
++	stats->rx_bytes += nlstats->rx_bytes;
++	stats->tx_packets += nlstats->tx_packets;
++	stats->tx_bytes += nlstats->tx_bytes;
++	u64_stats_update_end(&stats->syncp);
++}
++EXPORT_SYMBOL_GPL(br_dev_update_stats);
+--- a/net/netfilter/Kconfig	2019-01-16 21:07:34.543460920 +0800
++++ b/net/netfilter/Kconfig	2019-01-16 21:08:14.739465937 +0800
+@@ -146,6 +146,14 @@ config NF_CONNTRACK_TIMEOUT
+ 
+ 	  If unsure, say `N'.
+ 
++config NF_CONNTRACK_CHAIN_EVENTS
++	bool "Register multiple callbacks to ct events"
++	depends on NF_CONNTRACK_EVENTS
++	help
++	  Support multiple registrations.
++
++	  If unsure, say `N'.
++
+ config NF_CONNTRACK_TIMESTAMP
+ 	bool  'Connection tracking timestamping'
+ 	depends on NETFILTER_ADVANCED
+--- a/net/netfilter/nf_conntrack_core.c	2019-01-16 21:09:48.127465803 +0800
++++ b/net/netfilter/nf_conntrack_core.c	2019-01-16 21:10:33.915459745 +0800
+@@ -2249,6 +2249,11 @@ int nf_conntrack_init_net(struct net *ne
+ 	ret = nf_conntrack_proto_pernet_init(net);
+ 	if (ret < 0)
+ 		goto err_proto;
++
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	ATOMIC_INIT_NOTIFIER_HEAD(&net->ct.nf_conntrack_chain);
++#endif
++
+ 	return 0;
+
+ err_proto:
+--- a/net/netfilter/nf_conntrack_ecache.c	2019-01-16 21:12:22.183462975 +0800
++++ b/net/netfilter/nf_conntrack_ecache.c	2019-01-16 21:26:10.379462031 +0800
+@@ -18,6 +18,9 @@
+ #include <linux/stddef.h>
+ #include <linux/err.h>
+ #include <linux/percpu.h>
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++#include <linux/notifier.h>
++#endif
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/slab.h>
+@@ -122,13 +125,17 @@ int nf_conntrack_eventmask_report(unsign
+ {
+ 	int ret = 0;
+ 	struct net *net = nf_ct_net(ct);
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	struct nf_ct_event_notifier *notify;
++#endif
+ 	struct nf_conntrack_ecache *e;
+ 
+ 	rcu_read_lock();
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
+ 	if (!notify)
+ 		goto out_unlock;
++#endif
+ 
+ 	e = nf_ct_ecache_find(ct);
+ 	if (!e)
+@@ -146,7 +153,12 @@ int nf_conntrack_eventmask_report(unsign
+ 		if (!((eventmask | missed) & e->ctmask))
+ 			goto out_unlock;
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++		ret = atomic_notifier_call_chain(&net->ct.nf_conntrack_chain,
++			eventmask | missed, &item);
++#else
+ 		ret = notify->fcn(eventmask | missed, &item);
++#endif
+ 		if (unlikely(ret < 0 || missed)) {
+ 			spin_lock_bh(&ct->lock);
+ 			if (ret < 0) {
+@@ -179,15 +191,19 @@ void nf_ct_deliver_cached_events(struct
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	unsigned long events, missed;
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	struct nf_ct_event_notifier *notify;
++#endif
+ 	struct nf_conntrack_ecache *e;
+ 	struct nf_ct_event item;
+ 	int ret;
+ 
+ 	rcu_read_lock();
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+ 	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
+ 	if (notify == NULL)
+ 		goto out_unlock;
++#endif
+ 
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+@@ -210,7 +226,13 @@ void nf_ct_deliver_cached_events(struct
+ 	item.portid = 0;
+ 	item.report = 0;
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	ret = atomic_notifier_call_chain(&net->ct.nf_conntrack_chain,
++			events | missed,
++			&item);
++#else
+ 	ret = notify->fcn(events | missed, &item);
++#endif
+ 
+ 	if (likely(ret == 0 && !missed))
+ 		goto out_unlock;
+@@ -257,6 +279,12 @@ out_unlock:
+ 	rcu_read_unlock();
+ }
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&net->ct.nf_conntrack_chain, nb);
++}
++#else
+ int nf_conntrack_register_notifier(struct net *net,
+ 				   struct nf_ct_event_notifier *new)
+ {
+@@ -277,8 +305,15 @@ out_unlock:
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ 	return ret;
+ }
++#endif
+ EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&net->ct.nf_conntrack_chain, nb);
++}
++#else
+ void nf_conntrack_unregister_notifier(struct net *net,
+ 				      struct nf_ct_event_notifier *new)
+ {
+@@ -292,6 +327,7 @@ void nf_conntrack_unregister_notifier(st
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ 	/* synchronize_rcu() is called from ctnetlink_exit. */
+ }
++#endif
+ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ 
+ int nf_ct_expect_register_notifier(struct net *net,
