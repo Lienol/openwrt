@@ -17,7 +17,8 @@ ipq40xx_setup_interfaces()
 	alfa-network,ap120c-ac|\
 	engenius,emr3500|\
 	engenius,ens620ext)
-		ucidef_set_interfaces_lan_wan "eth0" "eth1"
+		ucidef_add_switch "switch0" \
+			"0t@eth0" "4:lan" "5:wan"
 		;;
 	aruba,ap-303|\
 	aruba,ap-365|\
