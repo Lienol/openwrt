@@ -1,5 +1,5 @@
 
 config flow
-	option flow_offloading '1'
+	option flow_offloading '0'
 	option flow_offloading_hw '0'
 	option bbr '0'
