@@ -1264,6 +1264,14 @@ dnsmasq_start()
 	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
 
 	procd_close_instance
+	
+	config_get_bool dns_redirect "$cfg" dns_redirect 0
+	config_get dns_port "$cfg" port 53
+	[ $dns_redirect = 1 ] && {
+		iptables -t nat -w -A PREROUTING -m comment --comment "Dnsmasq" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>/dev/null
+		ip6tables -t nat -w -A PREROUTING -m comment --comment "Dnsmasq" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>/dev/null
+		nft add rule inet fw4 dstnat ip protocol udp udp dport 53 redirect to 53 comment "Dnsmasq" 2>/dev/null
+	}
 }
 
 dnsmasq_stop()
@@ -1279,6 +1287,21 @@ dnsmasq_stop()
 	[ "$localuse" -gt 0 ] && ln -sf "/tmp/resolv.conf.d/resolv.conf.auto" /tmp/resolv.conf
 
 	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
+}
+
+iptables_clear()
+{
+	for ipt in "iptables -t nat -w" "ip6tables -t nat -w"; do
+		for i in $(seq 1 $($ipt -nL PREROUTING | grep -c "Dnsmasq")); do
+			local index=$($ipt --line-number -nL PREROUTING | grep "Dnsmasq" | head -1 | awk '{print $1}')
+			$ipt -D PREROUTING $index 2>/dev/null
+		done
+	done
+
+	local handles=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "Dnsmasq" | awk -F '# handle ' '{print$2}')
+	for handle in $handles; do
+		nft delete rule inet fw4 dstnat handle ${handle} 2>/dev/null
+	done
 }
 
 add_interface_trigger()
@@ -1352,6 +1375,7 @@ start_service() {
 }
 
 reload_service() {
+	iptables_clear
 	rc_procd start_service "$@"
 	procd_send_signal dnsmasq "$@"
 }
@@ -1378,4 +1402,5 @@ stop_service() {
 	else
 		config_foreach dnsmasq_stop dnsmasq
 	fi
+	iptables_clear
 }
