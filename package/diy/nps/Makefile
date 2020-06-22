@@ -7,8 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nps
-PKG_VERSION:=0.26.6
+PKG_VERSION:=v0.26.7
 PKG_RELEASE:=2
+
+GET_LATEST_VERSION:=$(shell curl --silent "https://api.github.com/repos/ehang-io/nps/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+ifneq ($(GET_LATEST_VERSION),)
+	PKG_VERSION:=$(GET_LATEST_VERSION)
+endif
 
 ifeq ($(ARCH),mipsel)
 	NPC_ARCH:=mipsle
@@ -37,7 +42,7 @@ endif
 
 PKG_LICENSE:=Apache-2.0
 PKG_BUILD_DIR:=$(BUILD_DIR)/nps-$(PKG_VERSION)
-PKG_URL:=https://github.com/ehang-io/nps/releases/download/v$(PKG_VERSION)/linux_$(NPC_ARCH)_server.tar.gz
+PKG_URL:=https://github.com/ehang-io/nps/releases/download/$(PKG_VERSION)/linux_$(NPC_ARCH)_server.tar.gz
 PKG_FILE:=$(PKG_NAME)_$(NPC_ARCH)_server-$(PKG_VERSION).tar.gz
 
 include $(INCLUDE_DIR)/package.mk
