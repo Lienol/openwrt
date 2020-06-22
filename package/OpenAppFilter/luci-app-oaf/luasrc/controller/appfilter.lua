@@ -24,10 +24,8 @@ function get_hostname_by_mac(dst_mac)
             break
         end
         local ts, mac, ip, name, duid = ln:match("^(%d+) (%S+) (%S+) (%S+) (%S+)")
-        print(ln)
         if  dst_mac == mac then
-            print("match mac", mac, "hostname=", name);
-			fd:close()
+            fd:close()
             return name
         end
     end
@@ -36,7 +34,7 @@ function get_hostname_by_mac(dst_mac)
 end
 
 function get_app_name_by_id(appid)
-	local class_fd = io.popen("find /etc/appfilter/ -type f -name *.class |xargs cat |grep "..appid.."|awk '{print $2}'")
+	local class_fd = io.popen("find /tmp/appfilter/ -type f -name *.class |xargs cat |grep "..appid.."|awk '{print $2}'")
 	if class_fd then
 		local name = class_fd:read("*l")
 		class_fd:close()
