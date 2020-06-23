@@ -4,7 +4,7 @@
 # r8125 is the Linux device driver released for Realtek 2.5Gigabit Ethernet
 # controllers with PCI-Express interface.
 #
-# Copyright(c) 2019 Realtek Semiconductor Corp. All rights reserved.
+# Copyright(c) 2020 Realtek Semiconductor Corp. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -31,55 +31,22 @@
  *  US6,570,884, US6,115,776, and US6,327,625.
  ***********************************************************************************/
 
-#ifndef _LINUX_RTLTOOL_H
-#define _LINUX_RTLTOOL_H
+//EEPROM opcodes
+#define RTL_EEPROM_READ_OPCODE      06
+#define RTL_EEPROM_WRITE_OPCODE     05
+#define RTL_EEPROM_ERASE_OPCODE     07
+#define RTL_EEPROM_EWEN_OPCODE      19
+#define RTL_EEPROM_EWDS_OPCODE      16
 
-#define SIOCRTLTOOL		SIOCDEVPRIVATE+1
+#define RTL_CLOCK_RATE  3
 
-enum rtl_cmd {
-        RTLTOOL_READ_MAC=0,
-        RTLTOOL_WRITE_MAC,
-        RTLTOOL_READ_PHY,
-        RTLTOOL_WRITE_PHY,
-        RTLTOOL_READ_EPHY,
-        RTLTOOL_WRITE_EPHY,
-        RTLTOOL_READ_ERI,
-        RTLTOOL_WRITE_ERI,
-        RTLTOOL_READ_PCI,
-        RTLTOOL_WRITE_PCI,
-        RTLTOOL_READ_EEPROM,
-        RTLTOOL_WRITE_EEPROM,
-
-        RTL_READ_OOB_MAC,
-        RTL_WRITE_OOB_MAC,
-
-        RTL_ENABLE_PCI_DIAG,
-        RTL_DISABLE_PCI_DIAG,
-
-        RTL_READ_MAC_OCP,
-        RTL_WRITE_MAC_OCP,
-
-        RTL_DIRECT_READ_PHY_OCP,
-        RTL_DIRECT_WRITE_PHY_OCP,
-
-        RTLTOOL_INVALID
-};
-
-struct rtltool_cmd {
-        __u32	cmd;
-        __u32	offset;
-        __u32	len;
-        __u32	data;
-};
-
-enum mode_access {
-        MODE_NONE=0,
-        MODE_READ,
-        MODE_WRITE
-};
-
-#ifdef __KERNEL__
-int rtl8125_tool_ioctl(struct rtl8125_private *tp, struct ifreq *ifr);
-#endif
-
-#endif /* _LINUX_RTLTOOL_H */
+void rtl8125_eeprom_type(struct rtl8125_private *tp);
+void rtl8125_eeprom_cleanup(struct rtl8125_private *tp);
+u16 rtl8125_eeprom_read_sc(struct rtl8125_private *tp, u16 reg);
+void rtl8125_eeprom_write_sc(struct rtl8125_private *tp, u16 reg, u16 data);
+void rtl8125_shift_out_bits(struct rtl8125_private *tp, int data, int count);
+u16 rtl8125_shift_in_bits(struct rtl8125_private *tp);
+void rtl8125_raise_clock(struct rtl8125_private *tp, u8 *x);
+void rtl8125_lower_clock(struct rtl8125_private *tp, u8 *x);
+void rtl8125_stand_by(struct rtl8125_private *tp);
+void rtl8125_set_eeprom_sel_low(struct rtl8125_private *tp);
