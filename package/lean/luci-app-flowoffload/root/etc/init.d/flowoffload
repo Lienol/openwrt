@@ -3,34 +3,15 @@
 
 START=60
 
-USE_PROCD=1
-
-service_triggers() {
-    procd_add_reload_trigger "flowoffload"
+start(){
+	bbr=$(uci get flowoffload.@flow[0].bbr 2>/dev/null)
+	if [ $bbr -eq 1 ];  then
+		sysctl -w net.ipv4.tcp_congestion_control=bbr
+	else
+		sysctl -w net.ipv4.tcp_congestion_control=cubic
+	fi
+	#uci set firewall.@defaults[0].flow_offloading=$(uci get flowoffload.@flow[0].flow_offloading)
+	#uci set firewall.@defaults[0].flow_offloading_hw=$(uci get flowoffload.@flow[0].flow_offloading_hw)
+	#uci commit firewall
+	/etc/init.d/firewall restart
 }
-
-start_service(){
-  bbr=$(uci get flowoffload.@flow[0].bbr 2>/dev/null)
-  if [ $bbr -eq 1 ];  then
-    sysctl -w net.ipv4.tcp_congestion_control=bbr
-  else
-    sysctl -w net.ipv4.tcp_congestion_control=cubic
-  fi
-  uci set firewall.@defaults[0].flow_offloading=$(uci get flowoffload.@flow[0].flow_offloading)
-  uci set firewall.@defaults[0].flow_offloading_hw=$(uci get flowoffload.@flow[0].flow_offloading_hw)
-  uci commit firewall
-}
-
-stop_service(){
-    uci set firewall.@defaults[0].flow_offloading=$(uci get flowoffload.@flow[0].flow_offloading)
-    uci set firewall.@defaults[0].flow_offloading_hw=$(uci get flowoffload.@flow[0].flow_offloading_hw)
-    uci commit firewall
-}
-
-restart(){
-    stop
-    start
-	/etc/init.d/dnsmasq restart && echo "DNSMASQ restart"
-    /etc/init.d/firewall restart
-}
-

@@ -15,11 +15,42 @@ flow.default = 0
 flow.rmempty = false
 flow.description = translate("Enable software flow offloading for connections. (decrease cpu load / increase routing throughput)")
 
+function flow.cfgvalue(...)
+	return m.uci:get("firewall", "@defaults[0]", "flow_offloading") or "0"
+end
+
+function flow.write(self, section, value)
+    m.uci:set("firewall", "@defaults[0]", "flow_offloading", value)
+    m.uci:commit("firewall")
+end
+
 hw = s:option(Flag, "flow_offloading_hw", translate("HWNAT"))
 hw.default = 0
 hw.rmempty = true
 hw.description = translate("Enable Hardware NAT (depends on hw capability like MTK 762x)")
 hw:depends("flow_offloading", 1)
+
+function hw.cfgvalue(...)
+	return m.uci:get("firewall", "@defaults[0]", "flow_offloading_hw") or "0"
+end
+
+function hw.write(self, section, value)
+    m.uci:set("firewall", "@defaults[0]", "flow_offloading_hw", value)
+    m.uci:commit("firewall")
+end
+
+o = s:option(Flag, "fullcone", translate("Enable FullCone-NAT"))
+o.default = 0
+o.rmempty = false
+
+function o.cfgvalue(...)
+	return m.uci:get("firewall", "@defaults[0]", "fullcone") or "0"
+end
+
+function o.write(self, section, value)
+    m.uci:set("firewall", "@defaults[0]", "fullcone", value)
+    m.uci:commit("firewall")
+end
 
 bbr = s:option(Flag, "bbr", translate("Enable BBR"))
 bbr.default = 0
