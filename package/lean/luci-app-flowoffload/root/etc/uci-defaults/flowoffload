@@ -1,8 +1,5 @@
 #!/bin/sh
 
-uci set firewall.@defaults[0].flow_offloading=0
-uci commit firewall
-
 uci -q batch <<-EOF >/dev/null
 	delete ucitrack.@flowoffload[-1]
 	add ucitrack flowoffload

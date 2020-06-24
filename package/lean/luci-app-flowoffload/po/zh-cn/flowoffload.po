@@ -13,6 +13,9 @@ msgstr "Linux Flow Offload Forwarding 转发加速引擎设置"
 msgid "Opensource Linux Flow Offload driver (Fast Path or HWNAT)"
 msgstr "开源 Linux Flow Offload 驱动 (支持 Fast Path 或者 HWNAT)"
 
+msgid "Running Status"
+msgstr "运行状态"
+
 msgid "Enable"
 msgstr "启用"
 
@@ -21,6 +24,9 @@ msgstr "开启 Flow Offloading 转发加速. (降低CPU占用 / 增强路由转�
 
 msgid "Enable Hardware NAT (depends on hw capability like MTK 762x)"
 msgstr "启用硬件HWNAT加速（依赖特定的硬件，例如 MTK 762x 系列）"
+
+msgid "Enable FullCone-NAT"
+msgstr "启用 FullCone-NAT"
 
 msgid "Enable BBR"
 msgstr "启用 BBR"
