@@ -1,12 +1,5 @@
 本源码生成的固件禁止使用在任何非法、商业用途！
 
-此分支使用git rebase 强推更新！
-
-应使用 `git pull --rebase` 而不是 `git pull` 来更新源码。
-
-合并冲突时，只需用 `git rebase --skip`删除提交。
-
-
 编译命令如下:
 -
 1. 首先装好 Ubuntu 64bit，推荐  Ubuntu  18 LTS x64
