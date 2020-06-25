@@ -24,7 +24,7 @@ fdisk kmod-usb-hid kmod-ath5k kmod-ath9k kmod-ath9k-htc kmod-ath10k kmod-rt2800-
 htop lm-sensors autocore automount autosamba ddns-scripts_aliyun ddns-scripts_dnspod ca-certificates \
 ath10k-firmware-qca988x ath10k-firmware-qca9888 ath10k-firmware-qca9984 brcmfmac-firmware-43602a1-pcie kmod-crypto-misc \
 alsa-utils kmod-ac97 kmod-sound-hda-core kmod-sound-hda-codec-realtek kmod-sound-hda-codec-via kmod-sound-via82xx kmod-usb-audio \
-kmod-usb-net kmod-usb-net-asix kmod-usb-net-asix-ax88179 kmod-usb-net-rtl8150 kmod-usb-net-rtl8152 \
+kmod-usb-net kmod-usb-net-asix kmod-usb-net-asix-ax88179 kmod-usb-net-ipheth kmod-usb-net-rndis kmod-usb-net-rtl8150 kmod-usb-net-rtl8152 \
 curl
 
 $(eval $(call BuildTarget))
