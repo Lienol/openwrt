@@ -172,7 +172,7 @@ define KernelPackage/eeprom-at24
   SUBMENU:=$(OTHER_MENU)
   TITLE:=EEPROM AT24 support
   KCONFIG:=CONFIG_EEPROM_AT24
-  DEPENDS:=+kmod-i2c-core +kmod-nvmem +LINUX_4_19:kmod-regmap-i2c
+  DEPENDS:=+kmod-i2c-core +!LINUX_5_4:kmod-nvmem +!(LINUX_4_9||LINUX_4_14):kmod-regmap-i2c
   FILES:=$(LINUX_DIR)/drivers/misc/eeprom/at24.ko
   AUTOLOAD:=$(call AutoProbe,at24)
 endef
@@ -701,7 +701,8 @@ define KernelPackage/serial-8250
   FILES:= \
 	$(LINUX_DIR)/drivers/tty/serial/8250/8250.ko \
 	$(LINUX_DIR)/drivers/tty/serial/8250/8250_base.ko@ge4.4 \
-	$(if $(CONFIG_PCI),$(LINUX_DIR)/drivers/tty/serial/8250/8250_pci.ko@ge4.4)
+	$(if $(CONFIG_PCI),$(LINUX_DIR)/drivers/tty/serial/8250/8250_pci.ko@ge4.4) \
+	$(if $(CONFIG_GPIOLIB),$(LINUX_DIR)/drivers/tty/serial/serial_mctrl_gpio.ko@ge5.3)
   AUTOLOAD:=$(call AutoProbe,8250 8250_base 8250_pci)
 endef
 
@@ -925,7 +926,7 @@ $(eval $(call KernelPackage,ptp-gianfar))
 define KernelPackage/ptp-qoriq
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Freescale QorIQ PTP support
-  DEPENDS:=@TARGET_mpc85xx +kmod-ptp @LINUX_4_19
+  DEPENDS:=@TARGET_mpc85xx +kmod-ptp @!(LINUX_4_9||LINUX_4_14)
   KCONFIG:=CONFIG_PTP_1588_CLOCK_QORIQ
   FILES:=$(LINUX_DIR)/drivers/ptp/ptp_qoriq.o
   AUTOLOAD:=$(call AutoProbe,ptp_qoriq)
@@ -1085,6 +1086,7 @@ $(eval $(call KernelPackage,bmp085-spi))
 define KernelPackage/tpm
   SUBMENU:=$(OTHER_MENU)
   TITLE:=TPM Hardware Support
+  DEPENDS:= +!(LINUX_4_9||LINUX_4_14):kmod-random-core
   KCONFIG:= CONFIG_TCG_TPM
   FILES:= $(LINUX_DIR)/drivers/char/tpm/tpm.ko
   AUTOLOAD:=$(call AutoLoad,10,tpm,1)
