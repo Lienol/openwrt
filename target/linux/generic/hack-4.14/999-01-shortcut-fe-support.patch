@@ -21,82 +21,6 @@
  
  typedef int br_should_route_hook_t(struct sk_buff *skb);
  extern br_should_route_hook_t __rcu *br_should_route_hook;
---- a/include/net/netns/conntrack.h	2019-01-16 21:58:50.867460999 +0800
-+++ b/include/net/netns/conntrack.h	2019-01-16 22:00:24.139460999 +0800
-@@ -114,7 +114,11 @@ struct netns_ct {
- 
- 	struct ct_pcpu __percpu *pcpu_lists;
- 	struct ip_conntrack_stat __percpu *stat;
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+	struct atomic_notifier_head nf_conntrack_chain;
-+#else
- 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
-+#endif
- 	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
- 	struct nf_ip_net	nf_ct_proto;
- #if defined(CONFIG_NF_CONNTRACK_LABELS)
---- a/include/net/netfilter/nf_conntrack_ecache.h	2019-01-16 20:58:03.131465663 +0800
-+++ b/include/net/netfilter/nf_conntrack_ecache.h	2019-01-16 21:03:22.815469113 +0800
-@@ -71,6 +71,10 @@ struct nf_ct_event {
- 	int report;
- };
- 
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+extern int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb);
-+extern int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb);
-+#else
- struct nf_ct_event_notifier {
- 	int (*fcn)(unsigned int events, struct nf_ct_event *item);
- };
-@@ -79,6 +83,7 @@ int nf_conntrack_register_notifier(struc
- 				   struct nf_ct_event_notifier *nb);
- void nf_conntrack_unregister_notifier(struct net *net,
- 				      struct nf_ct_event_notifier *nb);
-+#endif
- 
- void nf_ct_deliver_cached_events(struct nf_conn *ct);
- int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
-@@ -87,11 +92,13 @@ int nf_conntrack_eventmask_report(unsign
- static inline void
- nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
- {
--	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *e;
-+#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+	struct net *net = nf_ct_net(ct);
- 
- 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
- 		return;
-+#endif
- 
- 	e = nf_ct_ecache_find(ct);
- 	if (e == NULL)
-@@ -104,10 +111,12 @@ static inline int
- nf_conntrack_event_report(enum ip_conntrack_events event, struct nf_conn *ct,
- 			  u32 portid, int report)
- {
-+#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
- 	const struct net *net = nf_ct_net(ct);
- 
- 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
- 		return 0;
-+#endif
- 
- 	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
- }
-@@ -115,10 +124,12 @@ nf_conntrack_event_report(enum ip_conntr
- static inline int
- nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
- {
-+#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
- 	const struct net *net = nf_ct_net(ct);
- 
- 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
- 		return 0;
-+#endif
- 
- 	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
- }
 --- a/include/linux/timer.h
 +++ b/include/linux/timer.h
 @@ -20,6 +20,9 @@ struct timer_list {
@@ -243,32 +167,8 @@
  config NF_CONNTRACK_TIMESTAMP
  	bool  'Connection tracking timestamping'
  	depends on NETFILTER_ADVANCED
---- a/net/netfilter/nf_conntrack_core.c	2019-01-16 21:09:48.127465803 +0800
-+++ b/net/netfilter/nf_conntrack_core.c	2019-01-16 21:10:33.915459745 +0800
-@@ -2249,6 +2249,11 @@ int nf_conntrack_init_net(struct net *ne
- 	ret = nf_conntrack_proto_pernet_init(net);
- 	if (ret < 0)
- 		goto err_proto;
-+
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+	ATOMIC_INIT_NOTIFIER_HEAD(&net->ct.nf_conntrack_chain);
-+#endif
-+
- 	return 0;
-
- err_proto:
 --- a/net/netfilter/nf_conntrack_ecache.c	2019-01-16 21:12:22.183462975 +0800
 +++ b/net/netfilter/nf_conntrack_ecache.c	2019-01-16 21:26:10.379462031 +0800
-@@ -18,6 +18,9 @@
- #include <linux/stddef.h>
- #include <linux/err.h>
- #include <linux/percpu.h>
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+#include <linux/notifier.h>
-+#endif
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
- #include <linux/slab.h>
 @@ -122,13 +125,17 @@ int nf_conntrack_eventmask_report(unsign
  {
  	int ret = 0;
@@ -334,40 +234,3 @@
  
  	if (likely(ret == 0 && !missed))
  		goto out_unlock;
-@@ -257,6 +279,12 @@ out_unlock:
- 	rcu_read_unlock();
- }
- 
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_register(&net->ct.nf_conntrack_chain, nb);
-+}
-+#else
- int nf_conntrack_register_notifier(struct net *net,
- 				   struct nf_ct_event_notifier *new)
- {
-@@ -277,8 +305,15 @@ out_unlock:
- 	mutex_unlock(&nf_ct_ecache_mutex);
- 	return ret;
- }
-+#endif
- EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
- 
-+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-+int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_unregister(&net->ct.nf_conntrack_chain, nb);
-+}
-+#else
- void nf_conntrack_unregister_notifier(struct net *net,
- 				      struct nf_ct_event_notifier *new)
- {
-@@ -292,6 +327,7 @@ void nf_conntrack_unregister_notifier(st
- 	mutex_unlock(&nf_ct_ecache_mutex);
- 	/* synchronize_rcu() is called from ctnetlink_exit. */
- }
-+#endif
- EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
- int nf_ct_expect_register_notifier(struct net *net,
