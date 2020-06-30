@@ -11,10 +11,10 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=fullconenat
 PKG_RELEASE:=1
 
-PKG_SOURCE_DATE:=2019-10-21
+PKG_SOURCE_DATE:=2020-05-09
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Chion82/netfilter-full-cone-nat.git
-PKG_SOURCE_VERSION:=0cf3b48fd7d2fa81d0297d1fff12bbd0580fc435
+PKG_SOURCE_URL:=https://github.com/llccd/netfilter-full-cone-nat.git
+PKG_SOURCE_VERSION:=cc30ca6031ef5dca5bdb10cfd5ffc0c79425af9e
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=LICENSE
@@ -26,13 +26,27 @@ define Package/iptables-mod-fullconenat
   SECTION:=net
   CATEGORY:=Network
   TITLE:=FULLCONENAT iptables extension
-  DEPENDS:=+iptables +kmod-ipt-fullconenat
+  DEPENDS:=iptables +kmod-ipt-fullconenat
   MAINTAINER:=Chion Tang <tech@chionlab.moe>
 endef
 
 define Package/iptables-mod-fullconenat/install
 	$(INSTALL_DIR) $(1)/usr/lib/iptables
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/libipt_FULLCONENAT.so $(1)/usr/lib/iptables
+endef
+
+define Package/ip6tables-mod-fullconenat
+  SUBMENU:=Firewall
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=FULLCONENAT ip6tables extension
+  DEPENDS:=ip6tables +kmod-nf-nat6 +kmod-ipt-fullconenat
+  MAINTAINER:=Chion Tang <tech@chionlab.moe>
+endef
+
+define Package/ip6tables-mod-fullconenat/install
+	$(INSTALL_DIR) $(1)/usr/lib/iptables
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/libip6t_FULLCONENAT.so $(1)/usr/lib/iptables
 endef
 
 define KernelPackage/ipt-fullconenat
@@ -60,4 +74,5 @@ define Build/Compile
 endef
 
 $(eval $(call BuildPackage,iptables-mod-fullconenat))
+$(eval $(call BuildPackage,ip6tables-mod-fullconenat))
 $(eval $(call KernelPackage,ipt-fullconenat))
