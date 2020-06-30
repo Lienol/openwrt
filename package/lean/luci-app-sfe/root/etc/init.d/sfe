@@ -1,0 +1,47 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2007-2012 OpenWrt.org
+
+START=90
+
+USE_PROCD=1
+
+start_service() {
+	enable=$(uci get sfe.config.enabled 2>/dev/null)
+	wifi=$(uci get sfe.config.wifi)
+	ipv6=$(uci get sfe.config.ipv6)
+	bbr=$(uci get sfe.config.bbr 2>/dev/null)
+	
+	if [ $enable -eq 1 ]; then
+		! (lsmod | grep fast_classifier >/dev/null) && (modprobe fast_classifier)
+		if [ $wifi -eq 1 ] ;  then
+			echo 1 > /sys/fast_classifier/skip_to_bridge_ingress
+		else
+			echo 0 > /sys/fast_classifier/skip_to_bridge_ingress
+		fi
+		if [ $ipv6 -eq 1 ];  then
+			sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
+			[ ! -f /dev/sfe_ipv6 ] && mknod /dev/sfe_ipv6 c $sfe_ipv6 0
+		else
+			rm -f /dev/sfe_ipv6
+		fi
+	else
+		rmmod fast_classifier >/dev/null 2>&1 
+	fi
+	
+	if [ $bbr -eq 1 ];  then
+		sysctl -w net.ipv4.tcp_congestion_control=bbr
+	else
+		sysctl -w net.ipv4.tcp_congestion_control=cubic
+	fi
+	/etc/init.d/firewall restart
+}
+
+stop_service(){
+	enable=$(uci get sfe.config.enabled 2>/dev/null)
+	[ $enable -ne 1 ] && rmmod fast_classifier >/dev/null 2>&1
+}
+
+restart(){
+	stop
+	start
+}
