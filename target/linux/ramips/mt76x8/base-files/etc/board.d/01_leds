@@ -23,6 +23,7 @@ alfa-network,awusfree1)
 asus,rt-n10p-v3|\
 asus,rt-n11p-b1|\
 asus,rt-n12-vp-b1|\
+netgear,r6080|\
 netgear,r6120)
 	ucidef_set_led_switch "lan" "lan" "$boardname:green:lan" "switch0" "0xf"
 	ucidef_set_led_switch "wan" "wan" "$boardname:green:wan" "switch0" "0x10"
@@ -123,6 +124,10 @@ wavlink,wl-wn575a3)
 	ucidef_set_led_rssi "wifi-low" "wifi-low" "$boardname:green:wifi-low" "wlan1" "1" "49"
 	ucidef_set_led_rssi "wifi-med" "wifi-med" "$boardname:green:wifi-med" "wlan1" "50" "84"
 	ucidef_set_led_rssi "wifi-high" "wifi-high" "$boardname:green:wifi-high" "wlan1" "85" "100"
+	;;
+wavlink,wl-wn577a2)
+	ucidef_set_led_switch "lan" "lan" "$boardname:green:lan" "switch0" "0x8"
+	ucidef_set_led_switch "wan" "wan" "$boardname:green:wan" "switch0" "0x10"
 	;;
 zbtlink,zbt-we1226)
 	set_wifi_led "$boardname:green:wlan"
