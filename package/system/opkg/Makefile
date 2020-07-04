@@ -25,7 +25,6 @@ PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 
 # Extend depends from version.mk
 PKG_CONFIG_DEPENDS += \
-	CONFIG_SIGNATURE_CHECK \
 	CONFIG_TARGET_INIT_PATH
 
 PKG_BUILD_PARALLEL:=1
