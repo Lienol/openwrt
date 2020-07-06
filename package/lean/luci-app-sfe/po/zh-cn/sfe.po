@@ -13,6 +13,9 @@ msgstr "SFE 转发加速引擎设置"
 msgid "Opensource Qualcomm Shortcut FE driver (Fast Path)"
 msgstr "来自高通开源的 Shortcut FE 转发加速引擎 (Fast Path)"
 
+msgid "Running Status"
+msgstr "运行状态"
+
 msgid "Enable"
 msgstr "启用"
 
