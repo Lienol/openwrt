@@ -13,6 +13,9 @@ msgstr "Linux Flow Offload Forwarding 转发加速引擎设置"
 msgid "Opensource Linux Flow Offload driver (Fast Path or HWNAT)"
 msgstr "开源 Linux Flow Offload 驱动 (支持 Fast Path 或者 HWNAT)"
 
+msgid "Running Status"
+msgstr "运行状态"
+
 msgid "Enable"
 msgstr "启用"
 
