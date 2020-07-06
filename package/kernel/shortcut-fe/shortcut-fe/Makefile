@@ -17,10 +17,6 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=shortcut-fe
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/shortcut-fe
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=c7dd8173b178affc9d8da22f51610243be994e1c
-
 include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/shortcut-fe
@@ -29,7 +25,7 @@ define KernelPackage/shortcut-fe
   SUBMENU:=Network Support
   DEPENDS:=
   TITLE:=Kernel driver for SFE
-  FILES:=$(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe.ko $(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe-ipv6.ko
+  FILES:=$(PKG_BUILD_DIR)/shortcut-fe.ko $(PKG_BUILD_DIR)/shortcut-fe-ipv6.ko
   KCONFIG:=CONFIG_NF_CONNTRACK_EVENTS=y \
 	   CONFIG_NF_CONNTRACK_TIMEOUT=y \
 	   CONFIG_SHORTCUT_FE=y \
@@ -54,7 +50,7 @@ define KernelPackage/shortcut-fe-cm
   SUBMENU:=Network Support
   DEPENDS:=+kmod-ipt-conntrack +kmod-shortcut-fe
   TITLE:=Kernel driver for SFE
-  FILES:=$(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe-cm.ko
+  FILES:=$(PKG_BUILD_DIR)/shortcut-fe-cm.ko
   KCONFIG:=CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
 endef
 
@@ -65,10 +61,10 @@ endef
 EXTRA_CFLAGS+=-DSFE_SUPPORT_IPV6
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
-		M="$(PKG_BUILD_DIR)/shortcut-fe" \
+		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		SFE_SUPPORT_IPV6=1 \
 		modules
@@ -77,7 +73,7 @@ endef
 ifneq ($(CONFIG_PACKAGE_kmod-shortcut-fe)$(CONFIG_PACKAGE_kmod-shortcut-fe-cm),)
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/shortcut-fe
-	$(CP) -rf $(PKG_BUILD_DIR)/shortcut-fe/sfe.h $(1)/usr/include/shortcut-fe
+	$(CP) -rf $(PKG_BUILD_DIR)/sfe.h $(1)/usr/include/shortcut-fe
 endef
 endif
 

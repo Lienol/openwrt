@@ -4,10 +4,6 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=fast-classifier
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=https://source.codeaurora.org/quic/qsdk/oss/lklm/shortcut-fe
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=c7dd8173b178affc9d8da22f51610243be994e1c
-
 include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/$(PKG_NAME)/Default
@@ -16,9 +12,8 @@ define KernelPackage/$(PKG_NAME)/Default
   SUBMENU:=Network Support
   DEPENDS:=+kmod-ipt-conntrack +kmod-shortcut-fe
   TITLE:=Kernel driver for FAST Classifier
-  FILES:=$(PKG_BUILD_DIR)/fast-classifier/fast-classifier.ko
-  KCONFIG:=CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y \
-	   CONFIG_NF_CONNTRACK_MARK=y
+  FILES:=$(PKG_BUILD_DIR)/fast-classifier.ko
+  KCONFIG:=CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y CONFIG_NF_CONNTRACK_MARK=y
   PROVIDES:=$(PKG_NAME)
 endef
 
@@ -57,22 +52,22 @@ endef
 SFE_MAKE_OPTS:=SFE_SUPPORT_IPV6=y
 
 define Build/Compile/kmod
-	$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(SFE_MAKE_OPTS)) \
-		CONFIG_FAST_CLASSIFIER=m \
+	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" $(strip $(SFE_MAKE_OPTS)) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_MAKE_FLAGS) \
-		M="$(PKG_BUILD_DIR)/fast-classifier" \
+		M="$(PKG_BUILD_DIR)" \
+		CONFIG_FAST_CLASSIFIER=m \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		modules
 endef
 
 define Build/Compile/example
 	$(TARGET_CC) -o $(PKG_BUILD_DIR)/userspace_fast_classifier \
-		-I $(PKG_BUILD_DIR)/fast-classifier \
+		-I $(PKG_BUILD_DIR) \
 		-I$(STAGING_DIR)/usr/include/libnl \
 		-I$(STAGING_DIR)/usr/include/libnl3 \
 		-lnl-genl-3 -lnl-3 \
-		$(PKG_BUILD_DIR)/fast-classifier/nl_classifier_test.c
+		$(PKG_BUILD_DIR)/nl_classifier_test.c
 endef
 
 define Build/Compile
@@ -82,7 +77,7 @@ endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_BUILD_DIR)/fast-classifier/fast-classifier.h $(1)/usr/include/
+	$(CP) $(PKG_BUILD_DIR)/fast-classifier.h $(1)/usr/include/
 endef
 
 
