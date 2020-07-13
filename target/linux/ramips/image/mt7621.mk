@@ -7,7 +7,7 @@ include ./common-tp-link.mk
 DEFAULT_SOC := mt7621
 
 KERNEL_DTB += -d21
-DEVICE_VARS += UIMAGE_MAGIC SERCOMM_HWNAME
+DEVICE_VARS += UIMAGE_MAGIC
 
 # The OEM webinterface expects an kernel with initramfs which has the uImage
 # header field ih_name.
@@ -79,11 +79,6 @@ define Build/iodata-mstc-header
 		echo -ne "$$(echo $$header_crc | sed 's/../\\x&/g')" | \
 			dd of=$@ bs=4 count=1 seek=1 conv=notrunc 2>/dev/null; \
 	)
-endef
-
-define Build/mitrastarimage
-	uimage_padhdr -l 160 -i $@ -o $@.new
-	mv $@.new $@
 endef
 
 define Build/ubnt-erx-factory-image
@@ -1146,7 +1141,7 @@ define Device/zyxel_wap6805
   DEVICE_VENDOR := ZyXEL
   DEVICE_MODEL := WAP6805
   DEVICE_PACKAGES := kmod-mt7603 wpad-basic kmod-mt7621-qtn-rgmii
-  KERNEL := $(KERNEL_DTB) | uImage lzma | mitrastarimage
+  KERNEL := $(KERNEL_DTB) | uImage lzma | uimage-padhdr 160
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += zyxel_wap6805

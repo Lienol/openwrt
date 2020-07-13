@@ -11,7 +11,7 @@ DEVICE_VARS += LOADER_TYPE
 DEVICE_VARS += NETGEAR_BOARD_ID NETGEAR_HW_ID
 DEVICE_VARS += BUFFALO_TAG_PLATFORM BUFFALO_TAG_VERSION BUFFALO_TAG_MINOR
 DEVICE_VARS += SEAMA_SIGNATURE SEAMA_MTDBLOCK
-DEVICE_VARS += SERCOMM_HWID SERCOMM_HWVER SERCOMM_SWVER
+DEVICE_VARS += SERCOMM_HWNAME SERCOMM_HWID SERCOMM_HWVER SERCOMM_SWVER
 DEVICE_VARS += JCG_MAXSIZE
 
 loadaddr-y := 0x80000000
@@ -49,11 +49,6 @@ define Build/elx-header
 	cat $(KDIR)/tmp/$(DEVICE_NAME).header $@ > $@.new
 	mv $@.new $@
 	rm -rf $(KDIR)/tmp/$(DEVICE_NAME).header
-endef
-
-define Build/fonfxcimage
-	uimage_padhdr -i $@ -o $@.new
-	mv $@.new $@
 endef
 
 define Build/jcg-header
@@ -149,6 +144,11 @@ define Build/trx
 		-m $$(($(subst k, * 1024,$(IMAGE_SIZE)))) \
 		-f $(IMAGE_KERNEL) \
 		-a 4 -f $(IMAGE_ROOTFS)
+endef
+
+define Build/uimage-padhdr
+	uimage_padhdr $(if $(1),-l $(1)) -i $@ -o $@.new
+	mv $@.new $@
 endef
 
 define Build/umedia-header
