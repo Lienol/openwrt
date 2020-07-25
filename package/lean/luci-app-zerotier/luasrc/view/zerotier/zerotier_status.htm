@@ -1,5 +1,5 @@
 <script type="text/javascript">//<![CDATA[
-XHR.poll(3, '<%=url([[admin]], [[vpn]], [[zerotier]], [[status]])%>', null,
+XHR.poll(3, '<%=url([[admin]], [[network]], [[zerotier]], [[status]])%>', null,
 	function(x, data) {
 		var tb = document.getElementById('zerotier_status');
 		if (data && tb) {
