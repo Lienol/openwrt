@@ -113,7 +113,7 @@ endef
 
 define Package/ppp-mod-pptp
 $(call Package/ppp/Default)
-  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +kmod-pptp +kmod-mppe +resolveip
+  DEPENDS:=@(PACKAGE_ppp||PACKAGE_ppp-multilink) +kmod-pptp +kmod-mppe +resolveip +kmod-nf-nathelper-extra +kmod-gre +kmod-ipt-conntrack-extra +kmod-ipt-nat-extra +iptables-mod-conntrack-extra
   TITLE:=PPtP plugin
 endef
 
