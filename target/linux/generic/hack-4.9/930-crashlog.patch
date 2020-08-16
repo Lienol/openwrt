@@ -41,7 +41,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
 +#endif
 --- a/init/Kconfig
 +++ b/init/Kconfig
-@@ -1298,6 +1298,10 @@ config RELAY
+@@ -1299,6 +1299,10 @@ config RELAY
  
  	  If unsure, say N.
  
@@ -54,7 +54,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	depends on BROKEN || !FRV
 --- a/kernel/Makefile
 +++ b/kernel/Makefile
-@@ -114,6 +114,7 @@ obj-$(CONFIG_TORTURE_TEST) += torture.o
+@@ -110,6 +110,7 @@ obj-$(CONFIG_TORTURE_TEST) += torture.o
  obj-$(CONFIG_MEMBARRIER) += membarrier.o
  
  obj-$(CONFIG_HAS_IOMEM) += memremap.o
