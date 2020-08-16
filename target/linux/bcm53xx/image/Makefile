@@ -139,13 +139,13 @@ define Device/Default
   IMAGE/trx := append-ubi | trx-nand
 endef
 
-define Device/phicomm_k3
+define Device/phicomm-k3
   DEVICE_VENDOR := PHICOMM
   DEVICE_MODEL := K3
   DEVICE_PACKAGES := $(BRCMFMAC_4366C0) $(USB3_PACKAGES) k3screenctrl
   IMAGES := trx
 endef
-TARGET_DEVICES += phicomm_k3
+TARGET_DEVICES += phicomm-k3
 
 define Device/asus
   DEVICE_VENDOR := ASUS
