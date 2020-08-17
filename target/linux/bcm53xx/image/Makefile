@@ -434,7 +434,7 @@ define Device/tplink_archer-c5-v2
   TPLINK_BOARD := ARCHER-C5-V2
   BROKEN := y
 endef
-TARGET_DEVICES += tplink_archer-c5-v2
+#TARGET_DEVICES += tplink_archer-c5-v2
 
 define Device/tplink_archer-c9-v1
   DEVICE_VENDOR := TP-Link
@@ -446,6 +446,6 @@ define Device/tplink_archer-c9-v1
   TPLINK_BOARD := ARCHERC9
   BROKEN := y
 endef
-TARGET_DEVICES += tplink_archer-c9-v1
+#TARGET_DEVICES += tplink_archer-c9-v1
 
 $(eval $(call BuildImage))
