@@ -34,7 +34,7 @@ define Package/uclient-fetch
   TITLE:=Tiny wget replacement using libuclient
   ALTERNATIVES:=200:/usr/bin/wget:/bin/uclient-fetch
   PROVIDES:=wget
-  DEPENDS:=+libuclient
+  DEPENDS:=+libuclient +ca-bundle +ca-certificates +libustream-wolfssl
 endef
 
 define Package/libuclient/install
