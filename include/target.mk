@@ -10,7 +10,7 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd urandom-seed urngd luci luci-compat wget-ssl curl \
+DEFAULT_PACKAGES:=base-files busybox ca-bundle ca-certificates dropbear fstools libc libgcc logd libustream-wolfssl mtd netifd opkg uci uclient-fetch urandom-seed urngd luci luci-compat wget-ssl curl \
 default-settings \
 luci-app-ddns ddns-scripts-cloudflare ddns-scripts_aliyun ddns-scripts_dnspod \
 luci-app-upnp luci-app-wol luci-app-vlmcsd luci-app-ramfree \
