@@ -6,7 +6,7 @@ include ./common-yuncore.mk
 DEVICE_VARS += ADDPATTERN_ID ADDPATTERN_VERSION
 DEVICE_VARS += SEAMA_SIGNATURE SEAMA_MTDBLOCK
 DEVICE_VARS += KERNEL_INITRAMFS_PREFIX
-DEVICE_VARS += DAP_SIGNATURE
+DEVICE_VARS += DAP_SIGNATURE ENGENIUS_IMGNAME
 
 define Build/add-elecom-factory-initramfs
   $(eval edimax_model=$(word 1,$(1)))
@@ -48,6 +48,23 @@ define Build/cybertan-trx
 		-x 32 -a 0x10000 -x -32 -f $@
 	-mv "$@.new" "$@"
 	-rm $@-empty.bin
+endef
+
+# This needs to make /tmp/_sys/sysupgrade.tgz an empty file prior to
+# sysupgrade, as otherwise it will implant the old configuration from
+# OEM firmware when writing rootfs from factory.bin
+define Build/engenius-tar-gz
+	-[ -f "$@" ] && \
+	mkdir -p $@.tmp && \
+	echo '#!/bin/sh' > $@.tmp/before-upgrade.sh && \
+	echo ': > /tmp/_sys/sysupgrade.tgz' >> $@.tmp/before-upgrade.sh && \
+	$(CP) $(KDIR)/loader-$(DEVICE_NAME).uImage \
+		$@.tmp/openwrt-$(word 1,$(1))-uImage-lzma.bin && \
+	$(CP) $@ $@.tmp/openwrt-$(word 1,$(1))-root.squashfs && \
+	$(TAR) -cp --numeric-owner --owner=0 --group=0 --mode=a-s --sort=name \
+		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") \
+		-C $@.tmp . | gzip -9n > $@ && \
+	rm -rf $@.tmp
 endef
 
 define Build/mkdapimg2
@@ -210,6 +227,15 @@ define Device/alfa-network_ap121f
 endef
 TARGET_DEVICES += alfa-network_ap121f
 
+define Device/allnet_all-wap02860ac
+  SOC := qca9558
+  DEVICE_VENDOR := ALLNET
+  DEVICE_MODEL := ALL-WAP02860AC
+  DEVICE_PACKAGES := ath10k-firmware-qca988x-ct kmod-ath10k-ct
+  IMAGE_SIZE := 13120k
+endef
+TARGET_DEVICES += allnet_all-wap02860ac
+
 define Device/arduino_yun
   SOC := ar9331
   DEVICE_VENDOR := Arduino
@@ -367,7 +393,7 @@ define Device/comfast_cf-e110n-v2
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E110N
   DEVICE_VARIANT := v2
-  DEVICE_PACKAGES := rssileds kmod-leds-gpio -swconfig -uboot-envtools
+  DEVICE_PACKAGES := rssileds -swconfig -uboot-envtools
   IMAGE_SIZE := 16192k
 endef
 TARGET_DEVICES += comfast_cf-e110n-v2
@@ -377,7 +403,7 @@ define Device/comfast_cf-e120a-v3
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E120A
   DEVICE_VARIANT := v3
-  DEVICE_PACKAGES := rssileds kmod-leds-gpio -uboot-envtools
+  DEVICE_PACKAGES := rssileds -uboot-envtools
   IMAGE_SIZE := 8000k
 endef
 TARGET_DEVICES += comfast_cf-e120a-v3
@@ -387,7 +413,7 @@ define Device/comfast_cf-e130n-v2
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E130N
   DEVICE_VARIANT := v2
-  DEVICE_PACKAGES := rssileds kmod-leds-gpio -swconfig -uboot-envtools
+  DEVICE_PACKAGES := rssileds -swconfig -uboot-envtools
   IMAGE_SIZE := 7936k
 endef
 TARGET_DEVICES += comfast_cf-e130n-v2
@@ -396,7 +422,7 @@ define Device/comfast_cf-e313ac
   SOC := qca9531
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E313AC
-  DEVICE_PACKAGES := rssileds kmod-leds-gpio kmod-ath10k-ct-smallbuffers \
+  DEVICE_PACKAGES := rssileds kmod-ath10k-ct-smallbuffers \
 	ath10k-firmware-qca9888-ct -swconfig -uboot-envtools
   IMAGE_SIZE := 7936k
 endef
@@ -416,8 +442,8 @@ define Device/comfast_cf-e5
   SOC := qca9531
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E5/E7
-  DEVICE_PACKAGES := rssileds kmod-leds-gpio kmod-usb2 kmod-usb-net \
-	kmod-usb-net-qmi-wwan -swconfig -uboot-envtools
+  DEVICE_PACKAGES := rssileds kmod-usb2 kmod-usb-net-qmi-wwan -swconfig \
+	-uboot-envtools
   IMAGE_SIZE := 16192k
 endef
 TARGET_DEVICES += comfast_cf-e5
@@ -426,8 +452,7 @@ define Device/comfast_cf-e560ac
   SOC := qca9531
   DEVICE_VENDOR := COMFAST
   DEVICE_MODEL := CF-E560AC
-  DEVICE_PACKAGES := kmod-leds-gpio kmod-usb2 kmod-ath10k-ct \
-	ath10k-firmware-qca9888-ct
+  DEVICE_PACKAGES := kmod-usb2 kmod-ath10k-ct ath10k-firmware-qca9888-ct
   IMAGE_SIZE := 16128k
 endef
 TARGET_DEVICES += comfast_cf-e560ac
@@ -797,6 +822,44 @@ define Device/engenius_ecb1750
 endef
 TARGET_DEVICES += engenius_ecb1750
 
+define Device/engenius_loader_okli
+  DEVICE_VENDOR := EnGenius
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma -M 0x4f4b4c49
+  LOADER_TYPE := bin
+  COMPILE := loader-$(1).bin loader-$(1).uImage
+  COMPILE/loader-$(1).bin := loader-okli-compile
+  COMPILE/loader-$(1).uImage := append-loader-okli $(1) | pad-to 64k | lzma | \
+	uImage lzma
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-squashfs-fakeroot-be | pad-to $$$$(BLOCKSIZE) | \
+	append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | \
+	check-size | engenius-tar-gz $$$$(ENGENIUS_IMGNAME)
+endef
+
+define Device/engenius_enh202-v1
+  $(Device/engenius_loader_okli)
+  SOC := ar7240
+  DEVICE_MODEL := ENH202
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := rssileds
+  IMAGE_SIZE := 4864k
+  LOADER_FLASH_OFFS := 0x1b0000
+  ENGENIUS_IMGNAME := senao-enh202
+endef
+TARGET_DEVICES += engenius_enh202-v1
+
+define Device/engenius_ens202ext-v1
+  $(Device/engenius_loader_okli)
+  SOC := ar9341
+  DEVICE_MODEL := ENS202EXT
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := rssileds
+  IMAGE_SIZE := 12032k
+  LOADER_FLASH_OFFS := 0x230000
+  ENGENIUS_IMGNAME := senao-ens202ext
+endef
+TARGET_DEVICES += engenius_ens202ext-v1
+
 define Device/engenius_epg5000
   SOC := qca9558
   DEVICE_VENDOR := EnGenius
@@ -930,7 +993,7 @@ define Device/iodata_etg3-r
   DEVICE_VENDOR := I-O DATA
   DEVICE_MODEL := ETG3-R
   IMAGE_SIZE := 7680k
-  DEVICE_PACKAGES := -iwinfo -kmod-ath9k -wpad-basic
+  DEVICE_PACKAGES := -iwinfo -kmod-ath9k -wpad-basic-wolfssl
 endef
 TARGET_DEVICES += iodata_etg3-r
 
@@ -990,7 +1053,7 @@ define Device/jjplus_ja76pf2
   SOC := ar7161
   DEVICE_VENDOR := jjPlus
   DEVICE_MODEL := JA76PF2
-  DEVICE_PACKAGES += -kmod-ath9k -swconfig -wpad-mini -uboot-envtools fconfig
+  DEVICE_PACKAGES += -kmod-ath9k -swconfig -wpad-basic-wolfssl -uboot-envtools fconfig
   IMAGES := kernel.bin rootfs.bin
   IMAGE/kernel.bin := append-kernel
   IMAGE/rootfs.bin := append-rootfs | pad-rootfs
@@ -1010,6 +1073,22 @@ define Device/librerouter_librerouter-v1
   DEVICE_PACKAGES := kmod-usb2
 endef
 TARGET_DEVICES += librerouter_librerouter-v1
+
+define Device/meraki_mr16
+  SOC := ar7161
+  DEVICE_VENDOR := Meraki
+  DEVICE_MODEL := MR16
+  IMAGE_SIZE := 15616k
+  DEVICE_PACKAGES := kmod-owl-loader
+  SUPPORTED_DEVICES += mr16
+  DEVICE_COMPAT_VERSION := 2.0
+  DEVICE_COMPAT_MESSAGE := Partitions differ from ar71xx version of MR16. Image format is incompatible. \
+	To use sysupgrade, you must change /lib/update/common.sh::get_image to prepend 128K zeroes to this image, \
+	and change the bootcmd in u-boot to "bootm 0xbf0a0000". After that, you can use "sysupgrade -F". \
+	For more details, see the OpenWrt Wiki: https://openwrt.org/toh/meraki/mr16, \
+	or the commit message of the MR16 ath79 port on git.openwrt.org.
+endef
+TARGET_DEVICES += meraki_mr16
 
 define Device/nec_wg1200cr
   SOC := qca9563
@@ -1042,6 +1121,7 @@ endef
 TARGET_DEVICES += nec_wg800hp
 
 define Device/netgear_ex6400_ex7300
+  $(Device/netgear_generic)
   SOC := qca9558
   NETGEAR_KERNEL_MAGIC := 0x27051956
   NETGEAR_BOARD_ID := EX7300series
@@ -1049,8 +1129,11 @@ define Device/netgear_ex6400_ex7300
   IMAGE_SIZE := 15552k
   IMAGE/default := append-kernel | pad-offset $$$$(BLOCKSIZE) 64 | \
 	netgear-rootfs | pad-rootfs
+  IMAGE/sysupgrade.bin := $$(IMAGE/default) | append-metadata | \
+	check-size
+  IMAGE/factory.img := $$(IMAGE/default) | netgear-dni | \
+	check-size
   DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca99x0-ct
-  $(Device/netgear_ath79)
 endef
 
 define Device/netgear_ex6400
@@ -1066,12 +1149,10 @@ endef
 TARGET_DEVICES += netgear_ex7300
 
 define Device/netgear_wndr3x00
+  $(Device/netgear_generic)
   SOC := ar7161
-  IMAGE/default := append-kernel | pad-to $$$$(BLOCKSIZE) | netgear-squashfs | \
-	append-rootfs | pad-rootfs
   DEVICE_PACKAGES := kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
 	kmod-leds-reset kmod-owl-loader
-  $(Device/netgear_ath79)
 endef
 
 define Device/netgear_wndr3700
@@ -1147,14 +1228,12 @@ endef
 TARGET_DEVICES += netgear_wndrmac-v2
 
 define Device/netgear_wnr2200_common
+  $(Device/netgear_generic)
   SOC := ar7241
   DEVICE_MODEL := WNR2200
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
   NETGEAR_KERNEL_MAGIC := 0x32323030
   NETGEAR_BOARD_ID := wnr2200
-  IMAGE/default := append-kernel | pad-to $$$$(BLOCKSIZE) | netgear-squashfs | \
-	append-rootfs | pad-rootfs
-  $(Device/netgear_ath79)
 endef
 
 define Device/netgear_wnr2200-8m
@@ -1368,6 +1447,17 @@ define Device/sitecom_wlr-8100
 endef
 TARGET_DEVICES += sitecom_wlr-8100
 
+define Device/telco_t1
+  SOC := qca9531
+  DEVICE_VENDOR := Telco
+  DEVICE_MODEL := T1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-net-qmi-wwan \
+	kmod-usb-serial-option uqmi -swconfig -uboot-envtools
+  IMAGE_SIZE := 16192k
+  SUPPORTED_DEVICES += telco_electronics,tel-t1
+endef
+TARGET_DEVICES += telco_t1
+
 define Device/teltonika_rut955
   SOC := ar9344
   DEVICE_VENDOR := Teltonika
@@ -1500,3 +1590,20 @@ define Device/zbtlink_zbt-wd323
 	kmod-usb-serial kmod-usb-serial-cp210x uqmi
 endef
 TARGET_DEVICES += zbtlink_zbt-wd323
+
+define Device/zyxel_nbg6616
+  SOC := qca9557
+  DEVICE_VENDOR := ZyXEL
+  DEVICE_MODEL := NBG6616
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport kmod-rtc-pcf8563 \
+	kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  IMAGE_SIZE := 15232k
+  RAS_BOARD := NBG6616
+  RAS_ROOTFS_SIZE := 14464k
+  RAS_VERSION := "OpenWrt Linux-$(LINUX_VERSION)"
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | pad-to 64k | check-size | zyxel-ras-image
+  SUPPORTED_DEVICES += nbg6616
+endef
+TARGET_DEVICES += zyxel_nbg6616

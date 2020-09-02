@@ -234,12 +234,29 @@ endef
 $(eval $(foreach S,$(JFFS2_BLOCKSIZE),$(call Image/mkfs/jffs2/template,$(S))))
 $(eval $(foreach S,$(NAND_BLOCKSIZE),$(call Image/mkfs/jffs2-nand/template,$(S))))
 
-define Image/mkfs/squashfs
+define Image/mkfs/squashfs-common
 	$(STAGING_DIR_HOST)/bin/mksquashfs4 $(call mkfs_target_dir,$(1)) $@ \
 		-nopad -noappend -root-owned \
 		-comp $(SQUASHFSCOMP) $(SQUASHFSOPT) \
 		-processors 1
 endef
+
+ifeq ($(CONFIG_TARGET_ROOTFS_SECURITY_LABELS),y)
+define Image/mkfs/squashfs
+	echo "LD_LIBRARY_PATH=\$$LD_LIBRARY_PATH:$(STAGING_DIR_HOSTPKG)/lib" \
+	     "$(STAGING_DIR_HOSTPKG)/sbin/setfiles -r" \
+	     "$(call mkfs_target_dir,$(1))" \
+	     "$(call mkfs_target_dir,$(1))/etc/selinux/targeted/contexts/files/file_contexts " \
+	     "$(call mkfs_target_dir,$(1))" > $@.fakeroot-script
+	echo "$(Image/mkfs/squashfs-common)" >> $@.fakeroot-script
+	chmod +x $@.fakeroot-script
+	$(FAKEROOT) "$@.fakeroot-script"
+endef
+else
+define Image/mkfs/squashfs
+	$(call Image/mkfs/squashfs-common,$(1))
+endef
+endif
 
 # $(1): board name
 # $(2): rootfs type
@@ -419,6 +436,8 @@ define Device/Init
 
   BOARD_NAME :=
   UIMAGE_NAME :=
+  DEVICE_COMPAT_VERSION := 1.0
+  DEVICE_COMPAT_MESSAGE :=
   SUPPORTED_DEVICES :=
   IMAGE_METADATA :=
 
@@ -426,6 +445,7 @@ define Device/Init
 
   UBOOT_PATH :=  $(STAGING_DIR_IMAGE)/uboot-$(1)
 
+  BROKEN :=
   DEFAULT :=
 endef
 
@@ -435,6 +455,7 @@ DEFAULT_DEVICE_VARS := \
   VID_HDR_OFFSET UBINIZE_OPTS UBINIZE_PARTS MKUBIFS_OPTS DEVICE_DTS \
   DEVICE_DTS_CONFIG DEVICE_DTS_DIR SOC BOARD_NAME UIMAGE_NAME SUPPORTED_DEVICES \
   IMAGE_METADATA KERNEL_ENTRY KERNEL_LOADADDR UBOOT_PATH IMAGE_SIZE \
+  DEVICE_COMPAT_VERSION DEVICE_COMPAT_MESSAGE \
   DEVICE_VENDOR DEVICE_MODEL DEVICE_VARIANT \
   DEVICE_ALT0_VENDOR DEVICE_ALT0_MODEL DEVICE_ALT0_VARIANT \
   DEVICE_ALT1_VENDOR DEVICE_ALT1_MODEL DEVICE_ALT1_VARIANT \
@@ -638,6 +659,7 @@ Target-Profile-Name: $(DEVICE_DISPLAY)
 Target-Profile-Packages: $(DEVICE_PACKAGES)
 Target-Profile-hasImageMetadata: $(if $(foreach image,$(IMAGES),$(findstring append-metadata,$(IMAGE/$(image)))),1,0)
 Target-Profile-SupportedDevices: $(SUPPORTED_DEVICES)
+$(if $(BROKEN),Target-Profile-Broken: $(BROKEN))
 $(if $(DEFAULT),Target-Profile-Default: $(DEFAULT))
 Target-Profile-Description:
 $(DEVICE_DESCRIPTION)

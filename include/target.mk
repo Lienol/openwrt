@@ -13,15 +13,46 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd urandom-seed urngd luci luci-compat luci-lib-ipkg wget \
-default-settings luci-app-ddns luci-app-wol luci-app-vlmcsd luci-app-ramfree luci-app-sfe \
-luci-app-timecontrol luci-app-control-timewol luci-app-control-webrestriction luci-app-control-weburl
+DEFAULT_PACKAGES:=\
+	base-files \
+	busybox \
+	ca-bundle \
+	dropbear \
+	fstools \
+	libc \
+	libgcc \
+	libustream-wolfssl \
+	logd \
+	mtd \
+	netifd \
+	opkg \
+	uci \
+	uclient-fetch \
+	urandom-seed \
+	urngd \
+  luci luci-compat luci-lib-ipkg wget \
+  default-settings luci-app-wol luci-app-vlmcsd luci-app-ramfree luci-app-sfe \
+  luci-app-ddns ddns-scripts_aliyun ddns-scripts_dnspod \
+  luci-app-timecontrol luci-app-control-timewol luci-app-control-webrestriction luci-app-control-weburl
 # For the basic set
 DEFAULT_PACKAGES.basic:=
 # For nas targets
-DEFAULT_PACKAGES.nas:=block-mount fdisk lsblk mdadm
+DEFAULT_PACKAGES.nas:=\
+	block-mount \
+	fdisk \
+	lsblk \
+	mdadm
 # For router targets
-DEFAULT_PACKAGES.router:=dnsmasq-full iptables ip6tables ppp ppp-mod-pppoe firewall odhcpd-ipv6only odhcp6c
+DEFAULT_PACKAGES.router:=\
+	dnsmasq-full \
+	firewall \
+	ip6tables \
+	iptables \
+	kmod-ipt-offload \
+	odhcp6c \
+	odhcpd-ipv6only \
+	ppp \
+	ppp-mod-pppoe
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -58,7 +89,7 @@ endif
 DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
 
 filter_packages = $(filter-out -% $(patsubst -%,%,$(filter -%,$(1))),$(1))
-extra_packages = $(if $(filter wpad-mini wpad-basic wpad nas,$(1)),iwinfo)
+extra_packages = $(if $(filter wpad-mini wpad-basic wpad-basic-wolfssl wpad nas,$(1)),iwinfo)
 
 define ProfileDefault
   NAME:=
