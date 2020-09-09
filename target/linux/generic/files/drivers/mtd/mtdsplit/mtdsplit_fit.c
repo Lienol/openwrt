@@ -120,15 +120,21 @@ mtdsplit_fit_parse(struct mtd_info *mtd,
 	return 2;
 }
 
+#include <linux/version.h>
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static const struct of_device_id mtdsplit_fit_of_match_table[] = {
 	{ .compatible = "denx,fit" },
 	{},
 };
+#endif
 
 static struct mtd_part_parser uimage_parser = {
 	.owner = THIS_MODULE,
 	.name = "fit-fw",
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	.of_match_table = mtdsplit_fit_of_match_table,
+	#endif
 	.parse_fn = mtdsplit_fit_parse,
 	.type = MTD_PARSER_TYPE_FIRMWARE,
 };
