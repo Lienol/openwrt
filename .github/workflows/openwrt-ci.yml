@@ -11,12 +11,10 @@ name: OpenWrt-CI-lienol
 
 on:
   push:
-    branches:
+    branches: 
       - master
-    paths:
-      - '.github/workflows/openwrt-ci.yml'
   schedule:
-    - cron: '30 10 */5 * *'
+    - cron: 30 19 * * *
       
 jobs:
 
