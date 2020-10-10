@@ -11,8 +11,8 @@ name: OpenWrt-CI-lienol
 
 on:
   push:
-    branches: 
-       - master
+    branches:
+      - master
     paths:
       - '.github/workflows/openwrt-ci.yml'
   schedule:
