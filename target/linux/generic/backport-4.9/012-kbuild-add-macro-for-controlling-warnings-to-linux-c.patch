@@ -84,7 +84,7 @@ Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 
 --- a/include/linux/compiler-gcc.h
 +++ b/include/linux/compiler-gcc.h
-@@ -338,3 +338,30 @@
+@@ -351,3 +351,30 @@
  #if GCC_VERSION >= 50100
  #define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
  #endif
@@ -117,11 +117,10 @@ Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 +
 --- a/include/linux/compiler.h
 +++ b/include/linux/compiler.h
-@@ -578,4 +578,23 @@ static __always_inline void __write_once
- # define __kprobes
- # define nokprobe_inline	inline
- #endif
-+
+@@ -612,4 +612,22 @@
+  */
+ #define prevent_tail_call_optimization()	mb()
+ 
 +#ifndef __diag
 +#define __diag(string)
 +#endif
