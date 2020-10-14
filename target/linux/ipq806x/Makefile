@@ -22,6 +22,7 @@ DEFAULT_PACKAGES += \
 	kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport \
 	kmod-usb3 kmod-usb-dwc3-of-simple kmod-usb-phy-qcom-dwc3 \
 	kmod-ath10k-ct wpad \
-	uboot-envtools
+	uboot-envtools \
+	autocore-arm
 
 $(eval $(call BuildTarget))
