@@ -20,7 +20,7 @@ DEFAULT_PACKAGES += \
 	kmod-leds-gpio kmod-gpio-button-hotplug swconfig \
 	kmod-ath10k-ct wpad-basic \
 	kmod-usb3 kmod-usb-dwc3 ath10k-firmware-qca4019-ct \
-	automount autosamba \
+	autocore-arm automount autosamba \
 	ca-certificates htop fdisk e2fsprogs
 
 $(eval $(call BuildTarget))
