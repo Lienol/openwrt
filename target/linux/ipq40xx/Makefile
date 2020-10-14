@@ -18,6 +18,7 @@ DEFAULT_PACKAGES += \
 	kmod-leds-gpio kmod-gpio-button-hotplug \
 	kmod-ath10k-ct wpad-basic-wolfssl \
 	kmod-usb3 kmod-usb-dwc3 ath10k-firmware-qca4019-ct \
-	uboot-envtools
+	uboot-envtools \
+	ath10k-board-qca4019 autocore-arm
 
 $(eval $(call BuildTarget))
