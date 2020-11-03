@@ -11,7 +11,7 @@ config global
 	option localhost_tcp_proxy_mode 'default'
 	option localhost_udp_proxy_mode 'default'
 	option socks_server '0.0.0.0:1080'
-	option enabled '1'
+	option enabled '0'
 
 config global_haproxy
 	option balancing_enable '0'
@@ -119,7 +119,7 @@ config nodes '771dacb9cd9e438790c0c66f785959e9'
 	option use_kcp '0'
 
 config socks '7d31bda66d0049efaad0777c45b6eac4'
-	option enabled '1'
+	option enabled '0'
 	option node 'tcp1'
 	option port '1080'
 
