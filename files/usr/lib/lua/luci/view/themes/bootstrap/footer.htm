@@ -1,0 +1,20 @@
+<%#
+ Copyright 2008 Steven Barth <steven@midlink.org>
+ Copyright 2008 Jo-Philipp Wich <jow@openwrt.org>
+ Copyright 2012 David Menting <david@nut-bolt.nl>
+ Licensed to the public under the Apache License 2.0.
+-%>
+
+<% local ver = require "luci.version" %>
+
+   <footer>
+    <a href="https://phcorner.net/members/atong.81136/"><%= ver.distversion %></a> / Powered by <%= ver.luciname %>
+    <ul class="breadcrumb pull-right" id="modemenu" style="display:none"></ul>
+   </footer>
+  </div>
+  <% if luci.dispatcher.context.authsession then %>
+  <script type="text/javascript">L.require('menu-bootstrap')</script>
+  <% end %>
+ </body>
+</html>
+
