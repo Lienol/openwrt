@@ -89,4 +89,4 @@ endef
 
 $(eval $(call KernelPackage,$(PKG_NAME)))
 $(eval $(call KernelPackage,$(PKG_NAME)-noload))
-$(eval $(call BuildPackage,fast-classifier-example))
+#$(eval $(call BuildPackage,fast-classifier-example))
