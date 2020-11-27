@@ -28,6 +28,7 @@ ath79_setup_interfaces()
 	dlink,dap-1330-a1|\
 	dlink,dap-1365-a1|\
 	dlink,dir-505|\
+	engenius,eap300-v2|\
 	engenius,ecb1750|\
 	enterasys,ws-ap3705i|\
 	glinet,gl-ar300m-lite|\
@@ -48,6 +49,9 @@ ath79_setup_interfaces()
 	tplink,cpe510-v3|\
 	tplink,cpe610-v1|\
 	tplink,cpe610-v2|\
+	tplink,eap225-outdoor-v1|\
+	tplink,eap225-v3|\
+	tplink,eap245-v1|\
 	tplink,re350k-v1|\
 	tplink,re355-v1|\
 	tplink,re450-v1|\
@@ -421,6 +425,7 @@ ath79_setup_macs()
 	alfa-network,n5q|\
 	alfa-network,pi-wifi4|\
 	alfa-network,r36a|\
+	engenius,eap300-v2|\
 	engenius,ens202ext-v1)
 		label_mac=$(mtd_get_mac_binary art 0x1002)
 		;;
