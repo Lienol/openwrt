@@ -27,7 +27,7 @@ sudo apt-get -y install build-essential asciidoc binutils bzip2 curl gawk gettex
  
  -----------------------------------------------------
 
-![OpenWrt logo](/logo.svg)
+![OpenWrt logo](include/logo.png)
 
 OpenWrt Project is a Linux operating system targeting embedded devices. Instead
 of trying to create a single, static firmware, OpenWrt provides a fully
