@@ -43,7 +43,7 @@ $(curdir)/upx/compile := $(curdir)/ucl/compile
 $(curdir)/autoconf/compile := $(curdir)/m4/compile
 $(curdir)/automake/compile := $(curdir)/m4/compile $(curdir)/autoconf/compile $(curdir)/pkgconf/compile $(curdir)/xz/compile
 $(curdir)/b43-tools/compile := $(curdir)/bison/compile
-$(curdir)/bc/compile := $(curdir)/bison/compile
+$(curdir)/bc/compile := $(curdir)/bison/compile $(curdir)/libtool/compile
 $(curdir)/bison/compile := $(curdir)/flex/compile
 $(curdir)/cbootimage/compile += $(curdir)/automake/compile
 $(curdir)/cmake/compile += $(curdir)/libressl/compile
@@ -120,7 +120,7 @@ define PrepareStaging
 		$(if $(QUIET),,set -x;) \
 		mkdir -p "$$dir"; \
 		cd "$$dir"; \
-		mkdir -p bin lib stamp; \
+		mkdir -p bin lib stamp usr/include usr/lib; \
 	); done
 endef
 

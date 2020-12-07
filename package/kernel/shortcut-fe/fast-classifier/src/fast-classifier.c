@@ -1807,10 +1807,12 @@ static int __init fast_classifier_init(void)
 		goto exit3;
 	}
 
-#ifdef CONFIG_NF_CONNTRACK_EVENTS
 	/*
 	 * Register a notifier hook to get fast notifications of expired connections.
 	 */
+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+	result = nf_conntrack_register_chain_notifier(&init_net, &fast_classifier_conntrack_notifier);
+#else
 	result = nf_conntrack_register_notifier(&init_net, &fast_classifier_conntrack_notifier);
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf notifier hook: %d\n", result);
@@ -1824,7 +1826,7 @@ static int __init fast_classifier_init(void)
 		DEBUG_ERROR("failed to register genl family: %d\n", result);
 		goto exit5;
 	}
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
 	result = genl_register_family_with_ops_groups(&fast_classifier_gnl_family,
 						      fast_classifier_gnl_ops,
 						      fast_classifier_genl_mcgrp);
@@ -1877,7 +1879,11 @@ exit6:
 
 exit5:
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+	nf_conntrack_unregister_chain_notifier(&init_net, &fast_classifier_conntrack_notifier);
+#else
 	nf_conntrack_unregister_notifier(&init_net, &fast_classifier_conntrack_notifier);
+#endif
 
 exit4:
 #endif
@@ -1945,8 +1951,11 @@ static void __exit fast_classifier_exit(void)
 	}
 
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+	nf_conntrack_unregister_chain_notifier(&init_net, &fast_classifier_conntrack_notifier);
+#else
 	nf_conntrack_unregister_notifier(&init_net, &fast_classifier_conntrack_notifier);
-
+#endif
 #endif
 	nf_unregister_net_hooks(&init_net, fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
 
