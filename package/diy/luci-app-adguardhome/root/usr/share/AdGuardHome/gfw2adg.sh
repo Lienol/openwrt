@@ -20,7 +20,7 @@ if [ ! -f "$configpath" ]; then
 	echo "please make a config first"
 	exit 1
 fi
-wget-ssl --no-check-certificate https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt -O- | base64 -d > /tmp/gfwlist.txt
+wget --no-check-certificate https://cdn.jsdelivr.net/gh/gfwlist/gfwlist/gfwlist.txt -O- | base64 -d > /tmp/gfwlist.txt
 cat /tmp/gfwlist.txt | awk -v upst="$gfwupstream" 'BEGIN{getline;}{
 s1=substr($0,1,1);
 if (s1=="!")
