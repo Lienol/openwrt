@@ -107,7 +107,7 @@ get_bind_ip() {
 
 # 定义基本 HTTP 命令和参数
 gen_http_cmd() {
-	_http_cmd="wget-ssl -nv -t 1 -T 5 -O - --no-check-certificate"
+	_http_cmd="wget -nv -t 1 -T 5 -O - --no-check-certificate"
 	_http_cmd="$_http_cmd --bind-address=$_bind_ip"
 }
 
@@ -591,7 +591,7 @@ xlnetacc_init() {
 	_log "迅雷快鸟正在启动..."
 
 	# 检查外部调用工具
-	command -v wget-ssl >/dev/null || { _log "GNU Wget 未安装"; return 3; }
+	command -v wget >/dev/null || { _log "GNU Wget 未安装"; return 3; }
 	local opensslchk=$(echo -n 'openssl' | openssl dgst -sha1 | awk '{print $2}')
 	[ "$opensslchk" != 'c898fa1e7226427010e329971e82c669f8d8abb4' ] && { _log "openssl-util 未安装或计算错误"; return 3; }
 
