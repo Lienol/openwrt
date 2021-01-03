@@ -238,9 +238,9 @@ proto_pppoe_setup() {
 		syncppp_option="syncppp $ppp_if_cnt"
 		shellsync $ppp_if_cnt 10
 	}
- 	ppp_generic_setup "$config" \
+	ppp_generic_setup "$config" \
 		$syncppp_option \
-		plugin rp-pppoe.so \
+		plugin pppoe.so \
 		${ac:+rp_pppoe_ac "$ac"} \
 		${service:+rp_pppoe_service "$service"} \
 		${host_uniq:+host-uniq "$host_uniq"} \
@@ -337,7 +337,7 @@ proto_pptp_teardown() {
 
 [ -n "$INCLUDE_ONLY" ] || {
 	add_protocol ppp
-	[ -f /usr/lib/pppd/*/rp-pppoe.so ] && add_protocol pppoe
+	[ -f /usr/lib/pppd/*/pppoe.so ] && add_protocol pppoe
 	[ -f /usr/lib/pppd/*/pppoatm.so ] && add_protocol pppoa
 	[ -f /usr/lib/pppd/*/pptp.so ] && add_protocol pptp
 }
