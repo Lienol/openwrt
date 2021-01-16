@@ -23,7 +23,7 @@ endef
 PKG_LICENSE:=Apache-2.0
 
 LUCI_TITLE:=LuCI support for Unblock NeteaseCloudMusic
-LUCI_DEPENDS:=+dnsmasq-full +ipset +wget-ssl +UnblockNeteaseMusic_NodeJS:UnblockNeteaseMusic +UnblockNeteaseMusic_Go:UnblockNeteaseMusicGo
+LUCI_DEPENDS:=+dnsmasq-full +ipset +wget-ssl +UnblockNeteaseMusic_NodeJS:UnblockNeteaseMusic +UnblockNeteaseMusic_Go:UnblockNeteaseMusic-Go
 LUCI_PKGARCH:=all
 
 PKG_MAINTAINER:=lean
@@ -31,4 +31,3 @@ PKG_MAINTAINER:=lean
 include $(TOPDIR)/feeds/luci/luci.mk
 
 # call BuildPackage - OpenWrt buildroot signature
-
