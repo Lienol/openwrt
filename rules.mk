@@ -421,7 +421,7 @@ $(shell \
     if [ -n "$$last_bump" ]; then \
       echo -n $$(($$(git rev-list --count "$$last_bump..HEAD" .) + 1)); \
     else \
-      echo -n $$(($$(git rev-list --count HEAD .) + 1)); \
+      git rev-list --count HEAD .; \
     fi; \
   else \
     secs="$$(($(SOURCE_DATE_EPOCH) % 86400))"; \
@@ -431,8 +431,8 @@ $(shell \
 )
 endef
 
-COMMITCOUNT = $(if $(DUMP),,$(call commitcount))
-AUTORELEASE = $(if $(DUMP),,$(call commitcount,1))
+COMMITCOUNT = $(if $(DUMP),0,$(call commitcount))
+AUTORELEASE = $(if $(DUMP),0,$(call commitcount,1))
 
 all:
 FORCE: ;
