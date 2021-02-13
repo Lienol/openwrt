@@ -1,12 +1,17 @@
+From 4feffeadbcb2e5b11cbbf191a33c245b74a5837b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>
-Date: Fri, 5 Feb 2021 21:59:51 +0100
-Subject: [PATCH 2/2] net: broadcom: bcm4908enet: add BCM4908 controller driver
+Date: Sun, 7 Feb 2021 23:26:32 +0100
+Subject: [PATCH] net: broadcom: bcm4908enet: add BCM4908 controller driver
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 BCM4908 SoCs family uses Ethernel controller that includes UniMAC but
 uses different DMA engine (than other controllers) and requires
 different programming.
 
 Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
  MAINTAINERS                                 |   9 +
  drivers/net/ethernet/broadcom/Kconfig       |   8 +

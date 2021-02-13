@@ -1,10 +1,15 @@
+From 387d1c1819790aa8398c7cffab587f9a050a0d1a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <rafal@milecki.pl>
-Date: Fri, 5 Feb 2021 21:57:41 +0100
-Subject: [PATCH 1/2] dt-bindings: net: document BCM4908 Ethernet controller
+Date: Sun, 7 Feb 2021 23:26:31 +0100
+Subject: [PATCH] dt-bindings: net: document BCM4908 Ethernet controller
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 BCM4908 is a family of SoCs with integrated Ethernet controller.
 
 Signed-off-by: Rafał Miłecki <rafal@milecki.pl>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
  .../bindings/net/brcm,bcm4908enet.yaml        | 45 +++++++++++++++++++
  1 file changed, 45 insertions(+)
