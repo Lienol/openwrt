@@ -5,8 +5,10 @@ Subject: Add myloader partition table parser
 
 lede-commit: d8bf22859b51faa09d22c056fe221a45d2f7a3b8
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-[add myloader.c to patch]
-Signed-off-by: Adrian Schmutzler <freifunk@adrianschmutzler.de>
+---
+ drivers/mtd/Kconfig  | 16 ++++++++++++++++
+ drivers/mtd/Makefile |  1 +
+ 2 files changed, 17 insertions(+)
 
 --- a/drivers/mtd/Kconfig
 +++ b/drivers/mtd/Kconfig
