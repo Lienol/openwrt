@@ -44,7 +44,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	  device, it has to decide which ones to send first, which ones to
 --- a/net/sched/sch_api.c
 +++ b/net/sched/sch_api.c
-@@ -2162,7 +2162,7 @@ static int __init pktsched_init(void)
+@@ -2163,7 +2163,7 @@ static int __init pktsched_init(void)
  		return err;
  	}
  
@@ -83,7 +83,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  EXPORT_SYMBOL(default_qdisc_ops);
  
  /* Main transmission queue. */
-@@ -1026,7 +1026,7 @@ static void attach_one_default_qdisc(str
+@@ -1034,7 +1034,7 @@ static void attach_one_default_qdisc(str
  				     void *_unused)
  {
  	struct Qdisc *qdisc;
