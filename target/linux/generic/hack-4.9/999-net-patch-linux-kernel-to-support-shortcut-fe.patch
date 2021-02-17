@@ -1,6 +1,6 @@
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -758,6 +758,9 @@ struct sk_buff {
+@@ -748,6 +748,9 @@ struct sk_buff {
  	__u8			offload_fwd_mark:1;
  #endif
  	__u8			gro_skip:1;
@@ -9,7 +9,7 @@
 +#endif
  	/* 1, 3 or 4 bit hole */
  
- #if defined(CONFIG_IMQ) || defined(CONFIG_IMQ_MODULE)
+ #ifdef CONFIG_NET_SCHED
 --- a/include/linux/timer.h
 +++ b/include/linux/timer.h
 @@ -20,6 +20,10 @@ struct timer_list {
@@ -62,7 +62,7 @@
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (!dev->eth_mangle_tx ||
-@@ -4126,6 +4135,11 @@ void netdev_rx_handler_unregister(struct
+@@ -4116,6 +4125,11 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -74,7 +74,7 @@
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -4174,6 +4188,10 @@ static int __netif_receive_skb_core(stru
+@@ -4164,6 +4178,10 @@ static int __netif_receive_skb_core(stru
  	int ret = NET_RX_DROP;
  	__be16 type;
  
@@ -85,7 +85,7 @@
  	net_timestamp_check(!netdev_tstamp_prequeue, skb);
  
  	trace_netif_receive_skb(skb);
-@@ -4199,6 +4217,16 @@ another_round:
+@@ -4189,6 +4207,16 @@ another_round:
  			goto out;
  	}
  
