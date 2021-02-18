@@ -43,6 +43,8 @@ define Package/luci-app-adguardhome/install
 	cp -pR ./luasrc/* $(1)/usr/lib/lua/luci
 	$(INSTALL_DIR) $(1)/
 	cp -pR ./root/* $(1)/
+	# Fix: /etc/init.d/AdGuardHome: Permission denied
+	$(INSTALL_BIN) ./root/etc/init.d/AdGuardHome $(1)/etc/init.d/AdGuardHome
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
 	po2lmo ./po/zh-cn/AdGuardHome.po $(1)/usr/lib/lua/luci/i18n/AdGuardHome.zh-cn.lmo
 endef
