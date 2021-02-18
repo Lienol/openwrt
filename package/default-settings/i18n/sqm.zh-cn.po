@@ -76,7 +76,7 @@ msgid "Create log file for this SQM instance under /var/run/sqm/${Inerface_name}
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:82
 msgid "Verbosity of SQM's output into the system log."
-msgstr "SQM输出到系统日志的详细程度。"
+msgstr "SQM输出到系统日志的详细程度"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:86 usr/lib/lua/luci/model/cbi/sqm.lua:99 usr/lib/lua/luci/model/cbi/sqm.lua:148
 #: usr/lib/lua/luci/model/cbi/sqm.lua:155 usr/lib/lua/luci/model/cbi/sqm.lua:202 usr/lib/lua/luci/model/cbi/sqm.lua:243
