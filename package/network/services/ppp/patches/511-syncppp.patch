@@ -53,14 +53,14 @@ diff -Naur ppp-2.4.5.0/pppd/Makefile.linux ppp-2.4.5/pppd/Makefile.linux
  
  #
  # include dependencies if present
-@@ -33,7 +33,7 @@
- # CC = gcc
- #
- COPTS = -O2 -pipe -Wall -g
+@@ -34,7 +34,7 @@
+ include .depend
+ endif
+ 
 -LIBS = -lrt
 +LIBS = -lpthread
  
- # Uncomment the next 2 lines to include support for Microsoft's
+ # Uncomment the next line to include support for Microsoft's
  # MS-CHAP authentication protocol.  Also, edit plugins/radius/Makefile.linux.
 diff -Naur ppp-2.4.5.0/pppd/options.c ppp-2.4.5/pppd/options.c
 --- ppp-2.4.5.0/pppd/options.c	2012-04-18 15:44:46.000000000 +0800
