@@ -712,7 +712,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		 * then check once more to make sure we are done.
 --- a/drivers/net/ethernet/ibm/ibmvnic.c
 +++ b/drivers/net/ethernet/ibm/ibmvnic.c
-@@ -1028,7 +1028,7 @@ restart_poll:
+@@ -1034,7 +1034,7 @@ restart_poll:
  
  	if (frames_processed < budget) {
  		enable_scrq_irq(adapter, adapter->rx_scrq[scrq_num]);
@@ -949,7 +949,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
 --- a/drivers/net/ethernet/pasemi/pasemi_mac.c
 +++ b/drivers/net/ethernet/pasemi/pasemi_mac.c
-@@ -1575,7 +1575,7 @@ static int pasemi_mac_poll(struct napi_s
+@@ -1579,7 +1579,7 @@ static int pasemi_mac_poll(struct napi_s
  	pkts = pasemi_mac_clean_rx(rx_ring(mac), budget);
  	if (pkts < budget) {
  		/* all done, no more packets present */
@@ -960,7 +960,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		pasemi_mac_restart_tx_intr(mac);
 --- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
 +++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
-@@ -2391,7 +2391,7 @@ static int netxen_nic_poll(struct napi_s
+@@ -2386,7 +2386,7 @@ static int netxen_nic_poll(struct napi_s
  		work_done = budget;
  
  	if (work_done < budget) {
@@ -1095,7 +1095,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		dma_intr_ena = smsc9420_reg_read(pd, DMAC_INTR_ENA);
 --- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
 +++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-@@ -2702,7 +2702,7 @@ static int stmmac_poll(struct napi_struc
+@@ -2704,7 +2704,7 @@ static int stmmac_poll(struct napi_struc
  
  	work_done = stmmac_rx(priv, budget);
  	if (work_done < budget) {
@@ -1368,7 +1368,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	}
 --- a/drivers/net/xen-netback/interface.c
 +++ b/drivers/net/xen-netback/interface.c
-@@ -104,7 +104,7 @@ static int xenvif_poll(struct napi_struc
+@@ -120,7 +120,7 @@ static int xenvif_poll(struct napi_struc
  	work_done = xenvif_tx_action(queue, budget);
  
  	if (work_done < budget) {

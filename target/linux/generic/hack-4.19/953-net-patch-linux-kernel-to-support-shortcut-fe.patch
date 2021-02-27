@@ -1,7 +1,7 @@
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -796,6 +796,9 @@ struct sk_buff {
- 	__u8			tc_from_ingress:1;
+@@ -813,6 +813,9 @@ struct sk_buff {
+ 	__u8			decrypted:1;
  #endif
  	__u8			gro_skip:1;
 +#ifdef CONFIG_SHORTCUT_FE
@@ -12,7 +12,7 @@
  	__u16			tc_index;	/* traffic control index */
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
-@@ -54,6 +54,8 @@ struct br_ip_list {
+@@ -55,6 +55,8 @@ struct br_ip_list {
  #define BR_DEFAULT_AGEING_TIME	(300 * HZ)
  
  extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
@@ -23,9 +23,9 @@
  extern br_should_route_hook_t __rcu *br_should_route_hook;
 --- a/include/linux/timer.h
 +++ b/include/linux/timer.h
-@@ -20,6 +20,9 @@ struct timer_list {
- 	void			(*function)(unsigned long);
- 	unsigned long		data;
+@@ -17,6 +17,9 @@ struct timer_list {
+ 	unsigned long		expires;
+ 	void			(*function)(struct timer_list *);
  	u32			flags;
 +#ifdef CONFIG_SHORTCUT_FE
 +	unsigned long		cust_data;
@@ -46,7 +46,7 @@
  	int (*fcn)(unsigned int events, struct nf_ct_event *item);
 --- a/net/Kconfig
 +++ b/net/Kconfig
-@@ -463,3 +463,6 @@ config HAVE_CBPF_JIT
+@@ -467,3 +467,6 @@ config HAVE_CBPF_JIT
  # Extended BPF JIT (eBPF)
  config HAVE_EBPF_JIT
  	bool
@@ -55,10 +55,10 @@
 +	bool "Enables kernel network stack path for Shortcut  Forwarding Engine
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -3007,7 +3007,16 @@ static int xmit_one(struct sk_buff *skb,
- 	int rc;
-
+@@ -3258,7 +3258,16 @@ static int xmit_one(struct sk_buff *skb,
+ #else
  	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
+ #endif
 +#ifdef CONFIG_SHORTCUT_FE
 +	/* If this skb has been fast forwarded then we don't want it to
 +	 * go to any taps (by definition we're trying to bypass them).
@@ -72,7 +72,7 @@
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (!dev->eth_mangle_tx ||
-@@ -4322,6 +4331,11 @@ void netdev_rx_handler_unregister(struct
+@@ -4754,6 +4763,11 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -84,7 +84,7 @@
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -4369,6 +4383,9 @@ static int __netif_receive_skb_core(stru
+@@ -4803,6 +4817,9 @@ static int __netif_receive_skb_core(stru
  	bool deliver_exact = false;
  	int ret = NET_RX_DROP;
  	__be16 type;
@@ -94,7 +94,7 @@
  
  	net_timestamp_check(!netdev_tstamp_prequeue, skb);
  
-@@ -4395,6 +4412,16 @@ another_round:
+@@ -4843,6 +4860,16 @@ another_round:
  			goto out;
  	}
  
@@ -113,7 +113,7 @@
  
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -35,11 +35,17 @@
+@@ -36,11 +36,17 @@
  
  /* Do not check the TCP window for incoming packets  */
  static int nf_ct_tcp_no_window_check __read_mostly = 1;
@@ -133,9 +133,9 @@
     connections. */
 --- a/net/bridge/br_if.c
 +++ b/net/bridge/br_if.c
-@@ -653,3 +653,26 @@ void br_port_flags_change(struct net_bri
- 	if (mask & BR_AUTO_MASK)
- 		nbp_update_port_count(br);
+@@ -741,3 +741,26 @@ void br_port_flags_change(struct net_bri
+ 	if (mask & BR_NEIGH_SUPPRESS)
+ 		br_recalculate_neigh_suppress_enabled(br);
  }
 +
 +/* Update bridge statistics for bridge packets processed by offload engines */
@@ -162,7 +162,7 @@
 +EXPORT_SYMBOL_GPL(br_dev_update_stats);
 --- a/net/netfilter/nf_conntrack_ecache.c
 +++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -162,7 +162,11 @@ int nf_conntrack_eventmask_report(unsign
+@@ -164,7 +164,11 @@ int nf_conntrack_eventmask_report(unsign
  
  	rcu_read_lock();
  	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
@@ -174,7 +174,7 @@
  		goto out_unlock;
  
  	e = nf_ct_ecache_find(ct);
-@@ -181,7 +185,14 @@ int nf_conntrack_eventmask_report(unsign
+@@ -183,7 +187,14 @@ int nf_conntrack_eventmask_report(unsign
  		if (!((eventmask | missed) & e->ctmask))
  			goto out_unlock;
  
@@ -189,7 +189,7 @@
  		if (unlikely(ret < 0 || missed)) {
  			spin_lock_bh(&ct->lock);
  			if (ret < 0) {
-@@ -263,7 +274,11 @@ void nf_ct_deliver_cached_events(struct
+@@ -265,7 +276,11 @@ void nf_ct_deliver_cached_events(struct
  
  	rcu_read_lock();
  	notify = rcu_dereference(net->ct.nf_conntrack_event_cb);
@@ -201,7 +201,7 @@
  		goto out_unlock;
  
  	e = nf_ct_ecache_find(ct);
-@@ -287,7 +302,15 @@ void nf_ct_deliver_cached_events(struct
+@@ -289,7 +304,15 @@ void nf_ct_deliver_cached_events(struct
  	item.portid = 0;
  	item.report = 0;
  
@@ -217,7 +217,7 @@
  
  	if (likely(ret == 0 && !missed))
  		goto out_unlock;
-@@ -340,6 +363,11 @@ int nf_conntrack_register_notifier(struc
+@@ -342,6 +365,11 @@ int nf_conntrack_register_notifier(struc
  {
          return atomic_notifier_chain_register(&net->ct.nf_conntrack_chain, nb);
  }
@@ -229,7 +229,7 @@
  #else
  int nf_conntrack_register_notifier(struct net *net,
  				   struct nf_ct_event_notifier *new)
-@@ -369,6 +397,11 @@ int nf_conntrack_unregister_notifier(str
+@@ -371,6 +399,11 @@ int nf_conntrack_unregister_notifier(str
  {
  	return atomic_notifier_chain_unregister(&net->ct.nf_conntrack_chain, nb);
  }
