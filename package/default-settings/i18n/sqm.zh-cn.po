@@ -47,7 +47,7 @@ msgstr "链路层适配"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:40
 msgid "Enable this SQM instance."
-msgstr "启用SQM"
+msgstr "启用"
 
 #: usr/lib/lua/luci/model/cbi/sqm.lua:54
 msgid ""
