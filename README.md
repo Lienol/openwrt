@@ -55,7 +55,7 @@ documentation.
 
 ```
 gcc binutils bzip2 flex python3 perl make find grep diff unzip gawk getopt
-subversion libz-dev libc-dev rsync
+subversion libz-dev libc-dev rsync which
 ```
 
 ### Quickstart
