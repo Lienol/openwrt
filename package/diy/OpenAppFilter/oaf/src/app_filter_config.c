@@ -1,9 +1,4 @@
 
-/*
-	author: destan19@126.com
-	Î¢ÐÅ¹«ÖÚºÅ: OpenWrt
-	date:2019/1/10
-*/
 #include <linux/init.h>
 #include <linux/module.h>
 #include <net/tcp.h>
@@ -59,19 +54,19 @@ char g_app_id_array[AF_MAX_APP_TYPE_NUM][AF_MAX_APP_NUM] = {0};
 void af_show_app_status(void)
 {
 	int i, j;
-	printk("#########show app status##########\n");
+	AF_DEBUG("#########show app status##########\n");
 	for (i = 0; i < AF_MAX_APP_TYPE_NUM; i++) {
 		for (j = 0; j < AF_MAX_APP_NUM; j++) {
 			
 			af_rule_read_lock();
 			if (g_app_id_array[i][j] == AF_TRUE) {
-				printk("%d, %d\n", i, j);
+				AF_DEBUG("%d, %d\n", i, j);
 			}
 			af_rule_read_unlock();
 		}
 	}
 	
-	printk("\n\n\n");
+	AF_DEBUG("\n\n\n");
 }
 
 int af_change_app_status(cJSON * data_obj, int status)
@@ -167,7 +162,7 @@ af_mac_info_t * find_af_mac(unsigned char *mac)
     index = hash_mac(mac);
     list_for_each_entry(node, &af_mac_list_table[index], hlist){
     	if (0 == memcmp(node->mac, mac, 6)){
-			AF_ERROR("match mac:"MAC_FMT"\n", MAC_ARRAY(node->mac));
+			AF_DEBUG("match mac:"MAC_FMT"\n", MAC_ARRAY(node->mac));
 			return node;
     	}
     }
@@ -201,8 +196,8 @@ int is_user_match_enable(void){
 	return total_mac > 0;
 }
 int mac_to_hex(u8 *mac, u8 *mac_hex){
-	u8 mac_tmp[MAC_ADDR_LEN];
-	int ret = 0;
+	u32 mac_tmp[MAC_ADDR_LEN];
+	int ret = 0, i = 0;
 	ret = sscanf(mac, "%02x:%02x:%02x:%02x:%02x:%02x", 
 		(unsigned int *)&mac_tmp[0],
 		(unsigned int *)&mac_tmp[1],
@@ -212,7 +207,10 @@ int mac_to_hex(u8 *mac, u8 *mac_hex){
 		(unsigned int *)&mac_tmp[5]);
 	if (MAC_ADDR_LEN != ret)
 		return -1;
-	memcpy(mac_hex, mac_tmp, MAC_ADDR_LEN);
+	for (i = 0; i < MAC_ADDR_LEN; i++)
+	{
+		mac_hex[i] = mac_tmp[i];
+	}
 	return 0;
 }
 int af_set_mac_list(cJSON * data_obj)
@@ -243,7 +241,7 @@ int af_set_mac_list(cJSON * data_obj)
 		}
 		af_mac_add(mac_hex);
 	}
-	printk("## mac num = %d\n", total_mac);
+	AF_DEBUG("## mac num = %d\n", total_mac);
 	return 0;
 }
 
@@ -351,7 +349,7 @@ static ssize_t af_cdev_read(struct file *filp, char *buf, size_t count, loff_t *
 static int af_cdev_release(struct inode *inode, struct file *filp)
 {
     struct af_cdev_file *file = filp->private_data;
-    printk("config size: %d,data = %s\n", (int)file->size, file->buf);
+    AF_DEBUG("config size: %d,data = %s\n", (int)file->size, file->buf);
 	af_config_handle(file->buf, file->size);
     filp->private_data = NULL;
     mutex_unlock(&af_cdev_mutex);
@@ -364,7 +362,7 @@ static ssize_t af_cdev_write(struct file *filp, const char *buffer, size_t count
     struct af_cdev_file *file = filp->private_data;
     int ret;
     if (file->size + count > sizeof(file->buf)) {
-        printk("config overflow, cur_size: %d, block_size: %d, max_size: %d",
+        AF_ERROR("config overflow, cur_size: %d, block_size: %d, max_size: %d",
             (int)file->size, (int)count, (int)sizeof(file->buf));
         return -EINVAL;
     }
@@ -411,7 +409,7 @@ int af_register_dev(void)
     if (IS_ERR_OR_NULL(dev)) {
         goto CLASS_OUT;
     }
-	printk("register char dev....ok\n");
+	AF_INFO("register char dev....ok\n");
 
     return 0;
 
@@ -422,7 +420,7 @@ CDEV_OUT:
 REGION_OUT:
     unregister_chrdev_region(g_af_dev.id, 1);
 	
-	printk("register char dev....fail\n");
+	AF_ERROR("register char dev....fail\n");
     return -EINVAL;
 }
 
@@ -433,6 +431,6 @@ void af_unregister_dev(void)
     class_destroy(g_af_dev.c);
     cdev_del(&g_af_dev.char_dev);
     unregister_chrdev_region(g_af_dev.id, 1);
-	printk("unregister char dev....ok\n");
+	AF_INFO("unregister char dev....ok\n");
 }
 
