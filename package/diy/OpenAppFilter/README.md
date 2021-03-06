@@ -1,10 +1,10 @@
+
 ## OpenAppFilter功能简介
 
 OpenAppFilter模块基于数据流深度识别技术，实现对单个app进行管控的功能，并支持上网记录统计
 
-该模块支持主流linux版本，目前主要在OpenWrt各版本中测试，支持OpenWrt 15.05、OpenWrt 18.06、
-
-OpenWrt 19.07等主流版本
+### 过滤效果演示视频
+https://www.bilibili.com/video/BV11z4y1z7tQ/  
 
 ### 主要使用场景
 	- 家长对小孩上网行为进行管控，限制小孩玩游戏等
@@ -33,44 +33,33 @@ OpenWrt 19.07等主流版本
 
 ## 编译说明
 1. 下载OpenWrt源码，并完成编译(OpenWrt公众号有相关教程）
-> git clone https://github.com/destan19/openwrt.git
+> git clone https://github.com/coolsnowwolf/lede.git  
+> 或 https://github.com/openwrt/openwrt.git  
 2. 下载应用过滤源码放到OpenWrt的package 目录
 > cd package  
 git clone https://github.com/destan19/OpenAppFilter.git  
-包含三个文件夹  
-luci-app-oaf   		luci界面安装包，包含中文语言包  
-oaf   			内核模块包  
-open-app-filter  	应用层服务和脚本  
-	
-3. make menuconfig, 在luci app中选上luci oaf app模块并保存
-
-4. 编译应用过滤模块
-- 方案1： OpenWrt项目全部重新编译   make V=s 
-- 方案2:  只编译应用过滤单个模块（如果对内核模块不是很熟的请勿用这种方式）
-> make package/oaf/compile V=s  
- make package/open-app-filter/compile V=s  
- make package/luci-app-oaf/compile V=s  
- 编译完成后在bin目录的子目录中会出现四个ipk文件  
- 可以直接用  
- find bin/ -name "*oaf*"  
- find bin/ -name "*appfilter*"   
- 查询出ipk文件的位置  
+cd -
+3. make menuconfig, 在luci app中选上luci oaf app模块并保存 
+4. make V=s 编译出带应用过滤功能的OpenWrt固件 
 
 ## 使用说明
-- 建议小白直接刷固件来只用应用过滤功能，因为ipk文件安装很可能安装失败，因为版本不一致。
-- 刷机后第一次可能出现页面没有显示app列表的问题，可以保存下进行初始化。
-- 建议用18.06及以上版本，低版本可能存在访问记录luci页面问题。
-## 使用限制
-- 必须关闭各种加速模块，如软加速、硬加速等，建议先在原版的openwrt中编译看效果
-- 模块可能与qos等用到了netfilter mark字段的模块冲突， 自行检查
-- 该模块只工作在路由模式， 交换机(桥)模式不会生效
-- 可能会存在小概率误判的情况，特别是同一个公司的app，比如淘宝、支付宝等，如果需要过滤，建议相似的app全部勾选
-- 抖音等视频软件，会出现缓存，多刷几次再测试是否能过滤
-- 可能出现某些app不能过滤的问题，一个可能是app特征码改变，也可能是添加的特征库存在问题，可以在Issues中反馈，后面尽可能快速更新
-- 如果在"lede"项目中编译，需要去除相关模块，比如shortcut-fe、广告过滤、flow-offload等内核相关模块，暂时还没有整理出具体哪些，不生效时请自行排查
-- 最新版本增加了基于用户的应用过滤，目前暂时不兼容最新的luci，如果报错，请使用老一点的版本
-## 技术支持
+应用过滤和加速模块（Turbo ACC)有冲突，需要关闭Turboo ACC后使用
 
-- 微信公众号: OpenWrt (获取应用过滤最新固件和OpenWrt教程)
 
-- 技术交流QQ群（1000人）: 943396288
+
+## 存在的问题
+- 该模块只工作在路由模式， 旁路模式、桥模式不生效  
+- 存在小概率误判的情况，特别是同一个公司的app，比如淘宝、支付宝等，如果需要过滤，建议相似的app全部勾选  
+- 暂不兼容OpenWrt主干的luci，如果报错，请使用老一点的版本（OpenWrt18.06或lean 的lede源码）  
+
+## 技术交流
+
+### 微信公众号
+OpenWrt (获取应用过滤最新固件和OpenWrt教程)
+![weixin](https://github.com/destan19/images/blob/master/oaf/qr.png)
+### 技术交流QQ群 
+- 群一:943396288(已满)  
+- 群二:1046680252（已满）
+- 群三:868508199  
+点击链接加入群聊【OpenWrt技术交流】：https://jq.qq.com/?_wv=1027&k=vbmB1SUX
+

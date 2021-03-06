@@ -53,7 +53,6 @@ static struct ctl_table_header *oaf_table_header;
 
 static int af_init_log_sysctl(void)
 {
-	struct ctl_table_header *hdr;
 	oaf_table_header = register_sysctl_table(oaf_root_table);
 	if (oaf_table_header == NULL){
 		printk("init log sysctl...failed\n");
@@ -72,8 +71,10 @@ static int af_fini_log_sysctl(void)
 
 int af_log_init(void){
 	af_init_log_sysctl();
+	return 0;
 }
 
 int af_log_exit(void){
 	af_fini_log_sysctl();
+	return 0;
 }
