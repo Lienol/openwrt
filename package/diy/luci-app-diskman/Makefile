@@ -1,19 +1,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-diskman
-PKG_VERSION:=v0.2.10
+PKG_VERSION:=v0.2.11
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=lisaac <https://github.com/lisaac/luci-app-diskman>
 PKG_LICENSE:=AGPL-3.0
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/lisaac/luci-app-diskman.git
-PKG_MIRROR_HASH:=6d37e6e1440ecb43c2d26d7312981eb7618f7f30e519ff595da738cddd099cf3
+PKG_MIRROR_HASH:=b5ece7cb3918b9ca7ea0aabbf2e7b637ebf2b71ea2654117065c57079fad7df3
 PKG_SOURCE_VERSION:=$(PKG_VERSION)
 
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_SOURCE_SUBDIR)/applications/luci-app-diskman
 
 include $(INCLUDE_DIR)/package.mk
 
