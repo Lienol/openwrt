@@ -216,7 +216,7 @@ local get_parted_info = function(device)
       table.insert(partitions_temp, partition_temp)
     end
   end
-  if disk_temp["p_table"] == "MBR" then
+  if disk_temp and disk_temp["p_table"] == "MBR" then
     for i, p in ipairs(partitions_temp) do
       if disk_temp["extended_partition_index"] and p["number"] > 4 then
         if tonumber(p["sec_end"]) <= tonumber(partitions_temp[disk_temp["extended_partition_index"]]["sec_end"]) and tonumber(p["sec_start"]) >= tonumber(partitions_temp[disk_temp["extended_partition_index"]]["sec_start"]) then
@@ -412,8 +412,8 @@ d.list_devices = function()
   for i, bname in pairs(target_devnames) do
     local device_info = {}
     local device = "/dev/" .. bname
-    local size = tonumber(fs.readfile(string.format("/sys/class/block/%s/size", bname)))
-    local ss = tonumber(fs.readfile(string.format("/sys/class/block/%s/queue/logical_block_size", bname)))
+    local size = tonumber(fs.readfile(string.format("/sys/class/block/%s/size", bname)) or "0")
+    local ss = tonumber(fs.readfile(string.format("/sys/class/block/%s/queue/logical_block_size", bname)) or "0")
     local model = fs.readfile(string.format("/sys/class/block/%s/device/model", bname))
     local partitions = {}
     for part in nixio.fs.glob("/sys/block/" .. bname .."/" .. bname .. "*") do

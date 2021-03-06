@@ -10,7 +10,7 @@ u_int32_t af_get_timestamp_sec(void)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,17,0)
 	struct timespec64 ts;
-	ktime_get_ts64(&ts);
+	ktime_get_real_ts64(&ts);
 	return (u_int32_t)ts.tv_sec;
 #else
 	struct timespec ts;
@@ -36,7 +36,6 @@ void dump_str(char *name, unsigned char *p, int len)
 {
 	#define MAX_DUMP_STR_LEN 64
 	char buf[MAX_DUMP_STR_LEN] = {0};
-	int i;
 	if (len > MAX_DUMP_STR_LEN) {
 		len = MAX_DUMP_STR_LEN - 1;
 	}
