@@ -54,6 +54,8 @@ ipq40xx_setup_interfaces()
 	mikrotik,hap-ac2|\
 	p2w,r619ac-64m|\
 	p2w,r619ac-128m|\
+	century,wr142ac|\
+	century,wr142ac-nand|\
 	avm,fritzbox-4040|\
 	linksys,ea6350v3|\
 	linksys,ea8300|\
