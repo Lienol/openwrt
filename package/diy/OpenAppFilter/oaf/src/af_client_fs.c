@@ -106,14 +106,6 @@ static int af_client_seq_show(struct seq_file *s, void *v)
 	static int index = 0;
 	int i;
 	int j;
-	cJSON *visit_info_array = NULL;
-	cJSON *root_obj = NULL;
-	cJSON *visit_obj = NULL;
-	cJSON *history_array = NULL;
-	cJSON *history_obj = NULL;
-	char *out = NULL;
-	af_client_info_t *node = (af_client_info_t *)v;
-
     if (v == SEQ_START_TOKEN) {
 		index = 0;
 		seq_printf(s, "%s", "[");
@@ -122,8 +114,9 @@ static int af_client_seq_show(struct seq_file *s, void *v)
 	if(index > 0)
 		seq_printf(s, "%s", ",");
 	index++;
+	af_client_info_t *node = (af_client_info_t *)v;
 
-	root_obj = cJSON_CreateObject();
+	cJSON *root_obj = cJSON_CreateObject();
 	if(!root_obj){
 		AF_ERROR("create json obj failed");
 		return 0;
@@ -133,24 +126,24 @@ static int af_client_seq_show(struct seq_file *s, void *v)
 	cJSON_AddStringToObject(root_obj, "mac", mac_str);
 	cJSON_AddStringToObject(root_obj, "ip", ip_str);
 	cJSON_AddNumberToObject(root_obj, "app_num", node->visit_app_num);
-	visit_info_array = cJSON_CreateArray();
+	cJSON *visit_info_array = cJSON_CreateArray();
 
 	for(i = 0; i < MAX_RECORD_APP_NUM; i++){
 		if(node->visit_info[i].app_id == 0)
 			continue;
 		if(node->visit_info[i].total_num < 3)
 			continue;
-		visit_obj = cJSON_CreateObject();
+		cJSON *visit_obj = cJSON_CreateObject();
 		cJSON_AddNumberToObject(visit_obj, "appid", node->visit_info[i].app_id);
 		cJSON_AddNumberToObject(visit_obj, "latest_action", node->visit_info[i].latest_action);
 		cJSON_AddNumberToObject(visit_obj, "latest_time", node->visit_info[i].latest_time);
 		cJSON_AddNumberToObject(visit_obj, "total_num", node->visit_info[i].total_num);
 		cJSON_AddNumberToObject(visit_obj, "drop_num", node->visit_info[i].drop_num);
-		history_array = cJSON_CreateArray();
+		cJSON *history_array = cJSON_CreateArray();
 		for(j = 0; j < MAX_VISIT_HISTORY_TIME; j++){
 			if(node->visit_info[i].history_time[j] <= 0)
 				continue;
-			history_obj = cJSON_CreateObject();
+			cJSON *history_obj = cJSON_CreateObject();
 			cJSON_AddNumberToObject(visit_obj, "action", node->visit_info[i].history_time[j]);
 			cJSON_AddNumberToObject(visit_obj, "time", node->visit_info[i].action[j]);
 			cJSON_AddItemToArray(history_array, history_obj);
@@ -161,14 +154,12 @@ static int af_client_seq_show(struct seq_file *s, void *v)
 	}
 	
 	cJSON_AddItemToObject(root_obj, "visit_info", visit_info_array);
-	out = cJSON_Print(root_obj);
+	char *out = cJSON_Print(root_obj);
 	if(!out)
 		return 0;
 	cJSON_Minify(out);
 	seq_printf(s, "%s", out);
 	kfree(out);
-
-    cJSON_Delete(root_obj);
     return 0;
 }
 

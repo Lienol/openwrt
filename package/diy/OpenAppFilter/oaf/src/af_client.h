@@ -39,8 +39,6 @@ typedef struct app_visit_info{
 	unsigned int drop_num;
 	unsigned long latest_time;
 	unsigned int latest_action;
-	unsigned int total_down_bytes;
-	unsigned int total_up_bytes;
 	unsigned long history_time[MAX_VISIT_HISTORY_TIME];
 	unsigned int  action[MAX_VISIT_HISTORY_TIME];
 }app_visit_info_t;
@@ -52,7 +50,6 @@ typedef struct af_client_info {
     unsigned long      create_jiffies;
 	unsigned long	   update_jiffies;
 	unsigned int	   visit_app_num;
-	int report_count;
 	app_visit_info_t   visit_info[MAX_RECORD_APP_NUM];
 }af_client_info_t;
 
