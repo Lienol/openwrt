@@ -8,11 +8,11 @@ endif
 
 LINUX_VERSION-4.9 = .261
 LINUX_VERSION-4.14 = .224
-LINUX_VERSION-4.19 = .178
+LINUX_VERSION-4.19 = .180
 
 LINUX_KERNEL_HASH-4.9.261 = 04326f116458f853307bcb0ebbf5c97c214fc6fb6a21b632d2693e21ab10a864
 LINUX_KERNEL_HASH-4.14.224 = d83658ec4c60595f05c8c395aa3a6a39e0ccbd3a7abb5987b5a6b38f84f41cf5
-LINUX_KERNEL_HASH-4.19.178 = 0b75ba9fefade4615b22696af7d9b3f06da10a7bb8cc2edae0dfbea8a74196ee
+LINUX_KERNEL_HASH-4.19.180 = 1da85d7c838ddd4858cdbf76a00fa0a99bf11584c5658d739b6b55b6a0b7bb5f
 
 remove_uri_prefix=$(subst git://,,$(subst http://,,$(subst https://,,$(1))))
 sanitize_uri=$(call qstrip,$(subst @,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$(1)))))))
