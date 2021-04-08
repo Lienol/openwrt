@@ -26,7 +26,6 @@ define Build/Configure
 endef
 
 define Build/Compile
-	$(CP) ./*.sh $(PKG_BUILD_DIR)
 endef
 
 define Package/$(PKG_NAME)/preinst
@@ -38,7 +37,9 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/ddns
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/update_aliyun_com.sh $(1)/usr/lib/ddns
+	$(INSTALL_BIN) ./files/update_aliyun_com.sh $(1)/usr/lib/ddns
+	$(INSTALL_DIR) $(1)/usr/share/ddns/default
+	$(INSTALL_DATA) ./files/aliyun.com.json $(1)/usr/share/ddns/default
 endef
 
 define Package/$(PKG_NAME)/postinst
