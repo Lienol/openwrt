@@ -41,14 +41,14 @@ __DOMAIN="${domain#*@}"
 
 # 构造基本通信命令
 build_command() {
-	__CMDBASE="$WGET_SSL --no-hsts -nv -t 1 -O $DATFILE -o $ERRFILE"
+	__CMDBASE="$WGET_SSL -nv -t 1 -O $DATFILE -o $ERRFILE"
 	# 绑定用于通信的主机/IP
 	if [ -n "$bind_network" ]; then
 		local bind_ip run_prog
 		[ $use_ipv6 -eq 0 ] && run_prog="network_get_ipaddr" || run_prog="network_get_ipaddr6"
 		eval "$run_prog bind_ip $bind_network" || \
-			write_log 13 "无法使用 '$run_prog $bind_network' 获取本地IP地址 - 错误代码: '$?'"
-		write_log 7 "强制使用IP '$bind_ip' 通信"
+			write_log 13 "Can not detect local IP using '$run_prog $bind_network' - Error: '$?'"
+		write_log 7 "Force communication via IP '$bind_ip'"
 		__CMDBASE="$__CMDBASE --bind-address=$bind_ip"
 	fi
 	# 强制设定IP版本
@@ -64,7 +64,7 @@ build_command() {
 		elif [ -d "$cacert" ]; then
 			__CMDBASE="$__CMDBASE --ca-directory=${cacert}"
 		elif [ -n "$cacert" ]; then
-			write_log 14 "在 '$cacert' 中未找到用于 HTTPS 通信的有效证书"
+			write_log 14 "No valid certificate(s) found at '$cacert' for HTTPS communication"
 		fi
 	fi
 	# 如果没有设置，禁用代理 (这可能是 .wgetrc 或环境设置错误)
@@ -73,11 +73,11 @@ build_command() {
 
 # 用于阿里云API的通信函数
 aliyun_transfer() {
-	local __PARAM=$*
+	local __PARAM="$@"
 	local __CNT=0
 	local __RUNPROG __ERR PID_SLEEP
 
-	[ $# -eq 0 ] && write_log 12 "'aliyun_transfer()' 出错 - 参数数量错误"
+	[ $# -eq 0 ] && write_log 12 "Error in 'aliyun_transfer()' - wrong number of parameters"
 
 	while : ; do
 		build_Request $__PARAM
@@ -88,19 +88,19 @@ aliyun_transfer() {
 		__ERR=$?
 		[ $__ERR -eq 0 ] && return 0
 
-		write_log 3 "wget 错误代码: '$__ERR'"
+		write_log 3 "GNU Wget Error: '$__ERR'"
 		write_log 7 "$(cat $ERRFILE)"
 
 		if [ $VERBOSE -gt 1 ]; then
-			write_log 4 "传输失败 - 详细模式: $VERBOSE - 出错后不再重试"
+			write_log 4 "Transfer failed - Verbose Mode: $VERBOSE - NO retry on error"
 			return 1
 		fi
 
 		__CNT=$(( $__CNT + 1 ))
 		[ $retry_count -gt 0 -a $__CNT -gt $retry_count ] && \
-			write_log 14 "$retry_count 次重试后传输还是失败"
+			write_log 14 "Transfer failed after $retry_count retries"
 
-		write_log 4 "传输失败 - $__CNT/$retry_count 在 $RETRY_SECONDS 秒后重试"
+		write_log 4 "Transfer failed - retry $__CNT/$retry_count in $RETRY_SECONDS seconds"
 		sleep $RETRY_SECONDS &
 		PID_SLEEP=$!
 		wait $PID_SLEEP
@@ -126,7 +126,7 @@ percentEncode() {
 
 # 构造阿里云解析请求参数
 build_Request() {
-	local args=$*; local string
+	local args="$@"; local string
 	local HTTP_METHOD="GET"
 
 	# 添加请求参数
@@ -196,39 +196,26 @@ enable_domain() {
 
 # 获取子域名解析记录列表
 describe_domain() {
-	local count value; local ret=0
-	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" || write_log 14 "服务器通信失败"
-	write_log 7 "获取到解析记录: $(cat "$DATFILE" 2> /dev/null)" 
+	local value type; local ret=0
+	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" "Type=${__TYPE}" || write_log 14 "服务器通信失败"
 	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
-	json_get_var count "TotalCount"
-	if [ $count -eq 0 ]; then
+	json_get_var value "TotalCount"
+	if [ $value -eq 0 ]; then
 		write_log 7 "解析记录不存在"
 		ret=1
 	else
-		local i=1;
-		while [ $i -le $count ]; do
-			json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
-			json_select "DomainRecords" >/dev/null 2>&1
-			json_select "Record" >/dev/null 2>&1
-			json_select $i >/dev/null 2>&1
-			i=$(( $i + 1 ))
-			json_get_var value "Type"
-			if [ "$value" != "${__TYPE}" ]; then
-				write_log 7 "当前解析类型: ${__TYPE}, 获得不匹配类型: $value"
-				ret=1; continue
-			else
-				ret=0
-				json_get_var __RECID "RecordId"
-				write_log 7 "获得解析记录ID: ${__RECID}, 类型: $value"
-				json_get_var value "Locked"
-				[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
-				json_get_var value "Status"
-				[ "$value" != "ENABLE" ] && ret=$(( $ret | 2 )) && write_log 7 "解析记录被禁用"
-				json_get_var value "Value"
-				[ "$value" != "${__IP}" ] && ret=$(( $ret | 4 )) && write_log 7 "地址需要修改"
-				break
-			fi
-		done
+		json_select "DomainRecords" >/dev/null 2>&1
+		json_select "Record" >/dev/null 2>&1
+		json_select 1 >/dev/null 2>&1
+		json_get_var value "Locked"
+		[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
+		json_get_var __RECID "RecordId"
+		write_log 7 "获得解析记录ID: ${__RECID}"
+		json_get_var value "Status"
+		[ "$value" != "ENABLE" ] && ret=$(( $ret | 2 )) && write_log 7 "解析记录被禁用"
+		json_get_var type "Type"
+		json_get_var value "Value"
+		[ "$type" != "${__TYPE}" -o "$value" != "${__IP}" ] && ret=$(( $ret | 4 )) && write_log 7 "地址或类型需要修改"
 	fi
 	return $ret
 }
