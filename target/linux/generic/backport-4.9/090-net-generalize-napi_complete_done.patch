@@ -148,7 +148,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  			c_can_irq_control(priv, true);
 --- a/drivers/net/can/flexcan.c
 +++ b/drivers/net/can/flexcan.c
-@@ -703,7 +703,7 @@ static int flexcan_poll(struct napi_stru
+@@ -709,7 +709,7 @@ static int flexcan_poll(struct napi_stru
  		work_done += flexcan_poll_bus_err(dev, reg_esr);
  
  	if (work_done < quota) {
