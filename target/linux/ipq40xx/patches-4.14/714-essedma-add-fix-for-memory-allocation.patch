@@ -21,7 +21,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
 
 --- a/drivers/net/ethernet/qualcomm/essedma/edma.c
 +++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
-@@ -103,6 +103,9 @@ static int edma_alloc_rx_ring(struct edm
+@@ -95,6 +95,9 @@ static int edma_alloc_rx_ring(struct edm
  		return -ENOMEM;
  	}
  
@@ -31,7 +31,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  	return 0;
  }
  
-@@ -185,11 +188,8 @@ static int edma_alloc_rx_buf(struct edma
+@@ -177,11 +180,8 @@ static int edma_alloc_rx_buf(struct edma
  	u16 prod_idx, length;
  	u32 reg_data;
  
@@ -45,7 +45,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  
  	i = erdr->sw_next_to_fill;
  
-@@ -199,6 +199,9 @@ static int edma_alloc_rx_buf(struct edma
+@@ -191,6 +191,9 @@ static int edma_alloc_rx_buf(struct edma
  
  		if (sw_desc->flags & EDMA_SW_DESC_FLAG_SKB_REUSE) {
  			skb = sw_desc->skb;
@@ -55,7 +55,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  		} else {
  			/* alloc skb */
  			skb = netdev_alloc_skb_ip_align(edma_netdev[0], length);
-@@ -264,6 +267,13 @@ static int edma_alloc_rx_buf(struct edma
+@@ -256,6 +259,13 @@ static int edma_alloc_rx_buf(struct edma
  	reg_data &= ~EDMA_RFD_PROD_IDX_BITS;
  	reg_data |= prod_idx;
  	edma_write_reg(EDMA_REG_RFD_IDX_Q(queue_id), reg_data);
@@ -69,7 +69,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  	return cleaned_count;
  }
  
-@@ -534,7 +544,7 @@ static int edma_rx_complete_paged(struct
+@@ -567,7 +577,7 @@ static inline void edma_realloc_timer_st
   * edma_rx_complete()
   *	Main api called from the poll function to process rx packets.
   */
@@ -78,7 +78,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  			    int *work_done, int work_to_do, int queue_id,
  			    struct napi_struct *napi)
  {
-@@ -554,6 +564,7 @@ static void edma_rx_complete(struct edma
+@@ -587,6 +597,7 @@ static void edma_rx_complete(struct edma
  	u16 count = erdr->count, rfd_avail;
  	u8 queue_to_rxid[8] = {0, 0, 1, 1, 2, 2, 3, 3};
  
@@ -86,7 +86,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  	sw_next_to_clean = erdr->sw_next_to_clean;
  
  	edma_read_reg(EDMA_REG_RFD_IDX_Q(queue_id), &data);
-@@ -652,12 +663,13 @@ static void edma_rx_complete(struct edma
+@@ -685,12 +696,13 @@ static void edma_rx_complete(struct edma
  						(*work_done)++;
  						drop_count = 0;
  					}
@@ -101,7 +101,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  					}
  					continue;
  				}
-@@ -730,11 +742,12 @@ static void edma_rx_complete(struct edma
+@@ -763,11 +775,12 @@ static void edma_rx_complete(struct edma
  			adapter->stats.rx_bytes += length;
  
  			/* Check if we reached refill threshold */
@@ -115,19 +115,17 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  			}
  
  			/* At this point skb should go to stack */
-@@ -756,13 +769,17 @@ static u16 edma_rx_complete(struct edma_common_info *edma_cinfo,
+@@ -789,13 +802,17 @@ static void edma_rx_complete(struct edma
  	/* Refill here in case refill threshold wasn't reached */
  	if (edma_rfd_desc_unused(erdr)) {
  		ret_count = edma_alloc_rx_buf(edma_cinfo, erdr, edma_rfd_desc_unused(erdr), queue_id);
--		if (ret_count) {
++		erdr->pending_fill = ret_count;
+ 		if (ret_count) {
 -			dev_dbg(&pdev->dev, "Not all buffers was reallocated");
 -			edma_realloc_timer_start(napi, queue_id);
--		}
-+		erdr->pending_fill = ret_count;
-+		if (ret_count) {
 +			if (net_ratelimit())
 +				dev_dbg(&pdev->dev, "Not all buffers was reallocated");
-+		}
+ 		}
 +
  		edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
  			      erdr->sw_next_to_clean);
@@ -137,7 +135,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  }
  
  /* edma_delete_rfs_filter()
-@@ -2064,6 +2081,7 @@ int edma_poll(struct napi_struct *napi,
+@@ -2101,6 +2118,7 @@ int edma_poll(struct napi_struct *napi,
  	u32 shadow_rx_status, shadow_tx_status;
  	int queue_id;
  	int i, work_done = 0;
@@ -145,7 +143,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  
  	/* Store the Rx/Tx status by ANDing it with
  	 * appropriate CPU RX?TX mask
-@@ -2097,13 +2115,19 @@ int edma_poll(struct napi_struct *napi,
+@@ -2134,13 +2152,19 @@ int edma_poll(struct napi_struct *napi,
  	 */
  	while (edma_percpu_info->rx_status) {
  		queue_id = ffs(edma_percpu_info->rx_status) - 1;
@@ -179,7 +177,7 @@ Reviewed-by: Grant Grundler <grundler@chromium.org>
  };
  
  struct edma_mdio_data {
-@@ -362,6 +363,7 @@ struct edma_rfd_desc_ring {
+@@ -365,6 +366,7 @@ struct edma_rfd_desc_ring {
  	dma_addr_t dma; /* descriptor ring physical address */
  	u16 sw_next_to_fill; /* next descriptor to fill */
  	u16 sw_next_to_clean; /* next descriptor to clean */

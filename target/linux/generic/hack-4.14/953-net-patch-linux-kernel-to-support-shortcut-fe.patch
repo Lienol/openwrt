@@ -1,6 +1,6 @@
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -796,6 +796,9 @@ struct sk_buff {
+@@ -783,6 +783,9 @@ struct sk_buff {
  	__u8			tc_from_ingress:1;
  #endif
  	__u8			gro_skip:1;
@@ -55,9 +55,9 @@
 +	bool "Enables kernel network stack path for Shortcut  Forwarding Engine
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -3007,7 +3007,16 @@ static int xmit_one(struct sk_buff *skb,
+@@ -2998,7 +2998,16 @@ static int xmit_one(struct sk_buff *skb,
  	int rc;
-
+ 
  	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
 +#ifdef CONFIG_SHORTCUT_FE
 +	/* If this skb has been fast forwarded then we don't want it to
@@ -72,7 +72,7 @@
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (!dev->eth_mangle_tx ||
-@@ -4322,6 +4331,11 @@ void netdev_rx_handler_unregister(struct
+@@ -4311,6 +4320,11 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -84,7 +84,7 @@
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -4369,6 +4383,9 @@ static int __netif_receive_skb_core(stru
+@@ -4358,6 +4372,9 @@ static int __netif_receive_skb_core(stru
  	bool deliver_exact = false;
  	int ret = NET_RX_DROP;
  	__be16 type;
@@ -94,7 +94,7 @@
  
  	net_timestamp_check(!netdev_tstamp_prequeue, skb);
  
-@@ -4395,6 +4412,16 @@ another_round:
+@@ -4384,6 +4401,16 @@ another_round:
  			goto out;
  	}
  

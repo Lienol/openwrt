@@ -14,11 +14,9 @@ Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
  drivers/net/ethernet/qualcomm/essedma/edma_axi.c |  8 ++++
  3 files changed, 58 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.c b/drivers/net/ethernet/qualcomm/essedma/edma.c
-index fecc0ba..3f1da93 100644
 --- a/drivers/net/ethernet/qualcomm/essedma/edma.c
 +++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
-@@ -530,6 +530,47 @@ static int edma_rx_complete_paged(struct sk_buff *skb, u16 num_rfds, u16 length,
+@@ -530,6 +530,47 @@ static int edma_rx_complete_paged(struct
  	return sw_next_to_clean;
  }
  
@@ -66,7 +64,7 @@ index fecc0ba..3f1da93 100644
  /*
   * edma_rx_complete()
   *	Main api called from the poll function to process rx packets.
-@@ -754,10 +795,12 @@ static void edma_rx_complete(struct edma_common_info *edma_cinfo,
+@@ -754,10 +795,12 @@ static void edma_rx_complete(struct edma
  	erdr->sw_next_to_clean = sw_next_to_clean;
  
  	/* Refill here in case refill threshold wasn't reached */
@@ -82,7 +80,7 @@ index fecc0ba..3f1da93 100644
  		edma_write_reg(EDMA_REG_RX_SW_CONS_IDX_Q(queue_id),
  			      erdr->sw_next_to_clean);
  	}
-@@ -1801,7 +1844,7 @@ int edma_configure(struct edma_common_info *edma_cinfo)
+@@ -1801,7 +1844,7 @@ int edma_configure(struct edma_common_in
  	/* Allocate the RX buffer */
  	for (i = 0, j = 0; i < edma_cinfo->num_rx_queues; i++) {
  		struct edma_rfd_desc_ring *ring = edma_cinfo->rfd_ring[j];
@@ -91,8 +89,6 @@ index fecc0ba..3f1da93 100644
  		if (ret_count) {
  			dev_dbg(&edma_cinfo->pdev->dev, "not all rx buffers allocated\n");
  		}
-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma.h b/drivers/net/ethernet/qualcomm/essedma/edma.h
-index 5d6dc73..29c8379 100644
 --- a/drivers/net/ethernet/qualcomm/essedma/edma.h
 +++ b/drivers/net/ethernet/qualcomm/essedma/edma.h
 @@ -304,6 +304,8 @@ struct edma_per_cpu_queues_info {
@@ -112,11 +108,9 @@ index 5d6dc73..29c8379 100644
  void ess_set_port_status_speed(struct edma_common_info *edma_cinfo,
                                 struct phy_device *phydev, uint8_t port_id);
  #endif /* _EDMA_H_ */
-diff --git a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
-index 81fc1e1..d9f8b52 100644
 --- a/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
 +++ b/drivers/net/ethernet/qualcomm/essedma/edma_axi.c
-@@ -1131,6 +1131,11 @@ static int edma_axi_probe(struct platform_device *pdev)
+@@ -1131,6 +1131,11 @@ static int edma_axi_probe(struct platfor
  		edma_cinfo->edma_percpu_info[i].rx_status = 0;
  		edma_cinfo->edma_percpu_info[i].edma_cinfo = edma_cinfo;
  
@@ -139,6 +133,3 @@ index 81fc1e1..d9f8b52 100644
  err_reset:
  err_unregister_sysctl_tbl:
  err_rmap_alloc_fail:
--- 
-2.7.4
-
