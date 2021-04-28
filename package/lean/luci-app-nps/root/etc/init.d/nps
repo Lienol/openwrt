@@ -4,15 +4,11 @@
 START=50
 USE_PROCD=1
 
-LOGFILE="/var/etc/nps.log"
+LOGFILE="/tmp/nps.log"
 tmpconf="/tmp/etc/nps.conf"
 
-service_triggers() {
-    procd_add_reload_trigger "nps"
-}
-
 nps_header() {
-	local enabled server_addr server_port protocol vkey compress crypt auto_reconnection log_level
+	local enabled server_addr server_port protocol vkey compress crypt log_level
 
 	config_get enabled $1 enabled
 	config_get server_addr $1 server_addr
@@ -21,7 +17,6 @@ nps_header() {
 	config_get vkey $1 vkey
 	config_get compress $1 compress
 	config_get crypt $1 crypt
-	config_get auto_reconnection $1 auto_reconnection
 	config_get log_level $1 log_level
 
 	[ -f $tmpconf ] && rm $tmpconf
@@ -29,10 +24,10 @@ nps_header() {
 	echo "server_addr=${server_addr}:${server_port}" >>$tmpconf
 	echo "conn_type=${protocol}" >>$tmpconf
 	echo "vkey=${vkey}" >>$tmpconf
+	echo "auto_reconnection=true" >>$tmpconf
 
 	nps_write_bool compress $1
 	nps_write_bool crypt $1
-	nps_write_bool auto_reconnection $1
 
 	Log_level=$log_level
 	Enabled=$enabled
@@ -67,9 +62,7 @@ start_service() {
 	fi
 }
 
-reload_service()
-{
-        stop
-        start
+service_triggers() {
+        procd_add_reload_trigger "nps"
 }
 

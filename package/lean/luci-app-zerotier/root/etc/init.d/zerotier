@@ -17,10 +17,6 @@ section_enabled() {
 	[ $enabled -gt 0 ]
 }
 
-service_triggers() {
-    procd_add_reload_trigger "zerotier"
-}
-
 start_instance() {
 	local cfg="$1"
 	local port secret config_path
@@ -90,7 +86,6 @@ start_instance() {
 }
 
 start_service() {
-	/etc/zerotier.stop
 	config_load 'zerotier'
 	config_foreach start_instance 'zerotier'
 	touch /tmp/zero.log && /etc/zerotier.start > /tmp/zero.log 2>&1 &
@@ -101,13 +96,13 @@ stop_instance() {
 	local cfg="$1"
 
 	/etc/zerotier.stop > /tmp/zero.log 2>&1 &
+
 	# Remove existing link or folder
 	rm -f $CONFIG_PATH/networks.d/*.conf
 	rm -rf $CONFIG_PATH
 }
 
 stop_service() {
-	/etc/zerotier.stop
 	config_load 'zerotier'
 	config_foreach stop_instance 'zerotier'
 }
