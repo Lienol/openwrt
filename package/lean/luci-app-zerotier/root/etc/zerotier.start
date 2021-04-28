@@ -6,14 +6,13 @@ zero_enable="$(uci get zerotier.sample_config.enabled)"
 
 [ -f "/tmp/zero.log" ] && {
 	while [ "$(ifconfig | grep 'zt' | awk '{print $1}')" = "" ]
-do 
-   sleep 1
-done
+	do
+		sleep 1
+	done
 }
 
 nat_enable="$(uci get zerotier.sample_config.nat)"
 zt0="$(ifconfig | grep 'zt' | awk '{print $1}')"
-
 echo "${zt0}" > "/tmp/zt.nif"
 
 [ "${nat_enable}" -eq "1" ] && {
