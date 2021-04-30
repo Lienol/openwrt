@@ -29,6 +29,7 @@ ipq40xx_setup_interfaces()
 	engenius,eap1300|\
 	engenius,emd1|\
 	meraki,mr33|\
+	mikrotik,sxtsq-5-ac|\
 	netgear,ex6100v2|\
 	netgear,ex6150v2|\
 	zyxel,wre6606)
@@ -172,6 +173,10 @@ ipq40xx_setup_macs()
 		lan_mac=$(macaddr_add $wan_mac 1)
 		label_mac="$wan_mac"
 		;;
+	mikrotik,sxtsq-5-ac)
+		lan_mac=$(cat /sys/firmware/mikrotik/hard_config/mac_base)
+		label_mac="$lan_mac"
+		;;
 	p2w,r619ac|\
 	p2w,r619ac-128m)
 		wan_mac=$(cat /sys/class/net/eth0/address)
@@ -179,6 +184,7 @@ ipq40xx_setup_macs()
 		;;
 	*)
 		wan_mac=$(macaddr_add $(cat /sys/class/net/eth0/address) 1)
+		;;
 	esac
 
 	[ -n "$lan_mac" ] && ucidef_set_interface_macaddr "lan" $lan_mac
