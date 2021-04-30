@@ -31,14 +31,16 @@ avm,fritzbox-4040)
 	ucidef_set_led_switch "wan" "WAN" "green:wan" "switch0" "0x20"
 	ucidef_set_led_switch "lan" "LAN" "green:lan" "switch0" "0x1e"
 	;;
-century,wr142ac |\
-century,wr142ac-nand)
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "wr142ac:green:wlan2g" "phy0tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "wr142ac:green:wlan5g" "phy1tpt"
-	;;
 avm,fritzbox-7530 |\
 glinet,gl-b1300)
 	ucidef_set_led_wlan "wlan" "WLAN" "green:wlan" "phy0tpt"
+	;;
+century,wr142ac |\
+century,wr142ac-nand |\
+zyxel,nbg6617 |\
+zyxel,wre6606)
+	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan2g" "phy0tpt"
+	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan5g" "phy1tpt"
 	;;
 edgecore,oap100)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "blue:wlan2g" "phy0tpt"
@@ -74,11 +76,6 @@ qxwlan,e2600ac-c1 |\
 qxwlan,e2600ac-c2)
 	ucidef_set_led_wlan "wlan2g" "WLAN0" "green:wlan0" "phy0tpt"
 	ucidef_set_led_wlan "wlan5g" "WLAN1" "green:wlan1" "phy1tpt"
-	;;
-zyxel,nbg6617 |\
-zyxel,wre6606)
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "green:wlan2g" "phy0tpt"
-	ucidef_set_led_wlan "wlan5g" "WLAN5G" "green:wlan5g" "phy1tpt"
 	;;
 esac
 
