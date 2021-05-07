@@ -13,28 +13,28 @@ diff --git a/src/dnsmasq.h b/src/dnsmasq.h
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
 @@ -270,6 +270,7 @@
- #define OPT_IGNORE_CLID    59
  #define OPT_SINGLE_PORT    60
  #define OPT_LEASE_RENEW    61
--#define OPT_LAST           62
-+#define OPT_FILTER_AAAA    62
-+#define OPT_LAST           63
+ #define OPT_LOG_DEBUG      62
+-#define OPT_LAST           63
++#define OPT_FILTER_AAAA    63
++#define OPT_LAST           64
  
  #define OPTION_BITS (sizeof(unsigned int)*8)
  #define OPTION_SIZE ( (OPT_LAST/OPTION_BITS)+((OPT_LAST%OPTION_BITS)!=0) )
 diff --git a/src/option.c b/src/option.c
-@@ -168,6 +168,7 @@
- #define LOPT_SINGLE_PORT   359
- #define LOPT_SCRIPT_TIME   360
+@@ -170,6 +170,7 @@
  #define LOPT_PXE_VENDOR    361
-+#define LOPT_FILTER_AAAA   362
+ #define LOPT_DYNHOST       362
+ #define LOPT_LOG_DEBUG     363
++#define LOPT_FILTER_AAAA   363
   
  #ifdef HAVE_GETOPT_LONG
  static const struct option opts[] =  
 @@ -339,6 +340,7 @@
-     { "dumpfile", 1, 0, LOPT_DUMPFILE },
-     { "dumpmask", 1, 0, LOPT_DUMPMASK },
      { "dhcp-ignore-clid", 0, 0,  LOPT_IGNORE_CLID },
+     { "dynamic-host", 1, 0, LOPT_DYNHOST },
+     { "log-debug", 0, 0, LOPT_LOG_DEBUG },
 +    { "filter-aaaa", 0, 0,  LOPT_FILTER_AAAA },
      { NULL, 0, 0, 0 }
    };
