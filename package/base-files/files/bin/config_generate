@@ -91,21 +91,34 @@ generate_static_network() {
 
 addr_offset=2
 generate_network() {
-	local ifname macaddr protocol type ipaddr netmask vlan
+	local ports ifname macaddr protocol type ipaddr netmask vlan
 	local bridge=$2
 
 	json_select network
 		json_select "$1"
+			json_get_values ports ports
 			json_get_vars ifname macaddr protocol ipaddr netmask vlan
 		json_select ..
 	json_select ..
 
-	[ -n "$ifname" ] || return
+	[ -n "$ifname" -o -n "$ports" ] || return
 
-	# force bridge for multi-interface devices (and lan)
-	case "$1:$ifname" in
-		*\ * | lan:*) type="bridge" ;;
-	esac
+	# Force bridge for "lan" as it may have other devices (e.g. wireless)
+	# bridged
+	[ "$1" = "lan" -a -z "$ports" ] && {
+		ports="$ifname"
+	}
+
+	[ -n "$ports" ] && {
+		uci -q batch <<-EOF
+			add network device
+			set network.@device[-1].name='br-$1'
+			set network.@device[-1].type='bridge'
+		EOF
+		for port in $ports; do uci add_list network.@device[-1].ports="$port"; done
+		ifname=br-$1
+		type=
+	}
 
 	[ -n "$bridge" ] && {
 		if [ -z "$vlan" ]; then
