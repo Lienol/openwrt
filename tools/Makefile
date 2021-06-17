@@ -23,7 +23,7 @@ endif
 
 tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
 tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs zlib
-tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
+tools-y += sstrip make-ext4fs meson e2fsprogs mtd-utils mkimage
 tools-y += firmware-utils patch-image quilt padjffs2
 tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
 tools-y += mtools dosfstools libressl
@@ -80,6 +80,7 @@ $(curdir)/zlib/compile := $(curdir)/cmake/compile
 $(curdir)/wrt350nv2-builder/compile := $(curdir)/zlib/compile
 $(curdir)/lzma-old/compile := $(curdir)/zlib/compile
 $(curdir)/make-ext4fs/compile := $(curdir)/zlib/compile
+$(curdir)/meson/compile := $(curdir)/ninja/compile
 $(curdir)/cbootimage/compile += $(curdir)/automake/compile
 $(curdir)/zstd/compile := $(curdir)/cmake/compile
 
