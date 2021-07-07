@@ -12,10 +12,8 @@ PKG_LICENSE:=GPL-3.0-only
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
 
 LUCI_TITLE:=LuCI support for Flow Offload / Shortcut-FE
-LUCI_DEPENDS:=+pdnsd-alt \
+LUCI_DEPENDS:= \
 	+PACKAGE_TURBOACC_INCLUDE_BBR_CCA:kmod-tcp-bbr \
-	+PACKAGE_TURBOACC_INCLUDE_DNSFORWARDER:dnsforwarder \
-	+PACKAGE_TURBOACC_INCLUDE_DNSPROXY:dnsproxy \
 	+PACKAGE_TURBOACC_INCLUDE_OFFLOADING:kmod-ipt-offload \
 	+PACKAGE_TURBOACC_INCLUDE_SHORTCUT_FE:kmod-fast-classifier
 LUCI_PKGARCH:=all
@@ -23,30 +21,21 @@ LUCI_PKGARCH:=all
 define Package/luci-app-turboacc/config
 config PACKAGE_TURBOACC_INCLUDE_OFFLOADING
 	bool "Include Flow Offload"
-	depends on PACKAGE_TURBOACC_INCLUDE_SHORTCUT_FE=n
-	default y if i386||x86_64||TARGET_ramips_mt7621
+	depends on !(LINUX_4_9)
+	default y
 
 config PACKAGE_TURBOACC_INCLUDE_SHORTCUT_FE
 	bool "Include Shortcut-FE"
+	depends on (LINUX_4_9)
 	default y
 
 config PACKAGE_TURBOACC_INCLUDE_BBR_CCA
 	bool "Include BBR CCA"
 	default y
-
-config PACKAGE_TURBOACC_INCLUDE_DNSFORWARDER
-	bool "Include DNSForwarder"
-	default n
-
-config PACKAGE_TURBOACC_INCLUDE_DNSPROXY
-	bool "Include DNSProxy"
-	default n
 endef
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_TURBOACC_INCLUDE_BBR_CCA \
-	CONFIG_PACKAGE_TURBOACC_INCLUDE_DNSFORWARDER \
-	CONFIG_PACKAGE_TURBOACC_INCLUDE_DNSPROXY \
 	CONFIG_PACKAGE_TURBOACC_INCLUDE_OFFLOADING \
 	CONFIG_PACKAGE_TURBOACC_INCLUDE_SHORTCUT_FE
 
