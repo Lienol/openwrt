@@ -342,6 +342,13 @@ define Device/dlink_dir-2660-a1
 endef
 TARGET_DEVICES += dlink_dir-2660-a1
 
+define Device/dlink_dir-853-a3
+  $(Device/dlink_dir-xx60-a1)
+  DEVICE_MODEL := DIR-853
+  DEVICE_VARIANT := A3
+endef
+TARGET_DEVICES += dlink_dir-853-a3
+
 define Device/dlink_dir-853-r1
   $(Device/dlink_dir-8xx-r1)
   DEVICE_MODEL := DIR-853
@@ -869,6 +876,14 @@ define Device/linksys_ea8100-v1
   LINKSYS_HWNAME := EA8100
 endef
 TARGET_DEVICES += linksys_ea8100-v1
+
+define Device/linksys_ea8100-v2
+  $(Device/linksys_ea7xxx)
+  DEVICE_MODEL := EA8100
+  DEVICE_VARIANT := v2
+  LINKSYS_HWNAME := EA8100v2
+endef
+TARGET_DEVICES += linksys_ea8100-v2
 
 define Device/linksys_re6500
   $(Device/dsa-migration)
