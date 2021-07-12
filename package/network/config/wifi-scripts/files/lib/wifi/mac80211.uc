@@ -71,19 +71,24 @@ for (let phy_name, phy in board.wlan) {
 	if (match(phy_name, /^phy[0-9]/))
 		id = `path='${phy.path}'`;
 
+	let ssid = "OpenWrt";
+	if (band_name == "5G")
+		ssid = ssid + "_5G";
+
 	print(`set ${s}=wifi-device
 set ${s}.type='mac80211'
 set ${s}.${id}
 set ${s}.band='${lc(band_name)}'
 set ${s}.channel='${channel}'
 set ${s}.htmode='${htmode}'
-set ${s}.disabled='1'
+set ${s}.disabled='0'
+set wireless.${name}.country='US'
 
 set ${si}=wifi-iface
 set ${si}.device='${name}'
 set ${si}.network='lan'
 set ${si}.mode='ap'
-set ${si}.ssid='OpenWrt'
+set ${si}.ssid='${ssid}'
 set ${si}.encryption='none'
 
 `);
