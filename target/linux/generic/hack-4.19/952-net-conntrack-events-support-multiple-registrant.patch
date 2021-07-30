@@ -272,7 +272,7 @@
  #include <linux/slab.h>
  #include <linux/siphash.h>
  
-@@ -678,14 +683,22 @@ static size_t ctnetlink_nlmsg_size(const
+@@ -681,14 +686,22 @@ static size_t ctnetlink_nlmsg_size(const
  	       ;
  }
  
@@ -295,7 +295,7 @@
  	struct nf_conn *ct = item->ct;
  	struct sk_buff *skb;
  	unsigned int type;
-@@ -3482,9 +3495,15 @@ static int ctnetlink_stat_exp_cpu(struct
+@@ -3485,9 +3498,15 @@ static int ctnetlink_stat_exp_cpu(struct
  }
  
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
