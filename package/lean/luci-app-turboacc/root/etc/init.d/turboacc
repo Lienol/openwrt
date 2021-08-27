@@ -1,0 +1,113 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2018 Lean <coolsnowwolf@gmail.com>
+# Copyright (C) 2019-2021 Tianling Shen <cnsztl@immortalwrt.org>
+
+START=90
+STOP=10
+
+EXTRA_COMMANDS="check_status"
+EXTRA_HELP="	check_status Check running status of utils"
+
+restart_utils="true"
+
+inital_conf(){
+	config_load "turboacc"
+	config_get "sw_flow" "config" "sw_flow" "0"
+	config_get "hw_flow" "config" "hw_flow" "0"
+	config_get "sfe_flow" "config" "sfe_flow" "0"
+	config_get "sfe_bridge" "config" "sfe_bridge" "0"
+	config_get "sfe_ipv6" "config" "sfe_ipv6" "0"
+	config_get "bbr_cca" "config" "bbr_cca" "0"
+	config_get "fullcone_nat" "config" "fullcone_nat" "0"
+
+	[ ! -e "/lib/modules/$(uname -r)/xt_FLOWOFFLOAD.ko" ] && { sw_flow="0"; hw_flow="0"; }
+	[ ! -e "/lib/modules/$(uname -r)/fast-classifier.ko" ] && { sfe_flow="0"; sfe_bridge="0"; sfe_ipv6="0"; }
+	[ ! -e "/lib/modules/$(uname -r)/tcp_bbr.ko" ] && bbr_cca="0"
+	[ ! -e "/lib/modules/$(uname -r)/xt_FULLCONENAT.ko" ] && fullcone_nat="0"
+}
+
+start(){
+	inital_conf
+
+	uci set firewall.@defaults[0].flow_offloading="${sw_flow}"
+	uci set firewall.@defaults[0].flow_offloading_hw="${hw_flow}"
+	uci set firewall.@defaults[0].fullcone="${fullcone_nat}"
+	uci commit firewall
+
+	[ "${sw_flow}" -ne "1" ] && [ "${sfe_flow}" -eq "1" ] && {
+		lsmod | grep -q fast_classifier || modprobe fast_classifier 2>"/dev/null"
+		echo "${sfe_bridge}" > "/sys/fast_classifier/skip_to_bridge_ingress" 2>"/dev/null"
+		if [ "${sfe_ipv6}" -eq "1" ]; then
+			[ ! -e "/dev/sfe_ipv6" ] && mknod "/dev/sfe_ipv6" "c" "$(cat "/sys/sfe_ipv6/debug_dev")" "0"
+		else
+			rm -f "/dev/sfe_ipv6"
+		fi
+	}
+
+	if [ "${bbr_cca}" -eq "1" ];  then
+		sysctl -w net.ipv4.tcp_congestion_control="bbr"
+	else
+		sysctl -w net.ipv4.tcp_congestion_control="cubic"
+	fi	
+
+	if [ "${restart_utils}" = "true" ]; then
+		/etc/init.d/firewall restart >"/dev/null" 2>&1
+	fi
+}
+
+stop(){
+	inital_conf
+
+	uci set firewall.@defaults[0].flow_offloading="${sw_flow}"
+	uci set firewall.@defaults[0].flow_offloading_hw="${hw_flow}"
+	uci set firewall.@defaults[0].fullcone="${fullcone_nat}"
+	uci commit firewall
+
+	[ "${sfe_flow}" -ne "1" ] && {
+		echo "0" > "/sys/fast_classifier/skip_to_bridge_ingress" 2>"/dev/null"
+		rm -f "/dev/sfe_ipv6"
+		rmmod "fast_classifier" 2>"/dev/null"
+	}
+
+	if [ "${restart_utils}" = "true" ]; then
+		/etc/init.d/firewall restart >"/dev/null" 2>&1
+	fi
+}
+
+restart(){
+	restart_utils="false"
+	stop
+	start
+	/etc/init.d/firewall restart >"/dev/null" 2>&1
+}
+
+
+check_status(){
+	case "$1" in
+	"fastpath")
+		if [ "$(cat "/sys/module/xt_FLOWOFFLOAD/refcnt" 2>"/dev/null" || echo 0)" -ne "0" ]; then
+			echo -n "Flow Offloading"
+			exit 0
+		elif lsmod | grep -q "ecm"; then
+			echo -n "QCA-NSS-ECM"
+			exit 0
+		elif lsmod | grep -q "fast_classifier"; then
+			echo -n "Shortcut-FE"
+			exit 0
+		else
+			exit 1
+		fi
+		;;
+	"fullconenat")
+		[ "$(cat "/sys/module/xt_FULLCONENAT/refcnt" 2>"/dev/null" || echo 0)" -ne "0" ] && \
+			exit 0 || exit 1
+		;;
+	"bbr")
+		[ "x$(cat "/proc/sys/net/ipv4/tcp_congestion_control" 2>"/dev/null")" = "xbbr" ] && \
+			exit 0 || exit 1
+		;;
+	*)
+		exit 2
+		;;
+	esac
+}

@@ -73,13 +73,13 @@ IS_PACKAGE_BUILD := $(if $(filter package/%,$(BUILD_SUBDIR)),1)
 
 OPTIMIZE_FOR_CPU=$(subst i386,i486,$(ARCH))
 
-ifeq ($(ARCH),powerpc)
-  FPIC:=-fPIC
+ifneq (,$(findstring $(ARCH) , aarch64 aarch64_be powerpc ))
+  FPIC:=-DPIC -fPIC
 else
-  FPIC:=-fpic
+  FPIC:=-DPIC -fpic
 endif
 
-HOST_FPIC:=-fPIC
+HOST_FPIC:=-DPIC -fPIC
 
 ARCH_SUFFIX:=$(call qstrip,$(CONFIG_CPU_TYPE))
 GCC_ARCH:=
@@ -334,6 +334,12 @@ else
     PATCHELF="$(STAGING_DIR_HOST)/bin/patchelf" \
     $(SCRIPT_DIR)/rstrip.sh
 endif
+
+NINJA = \
+	MAKEFLAGS="$(MAKE_JOBSERVER)" \
+	$(STAGING_DIR_HOST)/bin/ninja \
+		$(if $(findstring c,$(OPENWRT_VERBOSE)),-v) \
+		$(if $(MAKE_JOBSERVER),,-j1)
 
 ifeq ($(CONFIG_IPV6),y)
   DISABLE_IPV6:=
