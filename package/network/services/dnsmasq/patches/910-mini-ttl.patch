@@ -55,54 +55,53 @@ diff --git a/src/option.c b/src/option.c
  	  {
  	    if (ttl > TTL_FLOOR_LIMIT)
 diff --git a/src/rfc1035.c b/src/rfc1035.c
---- a/src/rfc1035.c  2018-10-19 02:21:55.000000000 +0800
-+++ b/src/rfc1035.c      2020-01-13 17:12:25.455445871 +0800
-@@ -664,11 +664,20 @@
- 		  GETSHORT(aqtype, p1); 
- 		  GETSHORT(aqclass, p1);
- 		  GETLONG(attl, p1);
-+		  unsigned long mttl = 0;
- 		  if ((daemon->max_ttl != 0) && (attl > daemon->max_ttl) && !is_sign)
- 		    {
--		      (p1) -= 4;
--		      PUTLONG(daemon->max_ttl, p1);
--		    }
-+           mttl = daemon->max_ttl;
-+        }
-+      if ((daemon->min_ttl != 0) && (attl < daemon->min_ttl) && !is_sign)
-+        {
-+           mttl = daemon->min_ttl;
-+        }
-+       if (mttl != 0)
-+       {
-+          (p1) -= 4;
-+          PUTLONG(mttl, p1);
-+       }
- 		  GETSHORT(ardlen, p1);
- 		  endrr = p1+ardlen;
- 		  
-@@ -755,11 +764,20 @@
- 	      GETSHORT(aqtype, p1); 
+--- a/src/rfc1035.c
++++ b/src/rfc1035.c
+@@ -614,11 +614,20 @@
  	      GETSHORT(aqclass, p1);
  	      GETLONG(attl, p1);
-+	      unsigned long mttl = 0;
- 	      if ((daemon->max_ttl != 0) && (attl > daemon->max_ttl) && !is_sign)
+ 	      
+-	      if ((daemon->max_ttl != 0) && (attl > daemon->max_ttl) && !is_sign)
 -		{
 -		  (p1) -= 4;
 -		  PUTLONG(daemon->max_ttl, p1);
 -		}
-+          {
-+             mttl = daemon->max_ttl;
-+          }
-+        if ((daemon->min_ttl != 0) && (attl < daemon->min_ttl) && !is_sign)
-+          {
-+             mttl = daemon->min_ttl;
-+          }
-+         if (mttl != 0)
-+         {
-+            (p1) -= 4;
-+            PUTLONG(mttl, p1);
-+         }
++		  unsigned long mttl = 0;
++		  if ((daemon->max_ttl != 0) && (attl > daemon->max_ttl) && !is_sign)
++		    {
++				mttl = daemon->max_ttl;
++			}
++		  if ((daemon->min_ttl != 0) && (attl < daemon->min_ttl) && !is_sign)
++		    {
++				mttl = daemon->min_ttl;
++			}
++		  if (mttl != 0)
++		    {
++				(p1) -= 4;
++				PUTLONG(mttl, p1);
++			}
  	      GETSHORT(ardlen, p1);
  	      endrr = p1+ardlen;
  	      
+@@ -729,10 +738,20 @@
+ 	  GETSHORT(aqtype, p1); 
+ 	  GETSHORT(aqclass, p1);
+ 	  GETLONG(attl, p1);
++	      
++	  unsigned long mttl = 0;
+ 	  if ((daemon->max_ttl != 0) && (attl > daemon->max_ttl) && !is_sign)
+ 	    {
++	      mttl = daemon->max_ttl;
++	    }
++      if ((daemon->min_ttl != 0) && (attl < daemon->min_ttl) && !is_sign)
++	    {
++	      mttl = daemon->min_ttl;
++	    }
++      if (mttl != 0)
++	    {
+ 	      (p1) -= 4;
+-	      PUTLONG(daemon->max_ttl, p1);
++	      PUTLONG(mttl, p1);
+ 	    }
+ 	  GETSHORT(ardlen, p1);
+ 	  endrr = p1+ardlen;
