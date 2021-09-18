@@ -1001,10 +1001,10 @@ dnsmasq_start()
 
 	config_get_bool noresolv "$cfg" noresolv 0
 	if [ "$noresolv" != "1" ]; then
-		config_get resolvfile "$cfg" resolvfile /tmp/resolv.conf.d/resolv.conf.auto
+		config_get resolvfile "$cfg" resolvfile /tmp/resolv.conf.auto
 		[ -n "$resolvfile" ] && [ ! -e "$resolvfile" ] && touch "$resolvfile"
 		xappend "--resolv-file=$resolvfile"
-		[ "$resolvfile" = "/tmp/resolv.conf.d/resolv.conf.auto" ] && localuse=1
+		[ "$resolvfile" = "/tmp/resolv.conf.auto" ] && localuse=1
 		resolvdir="$(dirname "$resolvfile")"
 	fi
 	config_get_bool localuse "$cfg" localuse "$localuse"
@@ -1173,9 +1173,9 @@ dnsmasq_stop()
 	config_get_bool noresolv "$cfg" noresolv 0
 	config_get resolvfile "$cfg" "resolvfile"
 
-	[ "$noresolv" = 0 ] && [ "$resolvfile" = "/tmp/resolv.conf.d/resolv.conf.auto" ] && localuse=1
+	[ "$noresolv" = 0 ] && [ "$resolvfile" = "/tmp/resolv.conf.auto" ] && localuse=1
 	config_get_bool localuse "$cfg" localuse "$localuse"
-	[ "$localuse" -gt 0 ] && ln -sf "/tmp/resolv.conf.d/resolv.conf.auto" /tmp/resolv.conf
+	[ "$localuse" -gt 0 ] && ln -sf "/tmp/resolv.conf.auto" /tmp/resolv.conf
 
 	rm -f ${BASEDHCPSTAMPFILE}.${cfg}.*.dhcp
 }
