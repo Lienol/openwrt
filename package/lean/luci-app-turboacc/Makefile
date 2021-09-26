@@ -21,13 +21,11 @@ LUCI_PKGARCH:=all
 define Package/luci-app-turboacc/config
 config PACKAGE_TURBOACC_INCLUDE_OFFLOADING
 	bool "Include Flow Offload"
-	depends on !(LINUX_4_9)
 	default y
 
 config PACKAGE_TURBOACC_INCLUDE_SHORTCUT_FE
 	bool "Include Shortcut-FE"
-	depends on (LINUX_4_9)
-	default y
+	default n
 
 config PACKAGE_TURBOACC_INCLUDE_BBR_CCA
 	bool "Include BBR CCA"
