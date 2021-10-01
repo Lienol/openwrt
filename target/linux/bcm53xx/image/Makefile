@@ -328,10 +328,12 @@ define Device/meraki_mr32
 # if the partition is smaller than the old one.
   KERNEL_LOADADDR := 0x00008000
   KERNEL_INITRAMFS_SUFFIX := .bin
+  DEVICE_DTS_DELIMITER := @
+  DEVICE_DTS_CONFIG := config@1
   KERNEL_INITRAMFS := kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb | \
 	pad-to 10362880
   KERNEL := kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
-  IMAGES := sysupgrade.bin
+  IMAGES += sysupgrade.bin
 # Currently the only device that uses the new image check
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 
