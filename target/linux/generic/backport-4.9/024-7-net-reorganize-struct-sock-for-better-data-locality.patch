@@ -147,7 +147,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	ktime_t			sk_stamp;
  #if BITS_PER_LONG==32
  	seqlock_t		sk_stamp_seq;
-@@ -434,10 +441,6 @@ struct sock {
+@@ -436,10 +443,6 @@ struct sock {
  	u32			sk_tskey;
  	struct socket		*sk_socket;
  	void			*sk_user_data;
