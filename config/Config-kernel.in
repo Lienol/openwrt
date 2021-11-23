@@ -356,6 +356,16 @@ if KERNEL_CGROUPS
 		help
 		  Provides enforcement of process number limits in the scope of a
 		  cgroup.
+		  
+	config KERNEL_CGROUP_RDMA
+		bool "RDMA controller for cgroups"
+		default y
+		depends on LINUX_4_19
+		
+	config KERNEL_CGROUP_BPF
+		bool "Support for eBPF programs attached to cgroups"
+		default y
+		depends on LINUX_4_19
 
 	config KERNEL_CPUSETS
 		bool "Cpuset support"
@@ -552,6 +562,11 @@ if KERNEL_CGROUPS
 	config KERNEL_NETPRIO_CGROUP
 		bool "Network priority cgroup"
 		default y
+		
+	config KERNEL_CGROUP_NET_PRIO
+		bool "legacy Network priority cgroup"
+		default n
+		depends on LINUX_4_19
 
 endif
 
