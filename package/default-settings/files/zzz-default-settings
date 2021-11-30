@@ -17,6 +17,7 @@ uci commit fstab
 ln -sf /sbin/ip /usr/bin/ip
 
 sed -i '/lienol/d' /etc/opkg/distfeeds.conf
+sed -i '/other/d' /etc/opkg/distfeeds.conf
 #sed -i 's/downloads.openwrt.org/openwrt.proxy.ustclug.org/g' /etc/opkg/distfeeds.conf
 #sed -i 's/http/https/g' /etc/opkg/distfeeds.conf
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
@@ -61,6 +62,8 @@ rm -rf /usr/lib/lua/luci/view/admin_status/index
 /etc/init.d/softethervpnclient disable 2>/dev/null
 /etc/init.d/haproxy disable 2>/dev/null
 /etc/init.d/kcptun disable 2>/dev/null
+
+chmod 0755 /etc/init.d/*
 
 rm -rf /tmp/luci-*cache
 
