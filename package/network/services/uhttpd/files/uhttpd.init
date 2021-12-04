@@ -111,7 +111,7 @@ start_instance()
 
 	local cfg="$1"
 	local realm="$(uci_get system.@system[0].hostname)"
-	local listen http https interpreter indexes path handler httpdconf haveauth
+	local listen http https enabled_https interpreter indexes path handler httpdconf haveauth
 	local enabled
 
 	config_get_bool enabled "$cfg" 'enabled' 1
@@ -191,11 +191,13 @@ start_instance()
 		procd_append_param command -I "$path"
 	done
 
+	config_get enabled_https "$cfg" enabled_https
+	[ -z "$enabled_https" ] && enabled_https=0
 	config_get https "$cfg" listen_https
 	config_get UHTTPD_KEY  "$cfg" key  /etc/uhttpd.key
 	config_get UHTTPD_CERT "$cfg" cert /etc/uhttpd.crt
 
-	[ -f /lib/libustream-ssl.so ] && [ -n "$https" ] && {
+	[ -f /lib/libustream-ssl.so ] && [ -n "$https" ] && [ "$enabled_https" -eq 1 ] && {
 		[ -s "$UHTTPD_CERT" -a -s "$UHTTPD_KEY" ] || {
 			config_foreach generate_keys cert
 		}
