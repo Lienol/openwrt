@@ -87,7 +87,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  static int netif_rx_internal(struct sk_buff *skb);
  static int call_netdevice_notifiers_info(unsigned long val,
-@@ -5910,6 +5911,11 @@ void __napi_schedule(struct napi_struct
+@@ -5913,6 +5914,11 @@ void __napi_schedule(struct napi_struct
  {
  	unsigned long flags;
  
@@ -99,7 +99,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	local_irq_save(flags);
  	____napi_schedule(this_cpu_ptr(&softnet_data), n);
  	local_irq_restore(flags);
-@@ -5961,6 +5967,11 @@ EXPORT_SYMBOL(napi_schedule_prep);
+@@ -5964,6 +5970,11 @@ EXPORT_SYMBOL(napi_schedule_prep);
   */
  void __napi_schedule_irqoff(struct napi_struct *n)
  {
