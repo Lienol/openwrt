@@ -1,0 +1,34 @@
+--- a/src/config.c
++++ b/src/config.c
+@@ -188,6 +188,31 @@ const struct uci_blob_param_list odhcpd_
+ 	.params = odhcpd_attrs,
+ };
+ 
++static int mkdir_p(char *dir, mode_t mask)
++{
++	char *l = strrchr(dir, '/');
++	int ret;
++
++	if (!l)
++		return 0;
++
++	*l = '\0';
++
++	if (mkdir_p(dir, mask))
++		return -1;
++
++	*l = '/';
++
++	ret = mkdir(dir, mask);
++	if (ret && errno == EEXIST)
++		return 0;
++
++	if (ret)
++		syslog(LOG_ERR, "mkdir(%s, %d) failed: %m\n", dir, mask);
++
++	return ret;
++}
++
+ static const struct { const char *name; uint8_t flag; } ra_flags[] = {
+ 	{ .name = "managed-config", .flag = ND_RA_FLAG_MANAGED },
+ 	{ .name = "other-config", .flag = ND_RA_FLAG_OTHER },
