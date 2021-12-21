@@ -54,9 +54,13 @@ echo "DISTRIB_DESCRIPTION='OpenWrt SNAPSHOT '" >> /etc/openwrt_release
 rm -rf /usr/lib/lua/luci/view/admin_status/index
 #mv -f /usr/lib/lua/luci/view/admin_status/index /usr/lib/lua/luci/view/admin_status/index_backup 2>/dev/null
 
+sed -i 's#openwrt/luci#lienol/openwrt-luci#g' /usr/lib/lua/luci/view/themes/*/footer.htm
+
 #禁用某些可能会自启动且用不上的依赖包服务
 /etc/init.d/php7-fastcgi disable 2>/dev/null
 /etc/init.d/php7-fpm disable 2>/dev/null
+/etc/init.d/php8-fastcgi disable 2>/dev/null
+/etc/init.d/php8-fpm disable 2>/dev/null
 /etc/init.d/softethervpnbridge disable 2>/dev/null
 /etc/init.d/softethervpnserver disable 2>/dev/null
 /etc/init.d/softethervpnclient disable 2>/dev/null
