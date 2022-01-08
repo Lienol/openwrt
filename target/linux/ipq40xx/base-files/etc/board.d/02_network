@@ -66,11 +66,11 @@ ipq40xx_setup_interfaces()
 		;;
 	avm,fritzbox-7530)
 		ucidef_add_switch "switch0" \
-			"0t@eth0" "1:lan" "2:lan" "3:lan" "4:lan"
+			"0t@eth0" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
 	avm,fritzrepeater-3000)
 		ucidef_add_switch "switch0" \
-			"0u@eth0" "4:lan:1" "5:lan:2"
+			"0t@eth0" "4:lan:1" "5:lan:2"
 		;;
 	compex,wpj419|\
 	compex,wpj428|\
@@ -80,7 +80,7 @@ ipq40xx_setup_interfaces()
 	buffalo,wtr-m2133hp)
 		ucidef_set_interfaces_lan_wan "eth0" "eth1"
 		ucidef_add_switch "switch0" \
-			"0u@eth0" "2:lan:3" "3:lan:2" "4:lan:1"
+			"0t@eth0" "2:lan:3" "3:lan:2" "4:lan:1"
 		;;
 	cellc,rtl30vw)
 		ucidef_add_switch "switch0" \
