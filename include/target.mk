@@ -53,8 +53,9 @@ DEFAULT_PACKAGES.nas:=\
 # For router targets
 DEFAULT_PACKAGES.router:=\
 	dnsmasq-full \
-	firewall4 \
-	nftables \
+	firewall \
+	ip6tables \
+	iptables \
 	odhcp6c \
 	odhcpd-ipv6only \
 	ppp \
