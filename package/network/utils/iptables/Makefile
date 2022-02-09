@@ -134,10 +134,6 @@ $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool nft
   DEPENDS:=+kmod-ipt-core +xtables-nft
   PROVIDES:=iptables
-  ALTERNATIVES:=\
-    300:/usr/sbin/iptables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/iptables-nft/description
@@ -500,10 +496,6 @@ $(call Package/iptables/Default)
   DEPENDS:=@IPV6 +kmod-ip6tables +xtables-nft
   TITLE:=IP firewall administration tool nft
   PROVIDES:=ip6tables
-  ALTERNATIVES:=\
-    300:/usr/sbin/ip6tables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/ip6tables-nft/description
