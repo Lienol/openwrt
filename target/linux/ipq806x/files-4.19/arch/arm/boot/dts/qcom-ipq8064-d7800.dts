@@ -344,48 +344,48 @@
 		pinctrl-names = "default";
 
 		usb1 {
-			label = "white:usb1";
+			label = "d7800:white:usb1";
 			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
 		};
 
 		usb2 {
-			label = "white:usb2";
+			label = "d7800:white:usb2";
 			gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		power_amber: power_amber {
-			label = "amber:power";
+			label = "d7800:amber:power";
 			gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		wan_white {
-			label = "white:wan";
+			label = "d7800:white:wan";
 			gpios = <&qcom_pinmux 22 GPIO_ACTIVE_HIGH>;
 		};
 
 		wan_amber {
-			label = "amber:wan";
+			label = "d7800:amber:wan";
 			gpios = <&qcom_pinmux 23 GPIO_ACTIVE_HIGH>;
 		};
 
 		wps {
-			label = "white:wps";
+			label = "d7800:white:wps";
 			gpios = <&qcom_pinmux 24 GPIO_ACTIVE_HIGH>;
 		};
 
 		esata {
-			label = "white:esata";
+			label = "d7800:white:esata";
 			gpios = <&qcom_pinmux 26 GPIO_ACTIVE_HIGH>;
 		};
 
 		power_white: power_white {
-			label = "white:power";
+			label = "d7800:white:power";
 			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
 			default-state = "keep";
 		};
 
 		wifi {
-			label = "white:wifi";
+			label = "d7800:white:wifi";
 			gpios = <&qcom_pinmux 64 GPIO_ACTIVE_HIGH>;
 		};
 	};

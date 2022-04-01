@@ -292,7 +292,6 @@
 					0x00004 0x7600000   /* PAD0_MODE */
 					0x00008 0x1000000   /* PAD5_MODE */
 					0x0000c 0x80        /* PAD6_MODE */
-					0x00010 0x2613a0    /* PWS_REG */
 					0x000e4 0x6a545     /* MAC_POWER_SEL */
 					0x000e0 0xc74164de  /* SGMII_CTRL */
 					0x0007c 0x4e        /* PORT0_STATUS */
@@ -370,20 +369,19 @@
 		pinctrl-names = "default";
 
 		wps {
-			label = "green:wps";
+			label = "ea8500:green:wps";
 			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
 		};
 
 		power: power {
-			label = "white:power";
+			label = "ea8500:white:power";
 			gpios = <&qcom_pinmux 6 GPIO_ACTIVE_LOW>;
 			default-state = "keep";
 		};
 
 		wifi {
-			label = "green:wifi";
+			label = "ea8500:green:wifi";
 			gpios = <&qcom_pinmux 54 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
-

@@ -101,62 +101,62 @@
 		pinctrl-names = "default";
 
 		converter_green {
-			label = "green:converter";
+			label = "wg2600hp:green:converter";
 			gpios = <&qcom_pinmux 6 GPIO_ACTIVE_HIGH>;
 		};
 
 		power_red: power_red {
-			label = "red:power";
+			label = "wg2600hp:red:power";
 			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
 		};
 
 		active_green {
-			label = "green:active";
+			label = "wg2600hp:green:active";
 			gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		active_red {
-			label = "red:active";
+			label = "wg2600hp:red:active";
 			gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		power_green: power_green {
-			label = "green:power";
+			label = "wg2600hp:green:power";
 			gpios = <&qcom_pinmux 14 GPIO_ACTIVE_HIGH>;
 		};
 
 		converter_red {
-			label = "red:converter";
+			label = "wg2600hp:red:converter";
 			gpios = <&qcom_pinmux 15 GPIO_ACTIVE_HIGH>;
 		};
 
 		wlan2g_green {
-			label = "green:wlan2g";
+			label = "wg2600hp:green:wlan2g";
 			gpios = <&qcom_pinmux 55 GPIO_ACTIVE_HIGH>;
 		};
 
 		wlan2g_red {
-			label = "red:wlan2g";
+			label = "wg2600hp:red:wlan2g";
 			gpios = <&qcom_pinmux 56 GPIO_ACTIVE_HIGH>;
 		};
 
 		wlan5g_green {
-			label = "green:wlan5g";
+			label = "wg2600hp:green:wlan5g";
 			gpios = <&qcom_pinmux 57 GPIO_ACTIVE_HIGH>;
 		};
 
 		wlan5g_red {
-			label = "red:wlan5g";
+			label = "wg2600hp:red:wlan5g";
 			gpios = <&qcom_pinmux 58 GPIO_ACTIVE_HIGH>;
 		};
 
 		tv_green {
-			label = "green:tv";
+			label = "wg2600hp:green:tv";
 			gpios = <&qcom_pinmux 64 GPIO_ACTIVE_HIGH>;
 		};
 
 		tv_red {
-			label = "red:tv";
+			label = "wg2600hp:red:tv";
 			gpios = <&qcom_pinmux 65 GPIO_ACTIVE_HIGH>;
 		};
 	};
