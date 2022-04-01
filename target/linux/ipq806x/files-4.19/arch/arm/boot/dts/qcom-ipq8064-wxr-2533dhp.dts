@@ -108,54 +108,54 @@
 		pinctrl-names = "default";
 
 		usb {
-			label = "green:usb";
+			label = "wxr-2533dhp:green:usb";
 			gpios = <&qcom_pinmux 7 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "usbport";
 			trigger-sources = <&hub_port0 &hub_port1>;
 		};
 
 		guestport {
-			label = "green:guestport";
+			label = "wxr-2533dhp:green:guestport";
 			gpios = <&qcom_pinmux 8 GPIO_ACTIVE_HIGH>;
 		};
 
 		diag: diag {
-			label = "orange:diag";
+			label = "wxr-2533dhp:orange:diag";
 			gpios = <&qcom_pinmux 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		internet_orange {
-			label = "orange:internet";
+			label = "wxr-2533dhp:orange:internet";
 			gpios = <&qcom_pinmux 16 GPIO_ACTIVE_HIGH>;
 		};
 
 		internet_white {
-			label = "white:internet";
+			label = "wxr-2533dhp:white:internet";
 			gpios = <&qcom_pinmux 22 GPIO_ACTIVE_HIGH>;
 		};
 
 		wireless_orange {
-			label = "orange:wireless";
+			label = "wxr-2533dhp:orange:wireless";
 			gpios = <&qcom_pinmux 23 GPIO_ACTIVE_HIGH>;
 		};
 
 		wireless_white {
-			label = "white:wireless";
+			label = "wxr-2533dhp:white:wireless";
 			gpios = <&qcom_pinmux 24 GPIO_ACTIVE_HIGH>;
 		};
 
 		router_orange {
-			label = "orange:router";
+			label = "wxr-2533dhp:orange:router";
 			gpios = <&qcom_pinmux 25 GPIO_ACTIVE_HIGH>;
 		};
 
 		router_white {
-			label = "white:router";
+			label = "wxr-2533dhp:white:router";
 			gpios = <&qcom_pinmux 26 GPIO_ACTIVE_LOW>;
 		};
 
 		power: power {
-			label = "white:power";
+			label = "wxr-2533dhp:white:power";
 			gpios = <&qcom_pinmux 53 GPIO_ACTIVE_HIGH>;
 		};
 	};
