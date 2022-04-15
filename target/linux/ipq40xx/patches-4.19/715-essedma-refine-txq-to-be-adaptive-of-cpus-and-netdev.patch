@@ -15,7 +15,7 @@
  /* edma_alloc_tx_ring()
   *	Allocate Tx descriptors ring
   */
-@@ -1016,13 +1008,14 @@ static inline u16 edma_tpd_available(str
+@@ -1014,13 +1006,14 @@ static inline u16 edma_tpd_available(str
  /* edma_tx_queue_get()
   *	Get the starting number of  the queue
   */
@@ -32,7 +32,7 @@
  }
  
  /* edma_tx_update_hw_idx()
-@@ -1391,8 +1384,9 @@ netdev_tx_t edma_xmit(struct sk_buff *sk
+@@ -1389,8 +1382,9 @@ netdev_tx_t edma_xmit(struct sk_buff *sk
  	}
  
  	/* this will be one of the 4 TX queues exposed to linux kernel */
@@ -44,7 +44,7 @@
  	etdr = edma_cinfo->tpd_ring[queue_id];
  	nq = netdev_get_tx_queue(net_dev, txq_id);
  
-@@ -1875,8 +1869,8 @@ void edma_free_irqs(struct edma_adapter
+@@ -1871,8 +1865,8 @@ void edma_free_irqs(struct edma_adapter
  	int i, j;
  	int k = ((edma_cinfo->num_rx_queues == 4) ? 1 : 2);
  

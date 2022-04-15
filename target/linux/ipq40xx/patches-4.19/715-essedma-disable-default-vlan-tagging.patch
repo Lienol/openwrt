@@ -24,7 +24,7 @@ Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
 
 --- a/arch/arm/boot/dts/qcom-ipq4019.dtsi
 +++ b/arch/arm/boot/dts/qcom-ipq4019.dtsi
-@@ -652,8 +652,7 @@
+@@ -653,8 +653,7 @@
  			qcom,page-mode = <0>;
  			qcom,rx_head_buf_size = <1540>;
  			qcom,mdio_supported;
@@ -34,7 +34,7 @@ Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
  			interrupts = <0  65 IRQ_TYPE_EDGE_RISING
  				      0  66 IRQ_TYPE_EDGE_RISING
  				      0  67 IRQ_TYPE_EDGE_RISING
-@@ -691,7 +690,7 @@
+@@ -692,7 +691,7 @@
  
  			gmac0: gmac0 {
  				local-mac-address = [00 00 00 00 00 00];
@@ -45,7 +45,7 @@ Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
  			gmac1: gmac1 {
 --- a/drivers/net/ethernet/qualcomm/essedma/edma.c
 +++ b/drivers/net/ethernet/qualcomm/essedma/edma.c
-@@ -721,13 +721,11 @@ static u16 edma_rx_complete(struct edma_
+@@ -729,13 +729,11 @@ static u16 edma_rx_complete(struct edma_
  			edma_receive_checksum(rd, skb);
  
  			/* Process VLAN HW acceleration indication provided by HW */
@@ -64,7 +64,7 @@ Signed-off-by: Chen Minqiang <ptpt52@gmail.com>
  
  			/* Update rx statistics */
  			adapter->stats.rx_packets++;
-@@ -1408,8 +1406,6 @@ netdev_tx_t edma_xmit(struct sk_buff *sk
+@@ -1414,8 +1412,6 @@ netdev_tx_t edma_xmit(struct sk_buff *sk
  	if (!adapter->edma_cinfo->is_single_phy) {
  		if (unlikely(skb_vlan_tag_present(skb)))
  			flags_transmit |= EDMA_VLAN_TX_TAG_INSERT_FLAG;
