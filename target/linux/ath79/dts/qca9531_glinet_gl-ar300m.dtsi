@@ -181,3 +181,12 @@
 		reg = <0x0 0x6>;
 	};
 };
+
+&pinmux {
+	pinctrl-names = "default";
+	pinctrl-0 = <&enable_gpio17>;
+
+	enable_gpio17: pinmux_enable_gpio17 {
+		pinctrl-single,bits = <0x10 0x0000 0xff00>;
+	};
+};

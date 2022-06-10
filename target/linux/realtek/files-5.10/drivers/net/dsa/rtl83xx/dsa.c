@@ -205,6 +205,15 @@ static int rtl83xx_setup(struct dsa_switch *ds)
 
 	priv->r->l2_learning_setup();
 
+	/*
+	 *  Make sure all frames sent to the switch's MAC are trapped to the CPU-port
+	 *  0: FWD, 1: DROP, 2: TRAP2CPU
+	 */
+	if (priv->family_id == RTL8380_FAMILY_ID)
+		sw_w32(0x2, RTL838X_SPCL_TRAP_SWITCH_MAC_CTRL);
+	else
+		sw_w32(0x2, RTL839X_SPCL_TRAP_SWITCH_MAC_CTRL);
+
 	/* Enable MAC Polling PHY again */
 	rtl83xx_enable_phy_polling(priv);
 	pr_debug("Please wait until PHY is settled\n");
@@ -808,7 +817,8 @@ static void rtl93xx_phylink_mac_config(struct dsa_switch *ds, int port,
 			       __func__, phy_modes(state->interface));
 			return;
 		}
-		rtl9300_sds_rst(sds_num, sds_mode);
+		if (state->interface == PHY_INTERFACE_MODE_10GBASER)
+			rtl9300_serdes_setup(sds_num, state->interface);
 	}
 
 	reg = sw_r32(priv->r->mac_force_mode_ctrl(port));

@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wolfssl
-PKG_VERSION:=5.2.0-stable
+PKG_VERSION:=5.3.0-stable
 PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/wolfSSL/wolfssl/archive/v$(PKG_VERSION)
-PKG_HASH:=409b4646c5f54f642de0e9f3544c3b83de7238134f5b1ff93fb44527bf119d05
+PKG_HASH:=1a3bb310dc01d3e73d9ad91b6ea8249d081016f8eef4ae8f21d3421f91ef1de9
 
 PKG_FIXUP:=libtool libtool-abiver
 PKG_INSTALL:=1
@@ -25,25 +25,42 @@ PKG_MAINTAINER:=Eneas U de Queiroz <cotequeiroz@gmail.com>
 PKG_CPE_ID:=cpe:/a:wolfssl:wolfssl
 
 PKG_CONFIG_DEPENDS:=\
-	CONFIG_WOLFSSL_HAS_AES_CCM CONFIG_WOLFSSL_HAS_AFALG \
-	CONFIG_WOLFSSL_HAS_ARC4 CONFIG_WOLFSSL_HAS_CHACHA_POLY \
-	CONFIG_WOLFSSL_HAS_DEVCRYPTO_AES CONFIG_WOLFSSL_HAS_DEVCRYPTO_FULL \
-	CONFIG_WOLFSSL_HAS_DH CONFIG_WOLFSSL_HAS_DTLS \
-	CONFIG_WOLFSSL_HAS_ECC25519 CONFIG_WOLFSSL_HAS_OCSP \
-	CONFIG_WOLFSSL_HAS_SESSION_TICKET CONFIG_WOLFSSL_HAS_TLSV10 \
-	CONFIG_WOLFSSL_HAS_TLSV13 CONFIG_WOLFSSL_HAS_WPAS CONFIG_WOLFSSL_HAS_CERTGEN \
-	CONFIG_WOLFSSL_HAS_OPENVPN CONFIG_WOLFSSL_ALT_NAMES
+	CONFIG_WOLFSSL_HAS_AES_CCM \
+	CONFIG_WOLFSSL_HAS_ARC4 \
+	CONFIG_WOLFSSL_HAS_CERTGEN \
+	CONFIG_WOLFSSL_HAS_CHACHA_POLY \
+	CONFIG_WOLFSSL_HAS_DH \
+	CONFIG_WOLFSSL_HAS_DTLS \
+	CONFIG_WOLFSSL_HAS_ECC25519 \
+	CONFIG_WOLFSSL_HAS_OCSP \
+	CONFIG_WOLFSSL_HAS_OPENVPN CONFIG_WOLFSSL_ALT_NAMES \
+	CONFIG_WOLFSSL_HAS_SESSION_TICKET \
+	CONFIG_WOLFSSL_HAS_TLSV10 \
+	CONFIG_WOLFSSL_HAS_TLSV13 \
+	CONFIG_WOLFSSL_HAS_WPAS
 
-PKG_ABI_VERSION=$(patsubst %-stable,%,$(PKG_VERSION)).$(call version_abbrev,$(call confvar,$(PKG_CONFIG_DEPENDS)))
+PKG_ABI_VERSION:=$(patsubst %-stable,%,$(PKG_VERSION)).$(call version_abbrev,$(call confvar,$(PKG_CONFIG_DEPENDS)))
+
+PKG_CONFIG_DEPENDS+=\
+	CONFIG_WOLFSSL_HAS_AFALG \
+	CONFIG_WOLFSSL_HAS_CPU_CRYPTO \
+	CONFIG_WOLFSSL_HAS_DEVCRYPTO_AES \
+	CONFIG_WOLFSSL_HAS_DEVCRYPTO_CBC \
+	CONFIG_WOLFSSL_HAS_DEVCRYPTO_FULL
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/libwolfssl
+define Package/libwolfssl/Default
   SECTION:=libs
   SUBMENU:=SSL
   CATEGORY:=Libraries
-  TITLE:=wolfSSL library
   URL:=http://www.wolfssl.com/
+endef
+
+define Package/libwolfssl
+$(call Package/libwolfssl/Default)
+  TITLE:=wolfSSL library
+  PKGFLAGS:=nonshared
   MENU:=1
   PROVIDES:=libcyassl
   DEPENDS:=+WOLFSSL_HAS_DEVCRYPTO:kmod-cryptodev +WOLFSSL_HAS_AFALG:kmod-crypto-user
@@ -57,6 +74,16 @@ endef
 
 define Package/libwolfssl/config
 	source "$(SOURCE)/Config.in"
+endef
+
+define Package/libwolfssl-benchmark
+$(call Package/libwolfssl/Default)
+  TITLE:=wolfSSL Benchmark Utility
+  DEPENDS:=libwolfssl
+endef
+
+define Package/libwolfssl-benchmark/description
+This is the wolfssl benchmark utility.
 endef
 
 TARGET_CFLAGS += \
@@ -77,7 +104,7 @@ CONFIGURE_ARGS += \
 	--enable-sni \
 	--enable-stunnel \
 	--enable-altcertchains \
-	--disable-crypttests \
+	--$(if $(CONFIG_PACKAGE_libwolfssl-benchmark),enable,disable)-crypttests \
 	--disable-examples \
 	--disable-jobserver \
 	--$(if $(CONFIG_IPV6),enable,disable)-ipv6 \
@@ -108,6 +135,15 @@ CONFIGURE_ARGS += \
 	--enable-wpas --enable-fortress --enable-fastmath
 endif
 
+ifdef CONFIG_WOLFSSL_HAS_CPU_CRYPTO
+    ifdef CONFIG_aarch64
+	CONFIGURE_ARGS += --enable-armasm
+	TARGET_CFLAGS:=$(TARGET_CFLAGS:-mcpu%=-mcpu%+crypto)
+    else ifdef CONFIG_TARGET_x86_64
+	CONFIGURE_ARGS += --enable-intelasm
+    endif
+endif
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include $(1)/usr/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
@@ -125,4 +161,10 @@ define Package/libwolfssl/install
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libwolfssl.so.* $(1)/usr/lib/
 endef
 
+define Package/libwolfssl-benchmark/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(CP) $(PKG_BUILD_DIR)/wolfcrypt/benchmark/.libs/benchmark $(1)/usr/bin/wolfssl-benchmark
+endef
+
 $(eval $(call BuildPackage,libwolfssl))
+$(eval $(call BuildPackage,libwolfssl-benchmark))
