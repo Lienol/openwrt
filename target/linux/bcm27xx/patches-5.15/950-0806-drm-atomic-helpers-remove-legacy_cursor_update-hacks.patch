@@ -59,7 +59,7 @@ Signed-off-by: Maxime Ripard <maxime@cerno.tech>
 
 --- a/drivers/gpu/drm/drm_atomic_helper.c
 +++ b/drivers/gpu/drm/drm_atomic_helper.c
-@@ -1488,13 +1488,6 @@ drm_atomic_helper_wait_for_vblanks(struc
+@@ -1498,13 +1498,6 @@ drm_atomic_helper_wait_for_vblanks(struc
  	int i, ret;
  	unsigned int crtc_mask = 0;
  
@@ -73,7 +73,7 @@ Signed-off-by: Maxime Ripard <maxime@cerno.tech>
  	for_each_oldnew_crtc_in_state(old_state, crtc, old_crtc_state, new_crtc_state, i) {
  		if (!new_crtc_state->active)
  			continue;
-@@ -2122,12 +2115,6 @@ int drm_atomic_helper_setup_commit(struc
+@@ -2132,12 +2125,6 @@ int drm_atomic_helper_setup_commit(struc
  			complete_all(&commit->flip_done);
  			continue;
  		}
@@ -110,7 +110,7 @@ Signed-off-by: Maxime Ripard <maxime@cerno.tech>
  		drm_dbg_atomic(&dev_priv->drm,
 --- a/drivers/gpu/drm/msm/msm_atomic.c
 +++ b/drivers/gpu/drm/msm/msm_atomic.c
-@@ -246,6 +246,8 @@ void msm_atomic_commit_tail(struct drm_a
+@@ -231,6 +231,8 @@ void msm_atomic_commit_tail(struct drm_a
  		/* async updates are limited to single-crtc updates: */
  		WARN_ON(crtc_mask != drm_crtc_mask(async_crtc));
  

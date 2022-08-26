@@ -42,7 +42,7 @@ define KernelPackage/crypto-aead
 	CONFIG_CRYPTO_AEAD2
   FILES:= \
 	  $(LINUX_DIR)/crypto/aead.ko \
-	  $(LINUX_DIR)/crypto/geniv.ko@ge5.10
+	  $(LINUX_DIR)/crypto/geniv.ko
   AUTOLOAD:=$(call AutoLoad,09,aead,1)
   $(call AddDepends/crypto, +kmod-crypto-null)
 endef
@@ -69,8 +69,10 @@ define KernelPackage/crypto-authenc
   TITLE:=Combined mode wrapper for IPsec
   DEPENDS:=+kmod-crypto-manager +kmod-crypto-null
   KCONFIG:=CONFIG_CRYPTO_AUTHENC
-  FILES:=$(LINUX_DIR)/crypto/authenc.ko
-  AUTOLOAD:=$(call AutoLoad,09,authenc)
+  FILES:= \
+	$(LINUX_DIR)/crypto/authenc.ko \
+	$(LINUX_DIR)/crypto/authencesn.ko
+  AUTOLOAD:=$(call AutoLoad,09,authenc authencesn)
   $(call AddDepends/crypto)
 endef
 
