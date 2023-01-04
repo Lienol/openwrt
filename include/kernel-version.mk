@@ -6,9 +6,12 @@ ifdef CONFIG_TESTING_KERNEL
   KERNEL_PATCHVER:=$(KERNEL_TESTING_PATCHVER)
 endif
 
-LINUX_VERSION-5.4 = .219
+KERNEL_DETAILS_FILE=$(INCLUDE_DIR)/kernel-$(KERNEL_PATCHVER)
+ifeq ($(wildcard $(KERNEL_DETAILS_FILE)),)
+  $(error Missing kernel version/hash file for $(KERNEL_PATCHVER). Please create $(KERNEL_DETAILS_FILE))
+endif
 
-LINUX_KERNEL_HASH-5.4.219 = 5293ad927269dfb697bc80e9dd95c1d9fd2e4bad7d8422300e012fd31950a261
+include $(KERNEL_DETAILS_FILE)
 
 remove_uri_prefix=$(subst git://,,$(subst http://,,$(subst https://,,$(1))))
 sanitize_uri=$(call qstrip,$(subst @,_,$(subst :,_,$(subst .,_,$(subst -,_,$(subst /,_,$(1)))))))
