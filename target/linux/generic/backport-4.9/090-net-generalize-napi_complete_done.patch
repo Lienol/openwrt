@@ -203,7 +203,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	}
 --- a/drivers/net/can/rcar/rcar_canfd.c
 +++ b/drivers/net/can/rcar/rcar_canfd.c
-@@ -1512,7 +1512,7 @@ static int rcar_canfd_rx_poll(struct nap
+@@ -1514,7 +1514,7 @@ static int rcar_canfd_rx_poll(struct nap
  
  	/* All packets processed */
  	if (num_pkts < quota) {
@@ -258,7 +258,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
 --- a/drivers/net/ethernet/altera/altera_tse_main.c
 +++ b/drivers/net/ethernet/altera/altera_tse_main.c
-@@ -491,7 +491,7 @@ static int tse_poll(struct napi_struct *
+@@ -495,7 +495,7 @@ static int tse_poll(struct napi_struct *
  
  	if (rxcomplete < budget) {
  
@@ -388,7 +388,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  					BNX2_PCICFG_INT_ACK_CMD_INDEX_VALID |
 --- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
 +++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
-@@ -3241,7 +3241,7 @@ static int bnx2x_poll(struct napi_struct
+@@ -3242,7 +3242,7 @@ static int bnx2x_poll(struct napi_struct
  		 * has been updated when NAPI was scheduled.
  		 */
  		if (IS_FCOE_FP(fp)) {
@@ -938,7 +938,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  
 --- a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
 +++ b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
-@@ -2384,7 +2384,7 @@ static int pch_gbe_napi_poll(struct napi
+@@ -2385,7 +2385,7 @@ static int pch_gbe_napi_poll(struct napi
  		poll_end_flag = true;
  
  	if (poll_end_flag) {
@@ -1304,7 +1304,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  			adapter->rx_last_jiffies = jiffies;
 --- a/drivers/net/vmxnet3/vmxnet3_drv.c
 +++ b/drivers/net/vmxnet3/vmxnet3_drv.c
-@@ -1873,7 +1873,7 @@ vmxnet3_poll(struct napi_struct *napi, i
+@@ -1879,7 +1879,7 @@ vmxnet3_poll(struct napi_struct *napi, i
  	rxd_done = vmxnet3_do_poll(rx_queue->adapter, budget);
  
  	if (rxd_done < budget) {
@@ -1313,7 +1313,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		vmxnet3_enable_all_intrs(rx_queue->adapter);
  	}
  	return rxd_done;
-@@ -1904,7 +1904,7 @@ vmxnet3_poll_rx_only(struct napi_struct
+@@ -1910,7 +1910,7 @@ vmxnet3_poll_rx_only(struct napi_struct
  	rxd_done = vmxnet3_rq_rx_complete(rq, adapter, budget);
  
  	if (rxd_done < budget) {
@@ -1379,7 +1379,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  		 */
 --- a/drivers/net/xen-netfront.c
 +++ b/drivers/net/xen-netfront.c
-@@ -1138,7 +1138,7 @@ err:
+@@ -1177,7 +1177,7 @@ err:
  	if (work_done < budget) {
  		int more_to_do = 0;
  
