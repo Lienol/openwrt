@@ -20,7 +20,7 @@ Signed-off-by: Gabor Juhos <juhosg@openwrt.org>
  
  #include <linux/mtd/mtd.h>
  #include <linux/mtd/partitions.h>
-@@ -570,6 +571,15 @@ int add_mtd_device(struct mtd_info *mtd)
+@@ -572,6 +573,15 @@ int add_mtd_device(struct mtd_info *mtd)
  	   of this try_ nonsense, and no bitching about it
  	   either. :) */
  	__module_get(THIS_MODULE);

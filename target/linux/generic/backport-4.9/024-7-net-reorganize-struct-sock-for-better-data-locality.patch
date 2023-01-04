@@ -82,7 +82,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  	struct sk_filter __rcu	*sk_filter;
 @@ -380,11 +382,30 @@ struct sock {
  #endif
- 	struct dst_entry	*sk_rx_dst;
+ 	struct dst_entry __rcu	*sk_rx_dst;
  	struct dst_entry __rcu	*sk_dst_cache;
 -	/* Note: 32bit hole on 64bit arches */
 -	atomic_t		sk_wmem_alloc;

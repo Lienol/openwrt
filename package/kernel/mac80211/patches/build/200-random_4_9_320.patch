@@ -1,0 +1,11 @@
+--- a/backport-include/linux/random.h
++++ b/backport-include/linux/random.h
+@@ -42,7 +42,7 @@ static inline u32 prandom_u32_max(u32 ep
+ }
+ #endif /* LINUX_VERSION_IS_LESS(3,14,0) */
+ 
+-#if LINUX_VERSION_IS_LESS(4,11,0)
++#if LINUX_VERSION_IS_LESS(4,9,0)
+ static inline u32 get_random_u32(void)
+ {
+ 	return get_random_int();
