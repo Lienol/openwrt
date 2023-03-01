@@ -1,0 +1,112 @@
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -1934,6 +1934,20 @@ char *record_source(unsigned int index)
+   return "<unknown>";
+ }
+ 
++// patch: function returns integer 1 if query type is unknown.
++// known types are defined in cache.c:typestr:36.
++int is_query_type_unknown(unsigned short type)
++{
++  unsigned int i;
++  for (i = 0; i < (sizeof(typestr)/sizeof(typestr[0])); i++)
++    if (typestr[i].type == type) 
++      {
++	return 0;
++      }
++  return 1;
++}
++// end of patch 
++
+ static char *querystr(char *desc, unsigned short type)
+ {
+   unsigned int i;
+--- a/src/dns-protocol.h
++++ b/src/dns-protocol.h
+@@ -71,6 +71,7 @@
+ #define T_NSEC          47
+ #define T_DNSKEY        48
+ #define T_NSEC3         50
++#define T_HTTPS         65
+ #define	T_TKEY		249		
+ #define	T_TSIG		250
+ #define T_AXFR          252
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -282,7 +282,9 @@ struct event_desc {
+ #define OPT_NO_IDENT       70
+ #define OPT_CACHE_RR       71
+ #define OPT_LOCALHOST_SERVICE  72
+-#define OPT_LAST           73
++#define OPT_FILTER_HTTPS   73
++#define OPT_FILTER_UNKNOWN 74
++#define OPT_LAST           75
+ 
+ #define OPTION_BITS (sizeof(unsigned int)*8)
+ #define OPTION_SIZE ( (OPT_LAST/OPTION_BITS)+((OPT_LAST%OPTION_BITS)!=0) )
+@@ -1307,6 +1309,10 @@ void cache_init(void);
+ void next_uid(struct crec *crecp);
+ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, unsigned short type); 
+ char *record_source(unsigned int index);
++// patch: function returns integer 1 if query type is unknown
++// known types are defined in cache.c:typestr:36.
++int is_query_type_unknown(unsigned short type);
++// end of patch
+ int cache_find_non_terminal(char *name, time_t now);
+ struct crec *cache_find_by_addr(struct crec *crecp,
+ 				union all_addr *addr, time_t now, 
+--- a/src/option.c
++++ b/src/option.c
+@@ -192,6 +192,8 @@ struct myoption {
+ #define LOPT_NO_DHCP4      383
+ #define LOPT_MAX_PROCS     384
+ #define LOPT_DNSSEC_LIMITS 385
++#define LOPT_FILTER_HTTPS  386
++#define LOPT_FILTER_UNKNOWN 387
+ 
+ #ifdef HAVE_GETOPT_LONG
+ static const struct option opts[] =  
+@@ -388,6 +390,8 @@ static const struct myoption opts[] =
+     { "use-stale-cache", 2, 0 , LOPT_STALE_CACHE },
+     { "no-ident", 0, 0, LOPT_NO_IDENT },
+     { "max-tcp-connections", 1, 0, LOPT_MAX_PROCS },
++    { "filter-https", 0, 0, LOPT_FILTER_HTTPS },
++    { "filter-unknown", 0, 0, LOPT_FILTER_UNKNOWN },
+     { NULL, 0, 0, 0 }
+   };
+ 
+@@ -591,6 +595,8 @@ static struct {
+   { LOPT_NO_IDENT, OPT_NO_IDENT, NULL, gettext_noop("Do not add CHAOS TXT records."), NULL },
+   { LOPT_CACHE_RR, ARG_DUP, "<RR-type>", gettext_noop("Cache this DNS resource record type."), NULL },
+   { LOPT_MAX_PROCS, ARG_ONE, "<integer>", gettext_noop("Maximum number of concurrent tcp connections."), NULL },
++  { LOPT_FILTER_HTTPS, OPT_FILTER_HTTPS, NULL, gettext_noop("Filter all HTTPS/query type 65 requests."), NULL },
++  { LOPT_FILTER_UNKNOWN, OPT_FILTER_UNKNOWN, NULL, gettext_noop("Filter all unknown query types (known are defined in cache.c)."), NULL },
+   { 0, 0, NULL, NULL, NULL }
+ }; 
+ 
+--- a/src/rfc1035.c
++++ b/src/rfc1035.c
+@@ -2316,6 +2316,23 @@ size_t answer_request(struct dns_header
+ 	    }
+ 	}
+     }
++	
++    //patch to filter https/query type 65 forwards
++    if (qtype == T_HTTPS && option_bool(OPT_FILTER_HTTPS) ){
++        //return a null reply
++        ans = 1;
++        log_query(F_CONFIG | F_IPV4 | F_NEG, name, &addr, NULL, 0);
++    }
++    //end of patch
++    //patch to filter all unknown query types
++    //known types are defined in cache.c:typestr:36.
++    if (is_query_type_unknown(qtype) && option_bool(OPT_FILTER_UNKNOWN)) {
++        //return a null reply
++        ans = 1;
++        log_query(F_CONFIG | F_NEG, name, NULL, NULL, 0);
++    }
++    //end of patch
++
+   
+   if (!ans)
+     return 0; /* failed to answer a question */
