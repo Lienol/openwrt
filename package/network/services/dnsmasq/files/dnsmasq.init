@@ -1003,6 +1003,9 @@ dnsmasq_start()
 	append_parm "$cfg" filter_rr "--filter-rr"
 	append_parm "$cfg" cache_rr "--cache-rr"
 
+	append_bool "$cfg" filter_https "--filter-https"
+	append_bool "$cfg" filter_unknown "--filter-unknown"
+
 	append_parm "$cfg" logfacility "--log-facility"
 	config_get logfacility "$cfg" "logfacility"
 	append_parm "$cfg" cachesize "--cache-size"
