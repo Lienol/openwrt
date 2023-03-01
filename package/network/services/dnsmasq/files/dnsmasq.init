@@ -1011,6 +1011,9 @@ dnsmasq_start()
 	config_list_foreach "$cfg" filter_rr append_filter_rr
 	config_list_foreach "$cfg" cache_rr append_cache_rr
 
+	append_bool "$cfg" filter_https "--filter-https"
+	append_bool "$cfg" filter_unknown "--filter-unknown"
+
 	append_parm "$cfg" logfacility "--log-facility"
 	config_get logfacility "$cfg" "logfacility"
 	append_parm "$cfg" cachesize "--cache-size"
