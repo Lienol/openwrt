@@ -1221,8 +1221,9 @@ dnsmasq_start()
 	config_get_bool dns_redirect "$cfg" dns_redirect 0
 	config_get dns_port "$cfg" port 53
 	[ $dns_redirect = 1 ] && {
-		iptables -t nat -w -A PREROUTING -m comment --comment "Dnsmasq" -p udp --dport 53 -j REDIRECT --to-ports $dns_port
+		iptables -t nat -w -A PREROUTING -m comment --comment "Dnsmasq" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>/dev/null
 		ip6tables -t nat -w -A PREROUTING -m comment --comment "Dnsmasq" -p udp --dport 53 -j REDIRECT --to-ports $dns_port 2>/dev/null
+		nft add rule inet fw4 dstnat ip protocol udp udp dport 53 redirect to 53 comment "Dnsmasq" 2>/dev/null
 	}
 }
 
@@ -1248,6 +1249,11 @@ iptables_clear()
 			local index=$($ipt --line-number -nL PREROUTING | grep "Dnsmasq" | head -1 | awk '{print $1}')
 			$ipt -D PREROUTING $index 2>/dev/null
 		done
+	done
+
+	local handles=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "Dnsmasq" | awk -F '# handle ' '{print$2}')
+	for handle in $handles; do
+		nft delete rule inet fw4 dstnat handle ${handle} 2>/dev/null
 	done
 }
 
