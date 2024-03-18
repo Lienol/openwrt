@@ -1,50 +1,39 @@
+#
+# Download realtek r8125 linux driver from official site:
+# [https://www.realtek.com/component/zoo/category/network-interface-controllers-10-100-1000m-gigabit-ethernet-pci-express-software]
+#
+
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=r8125
-PKG_VERSION:=9.016.00
-PKG_RELEASE:=1
+PKG_VERSION:=9.012.03-1
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=https://github.com/openwrt/rtl8125/releases/download/$(PKG_VERSION)
-PKG_HASH:=cd1955dd07d2f5a6faaa210ffc4e8af992421295a32ab6ddcfa759bed9eba922
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://codeload.github.com/awesometic/realtek-r8125-dkms/tar.gz/$(PKG_VERSION)?
+PKG_HASH:=7964aacf4a2873cbe4133aeca830bd0725f819ea286bab162026ff283510144f
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/realtek-$(PKG_NAME)-dkms-$(PKG_VERSION)
 
-PKG_BUILD_PARALLEL:=1
-PKG_LICENSE:=GPLv2
-PKG_MAINTAINER:=Alvaro Fernandez Rojas <noltari@gmail.com>
+PKG_LICENSE:=GPL-2.0-only
+PKG_LICENSE_FILE:=LICENSE
 
-include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/r8125
+  TITLE:=Driver for Realtek r8125 chipsets
   SUBMENU:=Network Devices
-  TITLE:=Realtek RTL8125 PCI 2.5 Gigabit Ethernet driver
-  DEPENDS:=@PCI_SUPPORT +kmod-libphy
-  FILES:=$(PKG_BUILD_DIR)/src/r8125.ko
-  AUTOLOAD:=$(call AutoProbe,r8125,1)
-  PROVIDES:=kmod-r8169
-  VARIANT:=regular
-  PKG_MAKE_FLAGS += CONFIG_ASPM=n
+  VERSION:=$(LINUX_VERSION)+$(PKG_VERSION)-$(BOARD)-$(PKG_RELEASE)
+  FILES:= $(PKG_BUILD_DIR)/src/r8125.ko
+  AUTOLOAD:=$(call AutoProbe,r8125)
 endef
 
-define KernelPackage/r8125-rss
-$(call KernelPackage/r8125)
-  CONFLICTS:=kmod-r8125
-  TITLE+= (RSS)
-  VARIANT:=rss
+define Package/r8125/description
+  This package contains a driver for Realtek r8125 chipsets.
 endef
-
-ifeq ($(BUILD_VARIANT),rss)
-  PKG_MAKE_FLAGS += \
-    ENABLE_MULTIPLE_TX_QUEUE=y \
-    ENABLE_RSS_SUPPORT=y
-endif
 
 define Build/Compile
-	+$(KERNEL_MAKE) $(PKG_JOBS) \
-		$(PKG_MAKE_FLAGS) \
-		M="$(PKG_BUILD_DIR)/src" \
-		modules
+	+$(KERNEL_MAKE) M=$(PKG_BUILD_DIR)/src modules
 endef
 
 $(eval $(call KernelPackage,r8125))
-$(eval $(call KernelPackage,r8125-rss))
