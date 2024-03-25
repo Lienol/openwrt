@@ -6,6 +6,8 @@ board=$(board_name)
 board_config_update
 
 case $board in
+asus,rt-ax52)
+	ucidef_set_led_netdev "eth1" "wan" "blue:wan" "eth1"
 confiabits,mt7981)
 	ucidef_set_led_netdev "lan1" "lan1" "blue:lan-1" "lan1" "link tx rx"
 	ucidef_set_led_netdev "lan2" "lan2" "blue:lan-2" "lan2" "link tx rx"
