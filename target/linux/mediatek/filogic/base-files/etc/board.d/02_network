@@ -39,6 +39,7 @@ mediatek_setup_interfaces()
 	h3c,magic-nx30-pro)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" eth1
 		;;
+	cudy,tr3000-v1|\
 	glinet,gl-mt3000)
 		ucidef_set_interfaces_lan_wan eth1 eth0
 		;;
@@ -68,7 +69,8 @@ mediatek_setup_interfaces()
 	tplink,tl-xdr6086)
 		ucidef_set_interfaces_lan_wan "lan1 lan2" eth1
 		;;
-	xiaomi,mi-router-wr30u-112m-nmbm|\
+	xiaomi,mi-router-ax3000t|\
+	xiaomi,mi-router-ax3000t-ubootmod|\
 	xiaomi,mi-router-wr30u-stock|\
 	xiaomi,mi-router-wr30u-ubootmod|\
 	xiaomi,redmi-router-ax6000-stock|\
@@ -141,7 +143,8 @@ mediatek_setup_macs()
 		wan_mac=$(macaddr_add "$lan_mac" 1)
 		label_mac=$wan_mac
 		;;
-	xiaomi,mi-router-wr30u-112m-nmbm|\
+	xiaomi,mi-router-ax3000t|\
+	xiaomi,mi-router-ax3000t-ubootmod|\
 	xiaomi,mi-router-wr30u-stock|\
 	xiaomi,mi-router-wr30u-ubootmod|\
 	xiaomi,redmi-router-ax6000-stock|\

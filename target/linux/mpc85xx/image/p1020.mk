@@ -62,7 +62,11 @@ define Device/enterasys_ws-ap3710i
   DEVICE_VENDOR := Enterasys
   DEVICE_MODEL := WS-AP3710i
   BLOCKSIZE := 128k
-  KERNEL = kernel-bin | lzma | fit lzma $(KDIR)/image-$$(DEVICE_DTS).dtb
+  KERNEL_NAME := simpleImage.ws-ap3710i
+  KERNEL_ENTRY := 0x1500000
+  KERNEL_LOADADDR := 0x1500000
+  KERNEL = kernel-bin | uImage none
+  KERNEL_INITRAMFS := kernel-bin | uImage none
   IMAGES := sysupgrade.bin
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
 endef
@@ -82,6 +86,21 @@ define Device/extreme-networks_ws-ap3825i
 endef
 TARGET_DEVICES += extreme-networks_ws-ap3825i
 
+define Device/hpe_msm460
+  DEVICE_VENDOR := Hewlett-Packard
+  DEVICE_MODEL := MSM460
+  KERNEL = kernel-bin | lzma | fit lzma $(KDIR)/image-$$(DEVICE_DTS).dtb
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  SUBPAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBINIZE_OPTS := -E 5
+  IMAGES := factory.bin sysupgrade.bin
+  IMAGE/factory.bin := append-ubi
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += hpe_msm460
+
 define Device/ocedo_panda
   DEVICE_VENDOR := OCEDO
   DEVICE_MODEL := Panda
@@ -95,4 +114,3 @@ define Device/ocedo_panda
   IMAGE/fdt.bin := append-dtb
 endef
 TARGET_DEVICES += ocedo_panda
-
