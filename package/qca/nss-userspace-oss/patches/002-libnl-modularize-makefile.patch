@@ -1,0 +1,48 @@
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -4,13 +4,44 @@ OBJPATH = obj
+ 
+ BINARY = $(OBJPATH)/libnl-nss.so
+ SOURCES = $(wildcard $(SRCPATH)/*.c)
+-OBJECTS = $(SOURCES:$(SRCPATH)/%.c=$(OBJPATH)/%.o)
+ HEADERS = $(wildcard $(SRCPATH)/*.h)
+ 
+ INCLUDE += -I./include
+ EXTRA_CFLAGS = -Wall -Werror -fPIC -Wl,-z,relro -Wl,-z,now
+ EXTRA_LDFLAGS = -pie -Wl,-z,relro -Wl,-z,now
+ 
++# Base objects that are always needed
++BASE_OBJS = ipv4_api ipv6_api mcast_api sock
++
++# Feature objects that depend on flags
++FEATURE_OBJS =
++
++ifeq ($(capwap),y)
++    FEATURE_OBJS += capwap_api
++endif
++ifeq ($(dtls),y)
++    FEATURE_OBJS += dtls_api
++endif
++ifeq ($(gre_redir),y)
++    FEATURE_OBJS += gre_redir_api
++endif
++ifeq ($(ipsec),y)
++    FEATURE_OBJS += ipsec_api
++endif
++ifeq ($(qrfs),y)
++    FEATURE_OBJS += qrfs_api
++endif
++ifeq ($(udp_st),y)
++    FEATURE_OBJS += udp_st_api
++endif
++
++# All objects to build
++OBJS = $(BASE_OBJS) $(FEATURE_OBJS)
++
++# Convert to actual object file paths
++OBJECTS = $(patsubst %,$(OBJPATH)/nss_nl%.o,$(OBJS))
++HEADERS = $(wildcard $(SRCPATH)/*.h)
++
+ all: release
+ 
+ release: $(BINARY)

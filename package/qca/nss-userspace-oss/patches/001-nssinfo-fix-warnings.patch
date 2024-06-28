@@ -1,0 +1,29 @@
+--- a/nssinfo/src/nssinfo.c
++++ b/nssinfo/src/nssinfo.c
+@@ -176,8 +176,6 @@ void nssinfo_print_all(char *node, char
+ 		}
+ 	}
+ 	nssinfo_stats_print("\n");
+-
+-	return;
+ }
+ 
+ /*
+@@ -278,7 +276,6 @@ void nssinfo_node_stats_destroy(pthread_
+ 		p = next;
+ 	}
+ 
+-	return;
+ }
+ 
+ /*
+@@ -293,7 +290,8 @@ static char* nssinfo_add_comma(uint64_t
+ 	}
+ 
+ 	nssinfo_add_comma(num/1000);
+-	snprintf(buf + strlen(buf), sizeof(buf + strlen(buf)), ",%03lu", num % 1000);
++	snprintf(buf + strlen(buf), sizeof(buf[NSSINFO_STR_LEN] + strlen(buf)), ",%03lu",
++		 num % 1000);
+ 	return buf;
+ }
+ 

@@ -1,0 +1,134 @@
+--- a/cryptoapi/v2.0/nss_cryptoapi.c
++++ b/cryptoapi/v2.0/nss_cryptoapi.c
+@@ -38,6 +38,9 @@
+ #include <linux/completion.h>
+ #include <linux/of.h>
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 10, 0))
++#include <linux/vmalloc.h>
++#endif
+ #include <crypto/aes.h>
+ #include <crypto/des.h>
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0))
+@@ -1849,6 +1852,12 @@ static struct ahash_alg cryptoapi_ahash_
+ 	},
+ };
+ 
++/*-------------------------------------------------------------
++ * Prototypes
++ *-------------------------------------------------------------
++ */
++bool nss_cryptoapi_is_registered(void);
++
+ /*
+  * nss_cryptoapi_copy_reverse()
+  *	Reverse copy
+@@ -1946,7 +1955,7 @@ struct nss_cryptoapi_algo_info *nss_cryp
+  * nss_cryptoapi_cra_name_lookup()
+  *     Lookup the associated algorithm in NSS for the given transformation by name
+  */
+-struct nss_cryptoapi_algo_info *nss_cryptoapi_cra_name_lookup(const char *cra_name)
++static struct nss_cryptoapi_algo_info *nss_cryptoapi_cra_name_lookup(const char *cra_name)
+ {
+ 	struct nss_cryptoapi_algo_info *info = g_algo_info;
+ 	int i;
+@@ -2117,7 +2126,7 @@ skip_iv:
+  * nss_cryptoapi_ctx_stats_read()
+  * 	CryptoAPI context statistics read function
+  */
+-ssize_t nss_cryptoapi_ctx_stats_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos)
++static ssize_t nss_cryptoapi_ctx_stats_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos)
+ {
+ 	struct nss_cryptoapi_ctx *ctx = fp->private_data;
+ 	struct nss_cryptoapi_stats *stats = &ctx->stats;
+@@ -2169,7 +2178,7 @@ ssize_t nss_cryptoapi_ctx_stats_read(str
+  * nss_cryptoapi_ctx_info_read()
+  * 	CryptoAPI context info read function
+  */
+-ssize_t nss_cryptoapi_ctx_info_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos)
++static ssize_t nss_cryptoapi_ctx_info_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos)
+ {
+ 	struct nss_cryptoapi_ctx *ctx = fp->private_data;
+ 	ssize_t max_buf_len;
+@@ -2244,7 +2253,7 @@ void nss_cryptoapi_add_ctx2debugfs(struc
+  * nss_cryptoapi_attach_user()
+  * 	register crypto core with the cryptoapi CFI
+  */
+-void nss_cryptoapi_attach_user(void *app_data, struct nss_crypto_user *user)
++static void nss_cryptoapi_attach_user(void *app_data, struct nss_crypto_user *user)
+ {
+ 	struct skcipher_alg *skcipher = cryptoapi_skcipher_algs;
+ 	struct aead_alg *aead = cryptoapi_aead_algs;
+@@ -2312,7 +2321,7 @@ void nss_cryptoapi_attach_user(void *app
+  * nss_cryptoapi_detach_user()
+  * 	Unregister crypto core with cryptoapi CFI layer
+  */
+-void nss_cryptoapi_detach_user(void *app_data, struct nss_crypto_user *user)
++static void nss_cryptoapi_detach_user(void *app_data, struct nss_crypto_user *user)
+ {
+ 	struct skcipher_alg *skcipher = cryptoapi_skcipher_algs;
+ 	struct aead_alg *aead = cryptoapi_aead_algs;
+@@ -2378,7 +2387,7 @@ EXPORT_SYMBOL(nss_cryptoapi_is_registere
+  * nss_cryptoapi_init()
+  * 	Initializing crypto core layer
+  */
+-int nss_cryptoapi_init(void)
++static int nss_cryptoapi_init(void)
+ {
+ 	nss_cfi_info("module loaded %s\n", NSS_CFI_BUILD_ID);
+ 
+@@ -2408,7 +2417,7 @@ int nss_cryptoapi_init(void)
+  * nss_cryptoapi_exit()
+  * 	De-Initialize cryptoapi CFI layer
+  */
+-void nss_cryptoapi_exit(void)
++static void nss_cryptoapi_exit(void)
+ {
+ 	if (g_cryptoapi.user)
+ 		nss_crypto_unregister_user(g_cryptoapi.user);
+--- a/cryptoapi/v2.0/nss_cryptoapi_aead.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_aead.c
+@@ -386,7 +386,7 @@ int nss_cryptoapi_aead_setauthsize(struc
+  * nss_cryptoapi_aead_done()
+  * 	Cipher/Auth encrypt request completion callback function
+  */
+-void nss_cryptoapi_aead_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
++static void nss_cryptoapi_aead_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
+ {
+ 	struct aead_request *req = (struct aead_request *)app_data;
+ 	struct crypto_aead *aead = crypto_aead_reqtfm(req);
+--- a/cryptoapi/v2.0/nss_cryptoapi_ahash.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_ahash.c
+@@ -87,6 +87,12 @@ extern struct nss_cryptoapi g_cryptoapi;
+ 
+ #endif /* NSS_CFI_DEBUG */
+ 
++/*-------------------------------------------------------------
++ * Prototype
++ *-------------------------------------------------------------
++ */
++int nss_cryptoapi_ahash_ctx2session(struct crypto_ahash *ahash, uint32_t *sid);
++
+ /*
+  * nss_cryptoapi_ahash_ctx2session()
+  *	Cryptoapi function to get the session ID for an AHASH
+@@ -234,7 +240,7 @@ int nss_cryptoapi_ahash_setkey(struct cr
+  * nss_cryptoapi_ahash_done()
+  *	Hash request completion callback function
+  */
+-void nss_cryptoapi_ahash_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
++static void nss_cryptoapi_ahash_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
+ {
+ 	struct ahash_request *req = app_data;
+ 	struct nss_cryptoapi_ctx *ctx = crypto_tfm_ctx(req->base.tfm);
+--- a/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
+@@ -201,7 +201,7 @@ int nss_cryptoapi_skcipher_setkey(struct
+  * nss_cryptoapi_skcipher_done()
+  *	Cipher operation completion callback function
+  */
+-void nss_cryptoapi_skcipher_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
++static void nss_cryptoapi_skcipher_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
+ {
+ 	struct skcipher_request *req = app_data;
+ 	struct nss_cryptoapi_ctx *ctx = crypto_tfm_ctx(req->base.tfm);

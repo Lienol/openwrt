@@ -1,0 +1,26 @@
+--- a/cryptoapi/v2.0/nss_cryptoapi_aead.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_aead.c
+@@ -97,9 +97,9 @@ int nss_cryptoapi_aead_init(struct crypt
+ 	bool need_fallback;
+ 
+ 	BUG_ON(!ctx);
+-	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	memset(ctx, 0, sizeof(struct nss_cryptoapi_ctx));
++	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	ctx->user = g_cryptoapi.user;
+ 	ctx->stats.init++;
+--- a/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
+@@ -74,9 +74,9 @@ int nss_cryptoapi_skcipher_init(struct c
+ 	struct nss_cryptoapi_ctx *ctx = crypto_tfm_ctx(base);
+ 
+ 	BUG_ON(!ctx);
+-	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	memset(ctx, 0, sizeof(struct nss_cryptoapi_ctx));
++	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	ctx->user = g_cryptoapi.user;
+ 	ctx->stats.init++;

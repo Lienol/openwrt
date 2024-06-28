@@ -1,0 +1,1677 @@
+--- a/exports/nss_capwap.h
++++ b/exports/nss_capwap.h
+@@ -595,6 +595,17 @@ extern uint32_t nss_capwap_get_max_buf_s
+ extern bool nss_capwap_get_stats(uint32_t if_num, struct nss_capwap_tunnel_stats *stats);
+ 
+ /**
++ * nss_capwap_clear_stats
++ *	Gets per-tunnel statistics.
++ *
++ * @param[in] if_num NSS interface number.
++ *
++ * @return
++ * TRUE or FALSE.
++ */
++extern bool nss_capwap_clear_stats(uint32_t if_num);
++
++/**
+  * nss_capwap_init
+  *	Initializes the CAPWAP interface.
+  *
+--- a/nss_c2c_rx_stats.c
++++ b/nss_c2c_rx_stats.c
+@@ -90,6 +90,36 @@ static ssize_t nss_c2c_rx_stats_read(str
+ }
+ 
+ /*
++ * nss_c2c_rx_stats_write()
++ *	Write c2c_rx stats
++ */
++static ssize_t nss_c2c_rx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i, core;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * c2c_rx node stats
++	 */
++	for (core = 0; core < NSS_MAX_CORES; core++) {
++		spin_lock_bh(&nss_c2c_rx_stats_lock);
++		for (i = 0; i < NSS_C2C_RX_STATS_MAX; i++) {
++			nss_c2c_rx_stats[core][i] = 0;
++		}
++		spin_unlock_bh(&nss_c2c_rx_stats_lock);
++	}
++	return sz;
++}
++
++/*
+  * nss_c2c_rx_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(c2c_rx);
+--- a/nss_c2c_tx_stats.c
++++ b/nss_c2c_tx_stats.c
+@@ -84,6 +84,35 @@ static ssize_t nss_c2c_tx_stats_read(str
+ 
+ 	return bytes_read;
+ }
++/*
++ * nss_c2c_tx_stats_write()
++ *	Write c2c_tx stats
++ */
++static ssize_t nss_c2c_tx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i, core;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * c2c_tx node stats
++	 */
++	for (core = 0; core < NSS_MAX_CORES; core++) {
++		spin_lock_bh(&nss_c2c_tx_stats_lock);
++		for (i = 0; i < NSS_C2C_TX_STATS_MAX; i++) {
++			nss_c2c_tx_stats[core][i] = 0;
++		}
++		spin_unlock_bh(&nss_c2c_tx_stats_lock);
++	}
++	return sz;
++}
+ 
+ /*
+  * nss_c2c_tx_stats_ops
+--- a/nss_capwap.c
++++ b/nss_capwap.c
+@@ -162,6 +162,7 @@ static void nss_capwap_update_stats(stru
+ 
+ 	switch(type) {
+ 	case NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_OUTER:
++		spin_lock_bh(&nss_capwap_spinlock);
+ 		stats->rx_segments += fstats->rx_segments;
+ 		stats->dtls_pkts += fstats->dtls_pkts;
+ 		stats->rx_dup_frag += fstats->rx_dup_frag;
+@@ -180,9 +181,11 @@ static void nss_capwap_update_stats(stru
+ 		stats->pnode_stats.rx_packets += fstats->pnode_stats.rx_packets;
+ 		stats->pnode_stats.rx_bytes += fstats->pnode_stats.rx_bytes;
+ 		stats->pnode_stats.rx_dropped += nss_cmn_rx_dropped_sum(&fstats->pnode_stats);
++		spin_unlock_bh(&nss_capwap_spinlock);
+ 		break;
+ 
+ 	case NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_HOST_INNER:
++		spin_lock_bh(&nss_capwap_spinlock);
+ 		stats->tx_segments += fstats->tx_segments;
+ 		stats->tx_queue_full_drops += fstats->tx_queue_full_drops;
+ 		stats->tx_mem_failure_drops += fstats->tx_mem_failure_drops;
+@@ -198,6 +201,7 @@ static void nss_capwap_update_stats(stru
+ 		stats->pnode_stats.tx_packets += fstats->pnode_stats.tx_packets;
+ 		stats->pnode_stats.tx_bytes += fstats->pnode_stats.tx_bytes;
+ 		stats->tx_dropped_inner += nss_cmn_rx_dropped_sum(&fstats->pnode_stats);
++		spin_unlock_bh(&nss_capwap_spinlock);
+ 		break;
+ 
+ 	default:
+@@ -384,6 +388,7 @@ bool nss_capwap_get_stats(uint32_t if_nu
+ 	spin_lock_bh(&nss_capwap_spinlock);
+ 	if (nss_capwap_hdl[if_num] == NULL) {
+ 		spin_unlock_bh(&nss_capwap_spinlock);
++		nss_warning("%px: unallocated if_num: %d", stats, if_num);
+ 		return false;
+ 	}
+ 
+@@ -394,6 +399,29 @@ bool nss_capwap_get_stats(uint32_t if_nu
+ EXPORT_SYMBOL(nss_capwap_get_stats);
+ 
+ /*
++ * nss_capwap_clear_stats()
++ *	API for clearing stats from a CAPWAP tunnel interface stats
++ */
++bool nss_capwap_clear_stats(uint32_t if_num)
++{
++	if (nss_capwap_verify_if_num(if_num) == false) {
++		return false;
++	}
++
++	if_num = if_num - NSS_DYNAMIC_IF_START;
++	spin_lock_bh(&nss_capwap_spinlock);
++	if (nss_capwap_hdl[if_num] == NULL) {
++		spin_unlock_bh(&nss_capwap_spinlock);
++		nss_warning("unallocated if_num: %d", if_num);
++		return false;
++	}
++
++	memset(&nss_capwap_hdl[if_num]->stats, 0, sizeof(struct nss_capwap_tunnel_stats));
++	spin_unlock_bh(&nss_capwap_spinlock);
++	return true;
++}
++
++/*
+  * nss_capwap_notify_register()
+  *	Registers a message notifier with NSS FW. It should not be called from
+  *	softirq or interrupts.
+@@ -405,14 +433,14 @@ struct nss_ctx_instance *nss_capwap_noti
+ 	nss_ctx = &nss_top_main.nss[nss_top_main.capwap_handler_id];
+ 
+ 	if (nss_capwap_verify_if_num(if_num) == false) {
+-		nss_warning("%px: notfiy register received for invalid interface %d", nss_ctx, if_num);
++		nss_warning("%px: notify register received for invalid interface %d", nss_ctx, if_num);
+ 		return NULL;
+ 	}
+ 
+ 	spin_lock_bh(&nss_capwap_spinlock);
+ 	if (nss_capwap_hdl[if_num - NSS_DYNAMIC_IF_START] != NULL) {
+ 		spin_unlock_bh(&nss_capwap_spinlock);
+-		nss_warning("%px: notfiy register tunnel already exists for interface %d", nss_ctx, if_num);
++		nss_warning("%px: notify register tunnel already exists for interface %d", nss_ctx, if_num);
+ 		return NULL;
+ 	}
+ 	spin_unlock_bh(&nss_capwap_spinlock);
+--- a/nss_capwap_stats.c
++++ b/nss_capwap_stats.c
+@@ -261,6 +261,91 @@ static ssize_t nss_capwap_encap_stats_re
+ }
+ 
+ /*
++ * nss_capwap_stats_write()
++ *	Write CAPWAP stats
++ */
++static ssize_t nss_capwap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos, uint16_t type)
++{
++	struct nss_stats_data *data = fp->private_data;
++	uint32_t if_num = NSS_DYNAMIC_IF_START;
++	uint32_t max_if_num = NSS_DYNAMIC_IF_START + NSS_MAX_DYNAMIC_INTERFACES;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset))
++		return -EINVAL;
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	if (!data) {
++		nss_warning("%px:File private data is NULL", fp);
++		return -EINVAL;
++	}
++
++	if (data) {
++		if_num = data->if_num;
++	}
++
++	/*
++	 * If we are done accomodating all the CAPWAP tunnels.
++	 */
++	if (if_num > max_if_num) {
++		return 0;
++	}
++
++	for (; if_num <= max_if_num; if_num++) {
++		bool isthere;
++		enum nss_dynamic_interface_type dtype;
++
++		if (nss_is_dynamic_interface(if_num) == false) {
++			continue;
++		}
++
++		dtype = nss_dynamic_interface_get_type(nss_capwap_get_ctx(), if_num);
++
++		/*
++		 * Read encap stats from inner node and decap stats from outer node.
++		 */
++		if ((type == 1) && (dtype != NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_HOST_INNER)) {
++			continue;
++		}
++
++		if ((type == 0) && (dtype != NSS_DYNAMIC_INTERFACE_TYPE_CAPWAP_OUTER)) {
++			continue;
++		}
++
++		/*
++		 * If CAPWAP tunnel does not exists, then isthere will be false.
++		 */
++		isthere = nss_capwap_clear_stats(if_num);
++		if (!isthere) {
++			continue;
++		}
++	}
++
++	return sz;
++}
++
++/*
++ * nss_capwap_decap_stats_write()
++ *	Write CAPWAP decap stats
++ */
++static ssize_t nss_capwap_decap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return nss_capwap_stats_write(fp, ubuf, sz, ppos, 0);
++}
++
++/*
++ * nss_capwap_encap_stats_write()
++ *	Write CAPWAP encap stats
++ */
++static ssize_t nss_capwap_encap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return nss_capwap_stats_write(fp, ubuf, sz, ppos, 1);
++}
++
++/*
+  * nss_capwap_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(capwap_encap);
+--- a/nss_clmap_stats.c
++++ b/nss_clmap_stats.c
+@@ -233,6 +233,15 @@ void nss_clmap_stats_sync(struct nss_ctx
+ }
+ 
+ /*
++ * nss_clmap_stats_write()
++ *	Write CLMAP statistics
++ */
++static ssize_t nss_clmap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_clmap_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(clmap)
+--- a/nss_core.h
++++ b/nss_core.h
+@@ -91,12 +91,14 @@
+ #define NSS_PKT_STATS_ADD(x, i) nss_pkt_stats_add((x), (i))
+ #define NSS_PKT_STATS_SUB(x, i) nss_pkt_stats_sub((x), (i))
+ #define NSS_PKT_STATS_READ(x) nss_pkt_stats_read(x)
++#define NSS_PKT_STATS_WRITE(x, i) nss_pkt_stats_write(x, (i))
+ #else
+ #define NSS_PKT_STATS_INC(x)
+ #define NSS_PKT_STATS_DEC(x)
+ #define NSS_PKT_STATS_ADD(x, i)
+ #define NSS_PKT_STATS_SUB(x, i)
+ #define NSS_PKT_STATS_READ(x)
++#define NSS_PKT_STATS_WRITE(x, i)
+ #endif
+ 
+ /*
+@@ -732,6 +734,14 @@ static inline uint64_t nss_pkt_stats_rea
+ 	return atomic64_read(stat);
+ }
+ 
++/*
++ * nss_pkt_stats_write()
++ */
++static inline void nss_pkt_stats_write(atomic64_t *stat, uint32_t pkt)
++{
++	atomic64_set(stat, pkt);
++}
++
+ #endif
+ 
+ /*
+--- a/nss_crypto_cmn_stats.c
++++ b/nss_crypto_cmn_stats.c
+@@ -86,6 +86,32 @@ static ssize_t nss_crypto_cmn_stats_read
+ }
+ 
+ /*
++ * nss_crypto_cmn_stats_write()
++ *	Write crypto common statistics
++ */
++static ssize_t nss_crypto_cmn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	spin_lock_bh(&nss_crypto_cmn_stats_lock);
++	for (i = 0; i < NSS_CRYPTO_CMN_STATS_MAX; i++) {
++		nss_crypto_cmn_stats[i] = 0;
++	}
++
++	spin_unlock_bh(&nss_crypto_cmn_stats_lock);
++	return sz;
++}
++
++/*
+  * nss_crypto_cmn_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(crypto_cmn);
+--- a/nss_dma_stats.c
++++ b/nss_dma_stats.c
+@@ -89,6 +89,15 @@ static ssize_t nss_dma_stats_read(struct
+ }
+ 
+ /*
++ * nss_dma_stats_write()
++ *	Write DMA statistics
++ */
++static ssize_t nss_dma_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_dma_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(dma);
+--- a/nss_drv_stats.c
++++ b/nss_drv_stats.c
+@@ -64,6 +64,37 @@ static ssize_t nss_drv_stats_read(struct
+ }
+ 
+ /*
++ * nss_drv_stats_write()
++ *	Write DRV stats
++ */
++static ssize_t nss_drv_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * DRV node stats
++	 * SKB count is not a cumulative stats that accumulated over time.
++	 * So, it shouldn't be reset.
++	 */
++	for (i = 0; (i < NSS_DRV_STATS_MAX); i++) {
++		if (i != NSS_DRV_STATS_NSS_SKB_COUNT) {
++			NSS_PKT_STATS_WRITE(&nss_top_main.stats_drv[i], 0);
++		}
++	}
++
++	return sz;
++}
++
++/*
+  * drv_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(drv);
+@@ -164,3 +195,12 @@ ssize_t nss_wt_stats_read(struct file *f
+ 
+ 	return bytes_read;
+ }
++
++/*
++ * nss_wt_stats_write()
++ *	Write WT statistics
++ */
++ssize_t nss_wt_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
+--- a/nss_drv_stats.h
++++ b/nss_drv_stats.h
+@@ -77,4 +77,5 @@ enum NSS_DRV_STATS {
+ 
+ extern void nss_drv_stats_dentry_create(void);
+ extern ssize_t nss_wt_stats_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos);
++extern ssize_t nss_wt_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos);
+ #endif /* __NSS_DRV_STATS_H */
+--- a/nss_dtls_cmn_stats.c
++++ b/nss_dtls_cmn_stats.c
+@@ -131,6 +131,44 @@ static ssize_t nss_dtls_cmn_stats_read(s
+ }
+ 
+ /*
++ * nss_dtls_cmn_stats_write()
++ *	Write dtls common statistics
++ */
++static ssize_t nss_dtls_cmn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++	enum nss_dynamic_interface_type type;
++	uint32_t if_num;
++	struct nss_ctx_instance *nss_ctx = nss_dtls_cmn_get_context();
++	unsigned long *ifmap = nss_dtls_cmn_ifmap_get();
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	for_each_set_bit(if_num, ifmap, NSS_MAX_NET_INTERFACES) {
++
++		type = nss_dynamic_interface_get_type(nss_ctx, if_num);
++		if ((type != NSS_DYNAMIC_INTERFACE_TYPE_DTLS_CMN_INNER) &&
++			(type != NSS_DYNAMIC_INTERFACE_TYPE_DTLS_CMN_OUTER)) {
++			continue;
++		}
++
++		spin_lock_bh(&nss_dtls_cmn_stats_lock);
++		for (i = 0; i < NSS_DTLS_CMN_CTX_STATS_MAX; i++) {
++			nss_dtls_cmn_ctx_stats[if_num][i] = 0;
++		}
++		spin_unlock_bh(&nss_dtls_cmn_stats_lock);
++	}
++	return sz;
++}
++
++/*
+  * nss_dtls_cmn_stats_ops.
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(dtls_cmn);
+--- a/nss_dtls_stats.c
++++ b/nss_dtls_stats.c
+@@ -129,6 +129,15 @@ static ssize_t nss_dtls_stats_read(struc
+ }
+ 
+ /*
++ * nss_dtls_stats_write()
++ *	Write DTLS statistics
++ */
++static ssize_t nss_dtls_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_dtls_stats_ops.
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(dtls)
+--- a/nss_dynamic_interface_stats.c
++++ b/nss_dynamic_interface_stats.c
+@@ -139,6 +139,15 @@ static ssize_t nss_dynamic_interface_typ
+ }
+ 
+ /*
++ * nss_dynamic_interface_type_names_stats_write()
++ *	Write DYNAMIC_INTERFACE_TYPE_NAMES statistics
++ */
++static ssize_t nss_dynamic_interface_type_names_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_dynamic_interface_type_names_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(dynamic_interface_type_names)
+--- a/nss_edma_stats.c
++++ b/nss_edma_stats.c
+@@ -464,6 +464,78 @@ static ssize_t nss_edma_err_stats_read(s
+ }
+ 
+ /*
++ * nss_edma_port_stats_write()
++ *	Write EDMA_PORT statistics
++ */
++static ssize_t nss_edma_port_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_port_type_stats_write()
++ *	Write EDMA_PORT_TYPE statistics
++ */
++static ssize_t nss_edma_port_type_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_port_ring_map_stats_write()
++ *	Write EDMA_PORT_RING_MAP statistics
++ */
++static ssize_t nss_edma_port_ring_map_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_txring_stats_write()
++ *	Write EDMA_TXRING statistics
++ */
++static ssize_t nss_edma_txring_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_rxring_stats_write()
++ *	Write EDMA_RXRING statistics
++ */
++static ssize_t nss_edma_rxring_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_txcmplring_stats_write()
++ *	Write EDMA_TXCMPLRING statistics
++ */
++static ssize_t nss_edma_txcmplring_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_rxfillring_stats_write()
++ *	Write EDMA_RXFILLRING statistics
++ */
++static ssize_t nss_edma_rxfillring_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_edma_err_stats_write()
++ *	Write EDMA_ERR statistics
++ */
++static ssize_t nss_edma_err_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * edma_port_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(edma_port);
+--- a/nss_eth_rx_stats.c
++++ b/nss_eth_rx_stats.c
+@@ -105,6 +105,43 @@ static ssize_t nss_eth_rx_stats_read(str
+ }
+ 
+ /*
++ * nss_eth_rx_stats_write()
++ *	Write ETH_RX stats.
++ */
++static ssize_t nss_eth_rx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++	struct nss_top_instance *nss_top = &nss_top_main;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * eth_rx node stats.
++	 */
++	nss_stats_reset_common_stats(NSS_ETH_RX_INTERFACE);
++
++	spin_lock_bh(&nss_top->stats_lock);
++
++	for (i = 0; (i < NSS_ETH_RX_STATS_MAX); i++) {
++		nss_eth_rx_stats[i] = 0;
++	}
++
++	for (i = 0; (i < NSS_ETH_RX_EXCEPTION_EVENT_MAX); i++) {
++		nss_eth_rx_exception_stats[i] = 0;
++	}
++
++	spin_unlock_bh(&nss_top->stats_lock);
++	return sz;
++}
++
++/*
+  * nss_eth_rx_stats_ops.
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(eth_rx);
+--- a/nss_freq_stats.c
++++ b/nss_freq_stats.c
+@@ -73,6 +73,15 @@ static ssize_t nss_freq_stats_read(struc
+ }
+ 
+ /*
++ * nss_freq_stats_write()
++ *	Write FREQ statistics
++ */
++static ssize_t nss_freq_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_freq_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(freq)
+--- a/nss_gmac_stats.c
++++ b/nss_gmac_stats.c
+@@ -81,3 +81,12 @@ ssize_t nss_gmac_stats_read(struct file
+ 
+ 	return bytes_read;
+ }
++
++/*
++ * nss_gmac_stats_write()
++ *	Write GMAC statistics
++ */
++ssize_t nss_gmac_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
+--- a/nss_gmac_stats.h
++++ b/nss_gmac_stats.h
+@@ -30,4 +30,5 @@ enum nss_stats_gmac {
+ };
+ 
+ extern ssize_t nss_gmac_stats_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos);
++ssize_t nss_gmac_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos);
+ #endif /* __NSS_GMAC_STATS_H */
+--- a/nss_gre_redir_lag_ds_stats.c
++++ b/nss_gre_redir_lag_ds_stats.c
+@@ -100,6 +100,15 @@ static ssize_t nss_gre_redir_lag_ds_cmn_
+ }
+ 
+ /*
++ * nss_gre_redir_lag_ds_cmn_stats_write()
++ *	Write GRE_REDIR_LAG_DS_CMN statistics
++ */
++static ssize_t nss_gre_redir_lag_ds_cmn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_redir_lag_ds_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre_redir_lag_ds_cmn)
+--- a/nss_gre_redir_lag_us_stats.c
++++ b/nss_gre_redir_lag_us_stats.c
+@@ -100,6 +100,15 @@ static ssize_t nss_gre_redir_lag_us_cmn_
+ }
+ 
+ /*
++ * nss_gre_redir_lag_us_cmn_stats_write()
++ *	Write GRE_REDIR_LAG_US_CMN statistics
++ */
++static ssize_t nss_gre_redir_lag_us_cmn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_redir_lag_us_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre_redir_lag_us_cmn)
+@@ -223,4 +232,3 @@ int nss_gre_redir_lag_us_stats_register_
+ 	return atomic_notifier_chain_register(&nss_gre_redir_lag_us_stats_notifier, nb);
+ }
+ EXPORT_SYMBOL(nss_gre_redir_lag_us_stats_register_notifier);
+-
+--- a/nss_gre_redir_mark_stats.c
++++ b/nss_gre_redir_mark_stats.c
+@@ -104,6 +104,15 @@ static ssize_t nss_gre_redir_mark_stats_
+ }
+ 
+ /*
++ * nss_gre_redir_mark_stats_write()
++ *	Write GRE_REDIR_MARK statistics
++ */
++static ssize_t nss_gre_redir_mark_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_redir_mark_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre_redir_mark)
+--- a/nss_gre_redir_stats.c
++++ b/nss_gre_redir_stats.c
+@@ -178,6 +178,15 @@ done:
+ }
+ 
+ /*
++ * nss_gre_redir_stats_write()
++ *	Write GRE_REDIR statistics
++ */
++static ssize_t nss_gre_redir_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_redir_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre_redir)
+--- a/nss_gre_stats.c
++++ b/nss_gre_stats.c
+@@ -259,6 +259,15 @@ static ssize_t nss_gre_stats_read(struct
+ }
+ 
+ /*
++ * nss_gre_stats_write()
++ *	Write GRE statistics
++ */
++static ssize_t nss_gre_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre)
+--- a/nss_gre_tunnel_stats.c
++++ b/nss_gre_tunnel_stats.c
+@@ -219,6 +219,15 @@ static ssize_t nss_gre_tunnel_stats_read
+ }
+ 
+ /*
++ * nss_gre_tunnel_stats_write()
++ *	Write GRE_TUNNEL statistics
++ */
++static ssize_t nss_gre_tunnel_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_gre_tunnel_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(gre_tunnel)
+--- a/nss_igs_stats.c
++++ b/nss_igs_stats.c
+@@ -293,6 +293,15 @@ void nss_igs_stats_init(uint32_t if_num,
+ }
+ 
+ /*
++ * nss_igs_stats_write()
++ *	Write IGS statistics
++ */
++static ssize_t nss_igs_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_igs_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(igs)
+--- a/nss_ipsec_cmn_stats.c
++++ b/nss_ipsec_cmn_stats.c
+@@ -115,6 +115,15 @@ static ssize_t nss_ipsec_cmn_stats_read(
+ }
+ 
+ /*
++ * nss_ipsec_cmn_stats_write()
++ *	Write IPSEC_CMN statistics
++ */
++static ssize_t nss_ipsec_cmn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_ipsec_cmn_stats_ops.
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(ipsec_cmn);
+--- a/nss_ipv4_reasm_stats.c
++++ b/nss_ipv4_reasm_stats.c
+@@ -84,6 +84,15 @@ static ssize_t nss_ipv4_reasm_stats_read
+ }
+ 
+ /*
++ * nss_ipv4_reasm_stats_write()
++ *	Write IPV4_REASM statistics
++ */
++static ssize_t nss_ipv4_reasm_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_ipv4_reasm_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(ipv4_reasm);
+--- a/nss_ipv4_stats.c
++++ b/nss_ipv4_stats.c
+@@ -100,6 +100,44 @@ static ssize_t nss_ipv4_stats_read(struc
+ }
+ 
+ /*
++ * nss_ipv4_stats_write()
++ *	Write IPV4 stats
++ */
++static ssize_t nss_ipv4_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	nss_stats_reset_common_stats(NSS_IPV4_RX_INTERFACE);
++
++	/*
++	 * IPv4 node stats
++	 */
++	spin_lock_bh(&nss_top_main.stats_lock);
++	for (i = 0; i < NSS_IPV4_STATS_MAX; i++) {
++		nss_ipv4_stats[i] = 0;
++	}
++
++	/*
++	 * Exception stats
++	 */
++	for (i = 0; (i < NSS_IPV4_EXCEPTION_EVENT_MAX); i++) {
++		nss_ipv4_exception_stats[i] = 0;
++	}
++	spin_unlock_bh(&nss_top_main.stats_lock);
++
++	return sz;
++}
++
++/*
+  * nss_ipv4_stats_conn_sync()
+  *	Update driver specific information from the messsage.
+  */
+--- a/nss_ipv6_reasm_stats.c
++++ b/nss_ipv6_reasm_stats.c
+@@ -84,6 +84,15 @@ static ssize_t nss_ipv6_reasm_stats_read
+ }
+ 
+ /*
++ * nss_ipv6_reasm_stats_write()
++ *	Write IPV6_REASM statistics
++ */
++static ssize_t nss_ipv6_reasm_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_ipv6_reasm_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(ipv6_reasm);
+--- a/nss_ipv6_stats.c
++++ b/nss_ipv6_stats.c
+@@ -102,6 +102,44 @@ static ssize_t nss_ipv6_stats_read(struc
+ }
+ 
+ /*
++ * nss_ipv6_stats_write()
++ *	Write IPV6 stats.
++ */
++static ssize_t nss_ipv6_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	nss_stats_reset_common_stats(NSS_IPV6_RX_INTERFACE);
++
++	/*
++	 * IPv6 node stats
++	 */
++	spin_lock_bh(&nss_top_main.stats_lock);
++	for (i = 0; (i < NSS_IPV6_STATS_MAX); i++) {
++		nss_ipv6_stats[i] = 0;
++	}
++
++	/*
++	 * Exception stats
++	 */
++	for (i = 0; (i < NSS_IPV6_EXCEPTION_EVENT_MAX); i++) {
++		nss_ipv6_exception_stats[i] = 0;
++	}
++	spin_unlock_bh(&nss_top_main.stats_lock);
++
++	return sz;
++}
++
++/*
+  * nss_ipv6_stats_conn_sync()
+  *	Update driver specific information from the messsage.
+  */
+--- a/nss_l2tpv2_stats.c
++++ b/nss_l2tpv2_stats.c
+@@ -93,6 +93,15 @@ static ssize_t nss_l2tpv2_stats_read(str
+ }
+ 
+ /*
++ * nss_l2tpv2_stats_write()
++ *	Write L2TPV2 statistics
++ */
++static ssize_t nss_l2tpv2_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_l2tpv2_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(l2tpv2);
+--- a/nss_lso_rx_stats.c
++++ b/nss_lso_rx_stats.c
+@@ -84,6 +84,15 @@ static ssize_t nss_lso_rx_stats_read(str
+ }
+ 
+ /*
++ * nss_lso_rx_stats_write()
++ *	Write LSO_RX statistics
++ */
++static ssize_t nss_lso_rx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_lso_rx_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(lso_rx);
+--- a/nss_map_t_stats.c
++++ b/nss_map_t_stats.c
+@@ -90,6 +90,15 @@ static ssize_t nss_map_t_stats_read(stru
+ }
+ 
+ /*
++ * nss_map_t_stats_write()
++ *	Write MAP_T statistics
++ */
++static ssize_t nss_map_t_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_map_t_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(map_t);
+--- a/nss_match_stats.c
++++ b/nss_match_stats.c
+@@ -127,6 +127,15 @@ void nss_match_stats_sync(struct nss_ctx
+ }
+ 
+ /*
++ * nss_match_stats_write()
++ *	Write MATCH statistics
++ */
++static ssize_t nss_match_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_match_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(match)
+--- a/nss_mirror_stats.c
++++ b/nss_mirror_stats.c
+@@ -263,6 +263,15 @@ int nss_mirror_stats_init(uint32_t if_nu
+ }
+ 
+ /*
++ * nss_mirror_stats_write()
++ *	Write MIRROR statistics
++ */
++static ssize_t nss_mirror_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_mirror_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(mirror)
+--- a/nss_n2h_stats.c
++++ b/nss_n2h_stats.c
+@@ -84,6 +84,37 @@ static ssize_t nss_n2h_stats_read(struct
+ }
+ 
+ /*
++ * nss_n2h_stats_write()
++ *	Write N2H stats
++ */
++static ssize_t nss_n2h_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i, core;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * N2H node stats
++	 */
++	spin_lock_bh(&nss_top_main.stats_lock);
++	for (core = 0; core < nss_top_main.num_nss; core++) {
++		for (i = 0; i < NSS_N2H_STATS_MAX; i++) {
++			nss_n2h_stats[core][i] = 0;
++		}
++	}
++	spin_unlock_bh(&nss_top_main.stats_lock);
++
++	return sz;
++}
++
++/*
+  * nss_n2h_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(n2h);
+--- a/nss_portid_stats.c
++++ b/nss_portid_stats.c
+@@ -87,6 +87,15 @@ static ssize_t nss_portid_stats_read(str
+ }
+ 
+ /*
++ * nss_portid_stats_write()
++ *	Write PORTID statistics
++ */
++static ssize_t nss_portid_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_portid_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(portid)
+--- a/nss_ppe_stats.c
++++ b/nss_ppe_stats.c
+@@ -760,6 +760,70 @@ static ssize_t nss_ppe_nonexception_cc_s
+ }
+ 
+ /*
++ * nss_ppe_conn_stats_write()
++ *	Write PPE_CONN statistics
++ */
++static ssize_t nss_ppe_conn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_l3_stats_write()
++ *	Write PPE_L3 statistics
++ */
++static ssize_t nss_ppe_l3_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_code_stats_write()
++ *	Write PPE_CODE statistics
++ */
++static ssize_t nss_ppe_code_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_port_dc_stats_write()
++ *	Write PPE_PORT_DC statistics
++ */
++static ssize_t nss_ppe_port_dc_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_exception_stats_write()
++ *	Write PPE_EXCEPTION statistics
++ */
++static ssize_t nss_ppe_exception_cc_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_nonexception_stats_write()
++ *	Write PPE_NONEXCEPTION statistics
++ */
++static ssize_t nss_ppe_nonexception_cc_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_ppe_sc_stats_write()
++ *	Write PPE_SC statistics
++ */
++static ssize_t nss_ppe_sc_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++
++/*
+  * nss_ppe_conn_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(ppe_conn)
+--- a/nss_ppe_vp_stats.c
++++ b/nss_ppe_vp_stats.c
+@@ -208,6 +208,15 @@ static ssize_t nss_ppe_vp_stats_read(str
+ }
+ 
+ /*
++ * nss_ppe_vp_stats_write()
++ *	Write PPE_VP statistics
++ */
++static ssize_t nss_ppe_vp_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_ppe_vp_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(ppe_vp)
+--- a/nss_pppoe_stats.c
++++ b/nss_pppoe_stats.c
+@@ -209,6 +209,15 @@ void nss_pppoe_stats_sync(struct nss_ctx
+ }
+ 
+ /*
++ * nss_pppoe_stats_write()
++ *	Write PPPOE statistics
++ */
++static ssize_t nss_pppoe_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_pppoe_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(pppoe);
+--- a/nss_pptp_stats.c
++++ b/nss_pptp_stats.c
+@@ -91,6 +91,15 @@ static ssize_t nss_pptp_stats_read(struc
+ }
+ 
+ /*
++ * nss_pptp_stats_write()
++ *	Write PPTP statistics
++ */
++static ssize_t nss_pptp_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_pptp_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(pptp);
+--- a/nss_pvxlan_stats.c
++++ b/nss_pvxlan_stats.c
+@@ -69,6 +69,31 @@ static void nss_pvxlan_tunnel_stats_debu
+ }
+ 
+ /*
++ * nss_pvxlan_tunnel_stats_debug_clear()
++ *	Clear PVxLAN Tunnel statistics.
++ */
++static void nss_pvxlan_tunnel_stats_debug_clear(void)
++{
++	uint32_t i;
++	int32_t if_index;
++	uint32_t if_num;
++
++	spin_lock_bh(&nss_pvxlan_tunnel_stats_debug_lock);
++	for (i = 0; i < NSS_PVXLAN_MAX_INTERFACES; i++) {
++		if (nss_pvxlan_tunnel_debug_stats[i].valid) {
++			if_index = nss_pvxlan_tunnel_debug_stats[i].if_index;
++			if_num = nss_pvxlan_tunnel_debug_stats[i].if_num;
++			memset(&nss_pvxlan_tunnel_debug_stats[i], 0,
++				sizeof(struct nss_pvxlan_tunnel_stats_debug));
++			nss_pvxlan_tunnel_debug_stats[i].valid = true;
++			nss_pvxlan_tunnel_debug_stats[i].if_index = if_index;
++			nss_pvxlan_tunnel_debug_stats[i].if_num = if_num;
++		}
++	}
++	spin_unlock_bh(&nss_pvxlan_tunnel_stats_debug_lock);
++}
++
++/*
+  * nss_pvxlan_stats_read()
+  *	Read PVxLAN Tunnel statistics
+  */
+@@ -145,6 +170,31 @@ static ssize_t nss_pvxlan_stats_read(str
+ 	return bytes_read;
+ }
+ 
++
++/*
++ * nss_pvxlan_stats_write()
++ *	Write PVxLAN stats
++ */
++static ssize_t nss_pvxlan_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset))
++		return -EINVAL;
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	/*
++	 * Get all stats
++	 */
++	nss_pvxlan_tunnel_stats_debug_clear();
++
++	return sz;
++}
++
++
+ /*
+  * nss_pvxlan_stats_sync()
+  *	Sync function for pvxlan statistics
+--- a/nss_qrfs_stats.c
++++ b/nss_qrfs_stats.c
+@@ -100,6 +100,15 @@ static ssize_t nss_qrfs_stats_read(struc
+ }
+ 
+ /*
++ * nss_qrfs_stats_write()
++ *	Write QRFS statistics
++ */
++static ssize_t nss_qrfs_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_qrfs_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(qrfs)
+--- a/nss_qvpn_stats.c
++++ b/nss_qvpn_stats.c
+@@ -123,6 +123,15 @@ static ssize_t nss_qvpn_stats_read(struc
+ }
+ 
+ /*
++ * nss_qvpn_stats_write()
++ *	Write QVPN statistics
++ */
++static ssize_t nss_qvpn_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_qvpn_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(qvpn)
+--- a/nss_rmnet_rx_stats.c
++++ b/nss_rmnet_rx_stats.c
+@@ -156,6 +156,15 @@ static ssize_t nss_rmnet_rx_stats_read(s
+ }
+ 
+ /*
++ * nss_rmnet_rx_stats_write()
++ *	Write RMNET_RX statistics
++ */
++static ssize_t nss_rmnet_rx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_rmnet_rx_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(rmnet_rx)
+--- a/nss_sjack_stats.c
++++ b/nss_sjack_stats.c
+@@ -55,6 +55,15 @@ static ssize_t nss_sjack_stats_read(stru
+ }
+ 
+ /*
++ * nss_sjack_stats_write()
++ *	Write SJACK statistics
++ */
++static ssize_t nss_sjack_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_sjack_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(sjack)
+--- a/nss_stats.h
++++ b/nss_stats.h
+@@ -44,7 +44,7 @@
+ static struct file_operations nss_##name##_stats_ops = { \
+ 	.open = nss_stats_open, \
+ 	.read = nss_##name##_stats_read, \
+-	.write = nss_clear_stats_write, \
++	.write = nss_##name##_stats_write, \
+ 	.llseek = generic_file_llseek,		\
+ 	.release = nss_stats_release, \
+ };
+@@ -72,7 +72,6 @@ extern void nss_stats_register_sysctl(vo
+ void nss_stats_init(void);
+ extern int nss_stats_release(struct inode *inode, struct file *filp);
+ extern int nss_stats_open(struct inode *inode, struct file *filp);
+-extern ssize_t nss_clear_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos);
+ void nss_stats_create_dentry(char *name, const struct file_operations *ops);
+ extern void nss_stats_reset_common_stats(uint32_t if_num);
+ extern size_t nss_stats_fill_common_stats(uint32_t if_num, int instance, char *lbuf, size_t size_wr, size_t size_al, char *node);
+--- a/nss_tls_stats.c
++++ b/nss_tls_stats.c
+@@ -125,6 +125,15 @@ static ssize_t nss_tls_stats_read(struct
+ }
+ 
+ /*
++ * nss_tls_stats_write()
++ *	Write TLS statistics
++ */
++static ssize_t nss_tls_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_tls_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(tls);
+--- a/nss_trustsec_tx_stats.c
++++ b/nss_trustsec_tx_stats.c
+@@ -131,6 +131,38 @@ static ssize_t nss_trustsec_tx_stats_rea
+ }
+ 
+ /*
++ * nss_trustsec_tx_stats_write()
++ *	Write Trustsec TX stats
++ */
++static ssize_t nss_trustsec_tx_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	int32_t i;
++	uint32_t reset;
++
++	if (kstrtou32_from_user(ubuf, sz, 0, &reset)) {
++		return -EINVAL;
++	}
++
++	if (reset != 0) {
++		return -EINVAL;
++	}
++
++	nss_stats_reset_common_stats(NSS_TRUSTSEC_TX_INTERFACE);
++
++	/*
++	 * Trustsec TX node stats
++	 */
++	spin_lock_bh(&nss_top_main.stats_lock);
++	for (i = 0; (i < NSS_TRUSTSEC_TX_STATS_MAX); i++) {
++		trustsec_tx_stats[i] = 0;
++	}
++
++	spin_unlock_bh(&nss_top_main.stats_lock);
++
++	return sz;
++}
++
++/*
+  * nss_trustsec_tx_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(trustsec_tx)
+--- a/nss_tstamp_stats.c
++++ b/nss_tstamp_stats.c
+@@ -111,6 +111,15 @@ static ssize_t nss_tstamp_stats_read(str
+ }
+ 
+ /*
++ * nss_tstamp_stats_write()
++ *	Write TSTAMP statistics
++ */
++static ssize_t nss_tstamp_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_tstamp_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(tstamp)
+--- a/nss_tunipip6_stats.c
++++ b/nss_tunipip6_stats.c
+@@ -114,6 +114,15 @@ void nss_tunipip6_stats_sync(struct nss_
+ }
+ 
+ /*
++ * nss_tunipip6_stats_write()
++ *	Write TUNIPIP6 statistics
++ */
++static ssize_t nss_tunipip6_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_tunipip6_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(tunipip6)
+--- a/nss_udp_st_stats.c
++++ b/nss_udp_st_stats.c
+@@ -113,6 +113,15 @@ static ssize_t nss_udp_st_stats_read(str
+ }
+ 
+ /*
++ * nss_udp_st_stats_write()
++ *	Write UDP_ST statistics
++ */
++static ssize_t nss_udp_st_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_udp_st_stats_ops.
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(udp_st);
+--- a/nss_unaligned_stats.c
++++ b/nss_unaligned_stats.c
+@@ -74,6 +74,15 @@ static ssize_t nss_unaligned_stats_read(
+ }
+ 
+ /*
++ * nss_unaligned_stats_write()
++ *	Write UNALIGNED statistics
++ */
++static ssize_t nss_unaligned_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_unaligned_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(unaligned)
+--- a/nss_virt_if_stats.c
++++ b/nss_virt_if_stats.c
+@@ -295,6 +295,15 @@ done:
+ }
+ 
+ /*
++ * nss_virt_if_stats_write()
++ *	Write VIRT_IF statistics
++ */
++static ssize_t nss_virt_if_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_virt_if_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(virt_if)
+--- a/nss_vxlan_stats.c
++++ b/nss_vxlan_stats.c
+@@ -108,6 +108,15 @@ void nss_vxlan_stats_sync(struct nss_ctx
+ }
+ 
+ /*
++ * nss_vxlan_stats_write()
++ *	Write VXLAN statistics
++ */
++static ssize_t nss_vxlan_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_vxlan_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(vxlan)
+--- a/nss_wifi_ext_vdev_stats.c
++++ b/nss_wifi_ext_vdev_stats.c
+@@ -220,6 +220,15 @@ static ssize_t nss_wifi_ext_vdev_stats_r
+ }
+ 
+ /*
++ * nss_wifi_ext_vdev_stats_write()
++ *	Write WIFI_EXT_VDEV statistics
++ */
++static ssize_t nss_wifi_ext_vdev_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_wifi_ext_vdev_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(wifi_ext_vdev);
+--- a/nss_wifi_mesh_stats.c
++++ b/nss_wifi_mesh_stats.c
+@@ -436,6 +436,51 @@ static ssize_t nss_wifi_mesh_exception_s
+ }
+ 
+ /*
++ * nss_wifi_mesh_encap_stats_write()
++ *	Write WIFI_MESH_ENCAP statistics
++ */
++static ssize_t nss_wifi_mesh_encap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_wifi_mesh_decap_stats_write()
++ *	Write WIFI_MESH_DECAP statistics
++ */
++static ssize_t nss_wifi_mesh_decap_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_wifi_mesh_path_stats_write()
++ *	Write WIFI_MESH_PATH statistics
++ */
++static ssize_t nss_wifi_mesh_path_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_wifi_mesh_proxy_path_stats_write()
++ *	Write WIFI_MESH_PROXY_PATH statistics
++ */
++static ssize_t nss_wifi_mesh_proxy_path_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
++ * nss_wifi_mesh_exception_stats_write()
++ *	Write WIFI_MESH_EXCEPTION statistics
++ */
++static ssize_t nss_wifi_mesh_exception_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_wifi_mesh_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(wifi_mesh_encap);
+--- a/nss_wifi_stats.c
++++ b/nss_wifi_stats.c
+@@ -143,6 +143,15 @@ static ssize_t nss_wifi_stats_read(struc
+ }
+ 
+ /*
++ * nss_wifi_stats_write()
++ *	Write WIFI statistics
++ */
++static ssize_t nss_wifi_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * nss_wifi_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(wifi)
+--- a/nss_wifili_stats.c
++++ b/nss_wifili_stats.c
+@@ -251,6 +251,15 @@ static ssize_t nss_wifili_stats_read(str
+ }
+ 
+ /*
++ * nss_wifili_stats_write()
++ *	Write WIFILI statistics
++ */
++static ssize_t nss_wifili_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos)
++{
++	return -ESRCH;
++}
++
++/*
+  * wifili_stats_ops
+  */
+ NSS_STATS_DECLARE_FILE_OPERATIONS(wifili);

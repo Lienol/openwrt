@@ -1,0 +1,2 @@
+Experimental HW-accelerated traffic shaping support for IPQ807x NSS-enabled platforms.
+Requires QCA modules qca-nss-drv-qdisc (qca_nss_qdisc) and qca-nss-drv-igs (act_nssmirred)

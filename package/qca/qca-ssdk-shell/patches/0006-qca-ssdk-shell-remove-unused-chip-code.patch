@@ -1,0 +1,612 @@
+From 6f305d4fa1999e238795ecbdaea5f57c4556f8ed Mon Sep 17 00:00:00 2001
+From: esong <quic_esong@quicinc.com>
+Date: Wed, 31 Jul 2024 18:14:39 +0800
+Subject: [PATCH] [qca-ssdk-shell] remove unused chip code
+
+Change-Id: I2d3a0a20479275c6f39d84df7514c65611bde29c
+Signed-off-by: esong <quic_esong@quicinc.com>
+---
+ config                   |  2 +-
+ include/init/ssdk_init.h | 60 ++-------------------------
+ make/config.mk           | 56 ++++++++-----------------
+ make/linux_opt.mk        | 20 ---------
+ src/api/api_access.c     | 89 +++-------------------------------------
+ src/shell/shell_config.c |  1 -
+ src/shell/shell_io.c     | 10 +----
+ src/shell/shell_sw.c     | 34 ---------------
+ 8 files changed, 29 insertions(+), 243 deletions(-)
+
+From e1cb624952b8a83dbf2b1933fd13327bdf865cab Mon Sep 17 00:00:00 2001
+From: zhongjia <quic_zhongjia@quicinc.com>
+Date: Wed, 16 Oct 2024 19:52:38 +0800
+Subject: [PATCH] [qca-ssdk-shell] remove some unsupported mode
+
+Change-Id: I084653d61f1cb83b334f4941bd700a2e6ff219d1
+Signed-off-by: zhongjia <quic_zhongjia@quicinc.com>
+---
+  include/fal/fal_port_ctrl.h | 79 +++++++++++++++++++++++--------------
+  src/shell/shell_config.c    |  4 +-
+  src/shell/shell_io.c        | 48 ----------------------
+  3 files changed, 52 insertions(+), 79 deletions(-)
+
+--- a/config
++++ b/config
+@@ -93,7 +93,7 @@ endif
+ #FAL=FALSE or not define FAL, FAL will not be included in SSDK
+ FAL=TRUE
+ 
+-#CHIP_TYPE can be defined as ATHENA, GARUDA, SHIVA, HORUS, ISIS, ISISC and ALL_CHIP(ALL_CHIP means GARUDA, SHIVA, HORUS and ISIS)
++#CHIP_TYPE can be defined as ISIS, ISISC and ALL_CHIP(ALL_CHIP means ISIS)
+ CHIP_TYPE=ISISC
+ 
+ #UK_IF=FALSE or not define UK_IF, UK_IF will not be included in SSDK
+--- a/include/init/ssdk_init.h
++++ b/include/init/ssdk_init.h
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright (c) 2014, 2017-2019, 2021, The Linux Foundation. All rights reserved.
+  *
+- * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ * Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -120,11 +120,7 @@ extern "C" {
+     typedef enum
+     {
+ 	    CHIP_UNSPECIFIED = 0,
+-	    CHIP_ATHENA,
+-	    CHIP_GARUDA,
+-	    CHIP_SHIVA,
+-	    CHIP_HORUS,
+-	    CHIP_ISIS,
++	    CHIP_ISIS = 5,
+ 	    CHIP_ISISC,
+ 	    CHIP_DESS,
+ 	    CHIP_HPPE,
+@@ -181,58 +177,8 @@ typedef struct
+ 	a_uint32_t      mac_mode2;
+ } ssdk_init_cfg;
+ /*qca808x_end*/
+-#if defined ATHENA
+-#define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
+-#elif defined GARUDA
+-
+-#define def_init_cfg_cpu2  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2,};
+-
+-#define def_init_spec_cfg_cpu2 {.mac0_rgmii = A_TRUE, .mac5_rgmii = A_TRUE, \
+-                    .rx_delay_s0 = A_FALSE, .rx_delay_s1 = A_FALSE, \
+-                    .tx_delay_s0 = A_TRUE,  .tx_delay_s1 = A_FALSE,\
+-                    .rgmii_rxclk_delay = A_TRUE, .rgmii_txclk_delay = A_TRUE,\
+-                    .phy4_rx_delay = A_TRUE, .phy4_tx_delay = A_TRUE,}
+-
+-#define def_init_cfg_cpu1  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_1,};
+-
+-#define def_init_spec_cfg_cpu1 {.mac0_rgmii = A_TRUE, .mac5_rgmii = A_FALSE, \
+-                    .rx_delay_s0 = A_FALSE, .rx_delay_s1 = A_FALSE, \
+-                    .tx_delay_s0 = A_TRUE,  .tx_delay_s1 = A_FALSE,\
+-                    .rgmii_rxclk_delay = A_TRUE, .rgmii_txclk_delay = A_TRUE, \
+-                    .phy4_rx_delay = A_TRUE, .phy4_tx_delay = A_TRUE,}
+-
+-#define def_init_cfg_cpu1plus  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_1_PLUS,};
+-
+-#define def_init_spec_cfg_cpu1plus {.mac0_rgmii = A_TRUE, .mac5_rgmii = A_FALSE, \
+-                    .rx_delay_s0 = A_FALSE, .rx_delay_s1 = A_FALSE, \
+-                    .tx_delay_s0 = A_FALSE,  .tx_delay_s1 = A_FALSE,\
+-                    .rgmii_rxclk_delay = A_TRUE, .rgmii_txclk_delay = A_TRUE, \
+-                    .phy4_rx_delay = A_TRUE, .phy4_tx_delay = A_TRUE,}
+ 
+-#define def_init_cfg_nocpu  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_NO_CPU,};
+-
+-#define def_init_spec_cfg_nocpu { .mac0_rgmii = A_FALSE, .mac5_rgmii = A_FALSE, \
+-                    .rx_delay_s0 = A_FALSE, .rx_delay_s1 = A_FALSE, \
+-                    .tx_delay_s0 = A_FALSE,  .tx_delay_s1 = A_FALSE,\
+-                    .rgmii_rxclk_delay = A_TRUE, .rgmii_txclk_delay = A_TRUE, \
+-                    .phy4_rx_delay = A_TRUE, .phy4_tx_delay = A_TRUE,}
+-
+-#define def_init_cfg_cpu1_gmii  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_1,};
+-
+-#define def_init_spec_cfg_cpu1_gmii {.mac0_rgmii = A_FALSE, .mac5_rgmii = A_FALSE, \
+-                    .rx_delay_s0 = A_FALSE, .rx_delay_s1 = A_FALSE, \
+-                    .tx_delay_s0 = A_TRUE,  .tx_delay_s1 = A_FALSE,\
+-                    .rgmii_rxclk_delay = A_TRUE, .rgmii_txclk_delay = A_TRUE, \
+-                    .phy4_rx_delay = A_TRUE, .phy4_tx_delay = A_TRUE,}
+-
+-#define def_init_cfg def_init_cfg_cpu2
+-#define def_init_spec_cfg def_init_spec_cfg_cpu2
+-
+-#elif defined SHIVA
+-#define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
+-#elif defined HORUS
+-#define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
+-#elif defined ISIS
++#if defined ISIS
+ #define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
+ #elif defined ISISC
+ /*qca808x_start*/
+--- a/make/config.mk
++++ b/make/config.mk
+@@ -23,44 +23,24 @@ ifndef OS_VER
+   OS_VER=2_6
+ endif
+ 
+-#support chip type such as ATHENA GARUDA
+-ifndef CHIP_TYPE
+-  SUPPORT_CHIP = GARUDA
+-else
+-  ifeq (GARUDA, $(CHIP_TYPE))
+-    SUPPORT_CHIP = GARUDA
+-  endif
+-
+-  ifeq (ATHENA, $(CHIP_TYPE))
+-     SUPPORT_CHIP = ATHENA
+-  endif
+-
+-  ifeq (SHIVA, $(CHIP_TYPE))
+-     SUPPORT_CHIP = SHIVA
+-  endif
+-
+-  ifeq (HORUS, $(CHIP_TYPE))
+-     SUPPORT_CHIP = HORUS
+-  endif
+-
+-  ifeq (ISIS, $(CHIP_TYPE))
+-     SUPPORT_CHIP = ISIS
+-  endif
++#support chip type
++ifeq (ISIS, $(CHIP_TYPE))
++   SUPPORT_CHIP = ISIS
++endif
+ 
+-  ifeq (ISISC, $(CHIP_TYPE))
+-     SUPPORT_CHIP = ISISC
+-  endif
++ifeq (ISISC, $(CHIP_TYPE))
++   SUPPORT_CHIP = ISISC
++endif
+ 
+-  ifeq (ALL_CHIP, $(CHIP_TYPE))
+-     ifneq (TRUE, $(FAL))
+-         $(error FAL must be TRUE when CHIP_TYPE is defined as ALL_CHIP!)
+-     endif
+-     SUPPORT_CHIP = GARUDA SHIVA HORUS ISIS ISISC
+-  endif
++ifeq (ALL_CHIP, $(CHIP_TYPE))
++   ifneq (TRUE, $(FAL))
++       $(error FAL must be TRUE when CHIP_TYPE is defined as ALL_CHIP!)
++   endif
++   SUPPORT_CHIP = ISIS ISISC
++endif
+ 
+-  ifndef SUPPORT_CHIP
+-    $(error defined CHIP_TYPE isn't supported!)
+-  endif
++ifndef SUPPORT_CHIP
++  $(error defined CHIP_TYPE isn't supported!)
+ endif
+ 
+ #define compile tool prefix
+--- a/make/linux_opt.mk
++++ b/make/linux_opt.mk
+@@ -216,26 +216,6 @@ MODULE_INC += -I$(PRJ_PATH)/include \
+                    -I$(PRJ_PATH)/include/sal/sd/linux/uk_interface \
+                    -I$(PRJ_PATH)/include/init
+ 
+-ifneq (,$(findstring ATHENA, $(SUPPORT_CHIP)))
+-  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/athena
+-  MODULE_CFLAG += -DATHENA
+-endif
+-
+-ifneq (,$(findstring GARUDA, $(SUPPORT_CHIP)))
+-  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/garuda
+-  MODULE_CFLAG += -DGARUDA
+-endif
+-
+-ifneq (,$(findstring SHIVA, $(SUPPORT_CHIP)))
+-  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/shiva
+-  MODULE_CFLAG += -DSHIVA
+-endif
+-
+-ifneq (,$(findstring HORUS, $(SUPPORT_CHIP)))
+-  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/horus
+-  MODULE_CFLAG += -DHORUS
+-endif
+-
+ ifneq (,$(findstring ISIS, $(SUPPORT_CHIP)))
+   ifneq (ISISC, $(SUPPORT_CHIP))
+      MODULE_INC   += -I$(PRJ_PATH)/include/hsl/isis
+--- a/src/api/api_access.c
++++ b/src/api/api_access.c
+@@ -1,5 +1,8 @@
+ /*
+  * Copyright (c) 2014,2018, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -19,71 +22,7 @@
+ #if (defined(KERNEL_MODULE))
+ #include "hsl.h"
+ #include "hsl_dev.h"
+-#if defined ATHENA
+-#include "fal_igmp.h"
+-#include "fal_leaky.h"
+-#include "athena_mib.h"
+-#include "athena_port_ctrl.h"
+-#include "athena_portvlan.h"
+-#include "athena_fdb.h"
+-#include "athena_vlan.h"
+-#include "athena_init.h"
+-#include "athena_reg_access.h"
+-#include "athena_reg.h"
+-#elif defined GARUDA
+-#include "garuda_mib.h"
+-#include "garuda_qos.h"
+-#include "garuda_rate.h"
+-#include "garuda_port_ctrl.h"
+-#include "garuda_portvlan.h"
+-#include "garuda_fdb.h"
+-#include "garuda_vlan.h"
+-#include "garuda_mirror.h"
+-#include "garuda_stp.h"
+-#include "garuda_misc.h"
+-#include "garuda_leaky.h"
+-#include "garuda_igmp.h"
+-#include "garuda_acl.h"
+-#include "garuda_led.h"
+-#include "garuda_init.h"
+-#include "garuda_reg_access.h"
+-#include "garuda_reg.h"
+-#elif defined SHIVA
+-#include "shiva_mib.h"
+-#include "shiva_qos.h"
+-#include "shiva_rate.h"
+-#include "shiva_port_ctrl.h"
+-#include "shiva_portvlan.h"
+-#include "shiva_fdb.h"
+-#include "shiva_vlan.h"
+-#include "shiva_mirror.h"
+-#include "shiva_stp.h"
+-#include "shiva_misc.h"
+-#include "shiva_leaky.h"
+-#include "shiva_igmp.h"
+-#include "shiva_acl.h"
+-#include "shiva_led.h"
+-#include "shiva_init.h"
+-#include "shiva_reg_access.h"
+-#include "shiva_reg.h"
+-#elif defined HORUS
+-#include "horus_mib.h"
+-#include "horus_qos.h"
+-#include "horus_rate.h"
+-#include "horus_port_ctrl.h"
+-#include "horus_portvlan.h"
+-#include "horus_fdb.h"
+-#include "horus_vlan.h"
+-#include "horus_mirror.h"
+-#include "horus_stp.h"
+-#include "horus_misc.h"
+-#include "horus_leaky.h"
+-#include "horus_igmp.h"
+-#include "horus_led.h"
+-#include "horus_init.h"
+-#include "horus_reg_access.h"
+-#include "horus_reg.h"
+-#elif defined ISIS
++#if defined ISIS
+ #include "isis_mib.h"
+ #include "isis_qos.h"
+ #include "isis_cosmap.h"
+@@ -141,15 +80,7 @@
+ /*qca808x_end*/
+ #if (((!defined(USER_MODE)) && defined(KERNEL_MODULE)) || (defined(USER_MODE) && (!defined(KERNEL_MODULE))))
+ #ifdef HSL_STANDALONG
+-#if defined ATHENA
+-#include "athena_api.h"
+-#elif defined GARUDA
+-#include "garuda_api.h"
+-#elif defined SHIVA
+-#include "shiva_api.h"
+-#elif defined HORUS
+-#include "horus_api.h"
+-#elif defined ISIS
++#if defined ISIS
+ #include "isis_api.h"
+ #elif defined ISISC
+ #include "isisc_api.h"
+@@ -159,15 +90,7 @@
+ #include "fal_api.h"
+ #endif
+ #elif (defined(USER_MODE))
+-#if defined ATHENA
+-#include "athena_api.h"
+-#elif defined GARUDA
+-#include "garuda_api.h"
+-#elif defined SHIVA
+-#include "shiva_api.h"
+-#elif defined HORUS
+-#include "horus_api.h"
+-#elif defined ISIS
++#if defined ISIS
+ #include "isis_api.h"
+ #elif defined ISISC
+ #include "isisc_api.h"
+--- a/src/shell/shell_config.c
++++ b/src/shell/shell_config.c
+@@ -334,7 +334,6 @@ struct cmd_des_t gcmd_des[] =
+ 		    "<tpid>", SW_API_NESTVLAN_TPID_SET, NULL},
+             {"sVlanTPID", "get", "get service VLAN tpid",
+ 		    "", SW_API_NESTVLAN_TPID_GET, NULL},
+-            /*shiva*/
+             {"invlan", "set", "set port invlan mode",
+ 		    "<port_id> <admit_all|admit_tagged|admit_untagged>",
+ 		    SW_API_PT_IN_VLAN_MODE_SET, NULL},
+--- a/src/shell/shell_io.c
++++ b/src/shell/shell_io.c
+@@ -11873,15 +11873,7 @@ _cmd_collect_shell_cfg(ssdk_cfg_t *shell
+     aos_mem_copy(shell_cfg->build_date, BUILD_DATE, sizeof(BUILD_DATE));
+ #endif
+ 
+-    if (ssdk_cfg.init_cfg.chip_type == CHIP_ATHENA)
+-        aos_mem_copy(shell_cfg->chip_type, "athena", sizeof("athena"));
+-    else if (ssdk_cfg.init_cfg.chip_type == CHIP_GARUDA)
+-        aos_mem_copy(shell_cfg->chip_type, "garuda", sizeof("garuda"));
+-    else if (ssdk_cfg.init_cfg.chip_type == CHIP_SHIVA)
+-        aos_mem_copy(shell_cfg->chip_type, "shiva", sizeof("shiva"));
+-    else if (ssdk_cfg.init_cfg.chip_type == CHIP_HORUS)
+-        aos_mem_copy(shell_cfg->chip_type, "horus", sizeof("horus"));
+-    else if (ssdk_cfg.init_cfg.chip_type == CHIP_ISIS)
++    if (ssdk_cfg.init_cfg.chip_type == CHIP_ISIS)
+         aos_mem_copy(shell_cfg->chip_type, "isis", sizeof("isis"));
+     else if (ssdk_cfg.init_cfg.chip_type == CHIP_ISISC)
+         aos_mem_copy(shell_cfg->chip_type, "isisc", sizeof("isisc"));
+--- a/src/shell/shell_sw.c
++++ b/src/shell/shell_sw.c
+@@ -113,34 +113,6 @@ cmd_show_fdb(a_ulong_t *arg_val)
+ 			cmd_print_error(rtn);
+ 		else
+ 			dprintf("\ntotal %d entries\n", cnt);
+-	}else if (ssdk_cfg.init_cfg.chip_type == CHIP_SHIVA) {
+-		sw_error_t rtn;
+-		a_uint32_t cnt = 0;
+-		fal_fdb_entry_t *fdb_entry = (fal_fdb_entry_t *) (ioctl_buf + 2);
+-
+-		memset(fdb_entry, 0, sizeof (fal_fdb_entry_t));
+-		arg_val[0] = SW_API_FDB_ITERATE;
+-		*(ioctl_buf + 1) = 0;
+-
+-		while (1)
+-		{
+-			arg_val[1] = (a_ulong_t) ioctl_buf;
+-			arg_val[2] = get_devid();
+-			arg_val[3] = (a_ulong_t) (ioctl_buf + 1);
+-			arg_val[4] = (a_ulong_t) fdb_entry;
+-
+-			rtn = cmd_exec_api(arg_val);
+-			if ((SW_OK != rtn)  || (SW_OK != (sw_error_t) (*ioctl_buf)))
+-			{
+-				break;
+-			}
+-			cnt++;
+-		}
+-
+-		if((rtn != SW_OK) && (rtn != SW_NO_MORE))
+-			cmd_print_error(rtn);
+-		else
+-			dprintf("\ntotal %d entries\n", cnt);
+ 	}else {
+ 		sw_error_t rtn;
+ 		a_uint32_t cnt = 0;
+@@ -228,12 +200,6 @@ cmd_show_vlan(a_ulong_t *arg_val)
+ 		case CHIP_DESS:
+ 			tmp_vid = FAL_NEXT_ENTRY_FIRST_ID;
+ 			break;
+-		case CHIP_ATHENA:
+-		case CHIP_GARUDA:
+-		case CHIP_SHIVA:
+-		case CHIP_HORUS:
+-			tmp_vid = 0;
+-			break;
+ 		default:
+ 			return SW_NOT_SUPPORTED;
+ 	}
+--- a/include/fal/fal_port_ctrl.h
++++ b/include/fal/fal_port_ctrl.h
+@@ -218,42 +218,63 @@ typedef enum {
+ } fal_port_auto_neg_status_t;
+ /*qca808x_start*/
+ 
++typedef enum {
++	PHY_INTERFACE_MODE_NA,
++	PHY_INTERFACE_MODE_INTERNAL,
++	PHY_INTERFACE_MODE_MII,
++	PHY_INTERFACE_MODE_GMII,
++	PHY_INTERFACE_MODE_SGMII,
++	PHY_INTERFACE_MODE_TBI,
++	PHY_INTERFACE_MODE_REVMII,
++	PHY_INTERFACE_MODE_RMII,
++	PHY_INTERFACE_MODE_REVRMII,
++	PHY_INTERFACE_MODE_RGMII,
++	PHY_INTERFACE_MODE_RGMII_ID,
++	PHY_INTERFACE_MODE_RGMII_RXID,
++	PHY_INTERFACE_MODE_RGMII_TXID,
++	PHY_INTERFACE_MODE_RTBI,
++	PHY_INTERFACE_MODE_SMII,
++	PHY_INTERFACE_MODE_XGMII,
++	PHY_INTERFACE_MODE_XLGMII,
++	PHY_INTERFACE_MODE_MOCA,
++	PHY_INTERFACE_MODE_PSGMII,
++	PHY_INTERFACE_MODE_QSGMII,
++	PHY_INTERFACE_MODE_TRGMII,
++	PHY_INTERFACE_MODE_100BASEX,
++	PHY_INTERFACE_MODE_1000BASEX,
++	PHY_INTERFACE_MODE_2500BASEX,
++	PHY_INTERFACE_MODE_5GBASER,
++	PHY_INTERFACE_MODE_RXAUI,
++	PHY_INTERFACE_MODE_XAUI,
++	PHY_INTERFACE_MODE_10GBASER,
++	PHY_INTERFACE_MODE_25GBASER,
++	PHY_INTERFACE_MODE_USXGMII,
++	PHY_INTERFACE_MODE_10GKR,
++	PHY_INTERFACE_MODE_QUSGMII,
++	PHY_INTERFACE_MODE_1000BASEKX,
++	PHY_INTERFACE_MODE_MAX,
++} phy_interface_t;
++
+ /** Phy interface mode */
+ 	typedef enum {
+-		PHY_PSGMII_BASET = 0,
+-				/**< PSGMII mode */
+-		PHY_PSGMII_BX1000 = 1,
+-				/**< PSGMII BX1000 mode */
+-		PHY_PSGMII_FX100 = 2,
+-				/**< PSGMII FX100 mode */
+-		PHY_PSGMII_AMDET = 3,
+-				/**< PSGMII Auto mode */
+-		PHY_SGMII_BASET = 4,
++		PHY_SGMII_BASET = PHY_INTERFACE_MODE_SGMII,
+ 				/**< SGMII mode */
+-		PORT_QSGMII,
++		PORT_RGMII_BASET = PHY_INTERFACE_MODE_RGMII,
++				/**< RGMII mode */
++		PHY_PSGMII_BASET = PHY_INTERFACE_MODE_PSGMII,
++				/**< PSGMII mode */
++		PORT_QSGMII = PHY_INTERFACE_MODE_QSGMII,
+ 				/**<QSGMII mode*/
+-		PORT_SGMII_PLUS,
++		PORT_SGMII_FIBER = PHY_INTERFACE_MODE_1000BASEX,
++				/** <PORT SGMII_FIBER mode*/
++		PORT_SGMII_PLUS = PHY_INTERFACE_MODE_2500BASEX,
+ 				/**<PORT_SGMII_PLUS mode*/
+-		PORT_USXGMII,
+-				/**<PORT_USXGMII mode*/
+-		PORT_10GBASE_R,
++		PORT_10GBASE_R = PHY_INTERFACE_MODE_10GBASER,
+ 				/**<PORT_10GBASE_R mode*/
+-		PORT_RGMII_BASET,
+-				/**< RGMII mode */
+-		PORT_RGMII_BX1000,
+-				/**< RGMII BX1000 mode */
+-		PORT_RGMII_FX100,
+-				/**< RGMII FX100 mode */
+-		PORT_RGMII_AMDET,
+-				/**< RGMII Auto mode */
+-		PHY_PSGMII_FIBER,
+-				/** <PHY_PSGMII_FIBER mode */
+-		PORT_SGMII_FIBER,
+-				/** <PORT SGMII_FIBER mode*/
+-		PORT_UQXGMII,
++		PORT_USXGMII = PHY_INTERFACE_MODE_USXGMII,
++				/**<PORT_USXGMII mode*/
++		PORT_UQXGMII = PHY_INTERFACE_MODE_QUSGMII,
+ 				/**<PORT_UQXGMII mode*/
+-		PORT_UQXGMII_3CHANNELS,
+-				/**<PORT_UQXGMII 3 port mode*/
+ 		PORT_INTERFACE_MODE_AUTO,
+ 				/**PORT AUTO INTERFACE MODE*/
+ 		PORT_INTERFACE_MODE_MAX = 0xFF
+--- a/src/shell/shell_config.c
++++ b/src/shell/shell_config.c
+@@ -195,8 +195,8 @@ struct cmd_des_t gcmd_des[] =
+                 SW_API_PT_WOL_STATUS_GET, NULL},
+ /*qca808x_end*/
+             {"interfaceMode", "set", "set interface mode of phy",
+-            "<port_id> <psgmii_baset|psgmii_bx1000|psgmii_fx100|psgmii_amdet|sgmii_baset|qsgmii"
+-            "|usxgmii|sgmii_plus|10gbase_r |sgmii_fiber|psgmii_fiber|auto|interfacemode_max>",
++            "<port_id> <psgmii_baset|sgmii_baset|qsgmii"
++            "|usxgmii|sgmii_plus|10gbase_r |sgmii_fiber|auto|interfacemode_max>",
+                 SW_API_PT_INTERFACE_MODE_SET, NULL},
+             {"interfaceMode", "get", "get interface mode of phy", "<port_id>",
+                 SW_API_PT_INTERFACE_MODE_GET, NULL},
+--- a/src/shell/shell_io.c
++++ b/src/shell/shell_io.c
+@@ -1840,20 +1840,8 @@ cmd_data_check_interface_mode(char *cmd_
+ 
+     if (!strncasecmp(cmd_str, "psgmii_baset", 13))
+         *arg_val = PHY_PSGMII_BASET;
+-    else if (!strncasecmp(cmd_str, "psgmii_bx1000", 14))
+-        *arg_val = PHY_PSGMII_BX1000;
+-    else if (!strncasecmp(cmd_str, "psgmii_fx100", 13))
+-        *arg_val = PHY_PSGMII_FX100;
+-    else if (!strncasecmp(cmd_str, "psgmii_amdet", 13))
+-        *arg_val = PHY_PSGMII_AMDET;
+-    else if (!strncasecmp(cmd_str, "rgmii_amdet", 13))
+-        *arg_val = PORT_RGMII_AMDET;
+     else if (!strncasecmp(cmd_str, "rgmii_baset", 13))
+         *arg_val = PORT_RGMII_BASET;
+-    else if (!strncasecmp(cmd_str, "rgmii_bx1000", 13))
+-        *arg_val = PORT_RGMII_BX1000;
+-    else if (!strncasecmp(cmd_str, "rgmii_fx100", 13))
+-        *arg_val = PORT_RGMII_FX100;
+     else if (!strncasecmp(cmd_str, "sgmii_baset", 13))
+         *arg_val = PHY_SGMII_BASET;
+     else if (!strncasecmp(cmd_str, "qsgmii", 13))
+@@ -1866,12 +1854,8 @@ cmd_data_check_interface_mode(char *cmd_
+ 	  *arg_val = PORT_10GBASE_R;
+     else if (!strncasecmp(cmd_str, "sgmii_fiber", 20))
+ 	  *arg_val = PORT_SGMII_FIBER;
+-    else if (!strncasecmp(cmd_str, "psgmii_fiber", 20))
+-	  *arg_val = PHY_PSGMII_FIBER;
+     else if (!strncasecmp(cmd_str, "uqxgmii", 20))
+ 	  *arg_val = PORT_UQXGMII;
+-    else if (!strncasecmp(cmd_str, "uqxgmii_3channels", 20))
+-	  *arg_val = PORT_UQXGMII_3CHANNELS;
+     else if (!strncasecmp(cmd_str, "auto", 5))
+ 	  *arg_val = PORT_INTERFACE_MODE_AUTO;
+     else if (!strncasecmp(cmd_str, "interfacemode_max", 20))
+@@ -1893,34 +1877,10 @@ cmd_data_print_interface_mode(a_uint8_t
+     {
+         dprintf("PSGMII_BASET");
+     }
+-    else if (*(a_uint32_t *) buf == PHY_PSGMII_BX1000)
+-    {
+-        dprintf("PSGMII_BX1000");
+-    }
+-    else if (*(a_uint32_t *) buf == PHY_PSGMII_FX100)
+-    {
+-	    dprintf("PSGMII_FX100");
+-    }
+-    else if (*(a_uint32_t *) buf == PHY_PSGMII_AMDET)
+-    {
+-	    dprintf("PSGMII_AMDET");
+-    }
+-    else if (*(a_uint32_t *) buf == PORT_RGMII_AMDET)
+-    {
+-	    dprintf("RGMII_AMDET");
+-    }
+     else if (*(a_uint32_t *) buf == PORT_RGMII_BASET)
+     {
+ 	    dprintf("RGMII_BASET");
+     }
+-    else if (*(a_uint32_t *) buf == PORT_RGMII_BX1000)
+-    {
+-	    dprintf("RGMII_BX1000");
+-    }
+-    else if (*(a_uint32_t *) buf == PORT_RGMII_FX100)
+-    {
+-	    dprintf("RGMII_FX100");
+-    }
+     else if (*(a_uint32_t *) buf == PHY_SGMII_BASET)
+     {
+ 	    dprintf("SGMII_BASET");
+@@ -1945,18 +1905,10 @@ cmd_data_print_interface_mode(a_uint8_t
+     {
+ 	    dprintf("sgmii_fiber");
+     }
+-    else if (*(a_uint32_t *) buf == PHY_PSGMII_FIBER)
+-    {
+-	    dprintf("psgmii_fiber");
+-    }
+     else if(*(a_uint32_t *) buf == PORT_UQXGMII)
+     {
+ 	    dprintf("uqxgmii");
+     }
+-    else if(*(a_uint32_t *) buf == PORT_UQXGMII_3CHANNELS)
+-    {
+-	    dprintf("uqxgmii_3channels");
+-    }
+     else if(*(a_uint32_t *) buf == PORT_INTERFACE_MODE_AUTO)
+     {
+ 	    dprintf("auto");

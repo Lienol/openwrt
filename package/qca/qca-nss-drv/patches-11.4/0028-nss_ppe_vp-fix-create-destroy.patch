@@ -1,0 +1,57 @@
+--- a/nss_ppe_vp.c
++++ b/nss_ppe_vp.c
+@@ -96,8 +96,8 @@ static void nss_ppe_vp_proc_help(void)
+ {
+ 	nss_info_always("== for dynamic interface types read following file ==");
+ 	nss_info_always("/sys/kernel/debug/qca-nss-drv/stats/dynamic_if/type_names");
+-	nss_info_always("NSS PPE VP create: echo <interface name> <dynamic interface type> > /proc/sys/nss/ppe_vp/create");
+-	nss_info_always("NSS PPE VP destroy: echo <interface name> <dynamic interface type> > /proc/sys/nss/ppe_vp/destroy");
++	nss_info_always("NSS PPE VP create: echo <interface name> <dynamic interface type> > /proc/sys/dev/nss/ppe_vp/create");
++	nss_info_always("NSS PPE VP destroy: echo <interface name> <dynamic interface type> > /proc/sys/dev/nss/ppe_vp/destroy");
+ }
+ 
+ /*
+@@ -210,20 +210,19 @@ static void nss_ppe_vp_callback(void *ap
+  * nss_ppe_vp_parse_vp_cmd()
+  *	Parse PPE VP create and destroy message and return the NSS interface number.
+  * Command usage:
+- * echo <interface name> <dynamic interface type> /proc/sys/nss/ppe_vp/create>
+- * echo ath0 6 > /proc/sys/nss/ppe_vp/create
++ * echo <interface name> <dynamic interface type> /proc/sys/dev/nss/ppe_vp/create>
++ * echo ath0 6 > /proc/sys/dev/nss/ppe_vp/create
+  * Since ath0 has only one type i.e. ath0 is NSS_DYNAMIC_INTERFACE_TYPE_VAP, the above command can be rewritten as
+- * echo ath0 > /proc/sys/nss/ppe_vp/create => Here 6 can be ignored.
++ * echo ath0 > /proc/sys/dev/nss/ppe_vp/create => Here 6 can be ignored.
+  */
+ static nss_if_num_t nss_ppe_vp_parse_vp_cmd(compat_const struct ctl_table *ctl, int write, void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int32_t if_num;
+ 	struct net_device *dev;
+-	uint32_t  dynamic_if_type = (uint32_t)NSS_DYNAMIC_INTERFACE_TYPE_NONE;
++	uint32_t dynamic_if_type = (uint32_t)NSS_DYNAMIC_INTERFACE_TYPE_NONE;
+ 	struct nss_ctx_instance *nss_ctx = nss_ppe_vp_get_context();
+ 	char *pos;
+ 	char cmd_buf[NSS_PPE_VP_MAX_CMD_STR] = {0}, dev_name[NSS_PPE_VP_MAX_CMD_STR] = {0};
+-	size_t count = *lenp;
+ 	int ret = proc_dostring(ctl, write, buffer, lenp, ppos);
+ 
+ 	if (!write) {
+@@ -238,17 +237,7 @@ static nss_if_num_t nss_ppe_vp_parse_vp_
+ 
+ 	NSS_VERIFY_CTX_MAGIC(nss_ctx);
+ 
+-	if (count >= NSS_PPE_VP_MAX_CMD_STR) {
+-		nss_ppe_vp_proc_help();
+-		nss_warning("%px: Input string too big", nss_ctx);
+-		return -E2BIG;
+-	}
+-
+-	if (copy_from_user(cmd_buf, buffer, count)) {
+-		nss_warning("%px: Cannot copy user's entry to kernel memory", nss_ctx);
+-		return -EFAULT;
+-	}
+-
++	/* proc_dostring has already copied the data to nss_ppe_vp_cmd */
+ 	if ((pos = strrchr(cmd_buf, '\n')) != NULL) {
+ 		*pos = '\0';
+ 	}

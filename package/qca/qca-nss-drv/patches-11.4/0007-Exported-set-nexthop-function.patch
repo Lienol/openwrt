@@ -1,0 +1,23 @@
+From f8cf061454a3707c0c84d0fca685e84455f91362 Mon Sep 17 00:00:00 2001
+From: Suruchi Suman <surusuma@codeaurora.org>
+Date: Tue, 3 Dec 2019 12:57:38 +0530
+Subject: [qca-nss-drv] Exported set nexhop function from drv.
+
+Change-Id: I3df6658bef72fe574ac9acfb7aac61785769766f
+Signed-off-by: Suruchi Suman <surusuma@codeaurora.org>
+---
+ nss_phys_if.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -52,7 +52,8 @@
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 10, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 11, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)))) || \
+ (((LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)))) || \
+-(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))))))
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)))) || \
++(((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))))))
+ #error "Check skb recycle code in this file to match Linux version"
+ #endif
+ 

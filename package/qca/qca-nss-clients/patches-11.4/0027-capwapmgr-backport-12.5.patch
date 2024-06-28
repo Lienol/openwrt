@@ -1,0 +1,51 @@
+commit 2396944e41307a90e9159107fd225e44980a5b2f
+Author:     Cemil Coskun <quic_ccoskun@quicinc.com>
+AuthorDate: Tue Aug 9 21:25:13 2022 -0700
+Commit:     Cemil Coskun <quic_ccoskun@quicinc.com>
+CommitDate: Tue Aug 9 21:27:58 2022 -0700
+
+[qca-nss-clients] In capwapmgr use source MAC address
+
+Currently, interface MAC address is used while sending packets in capwapmgr.
+Update that to use the MAC address in the rule.
+
+Change-Id: I2ba9df7beab39a9584a1159db3a3f3c337c219aa
+Signed-off-by: Cemil Coskun <quic_ccoskun@quicinc.com>
+
+--- a/capwapmgr/nss_capwapmgr.c
++++ b/capwapmgr/nss_capwapmgr.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -866,6 +869,10 @@ static nss_tx_status_t nss_capwapmgr_cre
+ 		memcpy(nircm->conn_rule.return_mac, unic->dest_mac, 6);
+ 	}
+ 
++	nircm->valid_flags |= NSS_IPV4_RULE_CREATE_SRC_MAC_VALID;
++	nircm->src_mac_rule.mac_valid_flags |=NSS_IPV4_SRC_MAC_FLOW_VALID;
++	memcpy(nircm->src_mac_rule.flow_src_mac, nircm->conn_rule.return_mac, 6);
++
+ 	/*
+ 	 * Copy over the DSCP rule parameters
+ 	 */
+@@ -1001,6 +1008,10 @@ static nss_tx_status_t nss_capwapmgr_cre
+ 	memcpy(nircm->conn_rule.return_mac, unic->dest_mac, 6);
+ 	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_CONN_VALID;
+ 
++	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_SRC_MAC_VALID;
++	nircm->src_mac_rule.mac_valid_flags |=NSS_IPV6_SRC_MAC_FLOW_VALID;
++	memcpy(nircm->src_mac_rule.flow_src_mac, nircm->conn_rule.return_mac, 6);
++
+ 	/*
+ 	 * Copy over the DSCP rule parameters
+ 	 */

@@ -1,0 +1,76 @@
+commit 1db9e5510558817d138de87f5a4942293a9fcb91
+Author:     syed touqeer pasha <quic_spasha@quicinc.com>
+AuthorDate: Thu May 16 14:59:48 2024 +0530
+Commit:     syed touqeer pasha <quic_spasha@quicinc.com>
+CommitDate: Thu May 16 14:59:48 2024 +0530
+
+[qca-nss-drv] Add missing error code for wifili pkg.
+
+Add missing error code between nss fw and nss drv.
+
+Change-Id: I3f81da10b33fd15b1817a40eb906df9642a10d98
+Signed-off-by: syed touqeer pasha <quic_spasha@quicinc.com>
+
+--- a/exports/nss_wifili_if.h
++++ b/exports/nss_wifili_if.h
+@@ -392,6 +392,60 @@ enum nss_wifili_error_types {
+ 			/**< Invalid TLV length. */
+ 	NSS_WIFILI_EMESG_RX_BUF_LEN_INVALID,
+ 			/**< Invalid Rx buffer length. */
++	NSS_WIFILI_EMSG_INVALID_PDEV_ID,
++			/**< Invalid pdev id from host. */
++	NSS_WIFILI_EMSG_NO_PDEV_PRESENT,
++			/**< Pdev corresponding to this pdev id is not present. */
++	NSS_WIFILI_EMESG_WDS_UPDATE_FAIL,
++			/**< Wds peer ast update failed. */
++	NSS_WIFILI_EMSG_VLAN_ID_SET_FAIL,
++			/**< Vlan id set failed. */
++	NSS_WIFILI_EMSG_PDEV_UPDATE_INVALID_RADIOID_FAIL,
++			/**< Pdev update failed due to invalid radio id. */
++	NSS_WIFILI_EMSG_PDEV_UPDATE_INVALID_LMACID_FAIL,
++			/**< Pdev update failed due to invalid lmac id. */
++	NSS_WIFILI_EMSG_PDEV_UPDATE_INVALID_TARGETPDEVID_FAIL,
++			/**< Pdev update failed due to invalid target pdev id. */
++	NSS_WIFILI_EMESG_PEER_AST_FLOWID_MAP_VAPID_INVALID_FAIL,
++			/**< Peer ast flow map failed due to invalid vdev_id. */
++	NSS_WIFILI_EMESG_PEER_AST_FLOWID_MAP_VDEV_NULL_FAIL,
++			/**< Peer ast flow map failed due to vdev null. */
++	NSS_WIFILI_EMESG_PEER_AST_FLOWID_MAP_PEERID_INVALID_FAIL,
++			/**< Peer ast flow map failed due to invalid peer_id. */
++	NSS_WIFILI_EMSG_PEER_AST_FLOWID_MAP_STA_VAP_FAIL,
++			/**< Peer ast flowid map failed due to sta vap. */
++	NSS_WIFILI_EMESG_PEER_AST_FLOWID_MAP_PEERID_MISMATCH_FAIL,
++			/**< Peer ast flow map failed due to mismatched peer_id. */
++	NSS_WIFILI_EMESG_PEER_AST_FLOWID_MAP_PEER_NULL_FAIL,
++			/**< Peer ast flow map failed due to peer null. */
++	NSS_WIFILI_EMSG_PEER_AST_FLOWID_MAP_AST_MISMATCH_FAIL,
++			/**< Peer ast flow map failed due to mismatched ast index. */
++	NSS_WIFILI_EMSG_INVALID_V3_STATS_TYPE,
++			/**< Invalid v3 stats type. */
++	NSS_WIFILI_EMSG_ISOLATION_SET_FAIL,
++			/**< Peer isolation set failed. */
++	NSS_WIFILI_EMESG_WDS_ALREADY_PRESENT,
++			/**< Wds peer ast add failed. */
++	NSS_WIFILI_EMSG_STATS_CLR_VDEV_NULL_FAIL,
++			/**< Statistics clear failed due to null vdev. */
++	NSS_WIFILI_EMSG_INVALID_VDEV_ID,
++			/**< Invalid vdev id from host. */
++	NSS_WIFILI_EMSG_PDEV_INIT_FAIL_INVALID_THREAD_SCHEME_ID,
++			/**< Incorrect scheme ID sent from host. */
++	NSS_WIFILI_EMSG_PEER_WDS_4ADDR_EVENT_INV_PEER,
++			/**< Invalid peer ID sent from host. */
++	NSS_WIFILI_EMSG_PEER_WDS_INVALID_IFNUM,
++			/**< Invalid peer ID sent from host. */
++	NSS_WIFILI_EMSG_PEER_AUTH_FLAG_UPDATE_FAIL,
++			/**< Peer authentication flag update failed. */
++	NSS_WIFILI_EMSG_PEER_TEARDOWN_ALLOC_FAIL,
++			/**< Alloc fail in peer tear down path. */
++	NSS_WIFILI_EMSG_TX_CAPTURE_MODE_UPDATE_FAIL,
++			/**< Tx capture mode update failure. */
++	NSS_WIFILI_EMSG_PEER_MEMORY_INSUFFICIENT_FROM_HOST,
++			/**< Peer memory from host is less than NSS peer struct. */
++	NSS_WIFILI_EMSG_DUPLICATE_MPASS_ID_SET,
++			/**< Duplicate mpass vlan id set. */
+ 	NSS_WIFILI_EMSG_UNKNOWN
+ 			/**< Unknown error message. */
+ };

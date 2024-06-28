@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# convert old ecm config to new format
+uci -q show ecm.general || {
+  echo "Converting 'ECM' config to new format."
+  sed -i "s/config.*general.*/config ecm 'general'/g" /etc/config/ecm
+}
+
+uci -q batch << EOF
+    delete firewall.qcanssecm
+    set firewall.qcanssecm=include
+    set firewall.qcanssecm.type=script
+    set firewall.qcanssecm.path=/etc/firewall.d/qca-nss-ecm
+    commit firewall
+EOF
+
+grep -q "fw3" /etc/init.d/firewall && {
+  uci -q batch << EOF
+    set firewall.qcanssecm.family=any
+    set firewall.qcanssecm.reload=1
+    commit firewall
+EOF
+}
+
+exit 0

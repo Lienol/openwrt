@@ -1,0 +1,19 @@
+--- a/nss_macsec_init.c
++++ b/nss_macsec_init.c
+@@ -15,6 +15,7 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
++#include "linux/kern_levels.h"
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -296,7 +297,7 @@ static int nss_macsec_dt_init(uint32_t d
+ 
+ 	nss_macsec_node = of_find_node_by_name(NULL, dev_name);
+ 	if (!nss_macsec_node) {
+-		printk(KERN_ERR "cannot find nss-macsec%d node\n", dev_id);
++		printk(KERN_DEBUG "cannot find nss-macsec%d node\n", dev_id);
+ 		return -ENODEV;
+ 	}
+ 	printk(KERN_INFO "%s DT exist!\n", dev_name);

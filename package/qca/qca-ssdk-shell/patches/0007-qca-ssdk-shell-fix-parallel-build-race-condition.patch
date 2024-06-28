@@ -1,0 +1,31 @@
+From 827dc40fcd7a2896512ed71c1e0fc86e809d9fae Mon Sep 17 00:00:00 2001
+From: Feng Pei <fpei@qti.qualcomm.com>
+Date: Thu, 27 Nov 2025 14:17:15 +0800
+Subject: [PATCH] qca-ssdk-shell: fix parallel build race condition
+
+Remove explicit %.d prerequisite from object compilation rule and
+eliminate circular dependency in .d file generation
+
+Change-Id: I9afb4e437993d32b421e0ead7cd2c15ef8caac25
+Signed-off-by: Feng Pei <fpei@qti.qualcomm.com>
+---
+ make/target.mk | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/make/target.mk
++++ b/make/target.mk
+@@ -9,12 +9,12 @@ obj: $(OBJ_LIST)
+ dep: build_dir $(DEP_LIST)
+ 	$(DEP_LOOP)
+ 
+-$(OBJ_LIST): %.o : %.c %.d
++$(OBJ_LIST): %.o : %.c
+ 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c $< -o $(DST_DIR)/$@
+ 
+ $(DEP_LIST) : %.d : %.c
+ 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -MM $< > $(DST_DIR)/$@.tmp
+-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $(DST_DIR)/$@.tmp > $(DST_DIR)/$@
++	sed 's,\($*\)\.o[ :]*,\1.o : ,g' < $(DST_DIR)/$@.tmp > $(DST_DIR)/$@
+ 	$(RM) -f $(DST_DIR)/$@.tmp;
+ 
+ build_dir: $(DST_DIR)
