@@ -16,6 +16,6 @@ DEFAULT_PACKAGES += \
 	kmod-leds-gpio kmod-gpio-button-hotplug \
 	kmod-qca-nss-dp kmod-ath11k-ahb \
 	wpad-basic-mbedtls uboot-envtools \
-	e2fsprogs kmod-fs-ext4 losetup
+	e2fsprogs kmod-fs-ext4 losetup autocore-arm
 
 $(eval $(call BuildTarget))
