@@ -1,0 +1,39 @@
+--- a/nss_stats.c
++++ b/nss_stats.c
+@@ -375,7 +375,7 @@ void nss_stats_create_dentry(char *name,
+ /*
+  * gmac_stats_ops
+  */
+-NSS_STATS_DECLARE_FILE_OPERATIONS(gmac);
++// NSS_STATS_DECLARE_FILE_OPERATIONS(gmac);
+ 
+ /*
+  * wt_stats_ops
+@@ -430,7 +430,7 @@ void nss_stats_init(void)
+ 	/*
+ 	 * gmac_stats
+ 	 */
+-	nss_stats_create_dentry("gmac", &nss_gmac_stats_ops);
++	// nss_stats_create_dentry("gmac", &nss_gmac_stats_ops);
+ 
+ 	/*
+ 	 * Per-project stats
+--- a/Makefile
++++ b/Makefile
+@@ -40,7 +40,6 @@ qca-nss-drv-objs += nss_hal/nss_hal.o
+ 
+ ifneq "$(NSS_DRV_POINT_OFFLOAD)" "y"
+ qca-nss-drv-objs += \
+-			nss_gmac_stats.o \
+ 			nss_if.o \
+ 			nss_if_log.o \
+ 			nss_phys_if.o \
+@@ -381,7 +380,7 @@ endif
+ ifeq ($(SoC),$(filter $(SoC),ipq806x))
+ ccflags-y += -DNSS_DRV_IPV4_ENABLE -DNSS_DRV_IPV6_ENABLE
+ qca-nss-drv-objs += nss_data_plane/nss_data_plane_gmac.o \
+-		    nss_hal/ipq806x/nss_hal_pvt.o
++		    nss_hal/ipq806x/nss_hal_pvt.o nss_gmac_stats.o
+ 
+ ifneq "$(NSS_DRV_C2C_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_C2C_ENABLE

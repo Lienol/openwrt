@@ -1,0 +1,30 @@
+From 89949decfd9a0f86427b502aae4fbc3a3ef399f0 Mon Sep 17 00:00:00 2001
+From: Ansuel Smith <ansuelsmth@gmail.com>
+Date: Tue, 23 Jun 2020 19:50:28 +0200
+Subject: [PATCH] Fix Kernel Panic dma with NULL dev
+
+---
+ nss_coredump.c | 4 ++--
+ nss_log.c      | 8 +++++---
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+--- a/nss_coredump.c
++++ b/nss_coredump.c
+@@ -154,7 +154,7 @@ void nss_fw_coredump_notify(struct nss_c
+ 		dma_addr = nss_own->meminfo_ctx.logbuffer_dma;
+ 	}
+ 
+-	dma_sync_single_for_cpu(NULL, dma_addr, sizeof(struct nss_log_descriptor), DMA_FROM_DEVICE);
++	dma_sync_single_for_cpu(nss_own->dev, dma_addr, sizeof(struct nss_log_descriptor), DMA_FROM_DEVICE);
+ 
+ 	/*
+ 	 * If the current entry is smaller than or equal to the number of NSS_LOG_COREDUMP_LINE_NUM,
+@@ -181,7 +181,7 @@ void nss_fw_coredump_notify(struct nss_c
+ 
+ 		offset = (index * sizeof(struct nss_log_entry))
+ 			+ offsetof(struct nss_log_descriptor, log_ring_buffer);
+-		dma_sync_single_for_cpu(NULL, dma_addr + offset,
++		dma_sync_single_for_cpu(nss_own->dev, dma_addr + offset,
+ 				sizeof(struct nss_log_entry), DMA_FROM_DEVICE);
+ 		nss_info_always("%px: %s\n", nss_own, nle_print->message);
+ 		nle_print++;

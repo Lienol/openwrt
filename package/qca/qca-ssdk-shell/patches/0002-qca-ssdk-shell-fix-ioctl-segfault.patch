@@ -1,0 +1,93 @@
+--- a/include/init/ssdk_init.h
++++ b/include/init/ssdk_init.h
+@@ -33,8 +33,6 @@ extern "C" {
+ 
+ #define SSDK_MAX_VIRTUAL_PORT_NUM   \
+ 	(SSDK_MAX_VIRTUAL_PORT_ID-SSDK_MIN_VIRTUAL_PORT_ID+1)
+-#define IOCTL_COMPAT
+-
+ /*qca808x_start*/
+     typedef enum {
+         HSL_MDIO = 1,
+@@ -267,17 +265,6 @@ typedef struct
+         a_bool_t in_interfacectrl;
+     } ssdk_features;
+ /*qca808x_start*/
+-#ifdef IOCTL_COMPAT
+-	typedef struct
+-	{		
+-		hsl_init_mode	cpu_mode;
+-		hsl_access_mode reg_mode;
+-		ssdk_chip_type	chip_type;
+-		a_uint32_t		chip_revision;
+-		a_uint32_t		nl_prot;
+-	} ssdk_init_cfg_us;
+-#endif
+-
+ #define CFG_STR_SIZE	20
+     typedef struct
+     {
+@@ -294,11 +281,7 @@ typedef struct
+ /*qca808x_end*/
+         ssdk_features features;
+ /*qca808x_start*/
+-#ifdef IOCTL_COMPAT
+-        ssdk_init_cfg_us init_cfg;
+-#else
+         ssdk_init_cfg init_cfg;
+-#endif
+     } ssdk_cfg_t;
+     sw_error_t
+     ssdk_init(a_uint32_t dev_id, ssdk_init_cfg *cfg);
+--- a/src/shell/shell.c
++++ b/src/shell/shell.c
+@@ -616,10 +616,8 @@ cmd_socket_init(int dev_id)
+ #endif
+     init_cfg.chip_type=CHIP_UNSPECIFIED;
+ /*qca808x_end*/
+-#ifndef IOCTL_COMPAT
+     init_cfg.reg_func.mdio_set = NULL;
+     init_cfg.reg_func.mdio_get = NULL;
+-#endif
+ /*qca808x_start*/
+     rv = ssdk_init(dev_id, &init_cfg);
+     if (SW_OK == rv)
+--- a/src/shell/shell_io.c
++++ b/src/shell/shell_io.c
+@@ -11835,15 +11835,7 @@ static void
+ _cmd_collect_shell_cfg(ssdk_cfg_t *shell_cfg)
+ {
+     memset(shell_cfg, 0, sizeof(ssdk_cfg_t));
+-#ifdef IOCTL_COMPAT
+-    shell_cfg->init_cfg.cpu_mode = init_cfg.cpu_mode;
+-    shell_cfg->init_cfg.reg_mode = init_cfg.reg_mode;
+-    shell_cfg->init_cfg.chip_type = init_cfg.chip_type;
+-    shell_cfg->init_cfg.chip_revision = init_cfg.chip_revision;
+-    shell_cfg->init_cfg.nl_prot = init_cfg.nl_prot;
+-#else
+     shell_cfg->init_cfg = init_cfg;
+-#endif
+ 
+ #ifdef VERSION
+     aos_mem_copy(shell_cfg->build_ver, VERSION, sizeof(VERSION));
+@@ -11910,7 +11902,7 @@ _cmd_collect_shell_cfg(ssdk_cfg_t *shell
+ static void
+ _cmd_data_print_cfg(ssdk_cfg_t *entry)
+ {
+-    ssdk_init_cfg_us *init = &(entry->init_cfg);
++    ssdk_init_cfg *init = &(entry->init_cfg);
+ 
+     dprintf("[build verison]:%-10s [build date]:%s\n", entry->build_ver, entry->build_date);
+     dprintf("[chip type]:%-14s [arch]:%-12s [os]:%s\n", entry->chip_type, entry->cpu_type, entry->os_info);
+@@ -11921,10 +11913,8 @@ _cmd_data_print_cfg(ssdk_cfg_t *entry)
+             cmd_cpu_mode(init->cpu_mode), cmd_access_mode(init->reg_mode),
+             init->nl_prot);
+ /*qca808x_end*/
+-#if 0
+-dprintf("[inf defined]:mdio_set(%s) mdio_get(%s) header_reg_set(%s) header_reg_get(%s)\n",
++    dprintf("[inf defined]:mdio_set(%s) mdio_get(%s) header_reg_set(%s) header_reg_get(%s)\n",
+             DEFINED2STR(mdio_set), DEFINED2STR(mdio_get), DEFINED2STR(header_reg_set), DEFINED2STR(header_reg_get));
+-#endif
+ /*qca808x_start*/
+ }
+ 

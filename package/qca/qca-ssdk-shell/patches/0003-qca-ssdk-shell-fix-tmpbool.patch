@@ -1,0 +1,11 @@
+--- a/src/shell/shell_io.c
++++ b/src/shell/shell_io.c
+@@ -40905,7 +40905,7 @@ sw_error_t
+ cmd_data_check_tunnel_flags_parser(char *cmd_str, void * val, a_uint32_t size)
+ {
+     char *cmd;
+-    a_bool_t tmpbool;
++    a_bool_t tmpbool = A_FALSE;;
+     a_uint32_t tmpdata = 0;
+     sw_error_t rv;
+     fal_tunnel_flags_excep_parser_ctrl_t entry;

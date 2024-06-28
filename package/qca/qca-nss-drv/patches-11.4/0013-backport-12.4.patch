@@ -1,0 +1,2163 @@
+--- a/exports/nss_c2c_rx.h
++++ b/exports/nss_c2c_rx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -36,7 +36,7 @@ enum nss_c2c_rx_stats_types {
+ 						/**< Number of received simple pbufs. */
+ 	NSS_C2C_RX_STATS_PBUF_SG,		/**< Number of scatter-gather pbufs received. */
+ 	NSS_C2C_RX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbufs. */
+-	NSS_C2C_RX_STATS_INVAL_DEST,		/**< Number of pbuf enqueue failures because of destination is invalid. */
++	NSS_C2C_RX_STATS_INVAL_DEST,		/**< Number of pbuf enqueue failures because destination is invalid. */
+ 	NSS_C2C_RX_STATS_MAX,			/**< Maximum message type. */
+ };
+ 
+--- a/exports/nss_c2c_tx.h
++++ b/exports/nss_c2c_tx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -72,9 +72,9 @@ enum nss_c2c_tx_test_type {
+  */
+ enum nss_c2c_tx_stats_types {
+ 	NSS_C2C_TX_STATS_PBUF_SIMPLE = NSS_STATS_NODE_MAX,
+-						/**< Number of received simple pbuf. */
+-	NSS_C2C_TX_STATS_PBUF_SG,		/**< Number of scatter-gather pbuf received. */
+-	NSS_C2C_TX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbuf. */
++						/**< Number of received simple pbufs. */
++	NSS_C2C_TX_STATS_PBUF_SG,		/**< Number of scatter-gather pbufs received. */
++	NSS_C2C_TX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbufs. */
+ 	NSS_C2C_TX_STATS_MAX,			/**< Maximum message type. */
+ };
+ 
+--- a/exports/nss_cmn.h
++++ b/exports/nss_cmn.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014, 2016-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014, 2016-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -27,7 +27,7 @@
+  * @{
+  */
+ 
+-/*
++/**
+  * Interface Number 1 Valid 7 Core 8 Type 16 Index
+  */
+ typedef int32_t nss_if_num_t;
+--- a/exports/nss_gre.h
++++ b/exports/nss_gre.h
+@@ -1,6 +1,9 @@
+ /*
+  ****************************************************************************
+  * Copyright (c) 2017-2019, 2021, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -101,16 +104,16 @@ enum nss_gre_msg_types {
+ };
+ 
+ /**
+- * GRE Mode Types
++ * GRE mode types.
+  */
+ enum nss_gre_mode {
+-	NSS_GRE_MODE_TUN,	/**< GRE Tunnel interface. */
+-	NSS_GRE_MODE_TAP,	/**< GRE Tap interface. */
++	NSS_GRE_MODE_TUN,	/**< GRE tunnel interface. */
++	NSS_GRE_MODE_TAP,	/**< GRE TAP interface. */
+ 	NSS_GRE_MODE_MAX	/**< Maxmum GRE mode. */
+ };
+ 
+ /**
+- * GRE IP Types
++ * GRE IP types.
+  */
+ enum nss_gre_ip_types {
+ 	NSS_GRE_IP_IPV4,	/**<  Outer Tunnel is IPV4. */
+@@ -168,11 +171,11 @@ enum nss_gre_session_types {
+  * GRE create message structure.
+  */
+ struct nss_gre_config_msg {
+-	uint32_t src_ip[4];			/**< Source IPv4 or IPv6 Adddress. */
+-	uint32_t dest_ip[4];			/**< Destination IPv4 or IPv6 Adddress. */
++	uint32_t src_ip[4];			/**< Source IPv4 or IPv6 address. */
++	uint32_t dest_ip[4];			/**< Destination IPv4 or IPv6 address. */
+ 	uint32_t flags;				/**< GRE Flags. */
+-	uint32_t ikey;				/**< GRE rx KEY.*/
+-	uint32_t okey;				/**< GRE tx KEY. */
++	uint32_t ikey;				/**< GRE Rx key.*/
++	uint32_t okey;				/**< GRE Tx key. */
+ 	uint32_t mode;				/**< GRE TUN or TAP. */
+ 	uint32_t ip_type;			/**< IPv4 or IPv6 type. */
+ 	uint32_t next_node_if_num;		/**< To whom to forward packets. */
+@@ -185,7 +188,7 @@ struct nss_gre_config_msg {
+ };
+ 
+ /**
+- * GRE link up message structure
++ * GRE link up message structure.
+  */
+ struct nss_gre_linkup_msg {
+ 	int if_number;			/**< Interface number. */
+@@ -202,11 +205,11 @@ struct nss_gre_linkdown_msg {
+  * GRE deconfig message structure
+  */
+ struct nss_gre_deconfig_msg {
+-	int if_number;			/**< Interface number */
++	int if_number;			/**< Interface number. */
+ };
+ 
+ /**
+- * GRE session statistics message
++ * GRE session statistics message.
+  */
+ struct nss_gre_session_stats_msg {
+ 	struct nss_cmn_node_stats node_stats;		/**< Common node statistics. */
+@@ -214,7 +217,7 @@ struct nss_gre_session_stats_msg {
+ };
+ 
+ /**
+- * GRE base statistics message
++ * GRE base statistics message.
+  */
+ struct nss_gre_base_stats_msg {
+ 	uint32_t stats[NSS_GRE_BASE_DEBUG_MAX];		/**< Base debug statistics. */
+@@ -241,10 +244,10 @@ struct nss_gre_session_stats_notificatio
+ 
+ /**
+  * nss_gre_msg
+- *	Message structure to send/receive GRE messages
++ *	Message structure to send/receive GRE messages.
+  */
+ struct nss_gre_msg {
+-	struct nss_cmn_msg cm;					/**< Common message header */
++	struct nss_cmn_msg cm;					/**< Common message header. */
+ 
+ 	/**
+ 	 * Payload of a GRE message.
+@@ -304,7 +307,7 @@ extern nss_tx_status_t nss_gre_tx_msg_sy
+ 
+ /**
+  * nss_gre_tx_buf
+- *	Sends packet to the NSS
++ *	Sends a packet to the NSS.
+  *
+  * @datatypes
+  * nss_ctx_instance \n
+@@ -445,7 +448,17 @@ typedef void (*nss_gre_pkt_callback_t)(s
+  * @return
+  * None.
+  */
++#ifdef NSS_DRV_GRE_ENABLE
+ extern void nss_gre_register_pkt_callback(nss_gre_pkt_callback_t cb);
++#else
++static inline void nss_gre_register_pkt_callback(nss_gre_pkt_callback_t cb)
++{
++	/*
++	 * Dummy registration function for external modules when GRE
++	 * is disabled
++	 */
++}
++#endif
+ 
+ /**
+  * nss_gre_unregister_pkt_callback
+@@ -457,7 +470,17 @@ extern void nss_gre_register_pkt_callbac
+  * @return
+  * None.
+  */
++#ifdef NSS_DRV_GRE_ENABLE
+ extern void nss_gre_unregister_pkt_callback(void);
++#else
++static inline void nss_gre_unregister_pkt_callback(void)
++{
++	/*
++	 * Dummy registration function for external modules when GRE
++	 * is disabled
++	 */
++}
++#endif
+ 
+ /**
+  * nss_gre_stats_unregister_notifier
+--- a/exports/nss_gre_redir.h
++++ b/exports/nss_gre_redir.h
+@@ -302,7 +302,7 @@ struct nss_gre_redir_stats_sync_msg {
+ 
+ /**
+  * nss_gre_redir_tun_stats
+- *	GRE redirect statistics to accumulate all the stats values.
++ *	GRE redirect statistics to accumulate all stats values.
+  */
+ struct nss_gre_redir_tun_stats {
+ 	uint64_t rx_packets;		/**< Number of packets received. */
+--- a/exports/nss_if.h
++++ b/exports/nss_if.h
+@@ -321,6 +321,23 @@ extern struct nss_ctx_instance *nss_if_r
+ extern nss_tx_status_t nss_if_tx_buf(struct nss_ctx_instance *nss_ctx, struct sk_buff *os_buf, uint32_t if_num);
+ 
+ /**
++ * nss_if_tx_msg_with_size
++ *	Sends a message to the NSS interface.
++ *
++ * @datatypes
++ * nss_ctx_instance \n
++ * nss_if_msg
++ *
++ * @param[in,out] nss_ctx  Pointer to the NSS context.
++ * @param[in]     nim      Pointer to the NSS interface message.
++ * @param[in]     size     Total message buffer size.
++ *
++ * @return
++ * Status of the Tx operation.
++ */
++nss_tx_status_t nss_if_tx_msg_with_size(struct nss_ctx_instance *nss_ctx, struct nss_if_msg *nim, uint32_t size);
++
++/**
+  * nss_if_tx_msg
+  *	Sends a message to the NSS interface.
+  *
+@@ -338,7 +355,7 @@ nss_tx_status_t nss_if_tx_msg(struct nss
+ 
+ /**
+  * nss_if_msg_sync
+- *	Sends a message to the NSS interface and wait for the response.
++ *	Sends a message to the NSS interface and waits for the response.
+  *
+  * @datatypes
+  * nss_ctx_instance \n
+@@ -385,7 +402,7 @@ nss_tx_status_t nss_if_reset_nexthop(str
+ 
+ /**
+  * nss_if_change_mtu
+- *	Change the MTU of the interface.
++ *	Changes the MTU of the interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -401,7 +418,7 @@ nss_tx_status_t nss_if_change_mtu(struct
+ 
+ /**
+  * nss_if_change_mac_addr
+- *	Change the MAC address of the interface.
++ *	Changes the MAC address of the interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -417,7 +434,7 @@ nss_tx_status_t nss_if_change_mac_addr(s
+ 
+ /**
+  * nss_if_vsi_unassign
+- *	Detach the VSI ID from the given interface.
++ *	Detaches the VSI ID from the given interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -433,7 +450,7 @@ nss_tx_status_t nss_if_vsi_unassign(stru
+ 
+ /**
+  * nss_if_vsi_assign
+- *	Attach the VSI ID to the given interface.
++ *	Attaches the VSI ID to the given interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+--- a/exports/nss_ipv4.h
++++ b/exports/nss_ipv4.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -55,16 +58,16 @@ struct nss_ipv4_create {
+ 				/**< Source interface number (virtual or physical). */
+ 	int32_t dest_interface_num;
+ 				/**< Destination interface number (virtual or physical). */
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
+-	uint32_t flags;		/**< Flags (if any) associated with this rule. */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP. */
++	uint32_t flags;		/**< Flags associated with this rule. */
+ 	uint32_t from_mtu;	/**< MTU of the incoming interface. */
+ 	uint32_t to_mtu;	/**< MTU of the outgoing interface. */
+ 	uint32_t src_ip;	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t src_ip_xlate;	/**< Translated source IP address (used with SNAT). */
+ 	int32_t src_port_xlate;	/**< Translated source L4 port (used with SNAT). */
+ 	uint32_t dest_ip;	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip_xlate;
+ 			/**< Translated destination IP address (used with DNAT). */
+ 	int32_t dest_port_xlate;
+@@ -82,7 +85,7 @@ struct nss_ipv4_create {
+ 	uint32_t flow_end;		/**< TCP window end. */
+ 	uint32_t flow_max_end;		/**< TCP window maximum end. */
+ 	uint32_t flow_pppoe_if_exist;
+-			/**< Flow direction: PPPoE interface exist flag. */
++			/**< Flow direction: PPPoE interface existence flag. */
+ 	int32_t flow_pppoe_if_num;
+ 			/**< Flow direction: PPPoE interface number. */
+ 	uint16_t ingress_vlan_tag;	/**< Ingress VLAN tag expected for this flow. */
+@@ -100,7 +103,7 @@ struct nss_ipv4_create {
+ 			/**< Return direction: PPPoE interface number. */
+ 	uint16_t egress_vlan_tag;	/**< Egress VLAN tag expected for this flow. */
+ 	uint8_t spo_needed;		/**< Indicates whether SPO is required. */
+-	uint32_t param_a0;		/**< Custom parameter 0. */
++	struct net_device *top_ndev;	/**< Netdevice associated with the top interface. */
+ 	uint32_t param_a1;		/**< Custom parameter 1. */
+ 	uint32_t param_a2;		/**< Custom parameter 2. */
+ 	uint32_t param_a3;		/**< Custom parameter 3. */
+@@ -131,9 +134,9 @@ struct nss_ipv4_create {
+ struct nss_ipv4_destroy {
+ 	int32_t protocol;	/**< L4 protocol ID. */
+ 	uint32_t src_ip;	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip;	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ };
+ 
+ /**
+@@ -900,6 +903,7 @@ enum nss_ipv4_exception_events {
+ 	NSS_IPV4_EXCEPTION_EVENT_ICMP_IPV4_GRE_HEADER_INCOMPLETE,
+ 	NSS_IPV4_EXCEPTION_EVENT_ICMP_IPV4_ESP_HEADER_INCOMPLETE,
+ 	NSS_IPV4_EXCEPTION_EVENT_EMESH_PRIO_MISMATCH,
++	NSS_IPV4_EXCEPTION_EVENT_MC_UCAST_DMAC,
+ 	NSS_IPV4_EXCEPTION_EVENT_MAX
+ };
+ 
+@@ -956,10 +960,10 @@ struct nss_ipv4_node_sync {
+ 			/**< Number of multicast connection flushes. */
+ 
+ 	uint32_t ipv4_connection_create_invalid_mirror_ifnum;
+-			/**< Number of create request failed with an invalid mirror interface number. */
++			/**< Number of failed create requests with an invalid mirror interface number. */
+ 
+ 	uint32_t ipv4_connection_create_invalid_mirror_iftype;
+-			/**< Number of create request failed with an invalid mirror interface type. */
++			/**< Number of failed create requests with an invalid mirror interface type. */
+ 
+ 	uint32_t ipv4_mirror_failures;
+ 			/**< Mirror packet failed. */
+--- a/exports/nss_ipv6.h
++++ b/exports/nss_ipv6.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -82,14 +85,14 @@ struct nss_ipv6_create {
+ 			/**< Source interface number (virtual or physical). */
+ 	int32_t dest_interface_num;
+ 			/**< Destination interface number (virtual or physical). */
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
+-	uint32_t flags;		/**< Flags (if any) associated with this rule. */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP,. */
++	uint32_t flags;		/**< Flags associated with this rule. */
+ 	uint32_t from_mtu;	/**< MTU of the incoming interface. */
+ 	uint32_t to_mtu;	/**< MTU of the outgoing interface. */
+ 	uint32_t src_ip[4];	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip[4];	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ 	uint8_t src_mac[ETH_ALEN];	/**< Source MAC address. */
+ 	uint8_t dest_mac[ETH_ALEN];	/**< Destination MAC address. */
+ 	uint8_t flow_window_scale;	/**< Window scaling factor (TCP). */
+@@ -111,7 +114,7 @@ struct nss_ipv6_create {
+ 	uint32_t return_max_end;
+ 			/**< Maximum end for the return direction. */
+ 	uint32_t return_pppoe_if_exist;
+-			/**< Return direction: PPPoE interface exist flag. */
++			/**< Return direction: PPPoE interface existence flag. */
+ 	int32_t return_pppoe_if_num;
+ 			/**< Return direction: PPPoE interface number. */
+ 	uint16_t egress_vlan_tag;	/**< Egress VLAN tag expected for this flow. */
+@@ -132,6 +135,7 @@ struct nss_ipv6_create {
+ 					/**< Egress VLAN tag expected for this flow. */
+ 	uint8_t flow_dscp;		/**< IP DSCP value for flow direction. */
+ 	uint8_t return_dscp;		/**< IP DSCP value for the return direction. */
++	struct net_device *top_ndev;	/**< Netdevice associated with the top interface. */
+ };
+ 
+ /**
+@@ -139,11 +143,11 @@ struct nss_ipv6_create {
+  *	Information for an IPv6 flow or connection destroy rule.
+  */
+ struct nss_ipv6_destroy {
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP. */
+ 	uint32_t src_ip[4];	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip[4];	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ };
+ 
+ /**
+@@ -951,10 +955,10 @@ struct nss_ipv6_node_sync {
+ 			/**< Number of multicast connection flushes. */
+ 
+ 	uint32_t ipv6_connection_create_invalid_mirror_ifnum;
+-			/**< Number of create request failed with an invalid mirror interface number. */
++			/**< Number of failed create requests with an invalid mirror interface number. */
+ 
+ 	uint32_t ipv6_connection_create_invalid_mirror_iftype;
+-			/**< Number of create request failed with an invalid mirror interface type. */
++			/**< Number of failed create requests with an invalid mirror interface type. */
+ 
+ 	uint32_t ipv6_mirror_failures;
+ 			/**< Mirror packet failed. */
+--- a/exports/nss_lso_rx.h
++++ b/exports/nss_lso_rx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -17,7 +17,7 @@
+  */
+ 
+ /*
+- * nss_lso_rx.h
++ * @file nss_lso_rx.h
+  *	NSS driver LSO (Large Send Offload) Rx header file.
+  */
+ 
+--- a/exports/nss_map_t.h
++++ b/exports/nss_map_t.h
+@@ -36,14 +36,18 @@
+  */
+ #define NSS_MAX_MAP_T_DYNAMIC_INTERFACES 4
+ 
++/**
++ * MAP-T metadata flag.
++ */
+ #define NSS_MAPT_MDATA_FLAG_DF_BIT  (1 << 0)
+ 
+-/*
+- * mapt meta data
++/**
++ * nss_map_t_mdata
++ *         MAP-T metadata
+  */
+ struct nss_map_t_mdata {
+-	uint16_t flags;
+-	uint16_t res[6];
++	uint16_t flags;				/**< Metadata flags. */
++	uint16_t res[6];			/**< Reserved for future use. */
+ };
+ 
+ /**
+--- a/exports/nss_virt_if.h
++++ b/exports/nss_virt_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017, 2019, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017, 2019, 2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -93,8 +93,8 @@ struct nss_virt_if_interface_stats {
+  *	Virtual interface statistics received from the NSS.
+  */
+ struct nss_virt_if_stats {
+-	struct nss_virt_if_base_node_stats base_stats;
+-	struct nss_virt_if_interface_stats if_stats;
++	struct nss_virt_if_base_node_stats base_stats;	/**< Virtual interface statistics of NSS base node. */
++	struct nss_virt_if_interface_stats if_stats;	/**< Virtual interface statistics of each pair of interfaces. */
+ };
+ 
+ /**
+--- a/nss_c2c_rx.c
++++ b/nss_c2c_rx.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -107,7 +110,7 @@ void nss_c2c_rx_register_handler(struct
+ 
+ 	if (nss_ctx->id == NSS_CORE_0) {
+ 		nss_c2c_rx_stats_dentry_create();
++		nss_c2c_rx_strings_dentry_create();
+ 	}
+-	nss_c2c_rx_strings_dentry_create();
+ }
+ EXPORT_SYMBOL(nss_c2c_rx_register_handler);
+--- a/nss_c2c_tx.c
++++ b/nss_c2c_tx.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -142,8 +145,8 @@ void nss_c2c_tx_register_handler(struct
+ 
+ 	if (nss_ctx->id == NSS_CORE_0) {
+ 		nss_c2c_tx_stats_dentry_create();
++		nss_c2c_tx_strings_dentry_create();
+ 	}
+-	nss_c2c_tx_strings_dentry_create();
+ }
+ EXPORT_SYMBOL(nss_c2c_tx_register_handler);
+ 
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -522,7 +522,7 @@ static void nss_get_ddr_info(struct nss_
+ 		const __be32 *ppp = (__be32 *)of_get_property(node, "reg", &n_items);
+ 
+ 		n_items /= sizeof(ppp[0]);
+-		nss_info_always("node size %d # items %d\n",
++		nss_info("node size %d # items %d\n",
+ 				of_n_size_cells(node), n_items);
+ 		if (ppp) {
+ 			if (n_items & 1) {	/* case 1 */
+@@ -549,7 +549,7 @@ case3:
+ 				n_items = 0;
+ 			if (n_items) {
+ 				of_node_put(node);
+-				nss_info_always("%s: %x %u (avl %u) items %d active_cores %d\n",
++				nss_info("%s: %x %u (avl %u) items %d active_cores %d\n",
+ 					name, mmu->start_address, mmu->ddr_size,
+ 					avail_ddr, n_items, mmu->num_active_cores);
+ 				/*
+@@ -886,7 +886,7 @@ static inline void nss_core_handle_buffe
+ 		/*
+ 		 * linearize or free if requested.
+ 		 */
+-	 	if (unlikely(skb_is_nonlinear(nbuf))) {
++		if (unlikely(skb_is_nonlinear(nbuf))) {
+ 			if (nss_core_skb_needs_linearize(nbuf, ndev->features) && __skb_linearize(nbuf)) {
+ 				dev_kfree_skb_any(nbuf);
+ 				return;
+@@ -944,11 +944,11 @@ static inline void nss_core_handle_ext_b
+ 	ext_cb = subsys_dp_reg->ext_cb;
+ 	if (likely(ext_cb) && likely(ndev)) {
+ 
+-	 	if (unlikely(skb_is_nonlinear(nbuf))) {
++		if (unlikely(skb_is_nonlinear(nbuf))) {
+ 			if (nss_core_skb_needs_linearize(nbuf, ndev->features) && __skb_linearize(nbuf)) {
+ 				/*
+-			 	* We needed to linearize, but __skb_linearize() failed. So free the nbuf.
+-			 	*/
++				* We needed to linearize, but __skb_linearize() failed. So free the nbuf.
++				*/
+ 				dev_kfree_skb_any(nbuf);
+ 				return;
+ 			}
+@@ -1685,6 +1685,7 @@ static void nss_core_init_nss(struct nss
+ {
+ 	struct nss_top_instance *nss_top;
+ 	int ret;
++	int i;
+ 
+ 	NSS_CORE_DMA_CACHE_MAINT((void *)if_map, sizeof(*if_map), DMA_FROM_DEVICE);
+ 	NSS_CORE_DSB();
+@@ -1700,6 +1701,9 @@ static void nss_core_init_nss(struct nss
+ #ifdef NSS_DRV_C2C_ENABLE
+ 	nss_ctx->c2c_start = nss_ctx->meminfo_ctx.c2c_start_dma;
+ #endif
++	for (i = 0; i < NSS_H2N_DESC_RING_NUM; i++) {
++		nss_ctx->h2n_desc_rings[i].nss_index_local = 0;
++	}
+ 
+ 	nss_top = nss_ctx->nss_top;
+ 	spin_lock_bh(&nss_top->lock);
+@@ -1723,12 +1727,15 @@ static void nss_core_init_nss(struct nss
+ 		 * Configure the maximum number of IPv4/IPv6
+ 		 * connections supported by the accelerator.
+ 		 */
+-		nss_ipv4_conn_cfg = max_ipv4_conn;
++#ifdef NSS_DRV_IPV4_ENABLE
++ 		nss_ipv4_conn_cfg = max_ipv4_conn;
++ 		nss_ipv4_update_conn_count(max_ipv4_conn);
++#endif
++
+ #ifdef NSS_DRV_IPV6_ENABLE
+ 		nss_ipv6_conn_cfg = max_ipv6_conn;
+-		nss_ipv6_update_conn_count(max_ipv6_conn);
++ 		nss_ipv6_update_conn_count(max_ipv6_conn);
+ #endif
+-		nss_ipv4_update_conn_count(max_ipv4_conn);
+ 
+ #ifdef NSS_MEM_PROFILE_LOW
+ 		/*
+@@ -3014,48 +3021,52 @@ int32_t nss_core_send_buffer(struct nss_
+ 	 * Take a lock for queue
+ 	 */
+ 	spin_lock_bh(&h2n_desc_ring->lock);
+-
+-	/*
+-	 * We need to work out if there's sufficent space in our transmit descriptor
+-	 * ring to place all the segments of a nbuf.
+-	 */
+-	NSS_CORE_DMA_CACHE_MAINT((void *)&if_map->h2n_nss_index[qid], sizeof(uint32_t), DMA_FROM_DEVICE);
+-	NSS_CORE_DSB();
+-	nss_index = if_map->h2n_nss_index[qid];
+-
++	nss_index = h2n_desc_ring->nss_index_local;
+ 	hlos_index = h2n_desc_ring->hlos_index;
+-
+ 	count = ((nss_index - hlos_index - 1) + size) & (mask);
+ 
++	/*
++	 * If local index shows that there is not enough space in the ring,
++	 * Read the actual index from the consumer's generation (NSS-FW).
++	 */
+ 	if (unlikely(count < (segments + 1))) {
+ 		/*
+-		 * NOTE: tx_q_full_cnt and TX_STOPPED flags will be used
+-		 *	when we will add support for DESC Q congestion management
+-		 *	in future
+-		 */
+-		h2n_desc_ring->tx_q_full_cnt++;
+-		h2n_desc_ring->flags |= NSS_H2N_DESC_RING_FLAGS_TX_STOPPED;
+-		spin_unlock_bh(&h2n_desc_ring->lock);
+-		nss_warning("%px: Data/Command Queue full reached", nss_ctx);
++		 * We need to work out if there's sufficent space in our transmit descriptor
++		 * ring to place all the segments of a nbuf.
++		 */
++		NSS_CORE_DMA_CACHE_MAINT((void *)&if_map->h2n_nss_index[qid], sizeof(uint32_t), DMA_FROM_DEVICE);
++		NSS_CORE_DSB();
++		nss_index = if_map->h2n_nss_index[qid];
++		h2n_desc_ring->nss_index_local = nss_index;
++		count = ((nss_index - hlos_index - 1) + size) & (mask);
++		if (unlikely(count < (segments + 1))) {
++			/*
++			 * NOTE: tx_q_full_cnt and TX_STOPPED flags will be used
++			 *	when we will add support for DESC Q congestion management
++			 *	in future
++			 */
++			h2n_desc_ring->tx_q_full_cnt++;
++			h2n_desc_ring->flags |= NSS_H2N_DESC_RING_FLAGS_TX_STOPPED;
++			spin_unlock_bh(&h2n_desc_ring->lock);
++			nss_warning("%px: Data/Command Queue full reached", nss_ctx);
+ 
+ #if (NSS_PKT_STATS_ENABLED == 1)
+-		if (nss_ctx->id == NSS_CORE_0) {
+-			NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_QUEUE_FULL_0]);
+-		} else if (nss_ctx->id == NSS_CORE_1) {
+-			NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_QUEUE_FULL_1]);
+-		} else {
+-			nss_warning("%px: Invalid nss core: %d\n", nss_ctx, nss_ctx->id);
+-		}
++			if (nss_ctx->id == NSS_CORE_0) {
++				NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_QUEUE_FULL_0]);
++			} else if (nss_ctx->id == NSS_CORE_1) {
++				NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_QUEUE_FULL_1]);
++			} else {
++				nss_warning("%px: Invalid nss core: %d\n", nss_ctx, nss_ctx->id);
++			}
+ #endif
++			/*
++			 * Enable de-congestion interrupt from NSS
++			 */
++			nss_hal_enable_interrupt(nss_ctx, nss_ctx->int_ctx[0].shift_factor, NSS_N2H_INTR_TX_UNBLOCKED);
+ 
+-		/*
+-		 * Enable de-congestion interrupt from NSS
+-		 */
+-		nss_hal_enable_interrupt(nss_ctx, nss_ctx->int_ctx[0].shift_factor, NSS_N2H_INTR_TX_UNBLOCKED);
+-
+-		return NSS_CORE_STATUS_FAILURE_QUEUE;
++			return NSS_CORE_STATUS_FAILURE_QUEUE;
++		}
+ 	}
+-
+ 	desc = &desc_ring[hlos_index];
+ 
+ 	/*
+--- a/nss_core.h
++++ b/nss_core.h
+@@ -389,6 +389,7 @@ struct hlos_n2h_desc_ring {
+ struct hlos_h2n_desc_rings {
+ 	struct h2n_desc_if_instance desc_ring;	/* Descriptor ring */
+ 	uint32_t hlos_index;
++	uint32_t nss_index_local;		/* Index number for the next descriptor (NSS owned) */
+ 	spinlock_t lock;			/* Lock to save from simultaneous access */
+ 	uint32_t flags;				/* Flags */
+ 	uint64_t tx_q_full_cnt;			/* Descriptor queue full count */
+--- a/nss_coredump.c
++++ b/nss_coredump.c
+@@ -1,6 +1,8 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -47,7 +49,8 @@ static struct workqueue_struct *coredump
+  */
+ static void nss_coredump_wait(struct work_struct *work)
+ {
+-	panic("did not get all coredump finished signals\n");
++	if (!(nss_cmd_buf.coredump & 0xFFFFFFFE))
++		panic("did not get all coredump finished signals\n");
+ }
+ 
+ /*
+--- a/nss_crypto_cmn.c
++++ b/nss_crypto_cmn.c
+@@ -226,6 +226,12 @@ nss_tx_status_t nss_crypto_cmn_tx_msg_sy
+ 	 * further details read Linux/Documentation/memory-barrier.txt
+ 	 */
+ 	smp_rmb();
++
++	if (msg->cm.response != NSS_CMN_RESPONSE_ACK) {
++		up(&pvt->sem);
++		return NSS_TX_FAILURE;
++	}
++
+ 	up(&pvt->sem);
+ 
+ 	return NSS_TX_SUCCESS;
+--- a/nss_dynamic_interface.c
++++ b/nss_dynamic_interface.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -320,7 +323,9 @@ nss_tx_status_t nss_dynamic_interface_de
+ void nss_dynamic_interface_register_handler(struct nss_ctx_instance *nss_ctx)
+ {
+ 	nss_core_register_handler(nss_ctx, NSS_DYNAMIC_INTERFACE, nss_dynamic_interface_handler, NULL);
+-	nss_dynamic_interface_stats_dentry_create();
++	if (nss_ctx->id == NSS_CORE_0) {
++		nss_dynamic_interface_stats_dentry_create();
++	}
+ }
+ 
+ /*
+--- a/nss_hal/ipq806x/nss_hal_pvt.c
++++ b/nss_hal/ipq806x/nss_hal_pvt.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013, 2015-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -978,12 +981,12 @@ static int __nss_hal_clock_configure(str
+ 	 * Check if turbo is supported
+ 	 */
+ 	if (npd->turbo_frequency) {
+-		nss_info_always("nss_driver - Turbo Support %d\n", npd->turbo_frequency);
++		nss_info("nss_driver - Turbo Support %d\n", npd->turbo_frequency);
+ #if (NSS_PM_SUPPORT == 1)
+ 		nss_pm_set_turbo();
+ #endif
+ 	} else {
+-		nss_info_always("nss_driver - Turbo No Support %d\n", npd->turbo_frequency);
++		nss_info("nss_driver - Turbo No Support %d\n", npd->turbo_frequency);
+ 	}
+ 
+ 	/*
+@@ -1082,26 +1085,26 @@ clk_complete:
+ 		}
+ 	}
+ 
+-	nss_info_always("Supported Frequencies - ");
++	nss_info("Supported Frequencies - ");
+ 	for (i = 0; i < NSS_FREQ_MAX_SCALE; i++) {
+ 		if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_110) {
+-			nss_info_always("110Mhz ");
++			nss_info("110Mhz ");
+ 		} else if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_275) {
+-			nss_info_always("275Mhz ");
++			nss_info("275Mhz ");
+ 		} else if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_550) {
+-			nss_info_always("550Mhz ");
++			nss_info("550Mhz ");
+ 		} else if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_600) {
+-			nss_info_always("600Mhz ");
++			nss_info("600Mhz ");
+ 		} else if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_733) {
+-			nss_info_always("733Mhz ");
++			nss_info("733Mhz ");
+ 		} else if (nss_runtime_samples.freq_scale[i].frequency == NSS_FREQ_800) {
+-			nss_info_always("800Mhz ");
++			nss_info("800Mhz ");
+ 		} else {
+ 			nss_info_always("Error\nNo Table/Invalid Frequency Found - Loading Old Tables -");
+ 			return -EFAULT;
+ 		}
+ 	}
+-	nss_info_always("\n");
++	nss_info("\n");
+ 
+ 	/*
+ 	 * Set default frequency
+--- a/nss_hal/nss_hal.c
++++ b/nss_hal/nss_hal.c
+@@ -41,7 +41,6 @@
+ /*
+  * Macros
+  */
+-#define MIN_IMG_SIZE (64*1024)
+ #define NSS_AP0_IMAGE "qca-nss0.bin"
+ #define NSS_AP1_IMAGE "qca-nss1.bin"
+ 
+@@ -62,7 +61,7 @@ int nss_hal_firmware_load(struct nss_ctx
+ 	} else if (nss_ctx->id == 1) {
+ 		rc = firmware_request_nowarn(&nss_fw, NSS_AP1_IMAGE, &(nss_dev->dev));
+ 	} else {
+-		nss_warning("%px: Invalid nss dev: %d\n", nss_ctx, nss_ctx->id);
++		nss_warning("%px: Invalid nss dev: %d", nss_ctx, nss_ctx->id);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -74,10 +73,6 @@ int nss_hal_firmware_load(struct nss_ctx
+ 		return rc;
+ 	}
+ 
+-	if (nss_fw->size < MIN_IMG_SIZE) {
+-		nss_info_always("%px: nss firmware is truncated, size:%d", nss_ctx, (int)nss_fw->size);
+-		return rc;
+-	}
+ 
+ 	load_mem = ioremap(npd->load_addr, nss_fw->size);
+ 	if (!load_mem) {
+@@ -86,7 +81,7 @@ int nss_hal_firmware_load(struct nss_ctx
+ 		return rc;
+ 	}
+ 
+-	nss_info_always("nss_driver - fw of size %d  bytes copied to load addr: %x, nss_id : %d\n", (int)nss_fw->size, npd->load_addr, nss_dev->id);
++	nss_info_always("nss_driver - fw of size %d  bytes copied to load addr: %x, nss_id : %d", (int)nss_fw->size, npd->load_addr, nss_dev->id);
+ 	memcpy_toio(load_mem, nss_fw->data, nss_fw->size);
+ 	release_firmware(nss_fw);
+ 	iounmap(load_mem);
+@@ -210,14 +205,14 @@ int nss_hal_probe(struct platform_device
+ 	if (nss_top_main.nss_hal_common_init_done == false) {
+ 		err = nss_top->hal_ops->common_reset(nss_dev);
+ 		if (err) {
+-			nss_info_always("NSS HAL common init failed\n");
++			nss_info_always("NSS HAL common init failed");
+ 			return -EFAULT;
+ 		}
+ 	}
+ 
+ #if (NSS_DT_SUPPORT == 1)
+ 	if (!nss_dev->dev.of_node) {
+-		pr_err("nss-driver: Device tree not available\n");
++		pr_err("nss-driver: Device tree not available");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -242,27 +237,27 @@ int nss_hal_probe(struct platform_device
+ 	 */
+ 	nss_ctx->dev = &nss_dev->dev;
+ 
+-	nss_info("%px: NSS_DEV_ID %s\n", nss_ctx, dev_name(&nss_dev->dev));
++	nss_info("%px: NSS_DEV_ID %s", nss_ctx, dev_name(&nss_dev->dev));
+ 
+ 	/*
+ 	 * Do firmware load from nss-drv if required
+ 	 */
+ 	err = nss_top->hal_ops->firmware_load(nss_ctx, nss_dev, npd);
+ 	if (err) {
+-		nss_info_always("%px: firmware load from driver failed\n", nss_ctx);
++		nss_info_always("%px: firmware load from driver failed", nss_ctx);
+ 		goto err_init;
+ 	}
+ 
+ 	err = nss_top->hal_ops->clock_configure(nss_ctx, nss_dev, npd);
+ 	if (err) {
+-		nss_info_always("%px: clock configure failed\n", nss_ctx);
++		nss_info_always("%px: clock configure failed", nss_ctx);
+ 		goto err_init;
+ 	}
+ 
+ 	/*
+ 	 * Get load address of NSS firmware
+ 	 */
+-	nss_info("%px: Setting NSS%d Firmware load address to %x\n", nss_ctx, nss_ctx->id, npd->load_addr);
++	nss_info_always("%px: Setting NSS%d Firmware load address to %x", nss_ctx, nss_ctx->id, npd->load_addr);
+ 	nss_top->nss[nss_ctx->id].load = npd->load_addr;
+ 
+ 	/*
+@@ -294,11 +289,11 @@ int nss_hal_probe(struct platform_device
+ 	 * Physical address of logical registers space
+ 	 */
+ 	nss_ctx->vphys = npd->vphys;
+-	nss_info("%d:ctx=%px, vphys=%x, vmap=%px, nphys=%x, nmap=%px", nss_ctx->id,
++	nss_info_always("%d:ctx=%px, vphys=%x, vmap=%px, nphys=%x, nmap=%px", nss_ctx->id,
+ 			nss_ctx, nss_ctx->vphys, nss_ctx->vmap, nss_ctx->nphys, nss_ctx->nmap);
+ 
+ 	if (!nss_meminfo_init(nss_ctx)) {
+-		nss_info_always("%px: meminfo init failed\n", nss_ctx);
++		nss_info_always("%px: meminfo init failed", nss_ctx);
+ 		err = -EFAULT;
+ 		goto err_init;
+ 	}
+@@ -360,18 +355,25 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_IPV4_ENABLE
+ 	if (npd->ipv4_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->ipv4_handler_id = nss_dev->id;
+ 		nss_ipv4_register_handler();
++#endif
+ 
+ #ifdef NSS_DRV_EDMA_ENABLE
+ 		nss_top->edma_handler_id = nss_dev->id;
+ 		nss_edma_register_handler();
+ #endif
++
++#ifdef NSS_DRV_ETH_RX_ENABLE
+ 		nss_eth_rx_register_handler(nss_ctx);
++#endif
++
+ #ifdef NSS_DRV_LAG_ENABLE
+ 		nss_lag_register_handler();
+ #endif
++
+ #ifdef NSS_DRV_TRUSTSEC_ENABLE
+ 		nss_top->trustsec_tx_handler_id = nss_dev->id;
+ 		nss_trustsec_tx_register_handler();
+@@ -466,10 +468,12 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	if (npd->pppoe_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->pppoe_handler_id = nss_dev->id;
+ 		nss_pppoe_register_handler();
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_PPE_ENABLE
+ 	if (npd->ppe_enabled == NSS_FEATURE_ENABLED) {
+@@ -564,6 +568,7 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_WIFIOFFLOAD_ENABLE
+ 	if (npd->wifioffload_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->wifi_handler_id = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_VAP] = nss_dev->id;
+@@ -591,6 +596,7 @@ int nss_hal_probe(struct platform_device
+ 		 */
+ 		nss_wifili_thread_scheme_db_init(nss_dev->id);
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_OAM_ENABLE
+ 	if (npd->oam_enabled == NSS_FEATURE_ENABLED) {
+@@ -607,11 +613,13 @@ int nss_hal_probe(struct platform_device
+ 	}
+ #endif
+ 
++#ifdef NSS_DRV_VLAN_ENABLE
+ 	if (npd->vlan_enabled == NSS_FEATURE_ENABLED) {
+ 		nss_top->vlan_handler_id = nss_dev->id;
+ 		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_VLAN] = nss_dev->id;
+ 		nss_vlan_register_handler();
+ 	}
++#endif
+ 
+ #ifdef NSS_DRV_QVPN_ENABLE
+ #if defined(NSS_HAL_IPQ807x_SUPPORT) || defined(NSS_HAL_IPQ60XX_SUPPORT)
+@@ -712,7 +720,9 @@ int nss_hal_probe(struct platform_device
+ 		nss_freq_init_cpu_usage();
+ #endif
+ 
++#ifdef NSS_DRV_LSO_RX_ENABLE
+ 		nss_lso_rx_register_handler(nss_ctx);
++#endif
+ 	}
+ 
+ 	nss_top->frequency_handler_id = nss_dev->id;
+--- a/nss_if.c
++++ b/nss_if.c
+@@ -160,10 +160,10 @@ nss_tx_status_t nss_if_tx_buf(struct nss
+ }
+ 
+ /*
+- * nss_if_tx_msg()
+- *	Transmit a message to the specific interface on this core.
++ * nss_if_tx_msg_with_size()
++ *	Transmit a message to the specific interface on this core with a specified size.
+  */
+-nss_tx_status_t nss_if_tx_msg(struct nss_ctx_instance *nss_ctx, struct nss_if_msg *nim)
++nss_tx_status_t nss_if_tx_msg_with_size(struct nss_ctx_instance *nss_ctx, struct nss_if_msg *nim, uint32_t size)
+ {
+ 	struct nss_cmn_msg *ncm = &nim->cm;
+ 	struct net_device *dev;
+@@ -198,7 +198,19 @@ nss_tx_status_t nss_if_tx_msg(struct nss
+ 		return NSS_TX_FAILURE_BAD_PARAM;
+ 	}
+ 
+-	return nss_core_send_cmd(nss_ctx, nim, sizeof(*nim), NSS_NBUF_PAYLOAD_SIZE);
++	return nss_core_send_cmd(nss_ctx, nim, sizeof(*nim), size);
++}
++EXPORT_SYMBOL(nss_if_tx_msg_with_size);
++
++/*
++ * nss_if_tx_msg()
++ *	Transmit a message to the specific interface on this core.
++ */
++nss_tx_status_t nss_if_tx_msg(struct nss_ctx_instance *nss_ctx, struct nss_if_msg *nim)
++{
++	NSS_VERIFY_CTX_MAGIC(nss_ctx);
++
++	return nss_if_tx_msg_with_size(nss_ctx, nim, NSS_NBUF_PAYLOAD_SIZE);
+ }
+ 
+ /*
+--- a/nss_init.c
++++ b/nss_init.c
+@@ -633,10 +633,24 @@ static struct ctl_table_header *nss_dev_
+  */
+ static int __init nss_init(void)
+ {
++#if defined(NSS_DRV_POINT_OFFLOAD)
++	struct device_node *pof = NULL;
++#endif
++
++
+ #if (NSS_DT_SUPPORT == 1)
+ 	struct device_node *cmn = NULL;
+ #endif
+-	nss_info("Init NSS driver");
++
++#if defined(NSS_DRV_POINT_OFFLOAD)
++	pof = of_find_node_by_name(NULL, "reg_update");
++	if ((!pof) || (!of_property_read_bool(pof, "ubi_core_enable"))) {
++		nss_info_always("UBI is not enabled. Disable qca-nss-drv\n");
++		return 0;
++	}
++#endif
++
++nss_info("Init NSS driver");
+ 
+ #if (NSS_DT_SUPPORT == 1)
+ 	/*
+@@ -739,7 +753,9 @@ static int __init nss_init(void)
+ 	/*
+ 	 * Registering sysctl for ipv4/6 specific config.
+ 	 */
++#ifdef NSS_DRV_IPV4_ENABLE
+ 	nss_ipv4_register_sysctl();
++#endif
+ #ifdef NSS_DRV_IPV6_ENABLE
+ 	nss_ipv6_register_sysctl();
+ #endif
+@@ -778,7 +794,9 @@ static int __init nss_init(void)
+ 	/*
+ 	 * Registering sysctl for pppoe specific config.
+ 	 */
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	nss_pppoe_register_sysctl();
++#endif
+ 
+ 	/*
+ 	 * Setup Runtime Sample values
+@@ -880,13 +898,6 @@ static int __init nss_init(void)
+ #endif
+ 
+ 	/*
+-	 * Init Wi-Fi mesh
+-	 */
+-#ifdef NSS_DRV_WIFI_MESH_ENABLE
+-	nss_wifi_mesh_init();
+-#endif
+-
+-	/*
+ 	 * Register platform_driver
+ 	 */
+ 	return platform_driver_register(&nss_driver);
+@@ -923,13 +934,17 @@ static void __exit nss_cleanup(void)
+ 	/*
+ 	 * Unregister pppoe specific sysctl
+ 	 */
++#ifdef NSS_DRV_PPPOE_ENABLE
+ 	nss_pppoe_unregister_sysctl();
++#endif
+ 
+ 	/*
+ 	 * Unregister ipv4/6 specific sysctl and free allocated to connection tables
+ 	 */
++#ifdef NSS_DRV_IPV4_ENABLE
+ 	nss_ipv4_unregister_sysctl();
+ 	nss_ipv4_free_conn_tables();
++#endif
+ 
+ #ifdef NSS_DRV_IPV6_ENABLE
+ 	nss_ipv6_unregister_sysctl();
+--- a/nss_meminfo.c
++++ b/nss_meminfo.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -408,7 +409,7 @@ static bool nss_meminfo_init_block_lists
+ 
+ 		if (strcmp(r->name, "profile_dma_ctrl") == 0) {
+ 			mem_ctx->sdma_ctrl = kern_addr;
+-		nss_info_always("%px: set sdma %px\n", nss_ctx, kern_addr);
++		nss_info("%px: set sdma %px\n", nss_ctx, kern_addr);
+ 		}
+ 
+ 		/*
+@@ -535,6 +536,13 @@ static bool nss_meminfo_configure_n2h_h2
+ 	}
+ 
+ 	/*
++	 * Returning true allows to execute firmware bin
++	 */
++	if (!mem_ctx->if_map) {
++		return true;
++	}
++
++	/*
+ 	 * Bring a fresh copy of if_map from memory in order to read it correctly.
+ 	 */
+ 	if_map = mem_ctx->if_map;
+@@ -793,6 +801,6 @@ bool nss_meminfo_init(struct nss_ctx_ins
+ 
+ 	nss_meminfo_init_debugfs(nss_ctx);
+ 
+-	nss_info_always("%px: meminfo init succeed\n", nss_ctx);
++	nss_info("%px: meminfo init succeed\n", nss_ctx);
+ 	return true;
+ }
+--- a/nss_n2h.c
++++ b/nss_n2h.c
+@@ -2061,10 +2061,9 @@ void nss_n2h_register_handler(struct nss
+ 
+ 	if (nss_ctx->id == NSS_CORE_0) {
+ 		nss_n2h_stats_dentry_create();
++		nss_n2h_strings_dentry_create();
++		nss_drv_strings_dentry_create();
+ 	}
+-	nss_n2h_strings_dentry_create();
+-
+-	nss_drv_strings_dentry_create();
+ }
+ 
+ /*
+--- a/nss_phys_if.h
++++ b/nss_phys_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -70,6 +70,12 @@ struct nss_phys_if_estats {
+ 	uint32_t gmac_worst_case_ticks;	/**< Worst case iteration of the GMAC in ticks */
+ 	uint32_t gmac_iterations;	/**< Number of iterations around the GMAC */
+ 	uint32_t tx_pause_frames;	/**< Number of pause frames sent by the GMAC */
++
++	/*
++	 * On IPQ50xx, we rely on the SSDK to pull the mmc stats.
++	 * The FAL layer does not do this on IPQ806x.
++	 */
++#if defined(NSS_HAL_IPQ806X_SUPPORT)
+ 	uint32_t mmc_rx_overflow_errors;
+ 					/**< Number of RX overflow errors */
+ 	uint32_t mmc_rx_watchdog_timeout_errors;
+@@ -94,6 +100,7 @@ struct nss_phys_if_estats {
+ 	uint32_t mmc_tx_single_col;	/* Number of single collisions */
+ 	uint32_t mmc_tx_multiple_col;	/* Number of multiple collisions */
+ 	uint32_t mmc_tx_octets_gb;	/* Number of good/bad octets sent*/
++#endif
+ };
+ 
+ /**
+--- a/nss_profiler.c
++++ b/nss_profiler.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -97,7 +100,7 @@ nss_tx_status_t nss_profiler_if_tx_buf(v
+ 		return NSS_TX_FAILURE_TOO_LARGE;
+ 	}
+ 
+-	npm = kzalloc(sizeof(*npm), GFP_KERNEL);
++	npm = kzalloc(sizeof(*npm), GFP_ATOMIC);
+ 	if (!npm) {
+ 		nss_warning("%px: Failed to allocate memory for message\n", nss_ctx);
+ 		return NSS_TX_FAILURE;
+@@ -121,6 +124,7 @@ void *nss_profiler_alloc_dma(struct nss_
+ {
+ 	int size;
+ 	void *kaddr;
++	dma_addr_t dma_addr;
+ 	struct nss_profile_sdma_producer *dma;
+ 	struct nss_profile_sdma_ctrl *ctrl = (struct nss_profile_sdma_ctrl *)nss_ctx->meminfo_ctx.sdma_ctrl;
+ 	if (!ctrl)
+@@ -132,7 +136,13 @@ void *nss_profiler_alloc_dma(struct nss_
+ 	kaddr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 
+ 	if (kaddr) {
+-		dma->desc_ring = dma_map_single(nss_ctx->dev, kaddr, size, DMA_FROM_DEVICE);
++		dma_addr = dma_map_single(nss_ctx->dev, kaddr, size, DMA_FROM_DEVICE);
++		if (unlikely(dma_mapping_error(nss_ctx->dev, dma_addr))) {
++			nss_info_always("%px: failed to map DDR block\n", nss_ctx);
++			kfree(kaddr);
++			return NULL;
++		}
++		dma->desc_ring = dma_addr;
+ 		NSS_CORE_DSB();
+ 	}
+ 	ctrl->consumer[0].ring.kp = kaddr;
+--- a/nss_qrfs.c
++++ b/nss_qrfs.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -415,6 +415,65 @@ nss_tx_status_t nss_qrfs_set_flow_rule(s
+ EXPORT_SYMBOL(nss_qrfs_set_flow_rule);
+ 
+ /*
++ * nss_qrfs_configure_flow_rule()
++ *	Configures a QRFS flow rule to NSS firmware
++ */
++nss_tx_status_t nss_qrfs_configure_flow_rule(uint32_t *dst_addr, uint32_t *src_addr, uint16_t dst_port, uint16_t src_port, uint32_t version, uint16_t proto, uint16_t cpu, enum nss_qrfs_msg_types type) {
++
++        struct nss_qrfs_msg nqm;
++        struct nss_qrfs_flow_rule_msg *nqfrm;
++        nss_tx_status_t status;
++        struct nss_ctx_instance *nss_ctx = NULL;
++	nss_qrfs_msg_callback_t cb = NULL;
++        int i;
++
++
++	memset(&nqm, 0, sizeof(struct nss_qrfs_msg));
++	nss_qrfs_msg_init(&nqm, NSS_QRFS_INTERFACE, type,
++			sizeof(struct nss_qrfs_flow_rule_msg), cb, (void *)nss_ctx);
++	if (type == NSS_QRFS_MSG_FLOW_ADD) {
++                nqfrm = &nqm.msg.flow_add;
++		cb = nss_qrfs_flow_add_msg_callback;
++	} else if (type == NSS_QRFS_MSG_FLOW_DELETE) {
++                nqfrm = &nqm.msg.flow_delete;
++		cb = nss_qrfs_flow_delete_msg_callback;
++	} else {
++		nss_warning("QRFS configure rule failed, not supported message type.\n");
++		return NSS_TX_FAILURE_BAD_PARAM;
++	}
++
++
++	nqfrm->protocol = proto;
++	nqfrm->ip_version = version;
++
++	if (version == 4) {
++		nqfrm->src_addr[0] = src_addr[0];
++		nqfrm->dst_addr[0] = dst_addr[0];
++	} else {
++		memcpy(nqfrm->src_addr, src_addr, sizeof(uint32_t) * 4);
++		memcpy(nqfrm->dst_addr, dst_addr, sizeof(uint32_t) * 4);
++	}
++
++	nqfrm->src_port = src_port;
++        nqfrm->dst_port = dst_port;
++        nqfrm->cpu = cpu;
++	nqfrm->if_num = 0;
++
++        for(i = 0; i < NSS_CORE_MAX; i++) {
++                nss_ctx = nss_qrfs_get_ctx(i);
++                status = nss_qrfs_tx_msg(nss_ctx, &nqm);
++
++		if (status) {
++			nss_warning("%px: QRFS configure rule failed, error code: %d\n", nss_ctx, status);
++			return NSS_TX_FAILURE;
++		}
++        }
++
++	return NSS_TX_SUCCESS;
++}
++EXPORT_SYMBOL(nss_qrfs_configure_flow_rule);
++
++/*
+  * nss_qrfs_register_handler()
+  */
+ void nss_qrfs_register_handler(struct nss_ctx_instance *nss_ctx)
+--- a/nss_rmnet_rx.c
++++ b/nss_rmnet_rx.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -243,6 +243,8 @@ static int nss_rmnet_rx_handle_destroy_s
+ 	rmnet_rx_handle[index_h2n] = NULL;
+ 	spin_unlock_bh(&nss_rmnet_rx_lock);
+ 
++	kfree(handle->stats_h2n);
++	kfree(handle->stats_n2h);
+ 	kfree(handle->pvt);
+ 	kfree(handle);
+ 
+--- a/nss_rps.c
++++ b/nss_rps.c
+@@ -278,6 +278,7 @@ static nss_tx_status_t nss_rps_cfg(struc
+ 	return NSS_SUCCESS;
+ }
+ 
++#ifdef NSS_DRV_IPV4_ENABLE
+ /*
+  * nss_rps_ipv4_hash_bitmap_cfg()
+  *	Send Message to NSS to configure hash_bitmap.
+@@ -306,6 +307,7 @@ static nss_tx_status_t nss_rps_ipv4_hash
+ 	up(&nss_rps_cfg_pvt.sem);
+ 	return NSS_SUCCESS;
+ }
++#endif
+ 
+ #ifdef NSS_DRV_IPV6_ENABLE
+ /*
+@@ -456,8 +458,8 @@ static int nss_rps_hash_bitmap_cfg_handl
+ 				void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	struct nss_top_instance *nss_top = &nss_top_main;
+-	struct nss_ctx_instance *nss_ctx = &nss_top->nss[0];
+-	int ret, ret_ipv4, current_state;
++	struct nss_ctx_instance *nss_ctx __attribute__((unused)) = &nss_top->nss[0];
++	int ret, current_state;
+ 
+ 	current_state = nss_rps_hash_bitmap;
+ 	ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
+@@ -471,16 +473,24 @@ static int nss_rps_hash_bitmap_cfg_handl
+ 		return ret;
+ 	}
+ 
++#if !defined(NSS_DRV_IPV4_ENABLE) || !defined(NSS_DRV_IPV6_ENABLE)
++	nss_info_always("%px: Feature is not supported\n", nss_ctx);
++	return 0;
++#else
+ 	if (nss_rps_hash_bitmap <= (NSS_RPS_MAX_CORE_HASH_BITMAP)) {
+ 		nss_info("Configuring NSS RPS hash_bitmap\n");
+-		ret_ipv4 = nss_rps_ipv4_hash_bitmap_cfg(nss_ctx, nss_rps_hash_bitmap);
++#ifdef NSS_DRV_IPV4_ENABLE
++		{
++			int ret_ipv4;
++			ret_ipv4 = nss_rps_ipv4_hash_bitmap_cfg(nss_ctx, nss_rps_hash_bitmap);
+ 
+-		if (ret_ipv4 != NSS_SUCCESS) {
+-			nss_warning("%px: ipv4 hash_bitmap config message failed\n", nss_ctx);
+-			nss_rps_hash_bitmap = current_state;
+-			return ret_ipv4;
++			if (ret_ipv4 != NSS_SUCCESS) {
++				nss_warning("%px: ipv4 hash_bitmap config message failed\n", nss_ctx);
++				nss_rps_hash_bitmap = current_state;
++				return ret_ipv4;
++			}
+ 		}
+-
++#endif
+ #ifdef NSS_DRV_IPV6_ENABLE
+ 		{
+ 			int ret_ipv6;
+@@ -501,6 +511,7 @@ static int nss_rps_hash_bitmap_cfg_handl
+ 
+ 	nss_info_always("Invalid input value. Valid values are less than %d\n", (NSS_RPS_MAX_CORE_HASH_BITMAP));
+ 	return ret;
++#endif
+ }
+ 
+ /* nss_rps_pri_map_cfg_handler()
+--- a/nss_stats.c
++++ b/nss_stats.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -149,6 +152,14 @@ int nss_stats_open(struct inode *inode,
+ }
+ 
+ /*
++ * nss_clear_stats_write()
++ *	Clear content of stats.
++ */
++ssize_t nss_clear_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos) {
++	return -ESRCH;
++}
++
++/*
+  * nss_stats_release()
+  *	Releases stats file.
+  */
+--- a/nss_stats.h
++++ b/nss_stats.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2016-2017, 2019-2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -38,10 +41,11 @@
+ #define NSS_STATS_EXTRA_OUTPUT_LINES 35
+ 
+ #define NSS_STATS_DECLARE_FILE_OPERATIONS(name) \
+-static const struct file_operations nss_##name##_stats_ops = { \
++static struct file_operations nss_##name##_stats_ops = { \
+ 	.open = nss_stats_open, \
+ 	.read = nss_##name##_stats_read, \
+-	.llseek = generic_file_llseek, \
++	.write = nss_clear_stats_write, \
++	.llseek = generic_file_llseek,		\
+ 	.release = nss_stats_release, \
+ };
+ 
+@@ -68,6 +72,7 @@ extern void nss_stats_register_sysctl(vo
+ void nss_stats_init(void);
+ extern int nss_stats_release(struct inode *inode, struct file *filp);
+ extern int nss_stats_open(struct inode *inode, struct file *filp);
++extern ssize_t nss_clear_stats_write(struct file *fp, const char __user *ubuf, size_t sz, loff_t *ppos);
+ void nss_stats_create_dentry(char *name, const struct file_operations *ops);
+ extern void nss_stats_reset_common_stats(uint32_t if_num);
+ extern size_t nss_stats_fill_common_stats(uint32_t if_num, int instance, char *lbuf, size_t size_wr, size_t size_al, char *node);
+--- a/nss_vxlan.c
++++ b/nss_vxlan.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -226,6 +226,7 @@ bool nss_vxlan_unregister_if(uint32_t if
+ 	}
+ 
+ 	nss_core_unregister_handler(nss_ctx, if_num);
++	nss_core_unregister_msg_handler(nss_ctx, if_num);
+ 	nss_core_unregister_subsys_dp(nss_ctx, if_num);
+ 	return true;
+ }
+--- a/nss_wifi_vdev.c
++++ b/nss_wifi_vdev.c
+@@ -199,8 +199,16 @@ EXPORT_SYMBOL(nss_wifi_vdev_tx_msg_ext);
+  */
+ nss_tx_status_t nss_wifi_vdev_tx_buf(struct nss_ctx_instance *nss_ctx, struct sk_buff *os_buf, uint32_t if_num)
+ {
++	enum nss_dynamic_interface_type if_type;
++
+ 	BUG_ON(((if_num < NSS_DYNAMIC_IF_START) || (if_num >= (NSS_DYNAMIC_IF_START + NSS_MAX_DYNAMIC_INTERFACES))));
+ 
++	if_type = nss_dynamic_interface_get_type(nss_ctx, if_num);
++	if (if_type != NSS_DYNAMIC_INTERFACE_TYPE_VAP) {
++		nss_warning("%px: non vap %d packet tx not allowed", nss_ctx, if_num);
++		return NSS_TX_FAILURE_NOT_SUPPORTED;
++	}
++
+ 	return nss_core_send_packet(nss_ctx, os_buf, if_num, H2N_BIT_FLAG_BUFFER_REUSABLE);
+ }
+ EXPORT_SYMBOL(nss_wifi_vdev_tx_buf);
+--- a/nss_data_plane/include/nss_data_plane.h
++++ b/nss_data_plane/include/nss_data_plane.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017,2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017,2020-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -25,6 +25,8 @@
+ #include <nss_api_if.h>
+ #include "nss_phys_if.h"
+ 
++#define NSS_DATA_PLANE_MAX_PACKET_LEN	65535
++
+ /*
+  * nss_data_plane_schedule_registration()
+  *	Called from nss_init to schedule a work to do data_plane register to data plane host driver
+--- a/nss_data_plane/nss_data_plane.c
++++ b/nss_data_plane/nss_data_plane.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -101,12 +101,6 @@ static int __nss_data_plane_mac_addr(str
+ static int __nss_data_plane_change_mtu(struct nss_dp_data_plane_ctx *dpc, uint32_t mtu)
+ {
+ 	struct nss_data_plane_param *dp = (struct nss_data_plane_param *)dpc;
+-
+-	if (mtu > NSS_DP_MAX_MTU_SIZE) {
+-		nss_warning("%px: MTU exceeds MAX size %d\n", dp, mtu);
+-		return NSS_DP_FAILURE;
+-	}
+-
+ 	return nss_phys_if_change_mtu(dp->nss_ctx, mtu, dp->if_num);
+ }
+ 
+@@ -166,8 +160,9 @@ static netdev_tx_t __nss_data_plane_buf(
+ 		goto drop;
+ 	}
+ 
+-	if (skb->len > NSS_DP_MAX_PACKET_LEN) {
+-		nss_warning("skb->len ( %u ) > Maximum packet length ( %u ) \n", skb->len, NSS_DP_MAX_PACKET_LEN);
++	if (skb->len > NSS_DATA_PLANE_MAX_PACKET_LEN) {
++		nss_warning("skb->len ( %u ) > Maximum packet length ( %u ) \n",
++				skb->len, NSS_DATA_PLANE_MAX_PACKET_LEN);
+ 		goto drop;
+ 	}
+ 
+--- a/exports/nss_wifi_vdev.h
++++ b/exports/nss_wifi_vdev.h
+@@ -166,6 +166,7 @@ enum nss_wifi_vdev_ext_data_pkt_type {
+ 							/**< Mesh link VAP special packet. */
+ 	NSS_WIFI_VDEV_MESH_EXT_DATA_PKT_TYPE_RX_MCAST_EXC = 16,
+ 							/**< Mesh link VAP multicast packet. */
++	NSS_WIFI_VDEV_EXT_DATA_PKT_TYPE_4ADDR,		/**< 4 address exception to host. */
+ 	NSS_WIFI_VDEV_EXT_DATA_PKT_TYPE_MAX
+ };
+ 
+@@ -815,6 +816,16 @@ struct nss_wifi_vdev_ppdu_metadata {
+ };
+ 
+ /**
++ * nss_wifi_vdev_addr4_data_metadata
++ *	Address four metadata
++ */
++struct nss_wifi_vdev_addr4_data_metadata {
++	uint16_t peer_id;		/**< Peer ID. */
++	uint8_t sa_valid;		/**< Source address is valid. */
++	uint8_t addr4_valid;		/**< Address four is valid. */
++};
++
++/**
+  * nss_wifi_vdev_per_packet_metadata
+  *	Wi-Fi per packet metadata content.
+  */
+@@ -843,6 +854,8 @@ struct nss_wifi_vdev_per_packet_metadata
+ 			/**< Per packet Tx metadata structure for wireless distribution system mode. */
+ 		struct nss_wifi_vdev_ppdu_metadata ppdu_metadata;
+ 			/**< Per packet PPDU metadata needed for per PPDU copy mode. */
++		struct nss_wifi_vdev_addr4_data_metadata addr4_metadata;
++			/**< Create metadata for the WDS extension interface. */
+ 	} metadata;
+ 			/**< Metadata payload for special data receive message. */
+ };
+@@ -1039,6 +1052,8 @@ struct nss_wifi_vdev_stats_sync_msg {
+ 	uint32_t rx_mic_err;			/**< Receive MIC error */
+ 	uint32_t mcbc_exc_host_fail_cnt;
+ 			/**< Number of multicast/broadcast packets failed to send to host through exception path. */
++	uint32_t addr4_exc_fail;			/**< Number of failed 4 address exceptions. */
++	uint32_t addr4_exc_pass;			/**< Number of successful 4 address exceptions. */
+ };
+ 
+ /**
+@@ -1071,13 +1086,13 @@ struct nss_wifi_vdev_msg {
+ 		struct nss_wifi_vdev_me_snptbl_deny_grp_add_msg vdev_deny_member_add;
+ 				/**< Add a snooplist member to the deny list. */
+ 		struct nss_wifi_vdev_me_hmmc_add_msg vdev_hmmc_member_add;
+-				/**< Adds a new member into the HMMC list. */
++				/**< Adds a member to the HMMC list. */
+ 		struct nss_wifi_vdev_me_hmmc_del_msg vdev_hmmc_member_del;
+-				/**< Delete a member from the HMMC list. */
++				/**< Deletes a member from the HMMC list. */
+ 		struct nss_wifi_vdev_me_deny_ip_add_msg vdev_deny_list_member_add;
+-				/**< Adds a new member into the deny list. */
++				/**< Adds a member to the denylist. */
+ 		struct nss_wifi_vdev_me_deny_ip_del_msg vdev_deny_list_member_del;
+-				/**< Delete a member from the deny list. */
++				/**< Deletes a member from the denylist. */
+ 		struct nss_wifi_vdev_txmsg vdev_txmsgext;
+ 				/**< Transmits special data. */
+ 		struct nss_wifi_vdev_vow_dbg_cfg_msg vdev_vow_dbg_cfg;
+--- a/exports/nss_wifi_ext_vdev_if.h
++++ b/exports/nss_wifi_ext_vdev_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2020, 2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -26,6 +26,11 @@
+ 
+ #define NSS_WIFI_EXT_VDEV_MAX 16
+ 
++/**
++ * @addtogroup nss_wifi_ext_vdev_subsystem
++ * @{
++ */
++
+ /*
+  * nss_wifi_ext_vdev_msg_types
+  *	WiFi extension virtual device mesage types.
+@@ -294,4 +299,8 @@ extern struct nss_ctx_instance *nss_wifi
+ 		nss_wifi_ext_vdev_data_callback_t cb_func_data, nss_wifi_ext_vdev_ext_data_callback_t cb_func_ext,
+ 		nss_wifi_ext_vdev_msg_callback_t cb_func_msg, struct net_device *netdev, uint32_t features,
+ 		void *app_ctx);
++/**
++ * @}
++ */
++
+ #endif
+--- a/exports/nss_wifili_if.h
++++ b/exports/nss_wifili_if.h
+@@ -1,16 +1,19 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+- * Permission to use, copy, modify, and/or distribute this software for
+- * any purpose with or without fee is hereby granted, provided that the
+- * above copyright notice and this permission notice appear in all copies.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+- * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  **************************************************************************
+  */
+ 
+@@ -84,7 +87,7 @@
+ 				/**< Maximum DMA error codes. */
+ #define NSS_WIFILI_MAX_TID 8
+ 				/**< Maximum TID values. */
+-#define NSS_WIFILI_DELAY_INDEX_MAX 10
++#define NSS_WIFILI_DELAY_INDEX_MAX 13
+ 				/**< Maximum software enqueue delay buckets. */
+ #define NSS_WIFILI_MAX_NUMBER_OF_ADDTNL_SEG 64
+ 				/**< Maximum number of additional pages allocated from host. */
+@@ -94,6 +97,8 @@
+ 				/**< Maximum number of flow queues. */
+ #define NSS_WIFILI_WBM_INTERNAL_ERR_MAX 5
+ 				/**< WBM internal maximum errors. */
++#define NSS_WIFILI_MAX_VOW_TID_NUM 4
++				/**< Maximum version 3 TID values. */
+ 
+ /*
+  * Peer Size in Bytes
+@@ -101,6 +106,11 @@
+ #define NSS_WIFILI_PEER_SIZE 1600
+ 
+ /*
++ * Maximum size of target SoC type string
++ */
++#define NSS_WIFILI_SOC_STRING_SIZE_MAX 24
++
++/*
+  * Radio specific flags
+  */
+ #define NSS_WIFILI_PDEV_FLAG_V3_STATS_ENABLED 0x00000008
+@@ -657,9 +667,12 @@ struct nss_wifili_stats {
+  * NSS wifili soc stats
+  */
+ struct nss_wifili_soc_stats {
+-	uint32_t soc_maxpdev;	/**< Maximum number of radios per SoC. */
++	uint32_t soc_maxpdev;
++					/**< Maximum number of radios per SoC. */
+ 	struct nss_wifili_stats stats_wifili;
+-				/**< Per-SoC statistics. */
++					/**< Per-SoC statistics. */
++	char soc_type[NSS_WIFILI_SOC_STRING_SIZE_MAX];
++					/**< Target SoC type string. */
+ };
+ 
+ /**
+@@ -711,7 +724,7 @@ struct nss_wifili_hal_srng_soc_msg {
+ 	uint32_t shadow_wrptr_mem_addr;
+ 			/**< Shadow write pointer address. */
+ 	uint32_t lmac_rings_start_id;
+-			/**< start id of LMAC rings. */
++			/**< Start ID of LMAC rings. */
+ };
+ 
+ /**
+@@ -1264,6 +1277,8 @@ struct nss_wifili_device_stats {
+ struct nss_wifili_stats_sync_msg {
+ 	struct nss_wifili_device_stats stats;
+ 			/**< Device statistics. */
++	uint32_t target_type;
++			/**< Target SoC type. */
+ };
+ 
+ /**
+--- a/exports/nss_wifi_mac_db_if.h
++++ b/exports/nss_wifi_mac_db_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2020, 2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -25,6 +25,11 @@
+ 
+ #define NSS_WIFI_MAC_DB_ENTRY_IF_LOCAL 0x1
+ 
++ /**
++ * @addtogroup nss_wifi_mac_db_if_subsystem
++ * @{
++ */
++
+ /*
+  * MAX Wi-Fi MAC database entries sent in group
+  * is chosen considering the entry size and
+@@ -72,6 +77,7 @@ enum nss_wifi_mac_db_if_opmode {
+ };
+ 
+ /**
++ * nss_wifi_mac_db_err_types
+  * Wi-Fi MAC database errors.
+  */
+ enum nss_wifi_mac_db_err_types {
+@@ -274,4 +280,9 @@ struct nss_ctx_instance *nss_register_wi
+  */
+ void nss_unregister_wifi_mac_db_if(uint32_t if_num);
+ struct nss_ctx_instance *nss_wifi_mac_db_get_context(void);
++
++/**
++ * @}
++ */
++
+ #endif /* __NSS_WIFI_MAC_DB_H */
+--- a/exports/nss_wifi_mesh.h
++++ b/exports/nss_wifi_mesh.h
+@@ -102,7 +102,7 @@ enum nss_wifi_mesh_pre_header_type {
+ 
+ /*
+  * nss_wifi_mesh_extended_data_pkt_types
+- * 	Wi-Fi mesh extended data pkt types.
++ * 	Wi-Fi mesh extended data packet types.
+  */
+ enum nss_wifi_mesh_extended_data_pkt_types {
+ 	WIFI_MESH_EXT_DATA_PKT_TYPE_NONE,		/**< No packet type. */
+@@ -114,13 +114,13 @@ enum nss_wifi_mesh_extended_data_pkt_typ
+  *	Wi-Fi header
+  */
+ struct nss_wifi_mesh_ieee80211_hdr {
+-	uint16_t frame_ctl;				/* Frame control. */
+-	uint16_t duration_id;				/* Duration ID. */
+-	uint8_t addr1[ETH_ALEN];			/* Address 1. */
+-	uint8_t addr2[ETH_ALEN];			/* Address 2. */
+-	uint8_t addr3[ETH_ALEN];			/* Address 3. */
+-	uint16_t seq_ctrl;				/* Sequence control. */
+-	uint8_t addr4[ETH_ALEN];			/* Address 4. */
++	uint16_t frame_ctl;				/**< Frame control. */
++	uint16_t duration_id;				/**< Duration ID. */
++	uint8_t addr1[ETH_ALEN];			/**< Address 1. */
++	uint8_t addr2[ETH_ALEN];			/**< Address 2. */
++	uint8_t addr3[ETH_ALEN];			/**< Address 3. */
++	uint16_t seq_ctrl;				/**< Sequence control. */
++	uint8_t addr4[ETH_ALEN];			/**< Address 4. */
+ }__packed;
+ 
+ /*
+@@ -128,16 +128,16 @@ struct nss_wifi_mesh_ieee80211_hdr {
+  *	Wi-Fi mesh header
+  */
+ struct nss_wifi_mesh_ieee80211s_hdr {
+-	uint8_t flags;					/* Mesh flags. */
+-	uint8_t ttl;					/* TTL. */
+-	uint32_t seq_num;				/* Sequence number. */
+-	uint8_t eaddr1[ETH_ALEN];			/* Mesh Address1. */
+-	uint8_t eaddr2[ETH_ALEN];			/* Mesh Address2. */
++	uint8_t flags;					/**< Mesh flags. */
++	uint8_t ttl;					/**< TTL. */
++	uint32_t seq_num;				/**< Sequence number. */
++	uint8_t eaddr1[ETH_ALEN];			/**< Mesh Address1. */
++	uint8_t eaddr2[ETH_ALEN];			/**< Mesh Address2. */
+ }__packed;
+ 
+ /*
+  * nss_wifi_mesh_per_packet_metadata
+- * 	Wi-Fi mesh per packet metadata structure.
++ *      Wi-Fi mesh per packet metadata structure.
+  */
+ struct nss_wifi_mesh_per_packet_metadata {
+ 	uint16_t pkt_type;					/* Packet type of the metadata. */
+@@ -150,8 +150,8 @@ struct nss_wifi_mesh_per_packet_metadata
+  *	NSS-to-host path will be seen by ECM for rules.
+  */
+ enum nss_wifi_mesh_dp_type {
+-	NSS_WIFI_MESH_DP_INNER,		/**< Inner/Encapsulation Interface. */
+-	NSS_WIFI_MESH_DP_OUTER,		/**< Outer/Decapsulation Interface. */
++	NSS_WIFI_MESH_DP_INNER,		/**< Inner/encapsulation interface. */
++	NSS_WIFI_MESH_DP_OUTER,		/**< Outer/decapsulation interface. */
+ };
+ 
+ /**
+@@ -350,7 +350,7 @@ struct nss_wifi_mesh_proxy_path_del_msg
+ 
+ /**
+  * nss_wifi_mesh_mpath_not_found_msg
+- *	Wi-Fi mesh path not found meesage.
++ *	Wi-Fi mesh path not found message.
+  */
+ struct nss_wifi_mesh_mpath_not_found_msg {
+ 	uint8_t dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
+--- a/nss_wifili_stats.c
++++ b/nss_wifili_stats.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -37,6 +37,38 @@ ATOMIC_NOTIFIER_HEAD(nss_wifili_stats_no
+ struct nss_wifili_soc_stats soc_stats[NSS_WIFILI_MAX_SOC_NUM];
+ 
+ /*
++ * nss_wifili_target_type_string()
++ * 	Convert Target Type Integer to String
++ */
++void nss_wifili_target_type_to_string(uint32_t target_type, char *target_type_str)
++{
++	switch (target_type) {
++
++	case NSS_WIFILI_TARGET_TYPE_QCA8074:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "IPQ8074 V1");
++		break;
++	case NSS_WIFILI_TARGET_TYPE_QCA8074V2:
++	case 0:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "IPQ8074 V2");
++		break;
++	case NSS_WIFILI_TARGET_TYPE_QCA6018:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "IPQ6018");
++		break;
++	case NSS_WIFILI_TARGET_TYPE_QCN9000:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "QCN9000");
++		break;
++	case NSS_WIFILI_TARGET_TYPE_QCA5018:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "IPQ5018");
++		break;
++	case NSS_WIFILI_TARGET_TYPE_QCN6122:
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "QCN6122");
++		break;
++	default :
++		snprintf(target_type_str, NSS_WIFILI_SOC_STRING_SIZE_MAX, "Unknown");
++        }
++}
++
++/*
+  * nss_wifili_stats_read()
+  *	Read wifili statistics
+  */
+@@ -56,6 +88,7 @@ static ssize_t nss_wifili_stats_read(str
+ 	char *lbuf = NULL;
+ 	uint32_t soc_idx;
+ 	struct nss_wifili_stats *stats_wifili = NULL;
++	char pdev_tag[NSS_WIFILI_SOC_STRING_SIZE_MAX];
+ 
+ 	/*
+ 	 * Max number of pdev depends on type of soc (Internal/Attached).
+@@ -83,12 +116,17 @@ static ssize_t nss_wifili_stats_read(str
+ 		return 0;
+ 	}
+ 
+-	size_wr += nss_stats_banner(lbuf, size_wr, size_al, "wifili", NSS_STATS_SINGLE_CORE);
+ 
+ 	for (soc_idx = 0; soc_idx < NSS_WIFILI_MAX_SOC_NUM; soc_idx++) {
++		if (soc_stats[soc_idx].soc_maxpdev == 0) {
++			continue;
++		}
++
++		size_wr += nss_stats_banner(lbuf, size_wr, size_al, soc_stats[soc_idx].soc_type, NSS_STATS_SINGLE_CORE);
+ 		stats_wifili = &(soc_stats[soc_idx].stats_wifili);
+ 		for (i = 0; i < soc_stats[soc_idx].soc_maxpdev; i++) {
+-
++			snprintf(pdev_tag, NSS_WIFILI_SOC_STRING_SIZE_MAX, "PDEV %d", i);
++			size_wr += nss_stats_banner(lbuf, size_wr, size_al, pdev_tag, NSS_STATS_SINGLE_CORE);
+ 			spin_lock_bh(&nss_top_main.stats_lock);
+ 			size_wr += nss_stats_print("wifili", "txrx", i
+ 					, nss_wifili_strings_stats_txrx
+@@ -238,6 +276,9 @@ void nss_wifili_stats_sync(struct nss_ct
+ 	struct nss_wifili_stats *stats = NULL;
+ 	struct nss_wifili_device_stats *devstats = &wlsoc_stats->stats;
+ 	uint32_t index;
++	char target_type_str[NSS_WIFILI_SOC_STRING_SIZE_MAX];
++
++	nss_wifili_target_type_to_string(wlsoc_stats->target_type, target_type_str);
+ 
+ 	/*
+ 	 * Max number of pdev depends on type of soc (Internal/Attached).
+@@ -246,16 +287,19 @@ void nss_wifili_stats_sync(struct nss_ct
+ 	case NSS_WIFILI_INTERNAL_INTERFACE:
+ 		nwss = &soc_stats[0];
+ 		nwss->soc_maxpdev = NSS_WIFILI_MAX_PDEV_NUM_MSG;
++		snprintf(nwss->soc_type, NSS_WIFILI_SOC_STRING_SIZE_MAX, "INTERNAL: %s", target_type_str);
+ 		break;
+ 
+ 	case NSS_WIFILI_EXTERNAL_INTERFACE0:
+ 		nwss = &soc_stats[1];
+ 		nwss->soc_maxpdev = NSS_WIFILI_SOC_ATTACHED_MAX_PDEV_NUM;
++		snprintf(nwss->soc_type, NSS_WIFILI_SOC_STRING_SIZE_MAX, "ATTACH 0: %s", target_type_str);
+ 		break;
+ 
+ 	case NSS_WIFILI_EXTERNAL_INTERFACE1:
+ 		nwss = &soc_stats[2];
+ 		nwss->soc_maxpdev = NSS_WIFILI_SOC_ATTACHED_MAX_PDEV_NUM;
++		snprintf(nwss->soc_type, NSS_WIFILI_SOC_STRING_SIZE_MAX, "ATTACH 1: %s", target_type_str);
+ 		break;
+ 
+ 	default:
+@@ -458,7 +502,7 @@ void nss_wifili_stats_notify(struct nss_
+ 	struct nss_wifili_stats_notification *wifili_stats;
+ 	uint32_t index = 0;
+ 
+-	wifili_stats = kzalloc(sizeof(struct nss_wifili_stats_notification), GFP_ATOMIC);
++	wifili_stats = kzalloc(sizeof(struct nss_wifili_stats_notification), in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
+ 	if (!wifili_stats) {
+ 		nss_warning("%px: Failed to allocate memory for wifili stats\n", nss_ctx);
+ 		return;
+--- a/nss_wifili_stats.h
++++ b/nss_wifili_stats.h
+@@ -22,6 +22,13 @@
+ #ifndef __NSS_WIFILI_STATS_H
+ #define __NSS_WIFILI_STATS_H
+ 
++#define NSS_WIFILI_TARGET_TYPE_QCA8074   20
++#define NSS_WIFILI_TARGET_TYPE_QCA8074V2 24
++#define NSS_WIFILI_TARGET_TYPE_QCA6018   25
++#define NSS_WIFILI_TARGET_TYPE_QCN9000   26
++#define NSS_WIFILI_TARGET_TYPE_QCA5018   29
++#define NSS_WIFILI_TARGET_TYPE_QCN6122   30
++
+ #include "nss_core.h"
+ #include "nss_wifili_if.h"
+ 
+--- a/nss_wifili_strings.c
++++ b/nss_wifili_strings.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -71,10 +71,10 @@ struct nss_stats_info nss_wifili_strings
+  *	wifili tx comp stats
+  */
+ struct nss_stats_info nss_wifili_strings_stats_tx_comp[NSS_WIFILI_STATS_TX_DESC_FREE_MAX] = {
+-	{"tx_desc_free_inv_bufsrc"	, NSS_STATS_TYPE_ERROR},
+-	{"tx_desc_free_inv_cookie"	, NSS_STATS_TYPE_SPECIAL},
+-	{"tx_desc_free_hw_ring_empty"	, NSS_STATS_TYPE_SPECIAL},
+-	{"tx_desc_free_reaped"		, NSS_STATS_TYPE_SPECIAL}
++	{"tx_desc_free_inv_bufsrc"		, NSS_STATS_TYPE_ERROR},
++	{"tx_desc_free_inv_cookie"		, NSS_STATS_TYPE_SPECIAL},
++	{"tx_desc_free_hw_ring_empty"		, NSS_STATS_TYPE_SPECIAL},
++	{"tx_desc_free_reaped"			, NSS_STATS_TYPE_SPECIAL}
+ };
+ 
+ /*
+--- a/nss_wifi_mesh_stats.c
++++ b/nss_wifi_mesh_stats.c
+@@ -223,7 +223,7 @@ static uint32_t nss_wifi_mesh_get_valid_
+ static ssize_t nss_wifi_mesh_stats_read(struct file *fp, char __user *ubuf, size_t sz, loff_t *ppos, uint16_t type)
+ {
+ 	uint32_t max_output_lines, max_stats;
+-	size_t size_al, size_wr;
++	size_t size_al, size_wr = 0;
+ 	ssize_t bytes_read = 0;
+ 	struct nss_stats_data *data = fp->private_data;
+ 	int ifindex;
+--- a/nss_wifi_mesh_strings.c
++++ b/nss_wifi_mesh_strings.c
+@@ -53,7 +53,7 @@ struct nss_stats_info nss_wifi_mesh_stri
+ 	{"expiry_notify_fail",		NSS_STATS_TYPE_SPECIAL},
+ 	{"no_headroom", 		NSS_STATS_TYPE_SPECIAL},
+ 	{"path_refresh_sent", 		NSS_STATS_TYPE_SPECIAL},
+-	{"linearise_failed", 		NSS_STATS_TYPE_SPECIAL}
++	{"linearise_failed", 		NSS_STATS_TYPE_SPECIAL},
+ };
+ 
+ /*
+@@ -89,7 +89,8 @@ struct nss_stats_info nss_wifi_mesh_stri
+ 	{"flag_updations",		NSS_STATS_TYPE_SPECIAL},
+ 	{"metric_updations",		NSS_STATS_TYPE_SPECIAL},
+ 	{"block_mesh_fwd_updations",	NSS_STATS_TYPE_SPECIAL},
+-	{"delete_failures",		NSS_STATS_TYPE_SPECIAL}
++	{"delete_failures",		NSS_STATS_TYPE_SPECIAL},
++
+ };
+ 
+ /*
+@@ -106,22 +107,22 @@ static ssize_t nss_wifi_mesh_path_stats_
+  * 	Wi-Fi mesh proxy path statistics string.
+  */
+ struct nss_stats_info nss_wifi_mesh_strings_proxy_path_stats[NSS_WIFI_MESH_PROXY_PATH_STATS_TYPE_MAX] = {
+-	{"alloc_failures",		NSS_STATS_TYPE_SPECIAL},
+-	{"entry_exist_failures",	NSS_STATS_TYPE_SPECIAL},
+-	{"add_success",			NSS_STATS_TYPE_SPECIAL},
+-	{"table_full_errors",		NSS_STATS_TYPE_SPECIAL},
+-	{"insert_failures",		NSS_STATS_TYPE_SPECIAL},
+-	{"not_found",			NSS_STATS_TYPE_SPECIAL},
+-	{"unhashed_errors",		NSS_STATS_TYPE_SPECIAL},
+-	{"delete_failures",		NSS_STATS_TYPE_SPECIAL},
+-	{"delete_success",		NSS_STATS_TYPE_SPECIAL},
+-	{"update_success",		NSS_STATS_TYPE_SPECIAL},
+-	{"lookup_success",		NSS_STATS_TYPE_SPECIAL},
+-	{"add_requests",		NSS_STATS_TYPE_SPECIAL},
+-	{"del_requests",		NSS_STATS_TYPE_SPECIAL},
+-	{"update_requests",		NSS_STATS_TYPE_SPECIAL},
+-	{"mda_updations",		NSS_STATS_TYPE_SPECIAL},
+-	{"flag_updations",		NSS_STATS_TYPE_SPECIAL}
++	{"alloc_failures",				NSS_STATS_TYPE_SPECIAL},
++	{"entry_exist_failures",			NSS_STATS_TYPE_SPECIAL},
++	{"add_success",					NSS_STATS_TYPE_SPECIAL},
++	{"table_full_errors",				NSS_STATS_TYPE_SPECIAL},
++	{"insert_failures",				NSS_STATS_TYPE_SPECIAL},
++	{"not_found",					NSS_STATS_TYPE_SPECIAL},
++	{"unhashed_errors",				NSS_STATS_TYPE_SPECIAL},
++	{"delete_failures",				NSS_STATS_TYPE_SPECIAL},
++	{"delete_success",				NSS_STATS_TYPE_SPECIAL},
++	{"update_success",				NSS_STATS_TYPE_SPECIAL},
++	{"lookup_success",				NSS_STATS_TYPE_SPECIAL},
++	{"add_requests",				NSS_STATS_TYPE_SPECIAL},
++	{"del_requests",				NSS_STATS_TYPE_SPECIAL},
++	{"update_requests",				NSS_STATS_TYPE_SPECIAL},
++	{"mda_updations",				NSS_STATS_TYPE_SPECIAL},
++	{"flag_updations",				NSS_STATS_TYPE_SPECIAL},
+ };
+ 
+ /*
+--- a/nss_wifi_stats.c
++++ b/nss_wifi_stats.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2016-2017, 2019-2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2016-2017, 2019-2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -86,7 +86,7 @@ struct nss_stats_info nss_wifi_stats_str
+ 	{"rx_htt_fetch_cnt"			, NSS_STATS_TYPE_SPECIAL},
+ 	{"total_tidq_bypass_cnt"		, NSS_STATS_TYPE_SPECIAL},
+ 	{"global_q_full_cnt"			, NSS_STATS_TYPE_SPECIAL},
+-	{"tidq_full_cnt"			, NSS_STATS_TYPE_SPECIAL}
++	{"tidq_full_cnt"			, NSS_STATS_TYPE_SPECIAL},
+ };
+ 
+ uint64_t nss_wifi_stats[NSS_MAX_WIFI_RADIO_INTERFACES][NSS_WIFI_STATS_MAX]; /* WIFI statistics */
