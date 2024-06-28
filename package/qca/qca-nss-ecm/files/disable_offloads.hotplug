@@ -1,0 +1,11 @@
+#!/bin/sh
+
+[ "$ACTION" != "add" ] && exit
+
+. /lib/netifd/offload/disable_offloads.sh
+
+if [ "$ACTION" = add ] && [ -n "$INTERFACE" ]; then
+	disable_offload "$INTERFACE"
+fi
+
+exit 0

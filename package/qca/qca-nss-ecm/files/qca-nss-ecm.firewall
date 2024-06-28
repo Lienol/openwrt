@@ -1,0 +1,33 @@
+#!/bin/sh
+
+FW_SCRIPT="/etc/init.d/firewall"
+
+if grep -q "fw3" "$FW_SCRIPT"; then
+    if ! iptables -nvL | grep -q "Chain RATE-LIMIT"; then
+        iptables -N RATE-LIMIT
+    fi
+
+    iptables -F RATE-LIMIT
+    iptables -A RATE-LIMIT --match limit --limit 1000/sec --limit-burst 1000 -j RETURN
+    iptables -A RATE-LIMIT -j DROP
+    iptables -I zone_wan_forward 5 --match conntrack --ctstate NEW -j RATE-LIMIT
+    [ -n "$(command -v ip6tables)" ] && {
+    if ! ip6tables -nvL | grep -q "Chain RATE-LIMIT"; then
+        ip6tables -N RATE-LIMIT
+    fi
+
+    ip6tables -F RATE-LIMIT
+    ip6tables -A RATE-LIMIT --match limit --limit 1000/sec --limit-burst 1000 -j RETURN
+    ip6tables -A RATE-LIMIT -j DROP
+    ip6tables -I zone_wan_forward 5 --match conntrack --ctstate NEW -j RATE-LIMIT
+    }
+
+elif grep -q "fw4" "$FW_SCRIPT"; then
+    if ! nft list chain inet fw4 RATE-LIMIT > /dev/null 2>&1; then
+        nft add chain inet fw4 RATE-LIMIT
+    fi
+
+    nft add rule inet fw4 RATE-LIMIT limit rate 1000/second burst 1000 packets counter return
+    nft add rule inet fw4 RATE-LIMIT counter drop
+    nft insert rule inet fw4 forward_wan ct state new counter jump RATE-LIMIT
+fi
