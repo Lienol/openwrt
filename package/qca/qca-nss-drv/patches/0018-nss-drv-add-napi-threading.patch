@@ -1,0 +1,57 @@
+--- a/nss_hal/nss_hal.c
++++ b/nss_hal/nss_hal.c
+@@ -302,6 +302,8 @@ int nss_hal_probe(struct platform_device
+ 	 * Initialize the dummy netdevice.
+ 	 */
+ 	init_dummy_netdev(&nss_ctx->napi_ndev);
++	strcpy(nss_ctx->napi_ndev.name, "nss");
++	nss_ctx->napi_ndev.threaded = 1;
+ 
+ 	for (i = 0; i < npd->num_irq; i++) {
+ 		err = nss_hal_register_irq(nss_ctx, npd, &nss_ctx->napi_ndev, i);
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -2423,8 +2423,7 @@ int nss_core_handle_napi(struct napi_str
+ 		int_ctx->cause |= int_cause;
+ 	} while ((int_ctx->cause) && (budget));
+ 
+-	if (int_ctx->cause == 0) {
+-		napi_complete(napi);
++	if (int_ctx->cause == 0 && napi_complete(napi)) {
+ 
+ 		/*
+ 		 * Re-enable any further interrupt from this IRQ
+@@ -2464,8 +2463,8 @@ int nss_core_handle_napi_sdma(struct nap
+ 		ctrl->consumer[0].dispatch.fp(ctrl->consumer[0].arg.kp);
+ 
+ #if !defined(NSS_HAL_IPQ806X_SUPPORT)
+-	napi_complete(napi);
+-	enable_irq(int_ctx->irq);
++	if (napi_complete(napi))
++		enable_irq(int_ctx->irq);
+ #endif
+ 	return 0;
+ }
+@@ -2480,10 +2479,8 @@ int nss_core_handle_napi_queue(struct na
+ 	struct int_ctx_instance *int_ctx = container_of(napi, struct int_ctx_instance, napi);
+ 
+ 	processed = nss_core_handle_cause_queue(int_ctx, int_ctx->cause, budget);
+-	if (processed < budget) {
+-		napi_complete(napi);
++	if (processed < budget && napi_complete(napi))
+ 		enable_irq(int_ctx->irq);
+-	}
+ 
+ 	return processed;
+ }
+@@ -2497,8 +2494,8 @@ int nss_core_handle_napi_non_queue(struc
+ 	struct int_ctx_instance *int_ctx = container_of(napi, struct int_ctx_instance, napi);
+ 
+ 	nss_core_handle_cause_nonqueue(int_ctx, int_ctx->cause, 0);
+-	napi_complete(napi);
+-	enable_irq(int_ctx->irq);
++	if (napi_complete(napi))
++		enable_irq(int_ctx->irq);
+ 	return 0;
+ }
+ 

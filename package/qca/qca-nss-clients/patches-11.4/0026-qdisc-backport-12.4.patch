@@ -1,0 +1,330 @@
+--- a/nss_qdisc/nss_bf.c
++++ b/nss_qdisc/nss_bf.c
+@@ -331,10 +331,19 @@ static int nss_bf_delete_class(struct Qd
+ 	qdisc_class_hash_remove(&q->clhash, &cl->cl_common);
+ 	refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+ 	sch_tree_unlock(sch);
++
++	/*
++	 * For 5.4 and above kernels, calling nss_htb_destroy_class
++	 * explicitly as there is no put_class which would have called
++	 * nss_bf_destroy_class when refcnt becomes zero.
++	 */
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
++	nss_bf_destroy_class(sch, cl);
++#else
+ 	if (!refcnt) {
+ 		nss_qdisc_error("Reference count should not be zero for class %px\n", cl);
+ 	}
+-
++#endif
+ 	return 0;
+ }
+ 
+@@ -634,6 +643,11 @@ static int nss_bf_change_qdisc(struct Qd
+  */
+ static void nss_bf_reset_class(struct nss_bf_class_data *cl)
+ {
++	if (cl->qdisc == &noop_qdisc) {
++		nss_qdisc_trace("Class %x has no child qdisc to reset\n", cl->nq.qos_tag);
++		return;
++	}
++
+ 	nss_qdisc_reset(cl->qdisc);
+ 	nss_qdisc_info("Nssbf class resetted %px\n", cl->qdisc);
+ }
+--- a/nss_qdisc/nss_htb.c
++++ b/nss_qdisc/nss_htb.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017, 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017, 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -574,10 +574,16 @@ static int nss_htb_delete_class(struct Q
+ 	/*
+ 	 * If we are root class, we dont have to update our parent.
+ 	 * We simply deduct refcnt and return.
++	 * For 5.4 and above kernels, calling nss_htb_destroy_class
++	 * explicitly as there is no put_class which would have called
++	 * nss_htb_destroy_class when refcnt becomes zero.
+ 	 */
+ 	if (!cl->parent) {
+ 		refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+ 		sch_tree_unlock(sch);
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
++		nss_htb_destroy_class(sch, cl);
++#endif
+ 		return 0;
+ 	}
+ 
+@@ -596,6 +602,14 @@ static int nss_htb_delete_class(struct Q
+ 	refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+ 	sch_tree_unlock(sch);
+ 
++	/*
++	 * For 5.4 and above kernels, calling nss_htb_destroy_class
++	 * explicitly as there is no put_class which would have called
++	 * nss_htb_destroy_class when refcnt becomes zero.
++	 */
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
++	nss_htb_destroy_class(sch, cl);
++#endif
+ 	return 0;
+ }
+ 
+@@ -898,6 +912,11 @@ static int nss_htb_change_qdisc(struct Q
+  */
+ static void nss_htb_reset_class(struct nss_htb_class_data *cl)
+ {
++	if (cl->qdisc == &noop_qdisc) {
++		nss_qdisc_trace("Class %x has no child qdisc to reset\n", cl->nq.qos_tag);
++		return;
++	}
++
+ 	nss_qdisc_reset(cl->qdisc);
+ 	nss_qdisc_trace("htb class %x reset\n", cl->nq.qos_tag);
+ }
+--- a/nss_qdisc/nss_qdisc.c
++++ b/nss_qdisc/nss_qdisc.c
+@@ -30,9 +30,6 @@
+ 
+ void *nss_qdisc_ctx;			/* Shaping context for nss_qdisc */
+ 
+-#define NSS_QDISC_COMMAND_TIMEOUT (10*HZ) /* We set 10sec to be the command */
+-					   /* timeout value for messages */
+-
+ /*
+  * Defines related to root hash maintenance
+  */
+@@ -40,6 +37,53 @@ void *nss_qdisc_ctx;			/* Shaping contex
+ #define NSS_QDISC_ROOT_HASH_MASK (NSS_QDISC_ROOT_HASH_SIZE - 1)
+ 
+ /*
++ * nss_qdisc_get_interface_msg()
++ *	Returns the correct message that needs to be sent down to the NSS interface.
++ */
++int nss_qdisc_get_interface_msg(bool is_bridge, uint32_t msg_type)
++{
++	/*
++	 * We re-assign the message based on whether this is for the I shaper
++	 * or the B shaper. The is_bridge flag tells if we are on a bridge interface.
++	 */
++	if (is_bridge) {
++		switch (msg_type) {
++		case NSS_QDISC_IF_SHAPER_ASSIGN:
++			return NSS_IF_BSHAPER_ASSIGN;
++		case NSS_QDISC_IF_SHAPER_UNASSIGN:
++			return NSS_IF_BSHAPER_UNASSIGN;
++		case NSS_QDISC_IF_SHAPER_CONFIG:
++			return NSS_IF_BSHAPER_CONFIG;
++		default:
++			nss_qdisc_info("Unknown message type for a bridge - type %d", msg_type);
++			return -1;
++		}
++	} else {
++		switch (msg_type) {
++		case NSS_QDISC_IF_SHAPER_ASSIGN:
++			return NSS_IF_ISHAPER_ASSIGN;
++		case NSS_QDISC_IF_SHAPER_UNASSIGN:
++			return NSS_IF_ISHAPER_UNASSIGN;
++		case NSS_QDISC_IF_SHAPER_CONFIG:
++			return NSS_IF_ISHAPER_CONFIG;
++		default:
++			nss_qdisc_info("Unknown message type for an interface - type %d", msg_type);
++			return -1;
++		}
++	}
++}
++
++/*
++ * nss_qdisc_msg_init()
++ *      Initialize the qdisc specific message
++ */
++void nss_qdisc_msg_init(struct nss_if_msg *nim, uint16_t if_num, uint32_t msg_type, uint32_t len,
++				nss_if_msg_callback_t cb, void *app_data)
++{
++	nss_cmn_msg_init(&nim->cm, if_num, msg_type, len, (void *)cb, app_data);
++}
++
++/*
+  * nss_qdisc_interface_is_virtual()
+  *	Return true if it is redirect or bridge interface.
+  */
+@@ -122,53 +166,6 @@ static int nss_qdisc_ppe_init(struct Qdi
+ #endif
+ 
+ /*
+- * nss_qdisc_msg_init()
+- *      Initialize the qdisc specific message
+- */
+-static void nss_qdisc_msg_init(struct nss_if_msg *nim, uint16_t if_num, uint32_t msg_type, uint32_t len,
+-				nss_if_msg_callback_t cb, void *app_data)
+-{
+-	nss_cmn_msg_init(&nim->cm, if_num, msg_type, len, (void*)cb, app_data);
+-}
+-
+-/*
+- * nss_qdisc_get_interface_msg()
+- *	Returns the correct message that needs to be sent down to the NSS interface.
+- */
+-static inline int nss_qdisc_get_interface_msg(bool is_bridge, uint32_t msg_type)
+-{
+-	/*
+-	 * We re-assign the message based on whether this is for the I shaper
+-	 * or the B shaper. The is_bridge flag tells if we are on a bridge interface.
+-	 */
+-	if (is_bridge) {
+-		switch(msg_type) {
+-		case NSS_QDISC_IF_SHAPER_ASSIGN:
+-			return NSS_IF_BSHAPER_ASSIGN;
+-		case NSS_QDISC_IF_SHAPER_UNASSIGN:
+-			return NSS_IF_BSHAPER_UNASSIGN;
+-		case NSS_QDISC_IF_SHAPER_CONFIG:
+-			return NSS_IF_BSHAPER_CONFIG;
+-		default:
+-			nss_qdisc_info("Unknown message type for a bridge - type %d", msg_type);
+-			return -1;
+-		}
+-	} else {
+-		switch(msg_type) {
+-		case NSS_QDISC_IF_SHAPER_ASSIGN:
+-			return NSS_IF_ISHAPER_ASSIGN;
+-		case NSS_QDISC_IF_SHAPER_UNASSIGN:
+-			return NSS_IF_ISHAPER_UNASSIGN;
+-		case NSS_QDISC_IF_SHAPER_CONFIG:
+-			return NSS_IF_ISHAPER_CONFIG;
+-		default:
+-			nss_qdisc_info("Unknown message type for an interface - type %d", msg_type);
+-			return -1;
+-		}
+-	}
+-}
+-
+-/*
+  * nss_qdisc_attach_bshaper_callback()
+  *	Call back funtion for bridge shaper attach to an interface.
+  */
+@@ -613,7 +610,6 @@ static void nss_qdisc_root_cleanup_free_
+ 	nss_qdisc_info("Root qdisc %px (type %d) free SUCCESS - response "
+ 			"type: %d\n", nq->qdisc, nq->type,
+ 			nim->msg.shaper_configure.config.response_type);
+-
+ 	nss_qdisc_root_cleanup_shaper_unassign(nq);
+ }
+ 
+@@ -1168,8 +1164,15 @@ unsigned int nss_qdisc_drop(struct Qdisc
+  */
+ void nss_qdisc_reset(struct Qdisc *sch)
+ {
+-	struct nss_qdisc *nq = qdisc_priv(sch);
++	struct nss_qdisc *nq;
+ 
++	if(!(sch->flags & TCQ_F_NSS)) {
++		qdisc_reset_queue(sch);
++		nss_qdisc_info("Qdisc %px resetting non NSS qdisc\n", sch);
++		return;
++	}
++
++	nq = qdisc_priv(sch);
+ 	nss_qdisc_info("Qdisc %px (type %d) resetting\n",
+ 			sch, nq->type);
+ 
+@@ -1891,6 +1894,7 @@ int nss_qdisc_configure(struct nss_qdisc
+ 	return 0;
+ }
+ 
++
+ /*
+  * nss_qdisc_register_configure_callback()
+  *	Register shaper configure callback, which gets invoked on receiving a response.
+@@ -2117,6 +2121,8 @@ int __nss_qdisc_init(struct Qdisc *sch,
+ 	 */
+ 	if ((sch->parent == TC_H_ROOT) && (!nq->is_class)) {
+ 		nss_qdisc_info("Qdisc %px (type %d) is root\n", nq->qdisc, nq->type);
++		nss_qdisc_info("Qdisc %px dev-name %s qdisc_dev(sch)->qdisc %px, qdisc_dev(sch)->qdisc->handle %x\n", qdisc_dev(sch), qdisc_dev(sch)->name, qdisc_dev(sch)->qdisc, qdisc_dev(sch)->qdisc->handle);
++		nss_qdisc_info("Qdisc %px (sch %px) is root, sch->handle %x\n", nq->qdisc, sch, sch->handle);
+ 		nq->is_root = true;
+ 		root = sch;
+ 	} else {
+--- a/nss_qdisc/nss_qdisc.h
++++ b/nss_qdisc/nss_qdisc.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2018, 2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2018, 2020-2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -41,6 +41,9 @@
+ #define NSS_QDISC_DEBUG_LEVEL_INFO 3
+ #define NSS_QDISC_DEBUG_LEVEL_TRACE 4
+ 
++#define NSS_QDISC_COMMAND_TIMEOUT (10*HZ) /* We set 10sec to be the command */
++					   /* timeout value for messages */
++
+ /*
+  * Debug message for module init and exit
+  */
+@@ -486,3 +489,15 @@ extern unsigned long nss_qdisc_tcf_bind(
+  *	Unbind the filter from the qdisc.
+  */
+ extern void nss_qdisc_tcf_unbind(struct Qdisc *sch, unsigned long arg);
++
++/*
++ * nss_qdisc_get_interface_msg()
++ *	Returns the correct message that needs to be sent down to the NSS interface.
++ */
++extern int nss_qdisc_get_interface_msg(bool is_bridge, uint32_t msg_type);
++
++/*
++ * nss_qdisc_msg_init()
++ *      Initialize the qdisc specific message
++ */
++extern void nss_qdisc_msg_init(struct nss_if_msg *nim, uint16_t if_num, uint32_t msg_type, uint32_t len, nss_if_msg_callback_t cb, void *app_data);
+--- a/nss_qdisc/nss_wrr.c
++++ b/nss_qdisc/nss_wrr.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017, 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017, 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -442,10 +442,19 @@ static int nss_wrr_delete_class(struct Q
+ 	refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+ 
+ 	sch_tree_unlock(sch);
++
++	/*
++	 * For 5.4 and above kernels, calling nss_htb_destroy_class
++	 * explicitly as there is no put_class which would have called
++	 * nss_wrr_destroy_class when refcnt becomes zero.
++	 */
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
++	nss_wrr_destroy_class(sch, cl);
++#else
+ 	if (!refcnt) {
+ 		nss_qdisc_error("Reference count should not be zero for class %px\n", cl);
+ 	}
+-
++#endif
+ 	return 0;
+ }
+ 
+@@ -764,6 +773,11 @@ static int nss_wrr_change_qdisc(struct Q
+ 
+ static void nss_wrr_reset_class(struct nss_wrr_class_data *cl)
+ {
++	if (cl->qdisc == &noop_qdisc) {
++		nss_qdisc_trace("Class %x has no child qdisc to reset\n", cl->nq.qos_tag);
++		return;
++	}
++
+ 	nss_qdisc_reset(cl->qdisc);
+ 	nss_qdisc_info("Nsswrr class resetted %px\n", cl->qdisc);
+ }

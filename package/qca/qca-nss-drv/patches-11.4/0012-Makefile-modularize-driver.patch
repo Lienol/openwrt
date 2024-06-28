@@ -1,0 +1,204 @@
+--- a/Makefile
++++ b/Makefile
+@@ -5,6 +5,9 @@
+ obj-m += qca-nss-drv.o
+ 
+ #
++# Regular NSS path
++#
++#
+ # List the files that belong to the driver in alphabetical order.
+ #
+ qca-nss-drv-objs := \
+@@ -16,57 +19,38 @@ qca-nss-drv-objs := \
+ 			nss_dynamic_interface.o \
+ 			nss_dynamic_interface_log.o \
+ 			nss_dynamic_interface_stats.o \
+-			nss_eth_rx.o \
+-			nss_eth_rx_stats.o \
+-			nss_eth_rx_strings.o \
+-			nss_gmac_stats.o \
+-			nss_if.o \
+-			nss_if_log.o \
+ 			nss_init.o \
+-			nss_ipv4.o \
+-			nss_ipv4_stats.o \
+-			nss_ipv4_strings.o \
+-			nss_ipv4_log.o \
+ 			nss_log.o \
+-			nss_lso_rx.o \
+-			nss_lso_rx_stats.o \
+-			nss_lso_rx_strings.o \
+ 			nss_meminfo.o \
+ 			nss_n2h.o \
+ 			nss_n2h_stats.o \
+ 			nss_n2h_strings.o \
+-			nss_phys_if.o \
+ 			nss_pm.o \
+ 			nss_profiler.o \
+ 			nss_project.o \
+-			nss_pppoe.o \
+-			nss_pppoe_log.o \
+-			nss_pppoe_stats.o \
+-			nss_pppoe_strings.o \
+ 			nss_rps.o \
+ 			nss_stats.o \
+ 			nss_strings.o \
+-			nss_tx_msg_sync.o \
+ 			nss_unaligned.o \
+ 			nss_unaligned_log.o \
+-			nss_unaligned_stats.o \
++			nss_unaligned_stats.o
++
++# Base NSS HAL support
++qca-nss-drv-objs += nss_hal/nss_hal.o
++
++ifneq "$(NSS_DRV_POINT_OFFLOAD)" "y"
++qca-nss-drv-objs += \
++			nss_gmac_stats.o \
++			nss_if.o \
++			nss_if_log.o \
++			nss_phys_if.o \
++			nss_tx_msg_sync.o \
+ 			nss_virt_if.o \
+-			nss_virt_if_stats.o \
+-			nss_vlan.o \
+-			nss_vlan_log.o \
+-			nss_wifi.o \
+-			nss_wifi_log.o \
+-			nss_wifi_stats.o \
+-			nss_wifi_vdev.o \
+-			nss_wifili.o \
+-			nss_wifili_log.o \
+-			nss_wifili_stats.o \
+-			nss_wifili_strings.o \
+-			nss_wifi_mac_db.o
++			nss_virt_if_stats.o
+ 
+-# Base NSS data plane/HAL support
++# Base NSS data plane support
+ qca-nss-drv-objs += nss_data_plane/nss_data_plane_common.o
+-qca-nss-drv-objs += nss_hal/nss_hal.o
++endif
+ 
+ ifneq "$(NSS_DRV_BRIDGE_ENABLE)" "n"
+ ccflags-y += -DNSS_DRV_BRIDGE_ENABLE
+@@ -332,7 +316,70 @@ qca-nss-drv-objs += \
+ 			nss_udp_st_strings.o
+ endif
+ 
++ifneq "$(NSS_DRV_IPV4_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_IPV4_ENABLE
++qca-nss-drv-objs += \
++			nss_ipv4.o \
++			nss_ipv4_stats.o \
++			nss_ipv4_strings.o \
++			nss_ipv4_log.o
++endif
++
++ifneq "$(NSS_DRV_ETH_RX_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_ETH_RX_ENABLE
++qca-nss-drv-objs += \
++			nss_eth_rx.o \
++			nss_eth_rx_stats.o \
++			nss_eth_rx_strings.o
++endif
++
++ifneq "$(NSS_DRV_PPPOE_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_PPPOE_ENABLE
++qca-nss-drv-objs += \
++			nss_pppoe.o \
++			nss_pppoe_log.o \
++			nss_pppoe_stats.o \
++			nss_pppoe_strings.o
++endif
++
++ifneq "$(NSS_DRV_WIFIOFFLOAD_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_WIFIOFFLOAD_ENABLE
++ifneq "$(NSS_DRV_WIFI_LEGACY_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_WIFI_LEGACY_ENABLE
++qca-nss-drv-objs += \
++			nss_wifi.o \
++			nss_wifi_log.o \
++			nss_wifi_stats.o
+ ifeq ($(SoC),$(filter $(SoC),ipq806x))
++ccflags-y += -DNSS_HAL_IPQ806x_SUPPORT
++endif
++endif
++qca-nss-drv-objs += \
++			nss_wifi_vdev.o \
++			nss_wifili.o \
++			nss_wifili_log.o \
++			nss_wifili_stats.o \
++			nss_wifili_strings.o \
++			nss_wifi_mac_db.o
++endif
++
++ifneq "$(NSS_DRV_VLAN_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_VLAN_ENABLE
++qca-nss-drv-objs += \
++			nss_vlan.o \
++			nss_vlan_log.o
++endif
++
++ifneq "$(NSS_DRV_LSO_RX_ENABLE)" "n"
++ccflags-y += -DNSS_DRV_LSO_RX_ENABLE
++qca-nss-drv-objs += \
++			nss_lso_rx.o \
++			nss_lso_rx_stats.o \
++			nss_lso_rx_strings.o
++endif
++
++ifeq ($(SoC),$(filter $(SoC),ipq806x))
++ccflags-y += -DNSS_DRV_IPV4_ENABLE -DNSS_DRV_IPV6_ENABLE
+ qca-nss-drv-objs += nss_data_plane/nss_data_plane_gmac.o \
+ 		    nss_hal/ipq806x/nss_hal_pvt.o
+ 
+@@ -438,6 +485,8 @@ qca-nss-drv-objs += \
+ endif
+ endif
+ 
++ccflags-y += -DNSS_DATA_PLANE_GENERIC_SUPPORT
++
+ ifeq ($(SoC),$(filter $(SoC),ipq807x ipq807x_64))
+ qca-nss-drv-objs += nss_hal/ipq807x/nss_hal_pvt.o \
+ 		    nss_data_plane/hal/nss_ipq807x.o
+@@ -496,6 +545,7 @@ ccflags-y += -I$(obj)/nss_hal/ipq50xx -D
+ endif
+ 
+ ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=0 -DNSS_PKT_STATS_ENABLED=1
++
+ ccflags-y += -I$(obj)/nss_data_plane/hal/include
+ ccflags-y += -DNSS_PM_DEBUG_LEVEL=0 -DNSS_SKB_REUSE_SUPPORT=1
+ ccflags-y += -Wall -Werror
+@@ -510,7 +560,14 @@ NSS_CCFLAGS = -DNSS_DT_SUPPORT=1 -DNSS_F
+ ccflags-y += -I$(obj)
+ endif
+ 
++# Fabric scaling is supported in 3.14 and 4.4 only
++ifneq ($(findstring 3.14, $(KERNELVERSION)),)
++NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=1
++else ifneq ($(findstring 4.4, $(KERNELVERSION)),)
++NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=1
++else
+ NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=0
++endif
+ 
+ # Disable Frequency scaling
+ ifeq "$(NSS_FREQ_SCALE_DISABLE)" "y"
+--- a/nss_init.c
++++ b/nss_init.c
+@@ -880,6 +880,13 @@ static int __init nss_init(void)
+ #endif
+ 
+ 	/*
++	 * Init Wi-Fi mesh
++	 */
++#ifdef NSS_DRV_WIFI_MESH_ENABLE
++	nss_wifi_mesh_init();
++#endif
++
++	/*
+ 	 * Register platform_driver
+ 	 */
+ 	return platform_driver_register(&nss_driver);
