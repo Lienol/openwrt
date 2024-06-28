@@ -1,0 +1,983 @@
+--- a/exports/nss_wifi_mesh.h
++++ b/exports/nss_wifi_mesh.h
+@@ -102,7 +102,7 @@ enum nss_wifi_mesh_pre_header_type {
+ 
+ /*
+  * nss_wifi_mesh_extended_data_pkt_types
+- * 	Wi-Fi mesh extended data pkt types.
++ * 	Wi-Fi mesh extended data packet types.
+  */
+ enum nss_wifi_mesh_extended_data_pkt_types {
+ 	WIFI_MESH_EXT_DATA_PKT_TYPE_NONE,		/**< No packet type. */
+@@ -114,13 +114,13 @@ enum nss_wifi_mesh_extended_data_pkt_typ
+  *	Wi-Fi header
+  */
+ struct nss_wifi_mesh_ieee80211_hdr {
+-	uint16_t frame_ctl;				/* Frame control. */
+-	uint16_t duration_id;				/* Duration ID. */
+-	uint8_t addr1[ETH_ALEN];			/* Address 1. */
+-	uint8_t addr2[ETH_ALEN];			/* Address 2. */
+-	uint8_t addr3[ETH_ALEN];			/* Address 3. */
+-	uint16_t seq_ctrl;				/* Sequence control. */
+-	uint8_t addr4[ETH_ALEN];			/* Address 4. */
++	uint16_t frame_ctl;				/**< Frame control. */
++	uint16_t duration_id;				/**< Duration ID. */
++	uint8_t addr1[ETH_ALEN];			/**< Address 1. */
++	uint8_t addr2[ETH_ALEN];			/**< Address 2. */
++	uint8_t addr3[ETH_ALEN];			/**< Address 3. */
++	uint16_t seq_ctrl;				/**< Sequence control. */
++	uint8_t addr4[ETH_ALEN];			/**< Address 4. */
+ }__packed;
+ 
+ /*
+@@ -128,16 +128,16 @@ struct nss_wifi_mesh_ieee80211_hdr {
+  *	Wi-Fi mesh header
+  */
+ struct nss_wifi_mesh_ieee80211s_hdr {
+-	uint8_t flags;					/* Mesh flags. */
+-	uint8_t ttl;					/* TTL. */
+-	uint32_t seq_num;				/* Sequence number. */
+-	uint8_t eaddr1[ETH_ALEN];			/* Mesh Address1. */
+-	uint8_t eaddr2[ETH_ALEN];			/* Mesh Address2. */
++	uint8_t flags;					/**< Mesh flags. */
++	uint8_t ttl;					/**< TTL. */
++	uint32_t seq_num;				/**< Sequence number. */
++	uint8_t eaddr1[ETH_ALEN];			/**< Mesh Address1. */
++	uint8_t eaddr2[ETH_ALEN];			/**< Mesh Address2. */
+ }__packed;
+ 
+ /*
+  * nss_wifi_mesh_per_packet_metadata
+- * 	Wi-Fi mesh per packet metadata structure.
++ *      Wi-Fi mesh per packet metadata structure.
+  */
+ struct nss_wifi_mesh_per_packet_metadata {
+ 	uint16_t pkt_type;					/* Packet type of the metadata. */
+@@ -150,8 +150,8 @@ struct nss_wifi_mesh_per_packet_metadata
+  *	NSS-to-host path will be seen by ECM for rules.
+  */
+ enum nss_wifi_mesh_dp_type {
+-	NSS_WIFI_MESH_DP_INNER,		/**< Inner/Encapsulation Interface. */
+-	NSS_WIFI_MESH_DP_OUTER,		/**< Outer/Decapsulation Interface. */
++	NSS_WIFI_MESH_DP_INNER,		/**< Inner/encapsulation interface. */
++	NSS_WIFI_MESH_DP_OUTER,		/**< Outer/decapsulation interface. */
+ };
+ 
+ /**
+@@ -353,7 +353,7 @@ struct nss_wifi_mesh_proxy_path_del_msg
+ 
+ /**
+  * nss_wifi_mesh_mpath_not_found_msg
+- *	Wi-Fi mesh path not found meesage.
++ *	Wi-Fi mesh path not found message.
+  */
+ struct nss_wifi_mesh_mpath_not_found_msg {
+ 	uint8_t dest_mac_addr[ETH_ALEN];		/**< Destination MAC address. */
+@@ -389,28 +389,28 @@ struct nss_wifi_mesh_path_expiry_msg {
+  *	Encapsulation statistics.
+  */
+ struct nss_wifi_mesh_encap_stats {
+-	uint32_t expiry_notify_sent;		/* Number of times expiry notification sent to host. */
+-	uint32_t mc_count;			/* Number of multicast packets. */
+-	uint32_t mp_not_found;			/* Number of times mesh path is not found. */
+-	uint32_t mp_active;			/* Number of times mesh path is active. */
+-	uint32_t mpp_not_found;			/* Number of times proxy path is not found. */
+-	uint32_t mpp_found;			/* Number of times proxy path is found. */
+-	uint32_t encap_hdr_fail;		/* Number of times encapsulating mesh header failed. */
+-	uint32_t mp_del_notify_fail;		/* Number of times notifying mesh path delete failed. */
+-	uint32_t link_enqueue;			/* Number of packets enqueued to the link VAP. */
+-	uint32_t link_enq_fail;			/* Number of times enqueue to link vap failed. */
+-	uint32_t ra_lup_fail;			/* Number of times receiver address look up is failed. */
+-	uint32_t dummy_add_count;		/* Number of times dummy path is added. */
+-	uint32_t encap_mp_add_notify_fail;	/* Number of times add notification failed. */
+-	uint32_t dummy_add_fail;		/* Number of times dummy addition failed. */
+-	uint32_t dummy_lup_fail;		/* Number of times dummy lookup failed. */
+-	uint32_t send_to_host_failed;		/* Number of packets failed to be sent to host. */
+-	uint32_t sent_to_host;			/* Number of packets sent to host. */
+-	uint32_t expiry_notify_fail; 		/* Number of times expiry notification to host failed. */
+-	uint32_t no_headroom;			/* Number of packets dropped because there is no headroom. */
+-	uint32_t path_refresh_sent;		/* Number of times path refresh is sent to host. */
+-	uint32_t linearise_failed;		/* Number of packets dropped because pb_linearise. */
+-	uint32_t mp_exception_event_rl_dropped;	/* Number of packets dropped due to rate limit. */
++	uint32_t expiry_notify_sent;		/**< Number of times expiry notification sent to host. */
++	uint32_t mc_count;			/**< Number of multicast packets. */
++	uint32_t mp_not_found;			/**< Number of times mesh path is not found. */
++	uint32_t mp_active;			/**< Number of times mesh path is active. */
++	uint32_t mpp_not_found;			/**< Number of times proxy path is not found. */
++	uint32_t mpp_found;			/**< Number of times proxy path is found. */
++	uint32_t encap_hdr_fail;		/**< Number of times encapsulating mesh header failed. */
++	uint32_t mp_del_notify_fail;		/**< Number of times notifying mesh path delete failed. */
++	uint32_t link_enqueue;			/**< Number of packets enqueued to the link VAP. */
++	uint32_t link_enq_fail;			/**< Number of times enqueue to link vap failed. */
++	uint32_t ra_lup_fail;			/**< Number of times receiver address look up is failed. */
++	uint32_t dummy_add_count;		/**< Number of times dummy path is added. */
++	uint32_t encap_mp_add_notify_fail;	/**< Number of times add notification failed. */
++	uint32_t dummy_add_fail;		/**< Number of times dummy addition failed. */
++	uint32_t dummy_lup_fail;		/**< Number of times dummy lookup failed. */
++	uint32_t send_to_host_failed;		/**< Number of packets failed to be sent to host. */
++	uint32_t sent_to_host;			/**< Number of packets sent to host. */
++	uint32_t expiry_notify_fail; 		/**< Number of times expiry notification to host failed. */
++	uint32_t no_headroom;			/**< Number of packets dropped because there is no headroom. */
++	uint32_t path_refresh_sent;		/**< Number of times path refresh is sent to host. */
++	uint32_t linearise_failed;		/**< Number of packets dropped because pb_linearise. */
++	uint32_t mp_exception_event_rl_dropped;	/**< Number of packets dropped due to rate limit. */
+ };
+ 
+ /*
+@@ -532,22 +532,22 @@ struct nss_wifi_mesh_path_stats {
+  *	Wi-Fi mesh proxy path statistics.
+  */
+ struct nss_wifi_mesh_proxy_path_stats {
+-	uint32_t alloc_failures;		/**< Mesh proxy path alloc failure count. */
+-	uint32_t entry_exist_failures;		/**< Mesh proxy path entry already exists. */
+-	uint32_t add_success;			/**< Mesh proxy path add success count. */
+-	uint32_t table_full_errors;		/**< Mesh proxy path table full count. */
+-	uint32_t insert_failures;		/**< Mesh proxy path insert failure count. */
+-	uint32_t not_found;			/**< Mesh proxy path not found count. */
+-	uint32_t unhashed_errors;		/**< Mesh proxy path unhased erorr count. */
+-	uint32_t delete_failures;		/**< Mesh proxy path delete failure count. */
+-	uint32_t delete_success;		/**< Mesh proxy path delete success count. */
+-	uint32_t update_success;		/**< Mesh proxy path update success count. */
+-	uint32_t lookup_success;		/**< Mesh proxy path lookup success count. */
+-	uint32_t add_requests;			/**< Mesh proxy path addition requests. */
+-	uint32_t del_requests;			/**< Mesh proxy path deletion requests. */
+-	uint32_t update_requests;		/**< Mesh proxy path updation requests. */
+-	uint32_t mda_updations;			/**< Mesh proxy path mda updations. */
+-	uint32_t flag_updations;		/**< Mesh proxy path flags updations. */
++	uint32_t alloc_failures;			/**< Mesh proxy path allocation failure count. */
++	uint32_t entry_exist_failures;			/**< Mesh proxy path entry already exists. */
++	uint32_t add_success;				/**< Mesh proxy path add success count. */
++	uint32_t table_full_errors;			/**< Mesh proxy path table full count. */
++	uint32_t insert_failures;			/**< Mesh proxy path insert failure count. */
++	uint32_t not_found;				/**< Mesh proxy path not found count. */
++	uint32_t unhashed_errors;			/**< Mesh proxy path unhased erorr count. */
++	uint32_t delete_failures;			/**< Mesh proxy path delete failure count. */
++	uint32_t delete_success;			/**< Mesh proxy path delete success count. */
++	uint32_t update_success;			/**< Mesh proxy path update success count. */
++	uint32_t lookup_success;			/**< Mesh proxy path lookup success count. */
++	uint32_t add_requests;				/**< Mesh proxy path addition requests. */
++	uint32_t del_requests;				/**< Mesh proxy path deletion requests. */
++	uint32_t update_requests;			/**< Mesh proxy path updation requests. */
++	uint32_t mda_updations;				/**< Mesh proxy path mda updations. */
++	uint32_t flag_updations;			/**< Mesh proxy path flags updations. */
+ 	uint32_t mesh_proxy_path_dummy_lookup_success;	/**< Mesh proxy path dummy entry lookup successes. */
+ 	uint32_t mesh_proxy_path_dummy_lookup_failures;	/**< Mesh proxy path dummy entry lookup failures. */
+ 	uint32_t mesh_proxy_path_dummy_add_failures;	/**< Mesh proxy path dummy entry add failures. */
+@@ -975,7 +975,7 @@ nss_tx_status_t nss_wifi_mesh_tx_msg_ext
+ 
+ /**
+  * nss_wifi_mesh_verify_if_num
+- *	Verify Wi-Fi mesh interface number.
++ *	Verifies the Wi-Fi mesh interface number.
+  *
+  * @datatypes
+  * interface number \n
+@@ -1014,4 +1014,9 @@ extern int nss_wifi_mesh_stats_register_
+  * 0 on success or non-zero on failure.
+  */
+ extern int nss_wifi_mesh_stats_unregister_notifier(struct notifier_block *nb);
++
++/**
++ * @}
++ */
++
+ #endif /* __NSS_WIFI_MESH_H */
+--- a/exports/nss_c2c_rx.h
++++ b/exports/nss_c2c_rx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -36,7 +36,7 @@ enum nss_c2c_rx_stats_types {
+ 						/**< Number of received simple pbufs. */
+ 	NSS_C2C_RX_STATS_PBUF_SG,		/**< Number of scatter-gather pbufs received. */
+ 	NSS_C2C_RX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbufs. */
+-	NSS_C2C_RX_STATS_INVAL_DEST,		/**< Number of pbuf enqueue failures because of destination is invalid. */
++	NSS_C2C_RX_STATS_INVAL_DEST,		/**< Number of pbuf enqueue failures because destination is invalid. */
+ 	NSS_C2C_RX_STATS_MAX,			/**< Maximum message type. */
+ };
+ 
+--- a/exports/nss_c2c_tx.h
++++ b/exports/nss_c2c_tx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -72,9 +72,9 @@ enum nss_c2c_tx_test_type {
+  */
+ enum nss_c2c_tx_stats_types {
+ 	NSS_C2C_TX_STATS_PBUF_SIMPLE = NSS_STATS_NODE_MAX,
+-						/**< Number of received simple pbuf. */
+-	NSS_C2C_TX_STATS_PBUF_SG,		/**< Number of scatter-gather pbuf received. */
+-	NSS_C2C_TX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbuf. */
++						/**< Number of received simple pbufs. */
++	NSS_C2C_TX_STATS_PBUF_SG,		/**< Number of scatter-gather pbufs received. */
++	NSS_C2C_TX_STATS_PBUF_RETURNING,	/**< Number of returning scatter-gather pbufs. */
+ 	NSS_C2C_TX_STATS_MAX,			/**< Maximum message type. */
+ };
+ 
+--- a/exports/nss_cmn.h
++++ b/exports/nss_cmn.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014, 2016-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014, 2016-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -27,7 +27,7 @@
+  * @{
+  */
+ 
+-/*
++/**
+  * Interface Number 1 Valid 7 Core 8 Type 16 Index
+  */
+ typedef int32_t nss_if_num_t;
+--- a/exports/nss_gre.h
++++ b/exports/nss_gre.h
+@@ -1,6 +1,9 @@
+ /*
+  ****************************************************************************
+  * Copyright (c) 2017-2019, 2021, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -101,16 +104,16 @@ enum nss_gre_msg_types {
+ };
+ 
+ /**
+- * GRE Mode Types
++ * GRE mode types.
+  */
+ enum nss_gre_mode {
+-	NSS_GRE_MODE_TUN,	/**< GRE Tunnel interface. */
+-	NSS_GRE_MODE_TAP,	/**< GRE Tap interface. */
++	NSS_GRE_MODE_TUN,	/**< GRE tunnel interface. */
++	NSS_GRE_MODE_TAP,	/**< GRE TAP interface. */
+ 	NSS_GRE_MODE_MAX	/**< Maxmum GRE mode. */
+ };
+ 
+ /**
+- * GRE IP Types
++ * GRE IP types.
+  */
+ enum nss_gre_ip_types {
+ 	NSS_GRE_IP_IPV4,	/**<  Outer Tunnel is IPV4. */
+@@ -168,11 +171,11 @@ enum nss_gre_session_types {
+  * GRE create message structure.
+  */
+ struct nss_gre_config_msg {
+-	uint32_t src_ip[4];			/**< Source IPv4 or IPv6 Adddress. */
+-	uint32_t dest_ip[4];			/**< Destination IPv4 or IPv6 Adddress. */
++	uint32_t src_ip[4];			/**< Source IPv4 or IPv6 address. */
++	uint32_t dest_ip[4];			/**< Destination IPv4 or IPv6 address. */
+ 	uint32_t flags;				/**< GRE Flags. */
+-	uint32_t ikey;				/**< GRE rx KEY.*/
+-	uint32_t okey;				/**< GRE tx KEY. */
++	uint32_t ikey;				/**< GRE Rx key.*/
++	uint32_t okey;				/**< GRE Tx key. */
+ 	uint32_t mode;				/**< GRE TUN or TAP. */
+ 	uint32_t ip_type;			/**< IPv4 or IPv6 type. */
+ 	uint32_t next_node_if_num;		/**< To whom to forward packets. */
+@@ -185,7 +188,7 @@ struct nss_gre_config_msg {
+ };
+ 
+ /**
+- * GRE link up message structure
++ * GRE link up message structure.
+  */
+ struct nss_gre_linkup_msg {
+ 	int if_number;			/**< Interface number. */
+@@ -202,11 +205,11 @@ struct nss_gre_linkdown_msg {
+  * GRE deconfig message structure
+  */
+ struct nss_gre_deconfig_msg {
+-	int if_number;			/**< Interface number */
++	int if_number;			/**< Interface number. */
+ };
+ 
+ /**
+- * GRE session statistics message
++ * GRE session statistics message.
+  */
+ struct nss_gre_session_stats_msg {
+ 	struct nss_cmn_node_stats node_stats;		/**< Common node statistics. */
+@@ -214,7 +217,7 @@ struct nss_gre_session_stats_msg {
+ };
+ 
+ /**
+- * GRE base statistics message
++ * GRE base statistics message.
+  */
+ struct nss_gre_base_stats_msg {
+ 	uint32_t stats[NSS_GRE_BASE_DEBUG_MAX];		/**< Base debug statistics. */
+@@ -241,10 +244,10 @@ struct nss_gre_session_stats_notificatio
+ 
+ /**
+  * nss_gre_msg
+- *	Message structure to send/receive GRE messages
++ *	Message structure to send/receive GRE messages.
+  */
+ struct nss_gre_msg {
+-	struct nss_cmn_msg cm;					/**< Common message header */
++	struct nss_cmn_msg cm;					/**< Common message header. */
+ 
+ 	/**
+ 	 * Payload of a GRE message.
+@@ -304,7 +307,7 @@ extern nss_tx_status_t nss_gre_tx_msg_sy
+ 
+ /**
+  * nss_gre_tx_buf
+- *	Sends packet to the NSS
++ *	Sends a packet to the NSS.
+  *
+  * @datatypes
+  * nss_ctx_instance \n
+--- a/exports/nss_gre_redir.h
++++ b/exports/nss_gre_redir.h
+@@ -302,7 +302,7 @@ struct nss_gre_redir_stats_sync_msg {
+ 
+ /**
+  * nss_gre_redir_tun_stats
+- *	GRE redirect statistics to accumulate all the stats values.
++ *	GRE redirect statistics to accumulate all stats values.
+  */
+ struct nss_gre_redir_tun_stats {
+ 	uint64_t rx_packets;		/**< Number of packets received. */
+--- a/exports/nss_if.h
++++ b/exports/nss_if.h
+@@ -321,6 +321,23 @@ extern struct nss_ctx_instance *nss_if_r
+ extern nss_tx_status_t nss_if_tx_buf(struct nss_ctx_instance *nss_ctx, struct sk_buff *os_buf, uint32_t if_num);
+ 
+ /**
++ * nss_if_tx_msg_with_size
++ *	Sends a message to the NSS interface.
++ *
++ * @datatypes
++ * nss_ctx_instance \n
++ * nss_if_msg
++ *
++ * @param[in,out] nss_ctx  Pointer to the NSS context.
++ * @param[in]     nim      Pointer to the NSS interface message.
++ * @param[in]     size     Total message buffer size.
++ *
++ * @return
++ * Status of the Tx operation.
++ */
++nss_tx_status_t nss_if_tx_msg_with_size(struct nss_ctx_instance *nss_ctx, struct nss_if_msg *nim, uint32_t size);
++
++/**
+  * nss_if_tx_msg
+  *	Sends a message to the NSS interface.
+  *
+@@ -338,7 +355,7 @@ nss_tx_status_t nss_if_tx_msg(struct nss
+ 
+ /**
+  * nss_if_msg_sync
+- *	Sends a message to the NSS interface and wait for the response.
++ *	Sends a message to the NSS interface and waits for the response.
+  *
+  * @datatypes
+  * nss_ctx_instance \n
+@@ -385,7 +402,7 @@ nss_tx_status_t nss_if_reset_nexthop(str
+ 
+ /**
+  * nss_if_change_mtu
+- *	Change the MTU of the interface.
++ *	Changes the MTU of the interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -401,7 +418,7 @@ nss_tx_status_t nss_if_change_mtu(struct
+ 
+ /**
+  * nss_if_change_mac_addr
+- *	Change the MAC address of the interface.
++ *	Changes the MAC address of the interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -417,7 +434,7 @@ nss_tx_status_t nss_if_change_mac_addr(s
+ 
+ /**
+  * nss_if_vsi_unassign
+- *	Detach the VSI ID from the given interface.
++ *	Detaches the VSI ID from the given interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+@@ -433,7 +450,7 @@ nss_tx_status_t nss_if_vsi_unassign(stru
+ 
+ /**
+  * nss_if_vsi_assign
+- *	Attach the VSI ID to the given interface.
++ *	Attaches the VSI ID to the given interface.
+  *
+  * @datatypes
+  * nss_ctx_instance
+--- a/exports/nss_ipv4.h
++++ b/exports/nss_ipv4.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -55,16 +58,16 @@ struct nss_ipv4_create {
+ 				/**< Source interface number (virtual or physical). */
+ 	int32_t dest_interface_num;
+ 				/**< Destination interface number (virtual or physical). */
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
+-	uint32_t flags;		/**< Flags (if any) associated with this rule. */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP. */
++	uint32_t flags;		/**< Flags associated with this rule. */
+ 	uint32_t from_mtu;	/**< MTU of the incoming interface. */
+ 	uint32_t to_mtu;	/**< MTU of the outgoing interface. */
+ 	uint32_t src_ip;	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t src_ip_xlate;	/**< Translated source IP address (used with SNAT). */
+ 	int32_t src_port_xlate;	/**< Translated source L4 port (used with SNAT). */
+ 	uint32_t dest_ip;	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip_xlate;
+ 			/**< Translated destination IP address (used with DNAT). */
+ 	int32_t dest_port_xlate;
+@@ -82,7 +85,7 @@ struct nss_ipv4_create {
+ 	uint32_t flow_end;		/**< TCP window end. */
+ 	uint32_t flow_max_end;		/**< TCP window maximum end. */
+ 	uint32_t flow_pppoe_if_exist;
+-			/**< Flow direction: PPPoE interface exist flag. */
++			/**< Flow direction: PPPoE interface existence flag. */
+ 	int32_t flow_pppoe_if_num;
+ 			/**< Flow direction: PPPoE interface number. */
+ 	uint16_t ingress_vlan_tag;	/**< Ingress VLAN tag expected for this flow. */
+@@ -131,9 +134,9 @@ struct nss_ipv4_create {
+ struct nss_ipv4_destroy {
+ 	int32_t protocol;	/**< L4 protocol ID. */
+ 	uint32_t src_ip;	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip;	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ };
+ 
+ /**
+@@ -956,10 +959,10 @@ struct nss_ipv4_node_sync {
+ 			/**< Number of multicast connection flushes. */
+ 
+ 	uint32_t ipv4_connection_create_invalid_mirror_ifnum;
+-			/**< Number of create request failed with an invalid mirror interface number. */
++			/**< Number of failed create requests with an invalid mirror interface number. */
+ 
+ 	uint32_t ipv4_connection_create_invalid_mirror_iftype;
+-			/**< Number of create request failed with an invalid mirror interface type. */
++			/**< Number of failed create requests with an invalid mirror interface type. */
+ 
+ 	uint32_t ipv4_mirror_failures;
+ 			/**< Mirror packet failed. */
+--- a/exports/nss_ipv6.h
++++ b/exports/nss_ipv6.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -82,14 +85,14 @@ struct nss_ipv6_create {
+ 			/**< Source interface number (virtual or physical). */
+ 	int32_t dest_interface_num;
+ 			/**< Destination interface number (virtual or physical). */
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
+-	uint32_t flags;		/**< Flags (if any) associated with this rule. */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP,. */
++	uint32_t flags;		/**< Flags associated with this rule. */
+ 	uint32_t from_mtu;	/**< MTU of the incoming interface. */
+ 	uint32_t to_mtu;	/**< MTU of the outgoing interface. */
+ 	uint32_t src_ip[4];	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip[4];	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ 	uint8_t src_mac[ETH_ALEN];	/**< Source MAC address. */
+ 	uint8_t dest_mac[ETH_ALEN];	/**< Destination MAC address. */
+ 	uint8_t flow_window_scale;	/**< Window scaling factor (TCP). */
+@@ -111,7 +114,7 @@ struct nss_ipv6_create {
+ 	uint32_t return_max_end;
+ 			/**< Maximum end for the return direction. */
+ 	uint32_t return_pppoe_if_exist;
+-			/**< Return direction: PPPoE interface exist flag. */
++			/**< Return direction: PPPoE interface existence flag. */
+ 	int32_t return_pppoe_if_num;
+ 			/**< Return direction: PPPoE interface number. */
+ 	uint16_t egress_vlan_tag;	/**< Egress VLAN tag expected for this flow. */
+@@ -139,11 +142,11 @@ struct nss_ipv6_create {
+  *	Information for an IPv6 flow or connection destroy rule.
+  */
+ struct nss_ipv6_destroy {
+-	int32_t protocol;	/**< L4 protocol (e.g., TCP or UDP). */
++	int32_t protocol;	/**< L4 protocol, e.g., TCP or UDP. */
+ 	uint32_t src_ip[4];	/**< Source IP address. */
+-	int32_t src_port;	/**< Source L4 port (e.g., TCP or UDP port). */
++	int32_t src_port;	/**< Source L4 port, e.g., TCP or UDP port. */
+ 	uint32_t dest_ip[4];	/**< Destination IP address. */
+-	int32_t dest_port;	/**< Destination L4 port (e.g., TCP or UDP port). */
++	int32_t dest_port;	/**< Destination L4 port, e.g., TCP or UDP port. */
+ };
+ 
+ /**
+@@ -951,10 +954,10 @@ struct nss_ipv6_node_sync {
+ 			/**< Number of multicast connection flushes. */
+ 
+ 	uint32_t ipv6_connection_create_invalid_mirror_ifnum;
+-			/**< Number of create request failed with an invalid mirror interface number. */
++			/**< Number of failed create requests with an invalid mirror interface number. */
+ 
+ 	uint32_t ipv6_connection_create_invalid_mirror_iftype;
+-			/**< Number of create request failed with an invalid mirror interface type. */
++			/**< Number of failed create requests with an invalid mirror interface type. */
+ 
+ 	uint32_t ipv6_mirror_failures;
+ 			/**< Mirror packet failed. */
+--- a/exports/nss_lso_rx.h
++++ b/exports/nss_lso_rx.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -17,7 +17,7 @@
+  */
+ 
+ /*
+- * nss_lso_rx.h
++ * @file nss_lso_rx.h
+  *	NSS driver LSO (Large Send Offload) Rx header file.
+  */
+ 
+--- a/exports/nss_map_t.h
++++ b/exports/nss_map_t.h
+@@ -36,14 +36,18 @@
+  */
+ #define NSS_MAX_MAP_T_DYNAMIC_INTERFACES 4
+ 
++/**
++ * MAP-T metadata flag.
++ */
+ #define NSS_MAPT_MDATA_FLAG_DF_BIT  (1 << 0)
+ 
+-/*
+- * mapt meta data
++/**
++ * nss_map_t_mdata
++ *         MAP-T metadata
+  */
+ struct nss_map_t_mdata {
+-	uint16_t flags;
+-	uint16_t res[6];
++	uint16_t flags;				/**< Metadata flags. */
++	uint16_t res[6];			/**< Reserved for future use. */
+ };
+ 
+ /**
+--- a/exports/nss_virt_if.h
++++ b/exports/nss_virt_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017, 2019, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017, 2019, 2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -93,8 +93,8 @@ struct nss_virt_if_interface_stats {
+  *	Virtual interface statistics received from the NSS.
+  */
+ struct nss_virt_if_stats {
+-	struct nss_virt_if_base_node_stats base_stats;
+-	struct nss_virt_if_interface_stats if_stats;
++	struct nss_virt_if_base_node_stats base_stats;	/**< Virtual interface statistics of NSS base node. */
++	struct nss_virt_if_interface_stats if_stats;	/**< Virtual interface statistics of each pair of interfaces. */
+ };
+ 
+ /**
+--- a/nss_c2c_rx.c
++++ b/nss_c2c_rx.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_c2c_tx.c
++++ b/nss_c2c_tx.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2018-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_coredump.c
++++ b/nss_coredump.c
+@@ -1,6 +1,8 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_dynamic_interface.c
++++ b/nss_dynamic_interface.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_hal/ipq806x/nss_hal_pvt.c
++++ b/nss_hal/ipq806x/nss_hal_pvt.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013, 2015-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_meminfo.c
++++ b/nss_meminfo.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2018-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+--- a/nss_phys_if.h
++++ b/nss_phys_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_profiler.c
++++ b/nss_profiler.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_qrfs.c
++++ b/nss_qrfs.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_rmnet_rx.c
++++ b/nss_rmnet_rx.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+--- a/nss_stats.c
++++ b/nss_stats.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2013-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_stats.h
++++ b/nss_stats.h
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2016-2017, 2019-2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+--- a/nss_vxlan.c
++++ b/nss_vxlan.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_data_plane/include/nss_data_plane.h
++++ b/nss_data_plane/include/nss_data_plane.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2017,2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2017,2020-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_data_plane/nss_data_plane.c
++++ b/nss_data_plane/nss_data_plane.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2016-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/exports/nss_wifi_vdev.h
++++ b/exports/nss_wifi_vdev.h
+@@ -1069,13 +1069,13 @@ struct nss_wifi_vdev_msg {
+ 		struct nss_wifi_vdev_me_snptbl_deny_grp_add_msg vdev_deny_member_add;
+ 				/**< Add a snooplist member to the deny list. */
+ 		struct nss_wifi_vdev_me_hmmc_add_msg vdev_hmmc_member_add;
+-				/**< Adds a new member into the HMMC list. */
++				/**< Adds a member to the HMMC list. */
+ 		struct nss_wifi_vdev_me_hmmc_del_msg vdev_hmmc_member_del;
+-				/**< Delete a member from the HMMC list. */
++				/**< Deletes a member from the HMMC list. */
+ 		struct nss_wifi_vdev_me_deny_ip_add_msg vdev_deny_list_member_add;
+-				/**< Adds a new member into the deny list. */
++				/**< Adds a member to the denylist. */
+ 		struct nss_wifi_vdev_me_deny_ip_del_msg vdev_deny_list_member_del;
+-				/**< Delete a member from the deny list. */
++				/**< Deletes a member from the denylist. */
+ 		struct nss_wifi_vdev_txmsg vdev_txmsgext;
+ 				/**< Transmits special data. */
+ 		struct nss_wifi_vdev_vow_dbg_cfg_msg vdev_vow_dbg_cfg;
+--- a/exports/nss_wifi_ext_vdev_if.h
++++ b/exports/nss_wifi_ext_vdev_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2020, 2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -26,6 +26,11 @@
+ 
+ #define NSS_WIFI_EXT_VDEV_MAX 16
+ 
++/**
++ * @addtogroup nss_wifi_ext_vdev_subsystem
++ * @{
++ */
++
+ /*
+  * nss_wifi_ext_vdev_msg_types
+  *	WiFi extension virtual device mesage types.
+@@ -294,4 +299,8 @@ extern struct nss_ctx_instance *nss_wifi
+ 		nss_wifi_ext_vdev_data_callback_t cb_func_data, nss_wifi_ext_vdev_ext_data_callback_t cb_func_ext,
+ 		nss_wifi_ext_vdev_msg_callback_t cb_func_msg, struct net_device *netdev, uint32_t features,
+ 		void *app_ctx);
++/**
++ * @}
++ */
++
+ #endif
+--- a/exports/nss_wifili_if.h
++++ b/exports/nss_wifili_if.h
+@@ -1,16 +1,19 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+- * Permission to use, copy, modify, and/or distribute this software for
+- * any purpose with or without fee is hereby granted, provided that the
+- * above copyright notice and this permission notice appear in all copies.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+  * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+- * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  **************************************************************************
+  */
+ 
+@@ -711,7 +714,7 @@ struct nss_wifili_hal_srng_soc_msg {
+ 	uint32_t shadow_wrptr_mem_addr;
+ 			/**< Shadow write pointer address. */
+ 	uint32_t lmac_rings_start_id;
+-			/**< start id of LMAC rings. */
++			/**< Start ID of LMAC rings. */
+ };
+ 
+ /**
+--- a/exports/nss_wifi_mac_db_if.h
++++ b/exports/nss_wifi_mac_db_if.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2020, 2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -25,6 +25,11 @@
+ 
+ #define NSS_WIFI_MAC_DB_ENTRY_IF_LOCAL 0x1
+ 
++ /**
++ * @addtogroup nss_wifi_mac_db_if_subsystem
++ * @{
++ */
++
+ /*
+  * MAX Wi-Fi MAC database entries sent in group
+  * is chosen considering the entry size and
+@@ -72,6 +77,7 @@ enum nss_wifi_mac_db_if_opmode {
+ };
+ 
+ /**
++ * nss_wifi_mac_db_err_types
+  * Wi-Fi MAC database errors.
+  */
+ enum nss_wifi_mac_db_err_types {
+@@ -274,4 +280,9 @@ struct nss_ctx_instance *nss_register_wi
+  */
+ void nss_unregister_wifi_mac_db_if(uint32_t if_num);
+ struct nss_ctx_instance *nss_wifi_mac_db_get_context(void);
++
++/**
++ * @}
++ */
++
+ #endif /* __NSS_WIFI_MAC_DB_H */
+--- a/nss_wifili_stats.c
++++ b/nss_wifili_stats.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+--- a/nss_wifili_strings.c
++++ b/nss_wifili_strings.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -71,10 +71,10 @@ struct nss_stats_info nss_wifili_strings
+  *	wifili tx comp stats
+  */
+ struct nss_stats_info nss_wifili_strings_stats_tx_comp[NSS_WIFILI_STATS_TX_DESC_FREE_MAX] = {
+-	{"tx_desc_free_inv_bufsrc"	, NSS_STATS_TYPE_ERROR},
+-	{"tx_desc_free_inv_cookie"	, NSS_STATS_TYPE_SPECIAL},
+-	{"tx_desc_free_hw_ring_empty"	, NSS_STATS_TYPE_SPECIAL},
+-	{"tx_desc_free_reaped"		, NSS_STATS_TYPE_SPECIAL}
++	{"tx_desc_free_inv_bufsrc"		, NSS_STATS_TYPE_ERROR},
++	{"tx_desc_free_inv_cookie"		, NSS_STATS_TYPE_SPECIAL},
++	{"tx_desc_free_hw_ring_empty"		, NSS_STATS_TYPE_SPECIAL},
++	{"tx_desc_free_reaped"			, NSS_STATS_TYPE_SPECIAL}
+ };
+ 
+ /*

@@ -1,0 +1,35 @@
+--- a/src/nssinfo.c
++++ b/src/nssinfo.c
+@@ -160,7 +160,7 @@ void nssinfo_print_all(char *node, char
+ 		        	break;
+ 			}
+ 
+-			nssinfo_stats_print("%s_%-*s = %-20llu %-s\n",
++			nssinfo_stats_print("%s_%-*s = %-20lu %-s\n",
+ 					node, maxlen, stats_info[i].stats_name, stats_val[i], type);
+ 		}
+ 	}
+@@ -277,12 +277,12 @@ void nssinfo_node_stats_destroy(pthread_
+ static char* nssinfo_add_comma(uint64_t num)
+ {
+ 	if (num < 1000) {
+-		snprintf(buf, sizeof(buf), "%llu", num);
++		snprintf(buf, sizeof(buf), "%lu", num);
+ 		return buf;
+ 	}
+ 
+ 	nssinfo_add_comma(num/1000);
+-	snprintf(buf + strlen(buf), sizeof(buf[NSSINFO_STR_LEN] + strlen(buf)), ",%03llu", num % 1000);
++	snprintf(buf + strlen(buf), sizeof(buf[NSSINFO_STR_LEN] + strlen(buf)), ",%03lu", num % 1000);
+ 	return buf;
+ }
+ 
+@@ -293,7 +293,7 @@ static char* nssinfo_add_comma(uint64_t
+ static char* nssinfo_add_suffix(uint64_t num)
+ {
+ 	if (num < 1000) {
+-		snprintf(buf, sizeof(buf), "%llu", num);
++		snprintf(buf, sizeof(buf), "%lu", num);
+ 		return buf;
+ 	}
+ 

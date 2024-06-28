@@ -1,0 +1,10 @@
+--- a/ecm_interface.c
++++ b/ecm_interface.c
+@@ -47,6 +47,7 @@
+ #include <linux/rtnetlink.h>
+ #include <linux/socket.h>
+ #include <linux/wireless.h>
++#include <linux/nl80211.h>
+ #include <net/genetlink.h>
+ #include <net/gre.h>
+ #ifdef ECM_INTERFACE_BOND_ENABLE
