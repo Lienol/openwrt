@@ -1,18 +1,19 @@
-From: Felix Fietkau <nbd@nbd.name>
-Date: Tue, 14 Nov 2017 12:38:08 +0100
-Subject: [PATCH] Fix issues with disabling obss scan when using fixed_freq on
- mesh
-
 --- a/wpa_supplicant/wpa_supplicant.c
 +++ b/wpa_supplicant/wpa_supplicant.c
-@@ -3100,6 +3100,10 @@ void ibss_mesh_setup_freq(struct wpa_sup
+@@ -2539,11 +2539,13 @@ void ibss_mesh_setup_freq(struct wpa_sup
+ 	for (j = 0; j < wpa_s->last_scan_res_used; j++) {
+ 		struct wpa_bss *bss = wpa_s->last_scan_res[j];
  
- 	freq->freq = ssid->frequency;
+-		if (ssid->mode != WPAS_MODE_IBSS)
++		/* Don't adjust control freq in case of fixed_freq */
++		if (ssid->fixed_freq) {
++			obss_scan = 0;
+ 			break;
++		}
  
-+	if (ssid->fixed_freq) {
-+		obss_scan = 0;
-+	}
-+
- 	if (ssid->mode == WPAS_MODE_IBSS && !ssid->fixed_freq) {
- 		struct wpa_bss *bss = ibss_find_existing_bss(wpa_s, ssid);
+-		/* Don't adjust control freq in case of fixed_freq */
+-		if (ssid->fixed_freq)
++		if (ssid->mode != WPAS_MODE_IBSS)
+ 			break;
  
+ 		if (!bss_is_ibss(bss))
