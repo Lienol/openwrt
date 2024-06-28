@@ -1,0 +1,18 @@
+--- a/mc_snooping.c
++++ b/mc_snooping.c
+@@ -3112,7 +3112,6 @@ static void mc_mdb_cleanup(unsigned long
+ 		os_hlist_for_each_entry_rcu(mdb, mdbh, &mc->hash[i], hlist) {
+ 			struct mc_port_group *pg;
+ 			struct hlist_node *pgh;
+-			struct net_device *port;
+ 			unsigned long expire_time = mc->membership_interval;
+ 
+ 			if (hlist_empty(&mdb->pslist)) {
+@@ -3147,7 +3146,6 @@ static void mc_mdb_cleanup(unsigned long
+ 					else if (time_before(this_timer, next_timer))
+ 						next_timer = this_timer;
+ 				}
+-				port = pg->port;
+ 			}
+ 		}
+ 	}

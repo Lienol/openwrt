@@ -1,0 +1,17 @@
+#!/bin/sh
+# shellcheck disable=1090
+
+[ "$ACTION" != "add" ] && exit
+
+INC="/lib/netifd/offload/disable_offloads.sh"
+. "$INC" 2> /dev/null || {
+  logger -t "$PROG" -p user.error "missing include script $INC. exiting..."
+  exit 1
+}
+
+# Only disable offloads for physical interfaces
+if [ -r "/sys/class/net/$INTERFACE/device" ]; then
+  disable_offload "$INTERFACE"
+fi
+
+exit 0
