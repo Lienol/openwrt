@@ -1,0 +1,429 @@
+#!/bin/sh
+# shellcheck disable=2086,3010,1091,3043,2034
+###############################################################################
+# nss-zk.qos (HW Accelerated Simple Traffic Shaper)
+# version 20240502
+#
+# Requires: Platform IPQ807x, iproute2, tc (or tc-tiny), kmod-qca-nss-drv-qdisc,
+# and kmod-qca-nss-drv-igs.
+#
+# Maintainer: Qosmio (https://forum.openwrt.org/u/qosmio)
+# NSS Packages Repository: https://github.com/qosmio/nss-packages (branch: NSS-12.4-K6.x)
+# NSS SQM Repository: https://github.com/qosmio/sqm-scripts-nss
+#
+# Derived from work by @michaelchen644 (https://forum.openwrt.org/u/michaelchen644) and
+# @rickkdotnet (https://github.com/rickkdotnet/sqm-scripts-nss)
+#
+
+. /lib/functions.sh
+
+. /lib/functions/network.sh
+
+. "$SQM_LIB_DIR"/defaults.sh
+
+if [ -n "${ACTION}" ] && [ -n "${INTERFACE}" ] && [ -n "${DEVICE}" ]; then
+
+  DEV="ifb@${INTERFACE}"
+
+  sqm_debug "${SCRIPT}: triggered by hotplug ${ACTION} for ${INTERFACE} (${DEVICE})"
+  if $TC qdisc show dev $DEV; then
+    sqm_log "${SCRIPT}: TC qdisc is already installed on $DEV, not restarting to minimize the risk of crashes"
+    exit 0
+  else
+    sqm_debug "${SCRIPT}: No qdisc detected on $DEV, continuing with script"
+  fi
+fi
+
+# the maximum (worst case) length of the fq_codel queue in milliseconds
+# this is used together with speed and mtu to calculate the fq_codel queue limit
+# when the limit is not specified by the user in the SQM configuration
+#
+# If the queue limit of the $DEV is hit (observable by looking at drop_overlimit in tc -s qdisc show dev $DEV)
+# I see bloat for the first few seconds of a load test until codel takes over and things stabilize.
+MAXQLIMIT_MS=100
+
+check_addr() {
+  local iface_addr physdev run_count
+  run_count=${1:-0}
+
+  network_get_physdev physdev "${IFACE}"
+
+  if [ "$physdev" = "wan" ]; then
+    network_get_ipaddr iface_addr "${IFACE}"
+
+    if [ -z "$iface_addr" ]; then
+      [ $run_count -ge 2 ] && {
+        sqm_error "check_addr: NO IP on interface $IFACE after 2 retries. Exiting..."
+        return 1
+      }
+      sqm_warn "check_addr: NO IP on interface $IFACE. Sleeping 5 seconds... Attempt $((run_count + 1))"
+      sleep 5
+      check_addr $((run_count + 1))
+    else
+      sqm_debug "check_addr: IP on interface $IFACE: $iface_addr"
+    fi
+
+  else
+    sqm_debug "check_addr: Device $IFACE is not WAN. Skipping IP check"
+  fi
+}
+
+calc_limit() {
+  [ -z ${MINLIMIT} ] && MINLIMIT=200
+  local LIMIT
+
+  # queue-limit = (bandwidth / 8 bits) * delay / MTU
+  LIMIT=$(awk -v SPEED=$1 -v MTU=$2 -v MAXDELAY=$3 'BEGIN {print(int((SPEED*125)*(MAXDELAY/1000)/MTU))}')
+  sqm_debug "calc_limit: Queue limit should be $LIMIT packets for speed $1, MTU $2 and maximum delay $3 ms"
+
+  if [ ${LIMIT} -lt ${MINLIMIT} ]; then
+    LIMIT=${MINLIMIT}
+    sqm_debug "calc_limit: calculated limit is lower than ${MINLIMIT}, this is too little for codel to work with. Raising to ${MINLIMIT}."
+  fi
+
+  echo $LIMIT
+}
+
+cake_egress() {
+  sqm_error "The NSS shaper is currently only compatible with fq_codel. Not doing anything."
+  return 1
+}
+
+cake_ingress() {
+  sqm_error "The NSS shaper is currently only compatible with fq_codel. Not doing anything."
+  return 1
+}
+
+get_ecn() {
+  CURECN=$1
+  case $CURECN in
+    ECN)
+      case $QDISC in
+        *codel | *pie | *red)
+          CURECN=ecn
+          ;;
+        *)
+          CURECN=""
+          ;;
+      esac
+      ;;
+
+    NOECN)
+      case $QDISC in
+        *codel | *pie | *red)
+          CURECN=""
+          ;;
+        *)
+          CURECN=""
+          ;;
+      esac
+      ;;
+
+    *) sqm_warn "ecn value $1 not handled" ;;
+  esac
+  sqm_debug "get_ECN: $1 CURECN: $CURECN IECN: $IECN EECN: $EECN"
+  echo "$CURECN"
+}
+
+# Sets up the NSS TBL (token bucket limiter) shaper
+add_nsstbl() {
+  local IFACE SPEED BURST_US MTU ECN LOGT
+
+  IF=$1
+  SPEED=$2
+  BURST_US=$3
+  MTU=$4
+  ECN=$5
+  LOGT="add_nsstbl $IF:"
+
+  sqm_debug "$LOGT interface:$IF speed:$SPEED burst:$BURST_US mtu:$MTU overhead:$OVERHEAD"
+
+  # BURST
+  #
+  # burst is a tradeoff between cpu load and strictness of the shaper
+  # effects are pretty minimal either way with NSS, the SQM scripts default of 1000us
+  # seems to be a good sweet spot and counter-intuitively appears a bit more stable
+  # in both throughput and latency than a minimimal burst
+
+  BURST=$(get_burst ${MTU} ${SPEED} ${BURST_US})
+  # round to nearest multiple of MTU.
+  BURST=$(echo ${BURST} | awk -v MTU=$MTU '{print sprintf("%.0f",$0/MTU)*MTU}')
+
+  SPEED100=$((SPEED / 10))
+  SPEED200=$((SPEED * 4 / 10))
+  BURST100=$((BURST / 10))
+  BURST200=$((BURST * 3 / 10))
+
+  if [ $BURST100 -lt $MTU ]; then
+    BURST100=$MTU
+  fi
+
+  if [ $BURST200 -lt $MTU ]; then
+    BURST200=$MTU
+  fi
+
+  $TC qdisc add dev $IF root handle 1: nsstbl rate "${SPEED}"kbit burst "$BURST" mtu "$MTU" accel_mode 0
+  $TC qdisc add dev $IF parent 1: handle 10: nssprio bands 3 accel_mode 0
+  $TC qdisc add dev $IF parent 10:1 handle 100: nsstbl rate "${SPEED100}"kbit burst $BURST100 accel_mode 0
+  $TC qdisc add dev $IF parent 100: handle 1000: nsspfifo limit 100 accel_mode 0
+  $TC qdisc add dev $IF parent 10:2 handle 200: nsstbl rate "${SPEED200}"kbit burst $BURST200 accel_mode 0
+  # shellcheck disable=2046
+  $TC qdisc add dev $IF parent 200: handle 2000: nssred limit 100k min 30k max 80k avpkt 1k burst 55 $(get_ecn ${ECN}) probability 0.50 accel_mode 0
+
+  return 0
+}
+
+# Sets up the NSS fq_codel qdisc
+add_nssfq_codel() {
+
+  local IFACE SPEED TARGET LIMIT MTU QDISC_OPTS LOGT
+
+  IFACE=$1
+  SPEED=$2
+  TARGET=$3
+  LIMIT=$4
+  MTU=$5
+  QDISC_OPTS=$6
+  LOGT="add_nssfq_codel $IFACE:"
+
+  sqm_debug "$LOGT interface:$IFACE speed:$SPEED target:$TARGET limit:$LIMIT mtu:$MTU overhead:$OVERHEAD opts:$QDISC_OPTS"
+
+  # INTERVAL
+  #
+  # this allows you to set the codel interval via (l)uci eqdisc_opts
+  # You should set this to the average "worst case" latency towards your services
+  # if no interval statement is present, set a sensible default
+  if [[ "${QDISC_OPTS}" != *"interval"* ]]; then
+    sqm_debug "$LOGT No interval specified via advanced option string, going with 100ms"
+
+    # 100ms works well in most cases, unless the link speed is so slow that target > interval
+    # but you probably don't want/need NSS in that case anyway, so I don't bother.
+    QDISC_OPTS="interval 100ms ${QDISC_OPTS}"
+  fi
+
+  # QUANTUM
+  #
+  # Quantum defines how much bytes may be dequeued at once. At MTU, all packets have equal weight
+  # but lower quantums give smaller packets more weight. I.e. with a quantum of 300, a <300 byte
+  # packet is 5 times likelier to be dequeued than a 1500 byte packet.
+  # At high rates this doesn't make much difference but at low speeds it does
+
+  if [[ "${QDISC_OPTS}" != *"quantum"* ]]; then
+
+    # use the interface mtu, this seems to work well in almost all cases
+    # add 14 bytes for the ethernet header and 4 bytes for NSS
+    QUANTUM=$((MTU))
+
+    sqm_debug "$LOGT No quantum specified via advanced option string, setting default to $QUANTUM based on an MTU of $MTU"
+
+    # at speeds <100Mb, a quantum of ~300 helps prioritize small packets
+    # https://www.bufferbloat.net/projects/codel/wiki/Best_practices_for_benchmarking_Codel_and_FQ_Codel/
+    if [ ${SPEED} -lt 100000 ]; then
+      QUANTUM=$((QUANTUM /= 5))
+      QUANTUM=$((QUANTUM += 1))
+      sqm_debug "Interface speed is less than 100 Mb/s, lowering Codel quantum to $QUANTUM"
+    fi
+
+    QDISC_OPTS="$(get_quantum ${QUANTUM}) ${QDISC_OPTS}"
+  fi
+
+  # FLOWS
+  #
+  # The number of flows into which packets are classified
+  # required argument for nssfq_codel
+  if [[ "${QDISC_OPTS}" != *"flows"* ]]; then
+    QDISC_OPTS="flows 1024 ${QDISC_OPTS}"
+  fi
+
+  # Add the qdisc to the interface
+  # shellcheck disable=2046
+  $TC qdisc add dev $IFACE parent 10:3 handle 300: nssfq_codel $(get_limit "$LIMIT") $(get_target "$TARGET" "$SPEED") ${QDISC_OPTS} set_default accel_mode 0
+
+  return 0
+}
+
+egress() {
+  # sleep 30s
+  MTU=$(get_mtu $IFACE)
+
+  # Codel target interval, when not set use a reasonable default
+  [ -z "$ETARGET" ] && ETARGET="5ms"
+
+  # if we leave this empty the qdisc uses a default of 1514. However, when you enable NSS
+  # maxpacket in tc -s qdisc will show that 1518b packets are hitting the shaper, which is probably due to a header
+  # added by NSS. Not sure what is correct, but it's probably better to err on the large side
+  # If you don't like this, just set the overhead in the SQM config to 0 or 14.
+  [ "${OVERHEAD}" -eq 0 ] && OVERHEAD=18
+
+  MTU=$((MTU + OVERHEAD))
+
+  # If there's no queue limit configured, calculate one
+  [ -z "$ELIMIT" ] && ELIMIT=$(calc_limit ${UPLINK} ${MTU} ${MAXQLIMIT_MS})
+
+  add_nsstbl ${IFACE} ${UPLINK} ${ESHAPER_BURST_DUR_US} ${MTU} ${EECN} || { sqm_error "egress: failed to add shaper"; return 1; }
+
+  # shellcheck disable=2153
+  add_nssfq_codel ${IFACE} ${UPLINK} ${ETARGET} ${ELIMIT} ${MTU} "${EQDISC_OPTS}" || {
+    sqm_error "egress: failed to add qdisc"
+    return 1
+  }
+  return 0
+}
+
+ingress() {
+  # Codel target interval, when not set use a reasonable default
+  [ -z "$ITARGET" ] && ITARGET="5ms"
+
+  # MTU, see egress for more info
+  local MTU
+  MTU=$(get_mtu $IFACE)
+
+  [ "${OVERHEAD}" -eq 0 ] && OVERHEAD=18
+  MTU=$((MTU + OVERHEAD))
+
+  # If there's no queue limit configured, calculate one
+  [ -z "$ILIMIT" ] && ILIMIT=$(calc_limit ${DOWNLINK} ${MTU} ${MAXQLIMIT_MS})
+
+  $IP link add name $DEV type ifb
+  $IP link set dev $DEV up
+
+  $TC qdisc add dev $IFACE handle ffff: ingress
+  $TC filter add dev $IFACE parent ffff: protocol all u32 match u32 0 0 action nssmirred redirect dev $DEV fromdev $IFACE
+
+  add_nsstbl ${DEV} ${DOWNLINK} ${ISHAPER_BURST_DUR_US} ${MTU} ${IECN} || { sqm_error "ingress: failed to add shaper" ; return 1; }
+
+  # shellcheck disable=2153
+  add_nssfq_codel ${DEV} ${DOWNLINK} ${ITARGET} ${ILIMIT} ${MTU} "${IQDISC_OPTS}" || {
+    sqm_error "ingress: failed to add shaper"
+    return 1
+  }
+
+  return 0
+}
+
+sqm_prepare_script() {
+  if [ ! -d /sys/module/ifb ]; then
+    insmod ifb numifbs=0 2>> ${OUTPUT_TARGET} || {
+      sqm_error "Kernel module ifb failed to load"
+      return 1
+    }
+  fi
+
+  for module in qca_nss_qdisc act_nssmirred; do
+    if [ ! -d /sys/module/$module ]; then
+      sqm_log "sqm_prepare_script: loading required kernel module: $module"
+      modprobe -v $module 2>> ${OUTPUT_TARGET} || {
+        sqm_error "Kernel module '$module' failed to load"
+        return 1
+      }
+    fi
+  done
+  return 0
+}
+
+sqm_start() {
+  local protocol
+
+  sqm_debug "sqm_start: Starting sqm_start from nss.qos"
+
+  [ -n "$IFACE" ] || return
+
+  network_get_protocol protocol "$IFACE"
+
+  if [ -n "${protocol}" ] && [ "${protocol}" = "wireguard" ]; then
+    sqm_error "sqm_start: Wireguard interfaces (${IFACE}) are NOT supported by NSS"
+    return 1
+  fi
+
+  DEV="ifb@${IFACE}"
+
+  # reset the iptables trace log
+  ipt_log_restart
+
+  check_addr || return $?
+
+  sqm_prepare_script
+
+  if [ "${UPLINK}" -ne 0 ]; then
+    CUR_DIRECTION="egress"
+    if fn_exists egress && egress; then
+      sqm_log "sqm_start: egress shaping activated"
+    else
+      sqm_warn "sqm_start: ${SCRIPT} lacks egress() function or exited with an error"
+    fi
+  else
+    SILENT=1 $TC qdisc del dev ${IFACE} root
+    sqm_log "sqm_start: egress shaping deactivated"
+  fi
+
+  if [ "${DOWNLINK}" -ne 0 ]; then
+    CUR_DIRECTION="ingress"
+    if fn_exists ingress && ingress; then
+      sqm_log "sqm_start: ingress shaping activated"
+    else
+      sqm_warn "sqm_start: ${SCRIPT} lacks ingress() function or exited with an error"
+    fi
+  else
+    SILENT=1 $TC qdisc del dev ${DEV} root
+    sqm_log "sqm_start: ingress shaping deactivated"
+  fi
+
+  return 0
+}
+
+sqm_stop() {
+
+    [ -n "$IFACE" ] || return
+
+    DEV="ifb@${IFACE}"
+
+    sqm_log "sqm_stop: Stopping SQM on interface $IFACE ($DEV)"
+
+    # Deleting from 'root' causes annoying errors in `nss_qdisc_stats_qdisc_detach`. Clean up nested rules prior to
+    # deleting from root
+    tc qdisc list dev $IFACE | awk '$1=="qdisc"&&$4=="parent"{print $5}' | sort -t: -k1nr,2nr | while read -r parent; do
+      $TC qdisc del dev $IFACE parent $parent
+    done
+
+    if [ "$(tc qdisc show dev $IFACE root 2>&1 | awk -F':| ' 'NR==1{print $3}')" -gt 0 ]; then
+      $TC qdisc del dev $IFACE root
+    fi
+
+    if tc qdisc show dev $IFACE 2>&1 | awk '$2=="ingress"{print}' | grep -q .; then
+      $TC qdisc del dev $IFACE ingress
+    fi
+
+  if [ -r /sys/devices/virtual/net/$DEV ]; then
+    tc qdisc list dev $DEV | awk '$1=="qdisc"&&$4=="parent"{print $5}' | sort -t: -k1nr,2nr | while read -r parent; do
+      $TC qdisc del dev $DEV parent $parent
+    done
+
+    if [ "$(tc qdisc show dev $DEV root 2>&1 | awk -F':| ' 'NR==1{print $3}')" -gt 0 ]; then
+      $TC qdisc del dev $DEV root
+    fi
+
+    $IP link set dev $DEV down
+
+    $IP link del $DEV type ifb
+  fi
+
+  # shellcheck disable=2010
+  if ls /sys/devices/virtual/net | grep -q "ifb@" ; then
+    sqm_debug "Other IFB interfaces active. Not removing kernel modules"
+    return 0
+  fi
+
+  for module in act_nssmirred qca_nss_qdisc act_mirred ifb; do
+    if [ -d /sys/module/$module ]; then
+      sqm_log "sqm_stop: Removing kernel module: $module"
+      rmmod $module 2>> ${OUTPUT_TARGET} || {
+        sqm_error "Failed to remove kernel module $module"
+        return 1
+      }
+    fi
+  done
+
+  return 0
+}
+
+# vim: syntax=sh ts=4 sw=4 sts=4
