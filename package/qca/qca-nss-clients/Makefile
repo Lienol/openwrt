@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-clients
-PKG_RELEASE:=3
+PKG_RELEASE:=7
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-03-05
-PKG_SOURCE_VERSION:=9a53b18
-PKG_MIRROR_HASH:=6d60fa6d8d373bc28fbebc72b331e7d4e0c831cd4821106e255c9ad506499f90
+PKG_SOURCE_DATE:=2024-06-12
+PKG_SOURCE_VERSION:=1bcef16
+PKG_MIRROR_HASH:=5388c9ba1ba66b2a237426bf4762da90ff2893fa5cd324ff6fbe59c8c722608a
 QSDK_VERSION:=12.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
 
@@ -51,10 +51,10 @@ PKG_CONFIG_DEPENDS:=\
 	CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE \
 	CONFIG_NSS_FIRMWARE_VERSION_11_4
 
-ifdef CONFIG_NSS_FIRMWARE_VERSION_11_4
+ifeq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),y)
 PKG_SOURCE_DATE:=2021-08-17
-PKG_SOURCE_VERSION:=153998d
-PKG_MIRROR_HASH:=57511079f6ab5cfd17769e03ca60b7ed5f7ea87cbf3b7d610c08b8ab43c6c5a5
+PKG_SOURCE_VERSION:=c4049d1
+PKG_MIRROR_HASH:=56cd0b3daca414bd215c3c804d5ca9bdbdaca128c05a9452c7b1eb592b17061c
 PATCH_DIR:=$(CURDIR)/patches-11.4
 QSDK_VERSION:=11.4.0.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
@@ -605,7 +605,7 @@ endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tlsmgr),)
 EXTRA_CFLAGS+= -I$(PKG_BUILD_DIR)/exports
-NSS_CLIENTS_MAKE_OPTS+=tlsmgr=y
+NSS_CLIENTS_MAKE_OPTS+=tlsmgr=m
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-l2tpv2),)
@@ -622,7 +622,7 @@ NSS_CLIENTS_MAKE_OPTS+=map-t=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-tunipip6),)
-NSS_CLIENTS_MAKE_OPTS+=tunipip6=m
+NSS_CLIENTS_MAKE_OPTS+=tunipip6=y
 endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc),)
@@ -769,9 +769,9 @@ $(eval $(call KernelPackage,qca-nss-drv-lag-mgr))
 $(eval $(call KernelPackage,qca-nss-drv-gre))
 # $(eval $(call KernelPackage,qca-nss-drv-ovpn-mgr))
 # $(eval $(call KernelPackage,qca-nss-drv-ovpn-link))
-$(eval $(call KernelPackage,qca-nss-drv-pvxlanmgr))
+# $(eval $(call KernelPackage,qca-nss-drv-pvxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-eogremgr))
-$(eval $(call KernelPackage,qca-nss-drv-clmapmgr))
+# $(eval $(call KernelPackage,qca-nss-drv-clmapmgr))
 $(eval $(call KernelPackage,qca-nss-drv-vxlanmgr))
 $(eval $(call KernelPackage,qca-nss-drv-match))
 # $(eval $(call KernelPackage,qca-nss-drv-tlsmgr))

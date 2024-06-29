@@ -186,19 +186,3 @@
  
  # Disable Frequency scaling
  ifeq "$(NSS_FREQ_SCALE_DISABLE)" "y"
---- a/nss_init.c
-+++ b/nss_init.c
-@@ -880,6 +880,13 @@ static int __init nss_init(void)
- #endif
- 
- 	/*
-+	 * Init Wi-Fi mesh
-+	 */
-+#ifdef NSS_DRV_WIFI_MESH_ENABLE
-+	nss_wifi_mesh_init();
-+#endif
-+
-+	/*
- 	 * Register platform_driver
- 	 */
- 	return platform_driver_register(&nss_driver);

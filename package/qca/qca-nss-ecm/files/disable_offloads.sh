@@ -183,11 +183,11 @@ disable_offload() {
 
   [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
 
-  for i in $interface; do
-    i=${i##*/}
+  for iface in $interface; do
+    i=${iface##*/}
 
-    # Skip Loopback
-    if [ $i == lo ]; then
+    # Skip Loopback and Bonding Masters
+    if [ $i == lo ] || [ -f $iface ]; then
       continue
     fi
 

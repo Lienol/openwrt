@@ -1,20 +1,6 @@
 #!/bin/sh /etc/rc.common
 # vim: set syn=bash
 # shellcheck disable=2155,3010,3019,3043,3057,3060
-# Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
-#
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
-#
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-######################################################################
 
 START=94
 PROG="qca-nss-drv"
@@ -106,32 +92,34 @@ set_affinity() {
 enable_rps() {
 
   # NSS Core 0 : 4 nss queues to each core
-  set_affinity "nss_queue0"               1 1
-  set_affinity "nss_queue1"               2 1
-  set_affinity "nss_queue2"               3 1
-  set_affinity "nss_queue3"               0 1
+  set_affinity "nss_queue0"               0-3 1
+  set_affinity "nss_queue1"                 1 1
+  set_affinity "nss_queue2"                 2 1
+  set_affinity "nss_queue3"                 3 1
 
   # NSS Core 1 : 1 nss queue to 3rd core
-  set_affinity "nss_queue0"               2 2
+  set_affinity "nss_queue0"                 3 2
 
   # NSS Core 0 : 2 nss sos/queues to last core
-  set_affinity "nss_empty_buf_sos"        3 1
-  set_affinity "nss_empty_buf_queue"      3 1
+  set_affinity "nss_empty_buf_sos"        1-3 1
+  set_affinity "nss_empty_buf_queue"      2,3 1
 
   # NSS Core 1 : 1 nss sos to last core
-  set_affinity "nss_empty_buf_sos"        2 2
+  set_affinity "nss_empty_buf_sos"          3 2
 
   # USB 3.0 : pin to 3rd core
-  set_affinity "xhci-hcd:usb1"            2 1
+  set_affinity "xhci-hcd:usb1"            1,3 1
 
   # TCL Completion, REO Dest, ERR, Exception and h2rxdma
   # are offloaded, so balance remaining IRQs accordingly.
   # PPDU IRQ : pin to 2nd and 3rd core
-  set_affinity 'ppdu-end-interrupts-mac1' 1 1
-  set_affinity 'ppdu-end-interrupts-mac3' 2 1
+  set_affinity 'ppdu-end-interrupts-mac1'   1 1
+  set_affinity 'ppdu-end-interrupts-mac3'   2 1
+
+  set_affinity 'ath10k_pci'               2,3 1
 
   # Enable NSS RPS
-  sysctl -w dev.nss.rps.enable=1 > /dev/null 2> /dev/null
+  sysctl -w dev.nss.rps.enable=1 >/dev/null 2>&1
 }
 
 start() {

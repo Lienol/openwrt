@@ -1,0 +1,31 @@
+--- a/pptp/nss_connmgr_pptp.c
++++ b/pptp/nss_connmgr_pptp.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2015-2018, 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -272,13 +275,12 @@ static void nss_connmgr_pptp_event_recei
+ 
+ 		if_type = nss_dynamic_interface_get_type(nss_pptp_get_context(), tnlmsg->cm.interface);
+ 
+-		if (if_type == NSS_DYNAMIC_INTERFACE_TYPE_PPTP_OUTER) {
++		if ((if_type == NSS_DYNAMIC_INTERFACE_TYPE_PPTP_OUTER) && sync_stats->node_stats.rx_packets) {
+ 			ppp_update_stats(netdev,
+ 				 (unsigned long)sync_stats->node_stats.rx_packets,
+ 				 (unsigned long)sync_stats->node_stats.rx_bytes,
+ 				 0, 0, 0, 0, 0, 0);
+-		} else {
+-
++		} else if ((if_type == NSS_DYNAMIC_INTERFACE_TYPE_PPTP_INNER) && sync_stats->node_stats.tx_packets) {
+ 			ppp_update_stats(netdev, 0, 0,
+ 				 (unsigned long)sync_stats->node_stats.tx_packets,
+ 				 (unsigned long)sync_stats->node_stats.tx_bytes,

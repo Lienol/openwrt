@@ -5,9 +5,9 @@ PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-06-17
-PKG_SOURCE_VERSION:=937d47c
-PKG_MIRROR_HASH:=f8d71d61e991e70b1dc52d625f7f441c3d6dee329d34a3ddae0ba12ed78ef99d
+PKG_SOURCE_DATE:=2024-06-20
+PKG_SOURCE_VERSION:=92c7fa1
+PKG_MIRROR_HASH:=d69d09fe8e3d6339085854de4f5a44dbfdc9648f5d5f9001a874ac177e2bf16b
 QSDK_VERSION:=12.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
 
@@ -56,12 +56,12 @@ define KernelPackage/qca-nss-ecm/install
 	$(INSTALL_DATA) ./files/qca-nss-ecm.firewall $(1)/etc/firewall.d/qca-nss-ecm
 	$(INSTALL_BIN) ./files/qca-nss-ecm.init $(1)/etc/init.d/qca-nss-ecm
 	$(INSTALL_BIN) ./files/ecm_dump.sh $(1)/usr/bin/
-	$(INSTALL_BIN) ./files/disable_offloads.sh $(1)/lib/netifd/offload
-	$(INSTALL_BIN) ./files/on-demand-down $(1)/lib/netifd/offload/on-demand-down
+	$(INSTALL_DATA) ./files/disable_offloads.sh $(1)/lib/netifd/offload
+	$(INSTALL_DATA) ./files/on-demand-down $(1)/lib/netifd/offload/on-demand-down
 	$(INSTALL_DATA) ./files/qca-nss-ecm.uci $(1)/etc/config/ecm
 	$(INSTALL_DATA) ./files/qca-nss-ecm.defaults $(1)/etc/uci-defaults/99-qca-nss-ecm
-	$(INSTALL_BIN) ./files/qca-nss-ecm.sysctl $(1)/etc/sysctl.d/qca-nss-ecm.conf
-	$(INSTALL_BIN) ./files/disable_offloads.hotplug $(1)/etc/hotplug.d/net/99-disable_offloads
+	$(INSTALL_DATA) ./files/qca-nss-ecm.sysctl $(1)/etc/sysctl.d/qca-nss-ecm.conf
+	$(INSTALL_DATA) ./files/disable_offloads.hotplug $(1)/etc/hotplug.d/net/99-disable_offloads
 endef
 
 EXTRA_CFLAGS+= \
@@ -158,6 +158,10 @@ endif
 
 ifneq ($(CONFIG_PACKAGE_kmod-bonding),)
 ECM_MAKE_OPTS+=ECM_INTERFACE_BOND_ENABLE=y
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-qmi_wwan_q),)
+ECM_MAKE_OPTS+=ECM_INTERFACE_RAWIP_ENABLE=y
 endif
 
 define Build/InstallDev

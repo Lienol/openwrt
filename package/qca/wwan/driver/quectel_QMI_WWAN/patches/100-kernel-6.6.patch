@@ -1,0 +1,72 @@
+--- a/qmi_wwan_q.c
++++ b/qmi_wwan_q.c
+@@ -46,7 +46,7 @@
+ #define ARPHRD_RAWIP ARPHRD_NONE
+ #endif
+ 
+-#ifdef CONFIG_PINCTRL_IPQ807x
++#ifdef CONFIG_PINCTRL_IPQ8074
+ #define CONFIG_QCA_NSS_DRV
+ //#define CONFIG_QCA_NSS_PACKET_FILTER
+ #endif
+@@ -846,12 +846,20 @@ static struct rtnl_link_stats64 *_rmnet_
+ 		stats64 = per_cpu_ptr(dev->stats64, cpu);
+ 
+ 		do {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION( 6,6,0 ))
+ 			start = u64_stats_fetch_begin_irq(&stats64->syncp);
++#else
++			start = u64_stats_fetch_begin(&stats64->syncp);
++#endif
+ 			rx_packets = stats64->rx_packets;
+ 			rx_bytes = stats64->rx_bytes;
+ 			tx_packets = stats64->tx_packets;
+ 			tx_bytes = stats64->tx_bytes;
++#if (LINUX_VERSION_CODE < KERNEL_VERSION( 6,6,0 ))
+ 		} while (u64_stats_fetch_retry_irq(&stats64->syncp, start));
++#else
++		} while (u64_stats_fetch_retry(&stats64->syncp, start));
++#endif
+ 
+         stats->rx_packets += u64_stats_read(&rx_packets);
+ 		stats->rx_bytes += u64_stats_read(&rx_bytes);
+@@ -2588,7 +2585,6 @@ static void qmap_qmi_wwan_disconnect(str
+ static struct usb_driver qmi_wwan_driver = {
+ 	.name		      = "qmi_wwan_q",
+ 	.id_table	      = products,
+-	.probe		      = qmi_wwan_probe,
+ #if defined(QUECTEL_WWAN_QMAP)
+ 	.probe		      = qmap_qmi_wwan_probe,
+ 	.disconnect	      = qmap_qmi_wwan_disconnect,
+--- a/rmnet_nss.c
++++ b/rmnet_nss.c
+@@ -31,8 +31,8 @@ struct rmnet_nss_cb {
+         int (*nss_tx)(struct sk_buff *skb);
+ };
+ 
+-extern struct rmnet_nss_cb *rmnet_nss_callbacks;
+-
++struct rmnet_nss_cb *rmnet_nss_callbacks;
++EXPORT_SYMBOL(rmnet_nss_callbacks);
+ #endif
+ 
+ #define RMNET_NSS_HASH_BITS 8
+@@ -356,7 +356,8 @@ int rmnet_nss_tx(struct sk_buff *skb)
+ 	}
+ 
+ 	eth = (struct ethhdr *)skb_push(skb, sizeof(*eth));
+-	memset(&eth->h_dest, 0, ETH_ALEN * 2);
++	memset(eth->h_dest, 0, ETH_ALEN);    // Clear h_dest
++	memset(eth->h_source, 0, ETH_ALEN);  // Clear h_source
+ 	if (version == 4) {
+ 		eth->h_proto = htons(ETH_P_IP);
+ 	} else if (version == 6) {
+@@ -463,7 +464,7 @@ int rmnet_nss_free_vnd(struct net_device
+ 	return 0;
+ }
+ 
+-static const struct rmnet_nss_cb rmnet_nss = {
++static struct rmnet_nss_cb rmnet_nss = {
+ 	.nss_create = rmnet_nss_create_vnd,
+ 	.nss_free = rmnet_nss_free_vnd,
+ 	.nss_tx = rmnet_nss_tx,
