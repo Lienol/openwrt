@@ -15,7 +15,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# The shebang above has an extra space intentially to avoid having
+# The shebang above has an extra space intentionally to avoid having
 # openwrt build scripts automatically enable this package starting
 # at boot.
 
@@ -54,19 +54,30 @@ get_front_end_mode() {
       ;;
     *)
       echo '0'
+      ;;
   esac
-}
-
-enable_bridge_filtering() {
-  sysctl_update net.bridge.bridge-nf-call-arptables 1
-  sysctl_update net.bridge.bridge-nf-call-iptables 1
-  sysctl_update net.bridge.bridge-nf-call-ip6tables 1
 }
 
 disable_bridge_filtering() {
   sysctl_update net.bridge.bridge-nf-call-arptables 0
   sysctl_update net.bridge.bridge-nf-call-iptables 0
   sysctl_update net.bridge.bridge-nf-call-ip6tables 0
+}
+
+enable_bridge_filtering() {
+
+  # If bridge filtering is enabled, apply and persist the sysctl flags
+  config_load ecm
+  config_get enable_bridge_filtering general enable_bridge_filtering 0
+
+  # shellcheck disable=2154
+  if [ "$enable_bridge_filtering" -eq 1 ]; then
+    sysctl_update net.bridge.bridge-nf-call-arptables 1
+    sysctl_update net.bridge.bridge-nf-call-iptables 1
+    sysctl_update net.bridge.bridge-nf-call-ip6tables 1
+  else
+    disable_bridge_filtering
+  fi
 }
 
 load_ecm() {
@@ -91,7 +102,7 @@ load_ecm() {
 
   # Set conntrack event mode to 1 for 6.1 kernel to get the conntrack events from ECM
   local kernel_major
-  kernel_major=$(uname -r |cut -d. -f1)
+  kernel_major=$(uname -r | cut -d. -f1)
   if [ "$kernel_major" -eq 6 ]; then
     echo 1 > /proc/sys/net/netfilter/nf_conntrack_events
   fi
@@ -102,7 +113,7 @@ unload_ecm() {
 
   # Change it back to 6.1 linux's default setting
   local kernel_major
-  kernel_major="$(uname -r |cut -d. -f1)"
+  kernel_major="$(uname -r | cut -d. -f1)"
   if [ "$kernel_major" -eq 6 ]; then
     echo 2 > /proc/sys/net/netfilter/nf_conntrack_events
   fi
@@ -128,20 +139,15 @@ unload_ecm() {
 start() {
   load_ecm
 
-  # If the acceleration engine is NSS, enable wifi redirect
-  [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
-
-  # If bridge filtering is enabled, apply and persist the sysctl flags
-  config_load ecm
-  config_get enable_bridge_filtering general enable_bridge_filtering "0"
-
-  # shellcheck disable=2154
-  if [ "$enable_bridge_filtering" -eq 1 ]; then
-    echo "Bridge filtering is enabled in the ECM config, this will cause issues with NAT loopback!"
+  # Only enable bridge filtering if using deprecated fw3
+  if [ ! -r /sbin/fw4 ]; then
     enable_bridge_filtering
   else
     disable_bridge_filtering
   fi
+
+  # If the acceleration engine is NSS, enable wifi redirect
+  [ -d /sys/kernel/debug/ecm/ecm_nss_ipv4 ] && sysctl -w dev.nss.general.redirect=1
 
   if [ -d /sys/module/qca_ovsmgr ]; then
     insmod ecm_ovs

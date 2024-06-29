@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-firmware
-PKG_SOURCE_DATE:=2022-07-12
-PKG_SOURCE_VERSION:=ade6bff5
-PKG_MIRROR_HASH:=6652eea8941a0db28f983fa450b28ffaae332e4494c21cb9dbfe4648568db28d
-PKG_RELEASE:=3
+PKG_SOURCE_DATE:=2024-08-04
+PKG_SOURCE_VERSION:=794fe3732fca4ef9b74e7be6f621d160d831b636
+PKG_MIRROR_HASH:=a3bb68bd729469470cbccd538d7fc529acabad46a2c9aa2ad6bb19fb05f01b45
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/quic/qca-sdk-nss-fw.git
+PKG_SOURCE_URL:=https://github.com/qosmio/qca-sdk-nss-fw.git
 
 PKG_LICENSE_FILES:=LICENSE.md
 
@@ -22,7 +22,9 @@ PKG_MAINTAINER:=Sean K <datapronix@protonmail.com>
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_FIRMWARE_VERSION_11_4 \
-	CONFIG_NSS_FIRMWARE_VERSION_12_1
+	CONFIG_NSS_FIRMWARE_VERSION_12_1 \
+	CONFIG_NSS_FIRMWARE_VERSION_12_2 \
+	CONFIG_NSS_FIRMWARE_VERSION_12_5
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -60,7 +62,6 @@ $(Package/nss-firmware-default)
 	NSS_SOC:=MP
 endef
 
-
 define Package/nss-firmware-default/config
   menu "NSS Firmware Version"
 
@@ -68,31 +69,51 @@ define Package/nss-firmware-default/config
 
   choice
     prompt "Version"
-    default NSS_FIRMWARE_VERSION_12_1
+    default NSS_FIRMWARE_VERSION_11_4
+
+    config NSS_FIRMWARE_VERSION_12_5
+          bool "NSS Firmware 12.5 Release 210"
+          help
+               This version does NOT work with NSS MESH (802.11s)
+
+    config NSS_FIRMWARE_VERSION_12_2
+          bool "NSS Firmware 12.2 Release 161"
+          help
+               This version does NOT work with NSS MESH (802.11s)
 
     config NSS_FIRMWARE_VERSION_12_1
-          bool "NSS Firmware 12.1 Release 022"
+          bool "NSS Firmware 12.1 Release 003"
           help
-               This version does not work with NSS MESH
+               This version does NOT work with NSS MESH (802.11s)
 
     config NSS_FIRMWARE_VERSION_11_4
           bool "NSS Firmware 11.4.0.5 Release 5"
           help
-               This version works with NSS MESH
+               This version WORKS with NSS MESH (802.11s)
   endchoice
   endmenu
 endef
 
 ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
-   NSS_MAJOR:=11.4
-   NSS_MINOR:=11.4.0.5
-   NSS_REL:=5
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR)/CS
+   NSS_MAJOR=11
+   NSS_MINOR=4
+   NSS_REL=6
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR).$(NSS_MINOR)/CS
+else ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_1),)
+   NSS_MAJOR=12
+   NSS_MINOR=1
+   NSS_REL=003
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
+else ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_2),)
+   NSS_MAJOR=12
+   NSS_MINOR=2
+   NSS_REL=161
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
 else
-   NSS_MAJOR:=12.0.0
-   NSS_MINOR:=12.1
-   NSS_REL:=022
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR)/ED1
+   NSS_MAJOR=12
+   NSS_MINOR=5
+   NSS_REL=210
+   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2024.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
 endif
 
 define Build/Compile
@@ -101,7 +122,7 @@ endef
 define Package/nss-firmware/install
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf \
-		$(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR)/BIN-NSS*.$(NSS_MINOR)-$(NSS_REL)*$(NSS_PROFILE).tar.bz2
+		$(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR).$(NSS_MINOR)/BIN-NSS*.$(NSS_MAJOR).$(NSS_MINOR)*-$(NSS_REL)*$(NSS_PROFILE).tar.bz2
 	$(INSTALL_DIR) $(1)/lib/firmware/
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/$(IPQ_PLATFORM)/retail_router0.bin \

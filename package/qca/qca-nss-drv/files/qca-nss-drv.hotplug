@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=2012
 #
 # Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
 #
@@ -15,56 +16,55 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-KERNEL=`uname -r`
+KERNEL=$(uname -r)
 case "${KERNEL}" in
-	3.4*)
-		select_or_load=load_nss_fw
-		;;
-	*)
-		select_or_load=select_nss_fw
-		;;
+  3.4*)
+    select_or_load=load_nss_fw
+    ;;
+  *)
+    select_or_load=select_nss_fw
+    ;;
 esac
 
-load_nss_fw () {
-	ls -l $1 | awk ' { print $9,$5 } '> /dev/console
-	echo 1 > /sys/class/firmware/$DEVICENAME/loading
-	cat $1 > /sys/class/firmware/$DEVICENAME/data
-	echo 0 > /sys/class/firmware/$DEVICENAME/loading
+load_nss_fw() {
+  ls -l "$1" | awk ' { print $9,$5 } ' > /dev/console
+  echo 1 > /sys/class/firmware/"$DEVICENAME"/loading
+  cat "$1" > /sys/class/firmware/"$DEVICENAME"/data
+  echo 0 > /sys/class/firmware/"$DEVICENAME"/loading
 }
 
-select_nss_fw () {
-	rm -f /lib/firmware/$DEVICENAME
-	ln -s $1 /lib/firmware/$DEVICENAME
-	ls -l /lib/firmware/$DEVICENAME | awk ' { print $9,$5 } '> /dev/console
+select_nss_fw() {
+  rm -f /lib/firmware/"$DEVICENAME"
+  ln -s "$1" /lib/firmware/"$DEVICENAME"
+  echo '<5>hotplug: symlinking' "$DEVICENAME"' to '"$1" > /dev/kmsg
 }
 
 [ "$ACTION" != "add" ] && exit
 
 # dev name for UCI, since it doesn't let you use . or -
-SDEVNAME=$(echo ${DEVICENAME} | sed s/[.-]/_/g)
+SDEVNAME=$(echo "${DEVICENAME}" | sed s/[.-]/_/g)
 
-SELECTED_FW=$(uci get nss.${SDEVNAME}.firmware 2>/dev/null)
+SELECTED_FW=$(uci get nss."${SDEVNAME}".firmware 2> /dev/null)
 [ -e "${SELECTED_FW}" ] && {
-	$select_or_load ${SELECTED_FW}
-	exit
+  $select_or_load "${SELECTED_FW}"
+  exit
 }
 
 case $DEVICENAME in
-        qca-nss0* | qca-nss.0*)
-                if [ -e /lib/firmware/qca-nss0-enterprise.bin ] ; then
-                        $select_or_load /lib/firmware/qca-nss0-enterprise.bin
-                else
-                        $select_or_load /lib/firmware/qca-nss0-retail.bin
-                fi
-                exit
-                ;;
-        qca-nss1* | qca-nss.1*)
-                if [ -e /lib/firmware/qca-nss1-enterprise.bin ] ; then
-                        $select_or_load /lib/firmware/qca-nss1-enterprise.bin
-                else
-                        $select_or_load /lib/firmware/qca-nss1-retail.bin
-                fi
-                exit
-                ;;
+  qca-nss0* | qca-nss.0*)
+    if [ -e /lib/firmware/qca-nss0-enterprise.bin ]; then
+      $select_or_load /lib/firmware/qca-nss0-enterprise.bin
+    else
+      $select_or_load /lib/firmware/qca-nss0-retail.bin
+    fi
+    exit
+    ;;
+  qca-nss1* | qca-nss.1*)
+    if [ -e /lib/firmware/qca-nss1-enterprise.bin ]; then
+      $select_or_load /lib/firmware/qca-nss1-enterprise.bin
+    else
+      $select_or_load /lib/firmware/qca-nss1-retail.bin
+    fi
+    exit
+    ;;
 esac
-
