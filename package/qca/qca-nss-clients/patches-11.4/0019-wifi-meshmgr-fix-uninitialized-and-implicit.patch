@@ -27,7 +27,7 @@
  	if (nss_status != NSS_WIFI_MESHMGR_SUCCESS) {
  		nss_wifi_meshmgr_warn("%px: Failed to dealloc encap: %d\n", &wmgr_ctx, nss_status);
  	}
-@@ -253,10 +253,10 @@ static void nss_wifi_meshmgr_tx_msg_cb(v
+@@ -257,10 +257,10 @@ static void nss_wifi_meshmgr_tx_msg_cb(v
  	/*
  	 * FIXME: The wmesh_ctx can be invalid if the memory goes away with the caller being timedout.
  	 */
@@ -40,7 +40,7 @@
  	}
  
  	complete(&wmesh_ctx->complete);
-@@ -285,10 +285,10 @@ static nss_wifi_meshmgr_status_t nss_wif
+@@ -289,10 +289,10 @@ static nss_wifi_meshmgr_status_t nss_wif
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -53,7 +53,7 @@
  	up(&wmesh_ctx->sem);
  	return status;
  }
-@@ -320,7 +320,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshm
+@@ -324,7 +324,7 @@ nss_wifi_meshmgr_status_t nss_wifi_meshm
  		return NSS_WIFI_MESHMGR_FAILURE;
  	}
  
@@ -62,7 +62,7 @@
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
  	return nss_status;
  }
-@@ -544,10 +544,10 @@ nss_wifi_meshmgr_dump_mesh_path_sync(nss
+@@ -548,10 +548,10 @@ nss_wifi_meshmgr_dump_mesh_path_sync(nss
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -75,7 +75,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -639,10 +639,10 @@ nss_wifi_meshmgr_dump_mesh_proxy_path_sy
+@@ -643,10 +643,10 @@ nss_wifi_meshmgr_dump_mesh_proxy_path_sy
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -88,7 +88,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -711,7 +711,7 @@ nss_wifi_meshmgr_assoc_link_vap(nss_wifi
+@@ -715,7 +715,7 @@ nss_wifi_meshmgr_assoc_link_vap(nss_wifi
  	/*
  	 * Send the link vap mesage to the NSS synchronously.
  	 */
@@ -97,7 +97,7 @@
  	if (nss_status != NSS_WIFI_MESHMGR_SUCCESS) {
  		nss_wifi_meshmgr_warn("%px: Mesh link vap association failed: %d.\n", &wmgr_ctx, nss_status);
  	}
-@@ -757,10 +757,10 @@ nss_wifi_meshmgr_assoc_link_vap_sync(nss
+@@ -761,10 +761,10 @@ nss_wifi_meshmgr_assoc_link_vap_sync(nss
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -110,7 +110,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -882,10 +882,10 @@ nss_wifi_meshmgr_mesh_config_update_sync
+@@ -886,10 +886,10 @@ nss_wifi_meshmgr_mesh_config_update_sync
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -123,7 +123,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -981,10 +981,10 @@ nss_wifi_meshmgr_mesh_proxy_path_delete_
+@@ -985,10 +985,10 @@ nss_wifi_meshmgr_mesh_proxy_path_delete_
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -136,7 +136,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1080,10 +1080,10 @@ nss_wifi_meshmgr_mesh_proxy_path_update_
+@@ -1084,10 +1084,10 @@ nss_wifi_meshmgr_mesh_proxy_path_update_
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -149,7 +149,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1179,10 +1179,10 @@ nss_wifi_meshmgr_mesh_proxy_path_add_syn
+@@ -1183,10 +1183,10 @@ nss_wifi_meshmgr_mesh_proxy_path_add_syn
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -162,7 +162,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1278,10 +1278,10 @@ nss_wifi_meshmgr_mesh_path_delete_sync(n
+@@ -1282,10 +1282,10 @@ nss_wifi_meshmgr_mesh_path_delete_sync(n
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -175,7 +175,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1377,10 +1377,10 @@ nss_wifi_meshmgr_mesh_path_add_sync(nss_
+@@ -1381,10 +1381,10 @@ nss_wifi_meshmgr_mesh_path_add_sync(nss_
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -188,7 +188,7 @@
  	up(&wmesh_ctx->sem);
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
  	return nss_status;
-@@ -1475,10 +1475,10 @@ nss_wifi_meshmgr_mesh_path_update_sync(n
+@@ -1479,10 +1479,10 @@ nss_wifi_meshmgr_mesh_path_update_sync(n
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -201,7 +201,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1574,10 +1574,10 @@ nss_wifi_meshmgr_mesh_path_exception_syn
+@@ -1578,10 +1578,10 @@ nss_wifi_meshmgr_mesh_path_exception_syn
  	ret = wait_for_completion_timeout(&wmesh_ctx->complete, msecs_to_jiffies(NSS_WIFI_MESH_TX_TIMEOUT));
  	if (!ret) {
  		nss_wifi_meshmgr_warn("%px: WiFi mesh msg tx failed due to timeout\n", &wmgr_ctx);
@@ -214,7 +214,7 @@
  	up(&wmesh_ctx->sem);
  
  	nss_wifi_meshmgr_ref_dec(wmesh_ctx);
-@@ -1791,7 +1791,7 @@ nss_wifi_mesh_handle_t nss_wifi_meshmgr_
+@@ -1795,7 +1795,7 @@ nss_wifi_mesh_handle_t nss_wifi_meshmgr_
  	int32_t encap_ifnum, decap_ifnum;
  	uint32_t features = 0;
  	nss_wifi_mesh_handle_t mesh_handle;

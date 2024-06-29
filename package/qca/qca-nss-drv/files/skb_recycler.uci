@@ -1,0 +1,6 @@
+
+config skb_recycler 'opt'
+	option max_skbs '1024'
+	option max_spare_skbs '512'
+	option enable '0'
+

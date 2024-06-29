@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=5
+PKG_RELEASE:=12
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
@@ -61,10 +61,10 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_NSS_DRV_WIFI_LEGACY_ENABLE \
 	CONFIG_NSS_FIRMWARE_VERSION_11_4
 
-ifdef CONFIG_NSS_FIRMWARE_VERSION_11_4
-PKG_SOURCE_DATE:=2021-06-24
-PKG_SOURCE_VERSION:=dc14ca2
-PKG_MIRROR_HASH:=11bff5afcf6037a4f79fc212a50ed42dbe6db5f93099050a5b3f55d85f5279ad
+ifeq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),y)
+PKG_SOURCE_DATE:=2021-09-13
+PKG_SOURCE_VERSION:=53e5863
+PKG_MIRROR_HASH:=24ffda06f6f4fe52f6d47a32d43d58e111a35ae65a0893664c931cb7bb7eca12
 PATCH_DIR:=$(CURDIR)/patches-11.4
 QSDK_VERSION:=11.4.0.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
@@ -97,11 +97,17 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/firmware
 	$(INSTALL_DIR) $(1)/usr/bin
 
+	$(INSTALL_BIN) ./files/skb_recycler.init $(1)/etc/init.d/skb_recycler
 	$(INSTALL_BIN) ./files/qca-nss-drv.init $(1)/etc/init.d/qca-nss-drv
-	$(INSTALL_BIN) ./files/qca-nss-drv.uci $(1)/etc/config/nss
-	$(INSTALL_BIN) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
+	$(INSTALL_DATA) ./files/qca-nss-drv.uci $(1)/etc/config/nss
+	$(INSTALL_DATA) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
 	$(INSTALL_BIN) ./files/qca-nss-drv.debug $(1)/usr/bin/nss_stats
 
+endef
+
+define KernelPackage/qca-nss-drv/conffiles
+/etc/config/nss
+/etc/config/skb_recycler
 endef
 
 define KernelPackage/qca-nss-drv/Description
@@ -132,6 +138,10 @@ ifdef CONFIG_NSS_MEM_PROFILE_MEDIUM
   EXTRA_CFLAGS += -DNSS_MEM_PROFILE_MEDIUM
 else ifdef CONFIG_NSS_MEM_PROFILE_LOW
   EXTRA_CFLAGS += -DNSS_MEM_PROFILE_LOW
+endif
+
+ifdef CONFIG_NSS_FIRMWARE_VERSION_12_5
+  EXTRA_CFLAGS += -DNSS_FIRMWARE_VERSION_12_5
 endif
 
 DRV_MAKE_OPTS:=
