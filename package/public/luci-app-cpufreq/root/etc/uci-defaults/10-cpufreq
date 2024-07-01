@@ -1,0 +1,84 @@
+#!/bin/sh
+
+uci_write_config() {
+	uci -q set cpufreq.cpufreq.governor$1="$2"
+	uci -q set cpufreq.cpufreq.minfreq$1="$3"
+	uci -q set cpufreq.cpufreq.maxfreq$1="$4"
+	[ -n "$5" ] && uci -q set cpufreq.cpufreq.sdfactor$1="$5"
+	[ -n "$6" ] && uci -q set cpufreq.cpufreq.upthreshold$1="$6"
+	uci -q commit cpufreq
+}
+
+CPUFREQ_PATH="/sys/devices/system/cpu/cpufreq"
+CPU_FREQS=$(cat "$CPUFREQ_PATH"/policy0/scaling_available_frequencies)
+CPU_POLICYS=$(find "$CPUFREQ_PATH"/policy* -maxdepth 0 | grep -Eo '[0-9]+')
+[ ! -d "$CPUFREQ_PATH/policy0" ] || \
+	CPU_MAX_FREQ=$(cat "$CPUFREQ_PATH"/policy0/scaling_max_freq)
+[ ! -d "$CPUFREQ_PATH/policy2" ] || \
+	CPU2_MAX_FREQ=$(cat "$CPUFREQ_PATH"/policy2/scaling_max_freq)
+[ ! -d "$CPUFREQ_PATH/policy4" ] || \
+	CPU4_MAX_FREQ=$(cat "$CPUFREQ_PATH"/policy4/scaling_max_freq)
+[ ! -d "$CPUFREQ_PATH/policy6" ] || \
+	CPU6_MAX_FREQ=$(cat "$CPUFREQ_PATH"/policy6/scaling_max_freq)
+source "/etc/openwrt_release"
+case "$DISTRIB_TARGET" in
+	"amlogic/mesongx")
+		uci_write_config 0 schedutil 1000000 $CPU_MAX_FREQ
+		;;
+	"bcm27xx/bcm2710"|\
+	"bcm27xx/bcm2711"|\
+	"mediatek/mt7622")
+		uci_write_config 0 ondemand 600000 $CPU_MAX_FREQ 10 50
+		;;
+	"ipq40xx/generic")
+		uci_write_config 0 ondemand 200000 $CPU_MAX_FREQ 10 50
+		;;
+	"ipq60xx/generic"|\
+	"qualcommax/ipq60xx")
+		uci_write_config 0 ondemand 864000 $CPU_MAX_FREQ 10 50
+		;;
+	"ipq806x/generic")
+		uci_write_config 0 ondemand 600000 $CPU_MAX_FREQ 10 50
+		echo "$CPU_POLICYS" | grep -q "1" && \
+			uci_write_config 1 ondemand 600000 1200000 10 50
+		;;
+	"ipq807x/generic"|\
+	"qualcommax/ipq807x")
+		uci_write_config 0 ondemand 1017600 $CPU_MAX_FREQ 10 50
+		;;
+	"ipq95xx/generic")
+		uci_write_config 0 ondemand 936000 $CPU_MAX_FREQ 10 50
+		;;
+	"amlogic/meson8b"|\
+	"meson/meson8b")
+		uci_write_config 0 schedutil 816000 $CPU_MAX_FREQ
+		;;
+	"mediatek/mt7988")
+		uci_write_config 0 schedutil 800000 2300000
+		;;
+	"mvebu/cortexa72")
+		uci_write_config 0 ondemand 550000 $CPU_MAX_FREQ 10 50
+		uci_write_config 2 ondemand 550000 $CPU2_MAX_FREQ 10 50
+		;;
+	"rockchip/rk35xx"|\
+	"rockchip/armv8")
+		uci_write_config 0 schedutil 600000 $CPU_MAX_FREQ
+		echo "$CPU_POLICYS" | grep -q "4" && \
+			uci_write_config 4 schedutil 600000 $CPU4_MAX_FREQ
+		echo "$CPU_POLICYS" | grep -q "6" && \
+			uci_write_config 6 schedutil 600000 $CPU6_MAX_FREQ
+		;;
+	"sunxi/cortexa53")
+		uci_write_config 0 ondemand 816000 $CPU_MAX_FREQ 10 50
+		;;
+esac
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@cpufreq[-1]
+	add ucitrack cpufreq
+	set ucitrack.@cpufreq[-1].init=cpufreq
+	commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0
