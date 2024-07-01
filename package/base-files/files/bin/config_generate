@@ -111,7 +111,7 @@ generate_network() {
 				set network.$1.ipaddr='$ipad'
 				set network.$1.netmask='$netm'
 			EOF
-			[ -e /proc/sys/net/ipv6 ] && uci set network.$1.ip6assign='60'
+			[ -e /proc/sys/net/ipv6 ] && uci set network.$1.ip6assign='64'
 		;;
 
 		dhcp)
