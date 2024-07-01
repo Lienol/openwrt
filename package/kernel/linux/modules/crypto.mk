@@ -46,6 +46,17 @@ endef
 $(eval $(call KernelPackage,crypto-aead))
 
 
+define KernelPackage/crypto-aes
+  TITLE:=AES cipher CryptoAPI module
+  KCONFIG:=CONFIG_CRYPTO_AES
+  FILES:=$(LINUX_DIR)/crypto/aes_generic.ko
+  AUTOLOAD:=$(call AutoLoad,09,aes_generic)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-aes))
+
+
 define KernelPackage/crypto-arc4
   TITLE:=ARC4 cipher CryptoAPI module
   KCONFIG:=CONFIG_CRYPTO_ARC4
