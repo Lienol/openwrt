@@ -1,0 +1,10 @@
+--- a/trace/trace.c
++++ b/trace/trace.c
+@@ -25,6 +25,7 @@
+ #include <errno.h>
+ #include <string.h>
+ #include <syslog.h>
++#include <libgen.h>
+ #include <limits.h>
+ 
+ #ifndef PTRACE_EVENT_STOP
