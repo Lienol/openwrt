@@ -1,0 +1,78 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+config_n_get() {
+	local ret=$(uci -q get "network.${1}.${2}" 2>/dev/null)
+	echo "${ret:=$3}"
+}
+
+config_t_get() {
+	local index=${4:-0}
+	local ret=$(uci -q get "network.@${1}[${index}].${2}" 2>/dev/null)
+	echo "${ret:=${3}}"
+}
+
+boot() {
+	start >/dev/null 2>&1 &
+}
+
+get_port_status() {
+	local switch_id=$1
+	[ -z "${switch_id}" ] && return 1
+	local port=$2
+	[ -z "${port}" ] && return 1
+	echo "$(swconfig dev ${switch_id} port ${port} get link | awk '{print $2}' | cut -d":" -f2)"
+}
+
+monitor() {
+	local swconfig_list=$(swconfig list 2>/dev/null | awk '{print $2}')
+	[ -n "${swconfig_list}" ] && {
+		for i in "${swconfig_list}"; do
+			#local vid_ports=$(swconfig dev ${i} show | grep "ports:" | awk -F 'ports:' '{print $2}' | awk -F 't ' '{print $2}')
+			local ids=$(uci show network | grep "=switch_vlan" | awk -F '.' '{print $2}' | awk -F '=' '{print $1}')
+			[ -n "$ids" ] && {
+				for id in $ids; do
+					local port_count=0
+					local status=""
+					local device=$(config_n_get $id device)
+					local vlan=$(config_n_get $id vlan)
+					local ports=$(config_n_get $id ports)
+					[ -n "$ports" ] && {
+						local eth_num=$(echo ${device} | awk -F 'switch' '{print $2}')
+						for p in $ports; do
+							[ -n "$(echo $p | grep 't')" ] && continue
+							port_count=$(expr ${port_count} + 1)
+							local port_status=$(get_port_status ${device} ${p})
+							[ $? -eq 1 ] && continue
+							status="${status}${port_status}"
+						done
+						if (echo ${status} | grep "up" >/dev/null && ! echo ${status} | grep "down" >/dev/null); then
+							# up
+							#logger -t swconfig "${device} vlan ${vlan} link up."
+							continue
+						elif (echo ${status} | grep "down" >/dev/null && ! echo ${status} | grep "up" >/dev/null); then
+							# down
+							#logger -t swconfig "${device} vlan ${vlan} link down."
+							ifconfig eth${eth_num}.${vlan} down
+							sleep 3
+							ifconfig eth${eth_num}.${vlan} up
+							continue
+						fi
+					}
+				done
+			}
+		done
+	}
+}
+
+start() {
+	while true; do
+		monitor
+		sleep 5
+	done
+}
+
+stop() {
+	top -bn1 | grep swconfig_sh | grep -v grep | awk '{print $1}' | xargs kill >/dev/null 2>&1
+}
