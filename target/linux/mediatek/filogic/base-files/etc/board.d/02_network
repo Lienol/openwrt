@@ -24,7 +24,9 @@ mediatek_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" wan
 		;;
 	asus,tuf-ax4200|\
+	jdcloud,re-cp-03|\
 	mediatek,mt7981-rfb|\
+	netcore,n60|\
 	unielec,u7981-01*|\
 	zbtlink,zbt-z8102ax)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" eth1
@@ -46,6 +48,9 @@ mediatek_setup_interfaces()
 	cudy,tr3000-v1|\
 	glinet,gl-mt3000)
 		ucidef_set_interfaces_lan_wan eth1 eth0
+		;;
+	dlink,aquila-pro-ai-m30-a1)
+		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" internet
 		;;
 	glinet,gl-mt6000|\
 	tplink,tl-xdr4288|\
@@ -138,6 +143,11 @@ mediatek_setup_macs()
 		wan_mac=$(mtd_get_mac_ascii pdt_data_1 ethaddr)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac
+		;;
+	jdcloud,re-cp-03)
+		wan_mac=$(mmc_get_mac_binary factory 0x2a)
+		lan_mac=$(mmc_get_mac_binary factory 0x24)
+		label_mac=$lan_mac
 		;;
 	mercusys,mr90x-v1)
 		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)

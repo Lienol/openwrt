@@ -66,8 +66,12 @@ zbtlink,zbt-z8102ax|\
 zbtlink,zbt-z8103ax)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x20000"
 	;;
+dlink,aquila-pro-ai-m30-a1)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x40000" "0x40000"
+	;;
 h3c,magic-nx30-pro|\
 jcg,q30-pro|\
+netcore,n60|\
 qihoo,360t7|\
 tplink,tl-xdr4288|\
 tplink,tl-xdr6086|\
@@ -88,6 +92,11 @@ glinet,gl-mt3000)
 glinet,gl-mt6000)
 	local envdev=$(find_mmc_part "u-boot-env")
 	ubootenv_add_uci_config "$envdev" "0x0" "0x80000"
+	;;
+jdcloud,re-cp-03)
+	local envdev=$(find_mmc_part "ubootenv" "mmcblk0")
+	ubootenv_add_uci_config "$envdev" "0x0" "0x40000" "0x40000" "1"
+	ubootenv_add_uci_config "$envdev" "0x40000" "0x40000" "0x40000" "1"
 	;;
 mercusys,mr90x-v1|\
 routerich,ax3000)
