@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+
+START=90
+
+boot() {
+	stop
+}
+
+start() {
+	ethtool -K eth0 gro on
+}
+
+stop() {
+	ethtool -K eth0 gro off
+}
