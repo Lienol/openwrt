@@ -7,7 +7,7 @@ PKG_RELEASE:=1
 include $(INCLUDE_DIR)/package.mk
 
 ATH10K_FIRMWARE_REV:=d622d160e9f552ead68d9ae81b715422892dc2ef
-ATH10K_FIRMWARE_URL:=@GITHUB/kvalo/ath10k-firmware/$(ATH10K_FIRMWARE_REV)
+ATH10K_FIRMWARE_URL:=https://git.codelinaro.org/clo/ath-firmware/ath10k-firmware/-/raw/$(ATH10K_FIRMWARE_REV)
 
 QCA9887_BOARD_FILE:=ath10k-firmware-$(ATH10K_FIRMWARE_REV)-qca9887-board.bin
 define Download/qca9887-board
