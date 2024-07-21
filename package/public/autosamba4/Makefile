@@ -7,29 +7,29 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=autosamba
+PKG_NAME:=autosamba4
 PKG_VERSION:=1
-PKG_RELEASE:=12
+PKG_RELEASE:=13
 PKG_ARCH:=all
 
 include $(INCLUDE_DIR)/package.mk
 
-define Package/autosamba
+define Package/autosamba4
   TITLE:=Samba autoconfig hotplug script.
   MAINTAINER:=Lean
-  DEPENDS:=+luci-app-samba +wsdd2
+  DEPENDS:=+luci-app-samba4 +wsdd2
 endef
 
-define Package/autosamba/description
+define Package/autosamba4/description
 A hotplug script to config Samba share automatically.
 endef
 
 define Build/Compile
 endef
 
-define Package/autosamba/install
+define Package/autosamba4/install
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/block
 	$(INSTALL_BIN) ./files/20-smb $(1)/etc/hotplug.d/block/20-smb
 endef
 
-$(eval $(call BuildPackage,autosamba))
+$(eval $(call BuildPackage,autosamba4))
