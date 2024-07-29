@@ -2687,7 +2687,7 @@ TARGET_DEVICES += ubnt_edgerouter-x-sfp
 define Device/ubnt_unifi-6-lite
   $(Device/dsa-migration)
   DEVICE_VENDOR := Ubiquiti
-  DEVICE_MODEL := UniFi 6 Lite
+  DEVICE_MODEL := UniFi U6 Lite
   DEVICE_DTS_CONFIG := config@1
   DEVICE_DTS_LOADADDR := 0x87000000
   DEVICE_PACKAGES += kmod-mt7603 kmod-mt7915-firmware -uboot-envtools
@@ -2897,6 +2897,17 @@ define Device/winstars_ws-wn583a6
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware -uboot-envtools
 endef
 TARGET_DEVICES += winstars_ws-wn583a6
+
+define Device/wodesys_wd-r1802u
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 15808k
+  DEVICE_VENDOR := Wodesys
+  DEVICE_MODEL := WD-R1802U
+  DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
+  SUPPORTED_DEVICES += mt7621-rfb-ax-nor
+endef
+TARGET_DEVICES += wodesys_wd-r1802u
 
 define Device/xiaomi_nand_separate
   $(Device/nand)
