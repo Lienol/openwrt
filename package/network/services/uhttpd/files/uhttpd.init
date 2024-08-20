@@ -197,23 +197,24 @@ start_instance()
 	config_get UHTTPD_KEY  "$cfg" key  /etc/uhttpd.key
 	config_get UHTTPD_CERT "$cfg" cert /etc/uhttpd.crt
 
-	[ "$enabled_https" -eq 1 ] && {
-		[ -f /lib/libustream-ssl.so ] && [ -n "$https" ] && {
-			[ -s "$UHTTPD_CERT" -a -s "$UHTTPD_KEY" ] || {
-				config_foreach generate_keys cert
-			}
-
-			[ -f "$UHTTPD_CERT" -a -f "$UHTTPD_KEY" ] && {
-				append_arg "$cfg" cert "-C"
-				append_arg "$cfg" key  "-K"
-
-				for listen in $https; do
-					procd_append_param command -s "$listen"
-				done
-			}
-
-			append_bool "$cfg" redirect_https "-q" 0
+	[ -f /lib/libustream-ssl.so ] && [ -n "$https" ] && [ "$enabled_https" -eq 1 ] && {
+		[ -s "$UHTTPD_CERT" -a -s "$UHTTPD_KEY" ] || {
+			config_foreach generate_keys cert
 		}
+
+		[ -f "$UHTTPD_CERT" -a -f "$UHTTPD_KEY" ] && {
+			append_arg "$cfg" cert "-C"
+			append_arg "$cfg" key  "-K"
+
+			procd_append_param file "$UHTTPD_CERT"
+			procd_append_param file "$UHTTPD_KEY"
+
+			for listen in $https; do
+				procd_append_param command -s "$listen"
+			done
+		}
+
+		append_bool "$cfg" redirect_https "-q" 0
 	}
 
 	config_get json_script "$cfg" json_script
