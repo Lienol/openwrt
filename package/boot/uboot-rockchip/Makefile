@@ -213,20 +213,45 @@ define U-Boot/rock-3a-rk3568
     radxa_rock-3a
 endef
 
+
 # RK3588 boards
 
-define U-Boot/Default/rk3588
+define U-Boot/rk3588/Default
   BUILD_SUBTARGET:=armv8
   DEPENDS:=+PACKAGE_u-boot-$(1):trusted-firmware-a-rk3588
   ATF:=rk3588_bl31_v1.45.elf
   TPL:=rk3588_ddr_lp4_2112MHz_lp5_2400MHz_v1.16.bin
 endef
 
+define U-Boot/rock5b-rk3588
+  $(U-Boot/rk3588/Default)
+  NAME:=ROCK 5B
+  BUILD_DEVICES:= \
+    radxa_rock-5b
+endef
+
+define U-Boot/nanopc-t6-rk3588
+  $(U-Boot/rk3588/Default)
+  NAME:=NanoPC T6
+  BUILD_DEVICES:= \
+    friendlyarm_nanopc-t6
+endef
+
+
+# RK3588S boards
+
 define U-Boot/nanopi-r6s-rk3588s
-  $(U-Boot/Default/rk3588)
+  $(U-Boot/rk3588/Default)
   NAME:=NanoPi R6S
   BUILD_DEVICES:= \
     friendlyarm_nanopi-r6s
+endef
+
+define U-Boot/rock5a-rk3588s
+  $(U-Boot/rk3588/Default)
+  NAME:=ROCK 5A
+  BUILD_DEVICES:= \
+    radxa_rock-5a
 endef
 
 UBOOT_TARGETS := \
@@ -250,7 +275,10 @@ UBOOT_TARGETS := \
   nanopi-r5s-rk3568 \
   radxa-e25-rk3568 \
   rock-3a-rk3568 \
-  nanopi-r6s-rk3588s
+  rock5b-rk3588 \
+  nanopc-t6-rk3588 \
+  nanopi-r6s-rk3588s \
+  rock5a-rk3588s
 
 UBOOT_CONFIGURE_VARS += USE_PRIVATE_LIBGCC=yes
 

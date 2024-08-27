@@ -22,6 +22,14 @@ define Device/friendlyarm_nanopc-t4
 endef
 TARGET_DEVICES += friendlyarm_nanopc-t4
 
+define Device/friendlyarm_nanopc-t6
+  DEVICE_VENDOR := FriendlyARM
+  DEVICE_MODEL := NanoPC T6
+  SOC := rk3588
+  DEVICE_PACKAGES := kmod-r8169
+endef
+TARGET_DEVICES += friendlyarm_nanopc-t6
+
 define Device/friendlyarm_nanopi-r2c
   DEVICE_VENDOR := FriendlyARM
   DEVICE_MODEL := NanoPi R2C
@@ -131,6 +139,24 @@ define Device/radxa_rock-3a
   DEVICE_PACKAGES := kmod-usb-net-cdc-ncm kmod-usb-net-rndis
 endef
 TARGET_DEVICES += radxa_rock-3a
+
+define Device/radxa_rock-5a
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := ROCK 5A
+  SOC := rk3588s
+  UBOOT_DEVICE_NAME := rock5a-rk3588s
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan
+endef
+TARGET_DEVICES += radxa_rock-5a
+
+define Device/radxa_rock-5b
+  DEVICE_VENDOR := Radxa
+  DEVICE_MODEL := ROCK 5B
+  SOC := rk3588
+  UBOOT_DEVICE_NAME := rock5b-rk3588
+  DEVICE_PACKAGES := kmod-r8169 kmod-hwmon-pwmfan
+endef
+TARGET_DEVICES += radxa_rock-5b
 
 define Device/radxa_rock-pi-4a
   DEVICE_VENDOR := Radxa
