@@ -2,6 +2,7 @@
 
 preinit_fix_eeprom() {
 	case $(board_name) in
+	jdcloud,re-cs-02|\
 	jdcloud,re-ss-01|\
 	redmi,ax5-jdcloud)
 		mmc_part=$(find_mmc_part 0:ART)
