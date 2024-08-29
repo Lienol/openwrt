@@ -98,6 +98,20 @@ define Device/tplink_eap610-outdoor
 endef
 TARGET_DEVICES += tplink_eap610-outdoor
 
+define Device/xiaomi_ax1800
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Xiaomi
+	DEVICE_MODEL := AX1800
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_DTS := ipq6000-xiaomi-ax1800
+	SOC := ipq6000
+	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax1800
+endef
+TARGET_DEVICES += xiaomi_ax1800
+
 define Device/yuncore_fap650
     $(call Device/FitImage)
     $(call Device/UbiFit)
