@@ -30,6 +30,7 @@ case "$FIRMWARE" in
 		ath11k_patch_mac $(macaddr_add $label_mac 1) 0
 		ath11k_set_macflag
 		;;
+	jdcloud,re-ss-01|\
 	redmi,ax5-jdcloud)
 		caldata_extract_mmc "0:ART" 0x1000 0x10000
 		;;
