@@ -11,6 +11,7 @@ redmi,ax5|\
 xiaomi,ax1800)
 	ucidef_set_led_netdev "internet" "Internet" "blue:network" "wan"
 	;;
+jdcloud,re-cs-02|\
 jdcloud,re-ss-01|\
 redmi,ax5-jdcloud)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth3" "link"

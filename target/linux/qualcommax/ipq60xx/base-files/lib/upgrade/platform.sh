@@ -121,6 +121,7 @@ platform_do_upgrade() {
 	tplink,eap610-outdoor)
 		tplink_do_upgrade "$1"
 		;;
+	jdcloud,re-cs-02|\
 	jdcloud,re-ss-01|\
 	redmi,ax5-jdcloud)
 		kernelname="0:HLOS"
