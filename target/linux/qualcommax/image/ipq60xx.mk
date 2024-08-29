@@ -1,3 +1,9 @@
+define Device/EmmcImage
+	IMAGES += factory.bin sysupgrade.bin
+	IMAGE/factory.bin := append-rootfs | pad-rootfs | pad-to 64k
+	IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-to 64k | sysupgrade-tar rootfs=$$$$@ | append-metadata
+endef
+
 define Device/8devices_mango-dvk
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := 8devices
@@ -111,6 +117,21 @@ define Device/redmi_ax5
 	DEVICE_PACKAGES := ipq-wifi-redmi_ax5
 endef
 TARGET_DEVICES += redmi_ax5
+
+define Device/redmi_ax5-jdcloud
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := Redmi
+	DEVICE_MODEL := AX5 JDCloud
+	#BLOCKSIZE := 64k
+	KERNEL_SIZE := 6144k
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_DTS := ipq6000-xiaomi-redmi-ax5-jdcloud
+	SOC := ipq6000
+	DEVICE_PACKAGES := ipq-wifi-redmi_ax5-jdcloud
+	IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-rootfs | append-metadata
+endef
+TARGET_DEVICES += redmi_ax5-jdcloud
 
 define Device/xiaomi_ax1800
 	$(call Device/FitImage)
