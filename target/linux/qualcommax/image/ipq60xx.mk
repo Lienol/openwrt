@@ -39,6 +39,21 @@ define Device/glinet_gl-ax1800
 endef
 TARGET_DEVICES += glinet_gl-ax1800
 
+define Device/glinet_gl-axt1800
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := GL-iNet
+	DEVICE_MODEL := GL-AXT1800
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_DTS := ipq6000-gl-axt1800
+	SOC := ipq6000
+	DEVICE_PACKAGES := ipq-wifi-glinet_gl-axt1800 kmod-hwmon-core e2fsprogs dosfstools kmod-fs-ext4 kmod-fs-ntfs kmod-fs-vfat \
+		kmod-fs-exfat kmod-hwmon-pwmfan block-mount kmod-usb-storage kmod-usb2 fdisk
+endef
+TARGET_DEVICES += glinet_gl-axt1800
+
 define Device/netgear_wax214
        $(call Device/FitImage)
        $(call Device/UbiFit)
