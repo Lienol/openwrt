@@ -22,6 +22,7 @@ ipq60xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "lan"
 		;;
 	qihoo,360v6|\
+	redmi,ax5|\
 	xiaomi,ax1800)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
 		;;
