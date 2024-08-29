@@ -24,6 +24,21 @@ define Device/cambiumnetworks_xe3-4
 endef
 TARGET_DEVICES += cambiumnetworks_xe3-4
 
+define Device/glinet_gl-ax1800
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := GL-iNet
+	DEVICE_MODEL := GL-AX1800
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_DTS := ipq6000-gl-ax1800
+	SOC := ipq6000
+	DEVICE_PACKAGES := ipq-wifi-glinet_gl-ax1800 e2fsprogs dosfstools kmod-fs-ext4 kmod-fs-ntfs kmod-fs-vfat \
+		kmod-fs-exfat block-mount kmod-usb-storage kmod-usb2 fdisk
+endef
+TARGET_DEVICES += glinet_gl-ax1800
+
 define Device/netgear_wax214
        $(call Device/FitImage)
        $(call Device/UbiFit)
