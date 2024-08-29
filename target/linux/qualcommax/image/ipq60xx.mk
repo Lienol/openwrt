@@ -60,6 +60,21 @@ define Device/glinet_gl-axt1800
 endef
 TARGET_DEVICES += glinet_gl-axt1800
 
+define Device/jdcloud_re-cs-02
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := JDCloud
+	DEVICE_MODEL := RE-CS-02 (AX6600)
+	DEVICE_DTS_CONFIG := config@cp03-c3
+	DEVICE_DTS := ipq6010-jdcloud-re-cs-02
+	SOC := ipq6010
+	DEVICE_PACKAGES := ipq-wifi-jdcloud_re-cs-02 kmod-ath11k-pci ath11k-firmware-qcn9074 kmod-fs-ext4 mkf2fs f2fsck kmod-fs-f2fs luci-app-athena-led
+	BLOCKSIZE := 64k
+	KERNEL_SIZE := 6144k
+	IMAGE/factory.bin := append-kernel | pad-to $${KERNEL_SIZE}  |  append-rootfs | append-metadata
+endef
+TARGET_DEVICES += jdcloud_re-cs-02
+
 define Device/jdcloud_re-ss-01
 	$(call Device/FitImage)
 	$(call Device/EmmcImage)
