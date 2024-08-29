@@ -4,7 +4,7 @@
 
 #include "ipq6018-512m.dtsi"
 #include "ipq6018-ess.dtsi"
-#include "ipq6018-cp-cpu.dtsi"
+#include "ipq6018-common.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -16,10 +16,16 @@
 
 	aliases {
 		serial0 = &blsp1_uart3;
-		led-boot = &led_status_red;
+
+		led-boot = &led_status_orange;
 		led-failsafe = &led_status_red;
 		led-running = &led_status_green;
 		led-upgrade = &led_status_orange;
+
+		ethernet0 = &dp1;
+		ethernet1 = &dp2;
+		ethernet2 = &dp3;
+		ethernet3 = &dp4;
 	};
 
 	chosen {
@@ -46,19 +52,22 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_status_red: red {
+		led_status_red: status-red {
+			label = "red:status";
 			color = <LED_COLOR_ID_RED>;
 			function = LED_FUNCTION_STATUS;
 			gpios = <&tlmm 71 GPIO_ACTIVE_HIGH>;
 		};
 
-		led_status_orange: orange {
+		led_status_orange: status-orange {
+			label = "orange:status";
 			color = <LED_COLOR_ID_ORANGE>;
 			function = LED_FUNCTION_STATUS;
 			gpios = <&tlmm 72 GPIO_ACTIVE_HIGH>;
 		};
 
-		led_status_green: green {
+		led_status_green: status-green {
+			label = "green:status";
 			color = <LED_COLOR_ID_GREEN>;
 			function = LED_FUNCTION_STATUS;
 			gpios = <&tlmm 73 GPIO_ACTIVE_HIGH>;
@@ -84,21 +93,14 @@
 	};
 };
 
-&blsp1_uart3 {
-	pinctrl-0 = <&serial_3_pins>;
-	pinctrl-names = "default";
-	status = "okay";
-};
-
-&qpic_bam {
-	status = "okay";
-};
-
 &qpic_nand {
 	status = "okay";
 
 	nand@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
 		reg = <0>;
+
 		nand-ecc-strength = <4>;
 		nand-ecc-step-size = <512>;
 		nand-bus-width = <8>;
@@ -107,18 +109,6 @@
 			compatible = "qcom,smem-part";
 		};
 	};
-};
-
-&qusb_phy_0 {
-	status = "okay";
-};
-
-&ssphy_0 {
-	status = "okay";
-};
-
-&usb3 {
-	status = "okay";
 };
 
 &mdio {
@@ -168,14 +158,17 @@
 			port_id = <1>;
 			phy_address = <0>;
 		};
+
 		port@2 {
 			port_id = <2>;
 			phy_address = <1>;
 		};
+
 		port@3 {
 			port_id = <3>;
 			phy_address = <2>;
 		};
+
 		port@4 {
 			port_id = <4>;
 			phy_address = <3>;
@@ -213,7 +206,6 @@
 
 &wifi {
 	status = "okay";
-
 	qcom,ath11k-fw-memory-mode = <1>;
 	qcom,ath11k-calibration-variant = "Qihoo-360V6";
 };
