@@ -15,6 +15,7 @@ cambiumnetworks,xe3-4)
 	[ -n "$idx" ] && \
 		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x10000" "0x10000"
 	;;
+cmiot,ax18|\
 qihoo,360v6|\
 redmi,ax5|\
 xiaomi,ax1800|\
