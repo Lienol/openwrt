@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+
+#include "ipq6000-xiaomi.dtsi"
+
+/ {
+	model = "Redmi AX5 JDCloud";
+	compatible = "redmi,ax5-jdcloud", "qcom,ipq6018";
+
+	chosen {
+		bootargs-append = " rootfstype=squashfs,ext4 swiotlb=1 coherent_pool=2M";
+	};
+};
+
+&sdhc_1 {
+	status = "okay";
+
+	// reference: https://github.com/openwrt/openwrt/blob/c1ad783/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-301w.dts#L311-L317
+	/delete-property/ mmc-hs400-1_8v;
+	mmc-hs200-1_8v;
+	mmc-ddr-1_8v;
+};
+
+&wifi {
+	qcom,ath11k-calibration-variant = "Redmi-AX5-JDCloud";
+};

@@ -11,6 +11,9 @@ redmi,ax5|\
 xiaomi,ax1800)
 	ucidef_set_led_netdev "internet" "Internet" "blue:network" "wan"
 	;;
+redmi,ax5-jdcloud)
+	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth3" "link"
+	;;
 yuncore,fap650)
 	ucidef_set_led_netdev "wlan5ghz" "WLAN 5GHz LED" "blue:wlan-5ghz" "wlan0" "tx rx"
 	ucidef_set_led_netdev "wlan2ghz" "WLAN 2.4GHz LED" "green:wlan-2ghz" "wlan1" "tx rx"
