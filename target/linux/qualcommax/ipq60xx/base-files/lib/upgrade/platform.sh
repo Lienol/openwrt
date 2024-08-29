@@ -116,7 +116,8 @@ platform_do_upgrade() {
 	netgear,wax214|\
 	qihoo,360v6|\
 	redmi,ax5|\
-	xiaomi,ax1800)
+	xiaomi,ax1800|\
+	zn,m2)
 		nand_do_upgrade "$1"
 		;;
 	tplink,eap610-outdoor)
