@@ -21,6 +21,7 @@ case "$FIRMWARE" in
 	qihoo,360v6|\
 	redmi,ax5|\
 	xiaomi,ax1800|\
+	zn,m2|\
 	netgear,wax214)
 		caldata_extract "0:art" 0x1000 0x10000
 		;;

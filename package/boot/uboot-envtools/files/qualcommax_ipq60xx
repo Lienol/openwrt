@@ -21,6 +21,7 @@ redmi,ax5|\
 xiaomi,ax1800|\
 glinet,gl-ax1800|\
 glinet,gl-axt1800|\
+zn,m2|\
 netgear,wax214)
 	idx="$(find_mtd_index 0:appsblenv)"
 	[ -n "$idx" ] && \
