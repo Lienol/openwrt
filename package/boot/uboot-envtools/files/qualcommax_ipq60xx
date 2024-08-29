@@ -15,6 +15,7 @@ cambiumnetworks,xe3-4)
 	[ -n "$idx" ] && \
 		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x10000" "0x10000"
 	;;
+xiaomi,ax1800|\
 glinet,gl-ax1800|\
 glinet,gl-axt1800|\
 netgear,wax214)

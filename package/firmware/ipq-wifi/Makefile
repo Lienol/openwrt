@@ -65,6 +65,7 @@ ALLWIFIBOARDS:= \
 	tplink_archer-c60-v2 \
 	wallys_dr40x9 \
 	xiaomi_aiot-ac2350 \
+	xiaomi_ax1800 \
 	xiaomi_ax3600 \
 	xiaomi_ax9000 \
 	yyets_le1 \
@@ -204,6 +205,7 @@ $(eval $(call generate-ipq-wifi-package,tplink_archer-c60-v1,TP-Link Archer C60 
 $(eval $(call generate-ipq-wifi-package,tplink_archer-c60-v2,TP-Link Archer C60 V2))
 $(eval $(call generate-ipq-wifi-package,wallys_dr40x9,Wallys DR40X9))
 $(eval $(call generate-ipq-wifi-package,xiaomi_aiot-ac2350,Xiaomi AIoT AC2350))
+$(eval $(call generate-ipq-wifi-package,xiaomi_ax1800,Xiaomi AX1800))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax3600,Xiaomi AX3600))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax9000,Xiaomi AX9000))
 $(eval $(call generate-ipq-wifi-package,yyets_le1,YYeTs LE1))
