@@ -130,6 +130,20 @@ platform_do_upgrade() {
 		rootfsname="rootfs"
 		mmc_do_upgrade "$1"
 		;;
+	linksys,mr7350)
+		boot_part="$(fw_printenv -n boot_part)"
+		if [ "$boot_part" -eq "1" ]; then
+			fw_setenv boot_part 2
+			CI_KERNPART="alt_kernel"
+			CI_UBIPART="alt_rootfs"
+		else
+			fw_setenv boot_part 1
+			CI_UBIPART="rootfs"
+		fi
+		fw_setenv boot_part_ready 3
+		fw_setenv auto_recovery yes
+		nand_do_upgrade "$1"
+		;;
 	yuncore,fap650)
 		[ "$(fw_printenv -n owrt_env_ver 2>/dev/null)" != "7" ] && yuncore_fap650_env_setup
 		local active="$(fw_printenv -n owrt_slotactive 2>/dev/null)"
