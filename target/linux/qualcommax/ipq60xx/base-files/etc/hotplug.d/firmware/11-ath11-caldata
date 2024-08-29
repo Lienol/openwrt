@@ -17,6 +17,7 @@ case "$FIRMWARE" in
 		;;
 	glinet,gl-ax1800|\
 	glinet,gl-axt1800|\
+	redmi,ax5|\
 	xiaomi,ax1800|\
 	netgear,wax214)
 		caldata_extract "0:art" 0x1000 0x10000
