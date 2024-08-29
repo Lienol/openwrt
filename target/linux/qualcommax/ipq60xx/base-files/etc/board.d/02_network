@@ -21,7 +21,8 @@ ipq60xx_setup_interfaces()
 	netgear,wax214)
 		ucidef_set_interfaces_lan_wan "lan"
 		;;
-	qihoo,360v6)
+	qihoo,360v6|\
+	xiaomi,ax1800)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
 		;;
 	tplink,eap610-outdoor)
