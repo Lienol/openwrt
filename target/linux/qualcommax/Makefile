@@ -15,7 +15,7 @@ DEFAULT_PACKAGES += \
 	kmod-usb3 kmod-usb-dwc3 kmod-usb-dwc3-qcom \
 	kmod-leds-gpio kmod-gpio-button-hotplug \
 	kmod-qca-nss-dp kmod-ath11k-ahb \
-	wpad-basic-mbedtls uboot-envtools \
-	e2fsprogs kmod-fs-ext4 losetup autocore-arm
+	wpad-openssl uboot-envtools \
+	e2fsprogs kmod-fs-ext4 losetup autocore-arm luci-app-cpufreq
 
 $(eval $(call BuildTarget))
