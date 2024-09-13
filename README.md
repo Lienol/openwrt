@@ -1,3 +1,12 @@
+## Differ
+
+- Dropbear up to 2022.82
+- libcap update
+- golang
+
+
+
+
 编译命令如下:
 -
 1. 首先装好 Ubuntu 64bit，推荐  Ubuntu  18 LTS x64
