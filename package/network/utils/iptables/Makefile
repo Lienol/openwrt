@@ -9,21 +9,20 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=iptables
-PKG_VERSION:=1.8.10
-PKG_RELEASE:=1
+PKG_VERSION:=1.8.7
+PKG_RELEASE:=7
 
 PKG_SOURCE_URL:=https://netfilter.org/projects/iptables/files
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
-PKG_HASH:=5cc255c189356e317d070755ce9371eb63a1b783c34498fb8c30264f3cc59c9c
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_HASH:=c109c96bb04998cd44156622d36f8e04b140701ec60531a10668cfdff5e8d8f0
 
 PKG_FIXUP:=autoreconf
 PKG_FLAGS:=nonshared
 
 PKG_INSTALL:=1
-PKG_BUILD_FLAGS:=gc-sections no-lto
 PKG_BUILD_PARALLEL:=1
 PKG_LICENSE:=GPL-2.0
-PKG_CPE_ID:=cpe:/a:netfilter:iptables
+PKG_CPE_ID:=cpe:/a:netfilter_core_team:iptables
 
 include $(INCLUDE_DIR)/package.mk
 ifeq ($(DUMP),)
@@ -135,10 +134,6 @@ $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool nft
   DEPENDS:=+kmod-ipt-core +xtables-nft
   PROVIDES:=iptables
-  ALTERNATIVES:=\
-    300:/usr/sbin/iptables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/iptables-nft/description
@@ -151,7 +146,7 @@ Extra iptables nftables nft binaries.
 endef
 
 define Package/iptables-mod-conntrack-extra
-$(call Package/iptables/Module, +kmod-ipt-conntrack-extra)
+$(call Package/iptables/Module, +kmod-ipt-conntrack-extra +kmod-ipt-raw)
   TITLE:=Extra connection tracking extensions
 endef
 
@@ -472,10 +467,6 @@ $(call Package/iptables/Default)
   DEPENDS:=@IPV6 +kmod-ip6tables +xtables-nft
   TITLE:=IP firewall administration tool nft
   PROVIDES:=ip6tables
-  ALTERNATIVES:=\
-    300:/usr/sbin/ip6tables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/ip6tables-nft/description
@@ -576,7 +567,11 @@ TARGET_CPPFLAGS := \
 TARGET_CFLAGS += \
 	-I$(PKG_BUILD_DIR)/include \
 	-I$(LINUX_DIR)/user_headers/include \
+	-ffunction-sections -fdata-sections \
 	-DNO_LEGACY
+
+TARGET_LDFLAGS += \
+	-Wl,--gc-sections
 
 CONFIGURE_ARGS += \
 	--enable-shared \
@@ -618,6 +613,7 @@ define Build/InstallDev
 	$(CP) $(PKG_BUILD_DIR)/include/iptables/*.h $(1)/usr/include/iptables/
 	$(CP) $(PKG_BUILD_DIR)/include/iptables.h $(1)/usr/include/
 	$(CP) $(PKG_BUILD_DIR)/include/ip6tables.h $(1)/usr/include/
+	$(CP) $(PKG_BUILD_DIR)/include/libipulog $(1)/usr/include/
 	$(CP) $(PKG_BUILD_DIR)/include/libiptc $(1)/usr/include/
 
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
