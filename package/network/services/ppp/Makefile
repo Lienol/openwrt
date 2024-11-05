@@ -50,7 +50,7 @@ endef
 
 define Package/ppp
 $(call Package/ppp/Default)
-  DEPENDS:=+kmod-ppp +kmod-mppe +libpthread +shellsync
+  DEPENDS:=+kmod-ppp
   TITLE:=PPP daemon
   VARIANT:=default
 endef
