@@ -7,11 +7,14 @@
 
 include $(TOPDIR)/rules.mk
 
-PKG_VERSION:=2.10.17
+PKG_VERSION:=2.12
 PKG_RELEASE:=1
 PKG_LTS:=1
 
-PKG_HASH:=2558b2579dd1c45db6de89c49e647c109022d45da03eb74e0f6123c294295099
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/ARM-software/arm-trusted-firmware.git
+PKG_SOURCE_VERSION:=v$(PKG_VERSION)
+PKG_MIRROR_HASH:=51b2022baa25df7fd8f2e6d2709c9351c14b17447cda64759a8a1d432f9d1c11
 PKG_MAINTAINER:=Thomas Richard <thomas.richard@bootlin.com>
 
 include $(INCLUDE_DIR)/kernel.mk
@@ -42,7 +45,6 @@ endef
 TFA_TARGETS := stm32mp135f-dk
 
 TFA_MAKE_FLAGS += \
-		$(if $(CONFIG_BINUTILS_VERSION_2_37)$(CONFIG_BINUTILS_VERSION_2_38),,LDFLAGS="-no-warn-rwx-segments") \
 		ARCH=aarch32 AARCH32_SP=optee \
 		BL32=$(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-tee-header_v2.bin \
 		BL32_EXTRA1=$(STAGING_DIR_IMAGE)/$(BUILD_VARIANT)-tee-pager_v2.bin \
