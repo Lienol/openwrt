@@ -39,7 +39,8 @@ redmi,ax5-jdcloud)
 	[ -n "$mmcpart" ] && \
 		ubootenv_add_uci_config "$mmcpart" "0x0" "0x40000" "0x20000" "2"
 	;;
-linksys,mr7350)
+linksys,mr7350|\
+linksys,mr7500)
 	idx="$(find_mtd_index u_env)"
 	[ -n "$idx" ] && \
 		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x40000" "0x20000" "2"
