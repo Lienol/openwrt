@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-cfi
-PKG_RELEASE:=2
+PKG_RELEASE:=3
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-cfi.git
 PKG_SOURCE_PROTO:=git
@@ -16,7 +16,7 @@ PKG_BUILD_PARALLEL:=1
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
-ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq60xx"))
+ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq60xx" "ipq50xx"))
 #4.4/5.4 + ipq807x/ipq60xx/ipq50xx
   CFI_OCF_DIR:=ocf/v2.0
   CFI_CRYPTOAPI_DIR:=cryptoapi/v2.0

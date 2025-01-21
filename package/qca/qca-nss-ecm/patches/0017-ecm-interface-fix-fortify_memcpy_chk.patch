@@ -1,6 +1,6 @@
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -8009,7 +8009,7 @@ static int ecm_interface_wifi_event_iwev
+@@ -8537,7 +8537,7 @@ static int ecm_interface_wifi_event_iwev
  		/*
  		 * Copy the base data structure to get iwe->len
  		 */
@@ -9,7 +9,7 @@
  
  		/*
  		 * Check that len is valid and that we have that much in the buffer.
-@@ -8026,10 +8026,10 @@ static int ecm_interface_wifi_event_iwev
+@@ -8554,10 +8554,10 @@ static int ecm_interface_wifi_event_iwev
  			dpos = (char *)&iwe_buf.u.data.length;
  			dlen = dpos - (char *)&iwe_buf;
  
@@ -22,7 +22,7 @@
  				return -1;
  			}
  
-@@ -8037,7 +8037,7 @@ static int ecm_interface_wifi_event_iwev
+@@ -8565,7 +8565,7 @@ static int ecm_interface_wifi_event_iwev
  			 * Check the flags of iw event if it indicates the IW authorized signal.
  			 */
  			if (iwe->u.data.flags == ECM_INTERFACE_WIFI_EVENT_NODE_AUTH) {
@@ -31,7 +31,7 @@
  				if (!dbuf) {
  					DEBUG_WARN("Failed to allocated a buffer to process the custom event");
  					return -1;
-@@ -8060,16 +8060,16 @@ static int ecm_interface_wifi_event_iwev
+@@ -8588,16 +8588,16 @@ static int ecm_interface_wifi_event_iwev
  			return 0;
  		}
  

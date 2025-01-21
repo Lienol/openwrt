@@ -69,11 +69,14 @@ ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq807x")
 else ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq60xx")
   SOC="ipq60xx_64"
   subtarget:=$(CONFIG_TARGET_SUBTARGET)
+else ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq50xx")
+  SOC="ipq50xx_64"
+  subtarget:=$(CONFIG_TARGET_SUBTARGET)
 else
   SOC=$(CONFIG_TARGET_BOARD)
 endif
 
-ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64"))
+ifneq (, $(findstring $(subtarget), "ipq807x" "ipq807x_64" "ipq60xx" "ipq60xx_64" "ipq50xx" "ipq50xx_64"))
 # DTLS Manager v2.0 for Hawkeye/Cypress
   DTLSMGR_DIR:=v2.0
 # IPsec Manager v2.0 for Hawkeye/Cypress
@@ -739,7 +742,7 @@ define Build/Compile
 	  CROSS_COMPILE="$(TARGET_CROSS)" \
 	  ARCH="$(LINUX_KARCH)" \
 	  M="$(PKG_BUILD_DIR)" \
-	  EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-enum-conversion" \
+	  EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-enum-conversion -Wno-unused-variable -Wno-int-conversion" \
 	  DTLSMGR_DIR="$(DTLSMGR_DIR)" \
 	  IPSECMGR_DIR="$(IPSECMGR_DIR)" \
 	  SoC=$(SOC) \

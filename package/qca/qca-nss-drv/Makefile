@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=12
+PKG_RELEASE:=15
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
@@ -102,7 +102,6 @@ define KernelPackage/qca-nss-drv/install
 	$(INSTALL_DATA) ./files/qca-nss-drv.uci $(1)/etc/config/nss
 	$(INSTALL_DATA) ./files/qca-nss-drv.hotplug $(1)/etc/hotplug.d/firmware/10-qca-nss-fw
 	$(INSTALL_BIN) ./files/qca-nss-drv.debug $(1)/usr/bin/nss_stats
-
 endef
 
 define KernelPackage/qca-nss-drv/conffiles
@@ -119,6 +118,9 @@ ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq807x")
   subtarget:=$(CONFIG_TARGET_SUBTARGET)
 else ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq60xx")
   SOC="ipq60xx_64"
+  subtarget:=$(CONFIG_TARGET_SUBTARGET)
+else ifeq ($(CONFIG_TARGET_SUBTARGET), "ipq50xx")
+  SOC="ipq50xx_64"
   subtarget:=$(CONFIG_TARGET_SUBTARGET)
 endif
 
