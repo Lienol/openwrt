@@ -1,6 +1,6 @@
 --- a/ecm_interface.c
 +++ b/ecm_interface.c
-@@ -4057,7 +4057,11 @@ static uint32_t ecm_interface_multicast_
+@@ -4141,7 +4141,11 @@ static uint32_t ecm_interface_multicast_
  				 * For MLO bond netdevice, destination for multicast is bond netdevice itself
  				 * Therefore, slave lookup is not needed.
  				 */

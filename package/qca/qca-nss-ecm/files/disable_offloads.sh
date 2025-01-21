@@ -100,16 +100,17 @@ disable_offloads() {
   fi
 }
 
-disable_gro() {
-  local interface="$1"
+disable_feature() {
+  local feature="$1"
+  local interface="$2"
   local cmd
 
   # Construct ethtool command line
-  cmd="-K $interface gro off"
+  cmd="-K $interface $feature off"
 
   # Try to disable flow control
   ethtool $cmd 1> /dev/null 2> /dev/null
-  log $? "Generic Receive Offload" "$interface"
+  log $? "Disabling feature: $feature" "($interface)"
 }
 
 disable_flow_control() {
@@ -180,6 +181,7 @@ disable_offload() {
   config_get_bool disable_flow_control         general disable_flow_control 0
   config_get_bool disable_interrupt_moderation general disable_interrupt_moderation 0
   config_get_bool disable_gro                  general disable_gro 0
+  config_get_bool disable_gro_list             general disable_gro_list 1
 
   [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
 
@@ -192,7 +194,15 @@ disable_offload() {
     fi
 
     if [ "$disable_gro" -eq 1 ]; then
-      disable_gro "$i"
+      disable_feature gro "$i"
+    fi
+
+    if [ "$disable_gro_list" -eq 1 ]; then
+      disable_feature "rx-gro-list" "$i"
+    else
+      logger -p user.warn -s "[ethtool] Enabling rx-gro-list (GRO Fraglist) will break UDP related traffic. (e.g. DNS, DHCP)"
+      logger -p user.warn -s "[ethtool] Leave this feature enabled unless you know what you are doing."
+      logger -p user.warn -s "[ethtool] Run \`uci set ecm.general.disable_gro_list=1 && uci commit ecm && service qca-nss-ecm restart\`"
     fi
 
     if [ "$disable_offloads" -eq 1 ]; then

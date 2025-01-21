@@ -52,7 +52,7 @@ return network.registerProtocol('quectel', {
 	},
 
 	renderFormOptions: function(s) {
-		var dev = this.getL3Device() || this.getDevice(), o;
+		var dev = this.getL3Device() || this.getDevice(), o, apn, apnv6;
 
 		o = s.taboption('general', form.Value, '_modem_device', _('Modem device'));
 		o.ucioption = 'device';
@@ -65,14 +65,37 @@ return network.registerProtocol('quectel', {
 			}, this));
 		};
 
-		o = s.taboption('general', form.Value, 'apn', _('APN'));
-		o.validate = function(section_id, value) {
+		o = s.taboption('general', form.Flag, 'multiplexing', _('Use IP Multiplexing'));
+		o.default = o.disabled;
+
+		apn = s.taboption('general', form.Value, 'apn', _('APN'));
+		apn.depends('pdptype', 'ipv4v6');
+		apn.depends('pdptype', 'ipv4');
+		apn.validate = function(section_id, value) {
 			if (value == null || value == '')
 				return true;
 
 			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
 				return _('Invalid APN provided');
 
+			return true;
+		};
+
+		apnv6 = s.taboption('general', form.Value, 'apnv6', _('IPv6 APN'));
+		apnv6.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		apnv6.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		apnv6.validate = function(section_id, value) {
+			if (value == null || value == '')
+				return true;
+
+			if (!/^[a-zA-Z0-9\-.]*[a-zA-Z0-9]$/.test(value))
+				return _('Invalid APN provided');
+
+			var apn_value = apn.formvalue(section_id);
+
+			if (value.toLowerCase() === apn_value.toLowerCase())
+				return _('APN IPv6 must be different from APN');
+	
 			return true;
 		};
 
@@ -99,12 +122,24 @@ return network.registerProtocol('quectel', {
 
 		o = s.taboption('advanced', form.Value, 'delay', _('Modem init timeout'),
 			_('Maximum amount of seconds to wait for the modem to become ready'));
-		o.placeholder = '10';
+		o.placeholder = '5';
 		o.datatype    = 'min(1)';
 
 		o = s.taboption('advanced', form.Value, 'mtu', _('Override MTU'));
 		o.placeholder = dev ? (dev.getMTU() || '1500') : '1500';
 		o.datatype    = 'max(9200)';
+
+		o = s.taboption('advanced', form.Value, 'pdnindex', _('PDN index'));
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv4', multiplexing: '1' });
+		o.placeholder = '1';
+		o.datatype = 'and(uinteger,min(1),max(7))';
+
+		o = s.taboption('advanced', form.Value, 'pdnindexv6', _('IPv6 PDN index'));
+		o.depends({ pdptype: 'ipv4v6', multiplexing: '1' });
+		o.depends({ pdptype: 'ipv6', multiplexing: '1' });
+		o.placeholder = '2';
+		o.datatype = 'and(uinteger,min(1),max(7))';
 
 		o = s.taboption('general', form.ListValue, 'pdptype', _('PDP Type'));
 		o.value('ipv4v6', 'IPv4/IPv6');
@@ -120,5 +155,30 @@ return network.registerProtocol('quectel', {
 		o.placeholder = '0';
 		o.datatype = 'uinteger';
 		o.depends('defaultroute', '1');
+
+        o = s.taboption('advanced', form.DynamicList, 'cell_lock_4g', _('4G Cell ID Lock'));
+        o.datatype = 'string';
+        o.placeholder = _('<PCI>,<EARFCN>');
+
+		o.validate = function(section_id, value) {
+            if (value === null || value === '')
+                return true;
+
+            var parts = value.split(',');
+            if (parts.length !== 2)
+                return _('Must be two values separated by a comma(,)');
+
+            var isUnsignedInteger = function(str) {
+                return /^\d+$/.test(str);
+            };
+            
+            if (!isUnsignedInteger(parts[0]))
+                return _('Invalid PCI!');
+            
+            if (!isUnsignedInteger(parts[1]))
+                return _('Invalid EARFCN!');
+
+            return true;
+        };
 	}
 });
