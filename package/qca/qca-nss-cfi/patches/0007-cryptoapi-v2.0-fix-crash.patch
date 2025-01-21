@@ -1,0 +1,72 @@
+--- a/cryptoapi/v2.0/nss_cryptoapi_aead.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_aead.c
+@@ -97,9 +97,9 @@ int nss_cryptoapi_aead_init(struct crypt
+ 	bool need_fallback;
+ 
+ 	BUG_ON(!ctx);
+-	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	memset(ctx, 0, sizeof(struct nss_cryptoapi_ctx));
++	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	ctx->user = g_cryptoapi.user;
+ 	ctx->stats.init++;
+--- a/cryptoapi/v2.0/nss_cryptoapi_ahash.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_ahash.c
+@@ -231,8 +231,10 @@ int nss_cryptoapi_ahash_setkey(struct cr
+ void nss_cryptoapi_ahash_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
+ {
+ 	struct ahash_request *req = app_data;
+-	struct nss_cryptoapi_ctx *ctx = crypto_tfm_ctx(req->base.tfm);
++       struct crypto_ahash *ahash = crypto_ahash_reqtfm(req);
++       struct nss_cryptoapi_ctx *ctx = crypto_ahash_ctx(ahash);
+ 	struct nss_cryptoapi_req_ctx *rctx = ahash_request_ctx(req);
++
+ 	uint8_t *hw_hmac;
+ 	int error;
+ 
+@@ -268,7 +270,7 @@ void nss_cryptoapi_ahash_done(void *app_
+ 	 * Decrement cryptoapi reference
+ 	 */
+ 	nss_cryptoapi_ref_dec(ctx);
+-	req->base.complete(&req->base, error);
++       ahash_request_complete(req, error);
+ }
+ 
+ /*
+--- a/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
++++ b/cryptoapi/v2.0/nss_cryptoapi_skcipher.c
+@@ -92,9 +92,9 @@ int nss_cryptoapi_skcipher_init(struct c
+ 	struct nss_cryptoapi_ctx *ctx = crypto_skcipher_ctx(tfm);
+ 
+ 	BUG_ON(!ctx);
+-	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	memset(ctx, 0, sizeof(struct nss_cryptoapi_ctx));
++	NSS_CRYPTOAPI_SET_MAGIC(ctx);
+ 
+ 	ctx->user = g_cryptoapi.user;
+ 	ctx->stats.init++;
+@@ -220,11 +220,11 @@ int nss_cryptoapi_skcipher_setkey(struct
+ void nss_cryptoapi_skcipher_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t status)
+ {
+ 	struct skcipher_request *req = app_data;
+-	struct nss_cryptoapi_ctx *ctx = skcipher_request_ctx(req);
++       struct crypto_skcipher *cipher = crypto_skcipher_reqtfm(req);
++       struct nss_cryptoapi_ctx *ctx = crypto_skcipher_ctx(cipher);
+ 	int error;
+ 
+ 	BUG_ON(!ch);
+-
+ 	/*
+ 	 * Check cryptoapi context magic number.
+ 	 */
+@@ -256,7 +256,7 @@ void nss_cryptoapi_skcipher_done(void *a
+ 	 * Decrement cryptoapi reference
+ 	 */
+ 	nss_cryptoapi_ref_dec(ctx);
+-	req->base.complete(&req->base, error);
++       skcipher_request_complete(req, error);
+ }
+ 
+ /*

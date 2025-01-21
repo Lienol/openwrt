@@ -4,8 +4,14 @@
 
 . /lib/netifd/offload/disable_offloads.sh
 
-if [ "$ACTION" = add ] && [ -n "$INTERFACE" ]; then
+if [ -n "$INTERFACE" ]; then
 	disable_offload "$INTERFACE"
+	# Disable tx-checksumming for mesh interfaces, as it breaks multicast traffic
+	if [ "$DEVTYPE" = "wlan" ]; then
+	  if ubus call network.wireless status | jsonfilter -e '@[*].interfaces[@.config.mode="mesh"].ifname' | grep -q "$INTERFACE"; then
+	    disable_feature tx-checksumming "$INTERFACE"
+	  fi
+	fi
 fi
 
 exit 0
