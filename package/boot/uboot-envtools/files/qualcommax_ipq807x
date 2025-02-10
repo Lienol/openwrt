@@ -17,6 +17,7 @@ netgear,wax630)
 	[ -n "$idx" ] && \
 		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x40000" "0x20000" "2"
 	;;
+aliyun,ap8220|\
 compex,wpq873|\
 edgecore,eap102|\
 zyxel,nbg7815)
