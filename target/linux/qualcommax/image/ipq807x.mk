@@ -350,6 +350,14 @@ define Device/redmi_ax6
 endef
 TARGET_DEVICES += redmi_ax6
 
+define Device/redmi_ax6-stock
+	$(call Device/xiaomi_ax3600-stock)
+	DEVICE_VENDOR := Redmi
+	DEVICE_MODEL := AX6 (Stock)
+	DEVICE_PACKAGES := ipq-wifi-redmi_ax6
+endef
+TARGET_DEVICES += redmi_ax6-stock
+
 define Device/spectrum_sax1v1k
 	$(call Device/FitImage)
 	$(call Device/EmmcImage)
@@ -394,6 +402,19 @@ endif
 endef
 TARGET_DEVICES += xiaomi_ax3600
 
+define Device/xiaomi_ax3600-stock
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Xiaomi
+	DEVICE_MODEL := AX3600 (Stock)
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS_CONFIG := config@ac04
+	SOC := ipq8071
+	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax3600 ath10k-firmware-qca9887-ct kmod-ath10k-ct
+endef
+TARGET_DEVICES += xiaomi_ax3600-stock
+
 define Device/xiaomi_ax9000
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -412,6 +433,19 @@ ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
 endif
 endef
 TARGET_DEVICES += xiaomi_ax9000
+
+define Device/xiaomi_ax9000-stock
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Xiaomi
+	DEVICE_MODEL := AX9000 (Stock)
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS_CONFIG := config@hk14
+	SOC := ipq8072
+	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax9000 kmod-ath11k-pci ath11k-firmware-qcn9074
+endef
+TARGET_DEVICES += xiaomi_ax9000-stock
 
 define Device/yuncore_ax880
 	$(call Device/FitImage)

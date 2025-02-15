@@ -39,9 +39,11 @@ netgear,wax630)
 	ucidef_set_led_netdev "lan1" "LAN1" "lan1:green" "lan1"
 	ucidef_set_led_netdev "lan2" "LAN2" "lan2:green" "lan2"
 	;;
+redmi,ax6-stock|\
 redmi,ax6)
 	ucidef_set_led_netdev "wan" "WAN" "blue:network" "wan"
 	;;
+xiaomi,ax3600-stock|\
 xiaomi,ax3600)
 	ucidef_set_led_netdev "wan-port-link" "WAN-PORT-LINK" "90000.mdio-1:01:green:wan" "wan" "tx rx link_10 link_100 link_1000"
 	ucidef_set_led_netdev "lan1-port-link" "LAN1-PORT-LINK" "90000.mdio-1:02:green:lan" "lan1" "tx rx link_10 link_100 link_1000"
@@ -49,6 +51,7 @@ xiaomi,ax3600)
 	ucidef_set_led_netdev "lan3-port-link" "LAN3-PORT-LINK" "90000.mdio-1:04:green:lan" "lan3" "tx rx link_10 link_100 link_1000"
 	ucidef_set_led_netdev "wan" "WAN" "blue:network" "wan"
 	;;
+xiaomi,ax9000-stock|\
 xiaomi,ax9000)
 	ucidef_set_led_netdev "wan-port-link" "WAN-PORT-LINK" "90000.mdio-1:18:green:wan" "wan" "tx rx link_10 link_100 link_1000 link_2500"
 	ucidef_set_led_netdev "lan1-port-link" "LAN1-PORT-LINK" "90000.mdio-1:03:green:lan" "lan1" "tx rx link_10 link_100 link_1000"
