@@ -7,7 +7,6 @@
 #include "ipq8074-ess.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
-#include <dt-bindings/leds/common.h>
 
 / {
 	model = "Aliyun AP8220";
@@ -42,39 +41,25 @@
 		compatible = "gpio-leds";
 
 		led_power: power {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_POWER;
+			label = "green:power";
 			gpios = <&tlmm 46 GPIO_ACTIVE_HIGH>;
 		};
 
 		wlan2g {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_WLAN_2GHZ;
+			label = "green:wlan2g";
 			gpios = <&tlmm 47 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "phy1radio";
 		};
 
 		wlan5g {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_WLAN_5GHZ;
+			label = "green:wlan5g";
 			gpios = <&tlmm 48 GPIO_ACTIVE_HIGH>;
 			linux,default-trigger = "phy0radio";
 		};
 
 		bluetooth {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_BLUETOOTH;
+			label = "green:bluetooth";
 			gpios = <&tlmm 50 GPIO_ACTIVE_HIGH>;
-		};
-	};
-
-	gpio-export {
-		compatible = "gpio-export";
-
-		ble-power {
-			gpio-export,name = "ble_power";
-			gpio-export,output = <1>;
-			gpios = <&tlmm 54 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
@@ -241,6 +226,10 @@
 &qpic_nand {
 	status = "okay";
 
+	partitions {
+		status = "disabled";
+	};
+
 	nand@0 {
 		reg = <0>;
 		nand-ecc-strength = <4>;
@@ -253,18 +242,8 @@
 			#size-cells = <1>;
 
 			partition@0 {
-				label = "rootfs1";
-				reg = <0x0000000 0x3000000>;
-			};
-
-			partition@3000000 {
-				label = "rootfs2";
-				reg = <0x3000000 0x3000000>;
-			};
-
-			partition@6000000 {
-				label = "usrdata";
-				reg = <0x6000000 0x2000000>;
+				label = "rootfs";
+				reg = <0x0000000 0x8000000>;
 			};
 		};
 	};
@@ -279,14 +258,12 @@
 	qca8081_24: ethernet-phy@24 {
 		compatible = "ethernet-phy-id004d.d101";
 		reg = <24>;
-		reset-deassert-us = <10000>;
 		reset-gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
 	};
 
 	qca8081_28: ethernet-phy@28 {
 		compatible = "ethernet-phy-id004d.d101";
 		reg = <28>;
-		reset-deassert-us = <10000>;
 		reset-gpios = <&tlmm 44 GPIO_ACTIVE_LOW>;
 	};
 };
@@ -294,10 +271,14 @@
 &switch {
 	status = "okay";
 
-	switch_lan_bmp = <ESS_PORT5>;
-	switch_wan_bmp = <ESS_PORT6>;
-	switch_mac_mode1 = <MAC_MODE_SGMII_PLUS>;
-	switch_mac_mode2 = <MAC_MODE_SGMII_PLUS>;
+	switch_cpu_bmp = <0x1>;  /* cpu port bitmap */
+	switch_lan_bmp = <0x20>; /* lan port bitmap */
+	switch_wan_bmp = <0x40>; /* wan port bitmap */
+	switch_mac_mode = <0xff>; /* mac mode for uniphy instance0*/
+	switch_mac_mode1 = <0xf>; /* mac mode for uniphy instance1*/
+	switch_mac_mode2 = <0xf>; /* mac mode for uniphy instance2*/
+	bm_tick_mode = <0>; /* bm tick mode */
+	tm_tick_mode = <0>; /* tm tick mode */
 
 	qcom,port_phyinfo {
 		port@5 {
@@ -319,7 +300,6 @@
 
 &dp5 {
 	status = "okay";
-	phy-mode = "sgmii";
 	phy-handle = <&qca8081_24>;
 	label = "wan";
 };
