@@ -1,0 +1,20 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2023 Siriling <siriling@qq.com>
+
+START=70
+STOP=13
+USE_PROCD=1
+
+#脚本目录
+SCRIPT_DIR="/usr/share/modem"
+
+start_service()
+{
+    # 暂时弃用
+    # /bin/sh ${SCRIPT_DIR}/modem_init.sh
+    echo "init"
+#     procd_open_instance #启动实例
+#     procd_set_param command /bin/sh /usr/share/modem/modem_init.sh
+#     procd_set_param respawn # 定义respawn参数，告知procd当task程序退出后尝试进行重启
+#     procd_close_instance #关闭实例
+}

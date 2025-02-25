@@ -1,0 +1,392 @@
+
+config custom-commands
+	option description '****************通用****************'
+	option command 'ATI'
+
+config custom-commands
+	option description '模组信息 > ATI'
+	option command 'ATI'
+
+config custom-commands
+	option description '查询SIM卡状态 > AT+CPIN?'
+	option command 'AT+CPIN?'
+
+config custom-commands
+	option description '查询网络信号质量（4G） > AT+CSQ'
+	option command 'AT+CSQ'
+
+config custom-commands
+	option description '查询网络信号质量（5G） > AT+CESQ'
+	option command 'AT+CESQ'
+
+config custom-commands
+	option description '查询网络信息 > AT+COPS?'
+	option command 'AT+COPS?'
+
+config custom-commands
+	option description '查询PDP信息 > AT+CGDCONT?'
+	option command 'AT+CGDCONT?'
+
+config custom-commands
+	option description '查询PDP地址 > AT+CGPADDR'
+	option command 'AT+CGPADDR'
+
+config custom-commands
+	option description '查询模组IMEI > AT+CGSN'
+	option command 'AT+CGSN'
+
+config custom-commands
+	option description '查询模组IMEI > AT+GSN'
+	option command 'AT+GSN'
+
+config custom-commands
+	option description '查看当前电压'
+	option command 'AT+CBC'
+
+config custom-commands
+	option description '最小功能模式 > AT+CFUN=0'
+	option command 'AT+CFUN=0'
+
+config custom-commands
+	option description '全功能模式 > AT+CFUN=1'
+	option command 'AT+CFUN=1'
+
+config custom-commands
+	option description '重启模组 > AT+CFUN=1,1'
+	option command 'AT+CFUN=1,1'
+
+config custom-commands
+	option description '****************移远****************'
+	option command 'ATI'
+
+config custom-commands
+	option description 'SIM卡状态上报 > AT+QSIMSTAT?'
+	option command 'AT+QSIMSTAT?'
+
+config custom-commands
+	option description '设置当前使用的为卡1 > AT+QUIMSLOT=1'
+	option command 'AT+QUIMSLOT=1'
+
+config custom-commands
+	option description '设置当前使用的为卡2 > AT+QUIMSLOT=2'
+	option command 'AT+QUIMSLOT=2'
+
+config custom-commands
+	option description '查询网络信息 > AT+QNWINFO'
+	option command 'AT+QNWINFO'
+
+config custom-commands
+	option description '查询SIM卡签约速率 > AT+QNWCFG="nr5g_ambr"'
+	option command 'AT+QNWCFG="nr5g_ambr"'
+
+config custom-commands
+	option description '查询载波聚合参数 > AT+QCAINFO'
+	option command 'AT+QCAINFO'
+
+config custom-commands
+	option description '查询当前拨号模式 > AT+QCFG="usbnet"'
+	option command 'AT+QCFG="usbnet"'
+
+config custom-commands
+	option description 'QMI/GobiNet拨号 > AT+QCFG="usbnet",0'
+	option command 'AT+QCFG="usbnet",0'
+
+config custom-commands
+	option description 'ECM拨号 > AT+QCFG="usbnet",1'
+	option command 'AT+QCFG="usbnet",1'
+
+config custom-commands
+	option description 'MBIM拨号 > AT+QCFG="usbnet",2'
+	option command 'AT+QCFG="usbnet",2'
+
+config custom-commands
+	option description 'RNDIS拨号 > AT+QCFG="usbnet",3'
+	option command 'AT+QCFG="usbnet",3'
+
+config custom-commands
+	option description 'NCM拨号 > AT+QCFG="usbnet",5'
+	option command 'AT+QCFG="usbnet",5'
+
+config custom-commands
+	option description '锁4G > AT+QNWPREFCFG="mode_pref",LTE'
+	option command 'AT+QNWPREFCFG="mode_pref",LTE'
+
+config custom-commands
+	option description '锁5G > AT+QNWPREFCFG="mode_pref",NR5G'
+	option command 'AT+QNWPREFCFG="mode_pref",NR5G'
+
+config custom-commands
+	option description '锁5G NSA > AT+QNWPREFCFG="mode_pref",NR5G-NSA'
+	option command 'AT+QNWPREFCFG="mode_pref",NR5G-NSA'
+
+config custom-commands
+	option description '锁5G SA > AT+QNWPREFCFG="mode_pref",NR5G-SA'
+	option command 'AT+QNWPREFCFG="mode_pref",NR5G-SA'
+
+config custom-commands
+	option description '恢复自动搜索网络 > AT+QNWPREFCFG="mode_pref",AUTO'
+	option command 'AT+QNWPREFCFG="mode_pref",AUTO'
+
+config custom-commands
+	option description '查询模组IMEI > AT+EGMR=0,7'
+	option command 'AT+EGMR=0,7'
+
+config custom-commands
+	option description '更改模组IMEI > AT+EGMR=1,7,"IMEI"'
+	option command 'AT+EGMR=1,7,"在此设置IMEI"'
+
+config custom-commands
+	option description '获取模组温度 > AT+QTEMP'
+	option command 'AT+QTEMP'
+
+config custom-commands
+	option description '切换为USB通信端口 > AT+QCFG="data_interface",0,0'
+	option command 'AT+QCFG="data_interface",0,0'
+
+config custom-commands
+	option description '切换为PCIE通信端口 > AT+QCFG="data_interface",1,0'
+	option command 'AT+QCFG="data_interface",1,0'
+
+config custom-commands
+	option description '查看当前USB速率 > AT+QCFG="usbspeed"'
+	option command 'AT+QCFG="usbspeed"'
+
+config custom-commands
+	option description '切换为USB2.0 > AT+QCFG="usbspeed","20"'
+	option command 'AT+QCFG="usbspeed","20"'
+
+config custom-commands
+	option description '切换为USB3.1 Gen1（5Gbps） > AT+QCFG="usbspeed","311"'
+	option command 'AT+QCFG="usbspeed","311"'
+
+config custom-commands
+	option description '切换为USB3.1 Gen1（10Gbps） > AT+QCFG="usbspeed","312"'
+	option command 'AT+QCFG="usbspeed","312"'
+
+config custom-commands
+	option description '重置模组 > AT+QCFG="ResetFactory"'
+	option command 'AT+QCFG="ResetFactory"'
+
+config custom-commands
+	option description '****************广和通****************'
+	option command 'ATI'
+
+config custom-commands
+	option description '设置当前使用的为卡1 > AT+GTDUALSIM=0'
+	option command 'AT+GTDUALSIM=0'
+
+config custom-commands
+	option description '设置当前使用的为卡2 > AT+GTDUALSIM=1'
+	option command 'AT+GTDUALSIM=1'
+
+config custom-commands
+	option description 'ECM手动拨号 > AT+GTRNDIS=1,1'
+	option command 'AT+GTRNDIS=1,1'
+
+config custom-commands
+	option description 'ECM拨号断开 > AT+GTRNDIS=0,1'
+	option command 'AT+GTRNDIS=0,1'
+
+config custom-commands
+	option description '查询当前端口模式 > AT+GTUSBMODE?'
+	option command 'AT+GTUSBMODE?'
+
+config custom-commands
+	option description 'QMI/GobiNet拨号 > AT+GTUSBMODE=32'
+	option command 'AT+GTUSBMODE=32'
+
+config custom-commands
+	option description 'ECM拨号 > AT+GTUSBMODE=18'
+	option command 'AT+GTUSBMODE=18'
+
+config custom-commands
+	option description 'MBIM拨号 > AT+GTUSBMODE=30'
+	option command 'AT+GTUSBMODE=30'
+
+config custom-commands
+	option description 'RNDIS拨号 > AT+GTUSBMODE=24'
+	option command 'AT+GTUSBMODE=24'
+
+config custom-commands
+	option description 'NCM拨号 > AT+GTUSBMODE=18'
+	option command 'AT+GTUSBMODE=18'
+
+config custom-commands
+	option description '锁4G > AT+GTACT=2'
+	option command 'AT+GTACT=2'
+
+config custom-commands
+	option description '锁5G > AT+GTACT=14'
+	option command 'AT+GTACT=14'
+
+config custom-commands
+	option description '恢复自动搜索网络 > AT+GTACT=20'
+	option command 'AT+GTACT=20'
+
+config custom-commands
+	option description '查询当前连接的网络类型 > AT+PSRAT?'
+	option command 'AT+PSRAT?'
+
+config custom-commands
+	option description '查询模组IMEI > AT+GTSN=0,7'
+	option command 'AT+GTSN=0,7'
+
+config custom-commands
+	option description '更改模组IMEI > AT+GTSN=1,7,"IMEI"'
+	option command 'AT+GTSN=1,7,"在此设置IMEI"'
+
+config custom-commands
+	option description '报告一次当前BBIC的温度 > AT+MTSM=1,6'
+	option command 'AT+MTSM=1,6'
+
+config custom-commands
+	option description '报告一次当前射频的温度 > AT+MTSM=1,7'
+	option command 'AT+MTSM=1,7'
+
+config custom-commands
+	option description '获取当前温度 > AT+GTLADC'
+	option command 'AT+GTLADC'
+
+config custom-commands
+	option description '重启模组 > AT+CFUN=15'
+	option command 'AT+CFUN=15'
+
+config custom-commands
+	option description '****************美格****************'
+	option command 'ATI'
+
+config custom-commands
+	option description 'SIM卡状态上报 > AT^SIMSLOTURC=1'
+	option command 'AT^SIMSLOTURC=1'
+
+config custom-commands
+	option description '获取SIM卡卡槽状态 > AT^SIMSLOT?'
+	option command 'AT^SIMSLOT?'
+
+config custom-commands
+	option description '设置当前使用的为卡1 > AT^SIMSLOT=1'
+	option command 'AT^SIMSLOT=1'
+
+config custom-commands
+	option description '设置当前使用的为卡2 > AT^SIMSLOT=2'
+	option command 'AT^SIMSLOT=2'
+
+config custom-commands
+	option description '查询网络信息 > AT^SYSINFOEX'
+	option command 'AT^SYSINFOEX'
+
+config custom-commands
+	option description '查询载波聚合小区信息 > AT^CELLINFO=1'
+	option command 'AT^CELLINFO=1'
+
+config custom-commands
+	option description '查询当前拨号模式 > AT+SER?'
+	option command 'AT+SER?'
+
+config custom-commands
+	option description 'QMI/GobiNet拨号 > AT+SER=1,1'
+	option command 'AT+SER=1,1'
+
+config custom-commands
+	option description 'ECM拨号 > AT+SER=2,1'
+	option command 'AT+SER=2,1'
+
+config custom-commands
+	option description 'MBIM拨号 > AT+SER=3,1'
+	option command 'AT+SER=3,1'
+
+config custom-commands
+	option description 'RNDIS拨号 > AT+SER=3,1'
+	option command 'AT+SER=3,1'
+
+config custom-commands
+	option description 'NCM拨号 > AT+SER=2,1'
+	option command 'AT+SER=2,1'
+
+config custom-commands
+	option description '锁4G > AT^SYSCFGEX="03",all,0,2,all,all,all,all,1'
+	option command 'AT^SYSCFGEX="03",all,0,2,all,all,all,all,1'
+
+config custom-commands
+	option description '锁5G > AT^SYSCFGEX="04",all,0,2,all,all,all,all,1'
+	option command 'AT^SYSCFGEX="04",all,0,2,all,all,all,all,1'
+
+config custom-commands
+	option description '恢复自动搜索网络 > AT^SYSCFGEX="00",all,0,2,all,all,all,all,1'
+	option command 'AT^SYSCFGEX="00",all,0,2,all,all,all,all,1'
+
+config custom-commands
+	option description '查询模组IMEI > AT+LCTSN=0,7'
+	option command 'AT+LCTSN=0,7'
+
+config custom-commands
+	option description '更改模组IMEI > AT+LCTSN=1,7,"IMEI"'
+	option command 'AT+LCTSN=1,7,"在此设置IMEI"'
+
+config custom-commands
+	option description '获取模组温度 > AT+TEMP'
+	option command 'AT+TEMP'
+
+config custom-commands
+	option description '重启模组 > AT+RESET'
+	option command 'AT+RESET'
+
+config custom-commands
+	option description '****************华为****************'
+	option command 'ATI'
+
+config custom-commands
+	option description '获取SIM卡卡槽状态 > AT^SIMSLOT?'
+	option command 'AT^SIMSLOT?'
+
+config custom-commands
+	option description '设置当前使用的为卡1 > AT^SIMSWITCH=1'
+	option command 'AT^SIMSWITCH=1'
+
+config custom-commands
+	option description '设置当前使用的为卡2 > AT^SIMSWITCH=0'
+	option command 'AT^SIMSWITCH=0'
+
+config custom-commands
+	option description '查询网络信息 > AT^SYSINFOEX'
+	option command 'AT^SYSINFOEX'
+
+config custom-commands
+	option description '查询当前拨号模式 > AT^SETMODE?'
+	option command 'AT^SETMODE?'
+
+config custom-commands
+	option description 'ECM拨号模式（Linux） > AT^SETMODE=0'
+	option command 'AT^SETMODE=0'
+
+config custom-commands
+	option description 'NCM拨号模式（Windows） > AT^SETMODE=1'
+	option command 'AT^SETMODE=1'
+
+config custom-commands
+	option description 'ECM拨号模式（Linux，Debug） > AT^SETMODE=2'
+	option command 'AT^SETMODE=2'
+
+config custom-commands
+	option description 'NCM拨号模式（Windows,Debug） > AT^SETMODE=3'
+	option command 'AT^SETMODE=3'
+
+config custom-commands
+	option description '锁4G > AT^SYSCFGEX="03",40000000,1,2,7FFFFFFFFFFFFFFF,,'
+	option command 'AT^SYSCFGEX="03",40000000,1,2,7FFFFFFFFFFFFFFF,,'
+
+config custom-commands
+	option description '锁5G > AT^SYSCFGEX="08",40000000,1,2,7FFFFFFFFFFFFFFF,,'
+	option command 'AT^SYSCFGEX="08",40000000,1,2,7FFFFFFFFFFFFFFF,,'
+
+config custom-commands
+	option description '恢复自动搜索网络 > AT^SYSCFGEX="00",3FFFFFFF,1,2,7FFFFFFFFFFFFFFF,,'
+	option command 'AT^SYSCFGEX="00",3FFFFFFF,1,2,7FFFFFFFFFFFFFFF,,'
+
+config custom-commands
+	option description '获取模组温度 > AT^CHIPTEMP?'
+	option command 'AT^CHIPTEMP?'
+
+config custom-commands
+	option description '重启模组 > AT^RESET'
+	option command 'AT^RESET'

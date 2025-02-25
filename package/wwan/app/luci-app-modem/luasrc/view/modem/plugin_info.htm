@@ -1,0 +1,329 @@
+<%+header%>
+<script type="text/javascript" src="<%=resource%>/xhr.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+	// 设置状态页面
+	function set_status_view(status,status_element,translation)
+	{
+		if (status=="Loaded") {
+			status_element.style.color = "green";
+		}
+		else if (status=="Not loaded") {
+			status_element.style.color = "red";
+		}
+		status_element.innerHTML=translation[status];
+	}
+
+	// 设置状态
+	function set_status(info,translation)
+	{
+		//遍历信息里面的内核模块
+		for (var model in info)
+		{
+			//获取状态元素
+			var status_element=document.getElementById(model.toLowerCase().replace(".ko","_status"));
+			// 设置状态页面
+			set_status_view(info[model],status_element,translation);
+		}
+	}
+
+	// 设置版本
+	function set_version(info,translation)
+	{
+		//遍历信息里面的插件版本
+		for (var plugin in info)
+		{
+			//获取版本元素
+			var version_element=document.getElementById(plugin+"_version");
+			if (info[plugin]=="Unknown") {
+				version_element.innerHTML=translation[info[plugin]];
+				version_element.style.color = "goldenrod";
+			}
+			else if (info[plugin]=="Not installed") {
+				version_element.innerHTML=translation[info[plugin]];
+				version_element.style.color = "red";
+			}
+			else
+			{
+				version_element.innerHTML="v"+info[plugin];
+				version_element.style.color = "green";
+			}
+		}
+	}
+
+	XHR.get('<%=luci.dispatcher.build_url("admin", "network", "modem", "get_plugin_info")%>', {},
+		function(x, data)
+		{
+			// 获取翻译
+			var translation=data["translation"];
+			
+			// 获取插件信息
+			var plugin_info=data["plugin_info"];
+			set_version(plugin_info,translation);
+			
+			// 获取拨号工具信息
+			var dial_tool_info=data["dial_tool_info"];
+			set_version(dial_tool_info,translation);
+
+			// 设置通用驱动信息的状态
+			var general_driver_info=data["general_driver_info"];
+			set_status(general_driver_info,translation);
+
+			// 设置模组USB驱动信息的状态
+			var usb_driver_info=data["usb_driver_info"];
+			set_status(usb_driver_info,translation);
+
+			// 设置模组PCIE驱动信息的状态
+			var pcie_driver_info=data["pcie_driver_info"];
+			set_status(pcie_driver_info,translation);
+		}
+	);
+//]]>
+</script>
+
+<div class="cbi-map" id="cbi-modem-debug">
+	<h2 id="content" name="content"><%:Plugin Info%></h2>
+	<div class="cbi-map-descr"><%:Check the version information of the plugin%></div>
+	<head>
+		<style type="text/css">
+			div .version {
+				margin-top: 5px;
+			}
+		</style>
+	</head>
+
+	<fieldset class="cbi-section" id="cbi-modem" style="display: block;">
+		<div class="cbi-section fade-in">
+			<!-- <legend><%:Plugin Info%></legend> -->
+			<h3><%:Plugin Info%></h3>
+			<div class="cbi-section-node">
+				<div class="cbi-value cbi-value-last">
+					<label class="cbi-value-title"><%:Plugin Version%></label>
+					<div class="cbi-value-field">
+						<div class="version">
+							<strong id="luci-app-modem_version"></strong>
+						</div>
+						<!-- <div class="cbi-value-description">
+							<%:Select a modem for debugging%>
+						</div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-modem" style="display: block;">
+		<div class="cbi-section fade-in">
+			<!-- <legend><%:Dial Tool Info%></legend> -->
+			<h3><%:Dial Tool Info%></h3>
+			<div class="cbi-section-node">
+				<div class="cbi-value">
+					<label class="cbi-value-title">modemmanager <%:Version%></label>
+					<div class="cbi-value-field">
+						<div class="version">
+							<strong id="modemmanager_version"></strong>
+						</div>
+						<!-- <div class="cbi-value-description">
+							<%:Select a modem for debugging%>
+						</div> -->
+					</div>
+				</div>
+				<div class="cbi-value">
+					<label class="cbi-value-title">quectel-CM <%:Version%></label>
+					<div class="cbi-value-field">
+						<div class="version">
+							<strong id="quectel-cm_version"></strong>
+						</div>
+						<!-- <div class="cbi-value-description">
+							<%:Select a modem for debugging%>
+						</div> -->
+					</div>
+				</div>
+				<div class="cbi-value cbi-value-last">
+					<label class="cbi-value-title">fibocom-dial <%:Version%></label>
+					<div class="cbi-value-field">
+						<div class="version">
+							<strong id="fibocom-dial_version"></strong>
+						</div>
+						<!-- <div class="cbi-value-description">
+							<%:Select a modem for debugging%>
+						</div> -->
+					</div>
+				</div>
+				<div class="cbi-value cbi-value-last">
+					<label class="cbi-value-title">meig-cm <%:Version%></label>
+					<div class="cbi-value-field">
+						<div class="version">
+							<strong id="meig-cm_version"></strong>
+						</div>
+						<!-- <div class="cbi-value-description">
+							<%:Select a modem for debugging%>
+						</div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-modem" style="display: block;">
+		<div class="cbi-section fade-in">
+			<!-- <legend><%:Modem PCIE Driver Info%></legend> -->
+			<h3><%:Modem General Driver Info%></h3>
+			<table class="table cbi-section-table">
+				<tbody>
+					<tr class="tr cbi-section-table-titles anonymous">
+						<th class="th cbi-section-table-cell"><%:Driver Type%></th>
+						<th class="th cbi-section-table-cell"><%:Kernel Model%></th>
+						<th class="th cbi-section-table-cell"><%:Status%></th>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="usb_network"><%:USB Network%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="usb_net_kernel_model_name">usbnet.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="usbnet_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="serial_port"><%:Serial Port%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="serial_port_kernel_model_name">option.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="option_status">-</td>
+					</tr>
+					<!-- <tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="serial_port"><%:Serial Port%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="serial_port_kernel_model_name">qcserial.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qcserial_status">-</td>
+					</tr> -->
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-modem" style="display: block;">
+		<div class="cbi-section fade-in">
+			<!-- <legend><%:Modem USB Driver Info%></legend> -->
+			<h3><%:Modem USB Driver Info%></h3>
+			<table class="table cbi-section-table">
+				<tbody>
+					<tr class="tr cbi-section-table-titles anonymous">
+						<th class="th cbi-section-table-cell"><%:Driver Type%></th>
+						<th class="th cbi-section-table-cell"><%:Mode%></th>
+						<th class="th cbi-section-table-cell"><%:Kernel Model%></th>
+						<th class="th cbi-section-table-cell"><%:Status%></th>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="qmi_wwan"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="qmi"><%:QMI%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="qmi_kernel_model_name">qmi_wwan.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qmi_wwan_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="gobinet"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="gobinet"><%:GobiNet%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="gobinet_kernel_model_name">GobiNet.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="gobinet_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="cdc_ether"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="ecm"><%:ECM%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="ecm_kernel_model_name">cdc_ether.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="cdc_ether_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="cdc_mbim"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="mbim"><%:MBIM%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mbim_kernel_model_name">cdc_mbim.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="cdc_mbim_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="rndis_host"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="rndis"><%:RNDIS%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="rndis_kernel_model_name">rndis_host.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="rndis_host_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="cdc_ncm"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>" id="ecm"><%:NCM%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="ncm_kernel_model_name">cdc_ncm.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="cdc_ncm_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>"><%:Private (Quectel)%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>"><%:QMI%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="qmi_wwan_q_kernel_model_name">qmi_wwan_q.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qmi_wwan_q_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>"><%:Private (Fibocom)%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>"><%:QMI%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="qmi_wwan_f_kernel_model_name">qmi_wwan_f.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qmi_wwan_f_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>"><%:Private (Meig)%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>"><%:QMI%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="qmi_wwan_m_kernel_model_name">qmi_wwan_m.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qmi_wwan_m_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>"><%:Private (Meig)%></td>
+						<td class="td cbi-value-field" data-title="<%:Mode%>"><%:NCM%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="meig_cdc_driver_kernel_model_name">meig_cdc_driver.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="meig_cdc_driver_status">-</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-modem" style="display: block;">
+		<div class="cbi-section fade-in">
+			<!-- <legend><%:Modem PCIE Driver Info%></legend> -->
+			<h3><%:Modem PCIE Driver Info%></h3>
+			<table class="table cbi-section-table">
+				<tbody>
+					<tr class="tr cbi-section-table-titles anonymous">
+						<th class="th cbi-section-table-cell"><%:Driver Type%></th>
+						<th class="th cbi-section-table-cell"><%:Kernel Model%></th>
+						<th class="th cbi-section-table-cell"><%:Status%></th>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="mhi_net"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mhi_net_kernel_model_name">mhi_net.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="mhi_net_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="qrtr_mhi"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="qrtr_kernel_model_name">qrtr_mhi.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="qrtr_mhi_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="mhi_pci_generic"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mhi_pci_kernel_model_name">mhi_pci_generic.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="mhi_pci_generic_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="mhi_wwan_mbim"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mhi_mbim_kernel_model_name">mhi_wwan_mbim.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="mhi_wwan_mbim_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-1">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="mhi_wwan_ctrl"><%:General%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mhi_wwan_kernel_model_name">mhi_wwan_ctrl.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="mhi_wwan_ctrl_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="private_q"><%:Private%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="pcie_mhi_kernel_model_name">pcie_mhi.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="pcie_mhi_status">-</td>
+					</tr>
+					<tr class="tr cbi-section-table-row cbi-rowstyle-2">
+						<td class="td cbi-value-field" data-title="<%:Driver Type%>" id="private_mtk"><%:Private%></td>
+						<td class="td cbi-value-field" data-title="<%:Kernel Model%>" id="mtk_pcie_wwan_m80_kernel_model_name">mtk_pcie_wwan_m80.ko</td>
+						<td class="td cbi-value-field" data-title="<%:Status%>" id="mtk_pcie_wwan_m80_status">-</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+
+</div>
+
+<%+footer%>
