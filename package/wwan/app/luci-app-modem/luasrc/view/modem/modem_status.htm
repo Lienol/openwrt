@@ -1,0 +1,160 @@
+<script type="text/javascript">//<![CDATA[
+	
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "network", "modem", "get_modems")%>', null,
+		function(x, data)
+		{
+			var modems=data["modems"];
+			var translation=data["translation"];
+			
+			var modems_div=document.getElementById('modem_status_view');
+			if (Object.keys(modems).length!=0)
+			{
+				var modem_view = "";
+				//遍历每一个模组
+				for (var modem of modems)
+				{
+					//遍历模组里面的信息
+					for ( var key in modem)
+					{
+						var modem=modem[key];
+
+						var language=navigator.language;
+						// 检查模组名
+						var name=modem["name"];
+						if (name==null)
+						{
+							continue;
+						}
+						else if (name=="unknown")
+						{
+							language=="en" ? name=name.toUpperCase() : name=translation[name];
+						}
+						else
+						{
+							name=name.toUpperCase();
+						}
+
+						// 检查拨号模式
+						var mode=modem["mode"]
+						if (mode==null)
+						{
+							continue;
+						}
+						else if (mode=="unknown")
+						{
+							language=="en" ? mode=mode.toUpperCase() : mode=translation[mode];
+						}
+						else
+						{
+							mode=mode.toUpperCase();
+						}
+
+						// 获取连接状态
+						var connect_status=modem["connect_status"];
+						if (modem["connect_status"]!=null) 
+						{
+							if (language=="en") {
+								// 首字母大写
+								connect_status=connect_status.charAt(0).toUpperCase() + modem["connect_status"].slice(1);
+							}
+							else if (language=="zh-CN"||language=="zh") {
+								connect_status=translation[connect_status];
+							}
+						}
+
+						// 设置显示样式
+						var state = '';
+						var css = '';
+						switch (modem["connect_status"])
+						{
+							case 'connect':
+								state = '<%:Connect%>';
+								css = 'success';
+								break;
+							case 'disconnect':
+								state = '<%:Disconnect%>';
+								css = 'danger';
+								break;
+							default:
+								state = '<%:unknown%>';
+								css = 'warning';
+								break;
+						}
+
+						// 设置显示内容
+						modem_view += String.format(
+							'<div class="alert-message %s">',
+							css
+						);
+						modem_view += String.format(
+							'<div><strong>No: </strong>%s</div>',
+							modem[".name"].slice(-1)
+						);
+						modem_view += String.format(
+							'<div><strong><%:Modem Name%>: </strong>%s</div>',
+							name
+						);
+						modem_view += String.format(
+							'<div><strong><%:Data Interface%>: </strong>%s</div>',
+							modem.data_interface.toUpperCase()
+						);
+						modem_view += String.format(
+							'<div><strong><%:Mode%>: </strong>%s</div>',
+							mode
+						);
+						modem_view += String.format(
+							'<div><strong><%:Mobile Network%>: </strong>%s</div>',
+							modem.network
+						);
+						modem_view += String.format(
+							'<div><strong><%:Connect Status%>: </strong>%s</div>',
+							connect_status
+						);
+						modem_view += '</div>';
+					}
+				}
+				// 有参数不存在，则不显示模块状态
+				if (modem_view != "")
+				{
+					modems_div.innerHTML=modem_view;
+					// 显示模块状态（状态加载完成才显示）
+					document.getElementById("modem_status_field").style.display="block";
+				}
+			}
+			else
+			{
+				var modem_view="<strong><%:No modems found%></strong>";
+				modems_div.innerHTML=modem_view;
+				// 隐藏模块状态
+				document.getElementById("modem_status_field").style.display="none";
+			}
+		}
+	);
+//]]>
+</script>
+
+<style type="text/css">
+	/* 加载中样式 */
+	#modem_status_view img {
+		vertical-align: middle;
+	}
+
+	#modem_status_view > div {
+		display: inline-block;
+		margin: 1rem;
+		padding: 1rem;
+		width: 15rem;
+		float: left;
+		line-height: 125%;
+	}
+</style>
+
+<!-- 默认隐藏模块状态 -->
+<fieldset id="modem_status_field" class="cbi-section" style="display: none;">
+	<!-- <legend><%:Modem Status%></legend> -->
+	<h3><%:Modem Status%></h3>
+	<div id="modem_status_view">
+		<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>"/>
+		<%:Loading modem status%>...
+	</div>
+</fieldset>

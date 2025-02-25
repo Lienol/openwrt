@@ -1,0 +1,51 @@
+<%+cbi/valueheader%>
+<script type="text/javascript">//<![CDATA[
+
+// 禁用功能
+function disabled_function(function_name,status)
+{
+	//模组扫描
+	if (function_name=="modem_scan")
+	{
+		//模组扫描按钮
+		document.getElementById('modem_scan_button').disabled=status;
+	}
+}
+
+// 模组扫描
+function modem_scan()
+{
+	//禁用功能
+	disabled_function("modem_scan",true);
+
+	//修改描述信息
+	var description='<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>"/><%:Scaning modem...%>'
+	document.getElementById('modem_scan_description').innerHTML=description;
+
+	XHR.get('<%=luci.dispatcher.build_url("admin", "network", "modem", "modem_scan")%>', null,
+		function(x, data)
+		{
+			// console.log(data);
+			location.href='/cgi-bin/luci/admin/network/modem/plugin_config'
+
+			//启用功能
+			// disabled_function("modem_scan",false);
+		}
+	);
+}
+
+//]]>
+</script>
+
+<style type="text/css">
+	/* 加载中样式 */
+	#modem_scan_description img {
+		vertical-align: middle;
+	}
+</style>
+
+<input class="btn cbi-button cbi-button-apply" type="button" id="modem_scan_button" value="<%:Scan%>" onclick="modem_scan()" alt="<%:Scan%>" title="<%:Scan%>"/>
+<div class="cbi-value-description" id="modem_scan_description">
+	<%:The automatic configuration modem is triggered only at modem startup, otherwise, manual scanning is necessary%>
+</div>
+<%+cbi/valuefooter%>

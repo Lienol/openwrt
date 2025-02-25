@@ -1,0 +1,14 @@
+menu "pcie mhi device Drivers"
+
+config PCIE_MHI
+	 tristate "MHI dev net interface"
+         help
+          This modules enables userspace software clients to communicate
+          with devices supporting the MHI protocol. Userspace clients
+          may open the device nodes exposed by MHI UCI and perform
+          read, write and ioctl operations to communicate with the
+          attached device.
+
+endmenu
+
+

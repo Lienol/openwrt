@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright (C) 2023 Siriling <siriling@qq.com>
+
+#导入组件工具
+source "/usr/share/modem/modem_util.sh"
+
+#只在添加和移除的时候执行
+# [ "$ACTION" != "add" ] && [ "$ACTION" != "remove" ] && exit
+#设备号不存在，退出（去掉多余的tty设备）
+[ -z "${DEVNUM}" ] && exit
+
+#测试
+# test_usb_hotplug
+
+#始终确保存在运行目录
+mkdir -m 0755 -p "${MODEM_RUNDIR}"
+
+#设置USB设备
+m_check_usb_device "${ACTION}" "${DEVNUM}" "${PRODUCT}" "/sys${DEVPATH}"

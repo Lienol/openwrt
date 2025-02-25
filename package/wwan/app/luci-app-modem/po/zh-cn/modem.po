@@ -1,0 +1,677 @@
+#
+# Siriling <siriling@qq.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-modem 1.4.1-1\n"
+"POT-Creation-Date: 2024-04-20 12:07+0100\n"
+"PO-Revision-Date: 2024-04-24 18:08+0000\n"
+"Last-Translator: Siriling <siriling@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
+"openwrt/luciapplicationsmodem/zh_Hans/>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.5-dev\n"
+
+msgid "Base Setting"
+msgstr "基本设置"
+
+msgid "Modem"
+msgstr "移动通信模组"
+
+msgid "Modem Config"
+msgstr "模组配置"
+
+msgid "Modem Status"
+msgstr "模组状态"
+
+msgid "Modem Name"
+msgstr "模组名称"
+
+msgid "Modem Debug"
+msgstr "模组调试"
+
+msgid "Modem Select"
+msgstr "模组选择"
+
+msgid "Check the information of the adapted modem"
+msgstr "查看已适配模组的信息"
+
+msgid "Not adapted to this modem"
+msgstr "未适配该模组"
+
+msgid "(Check adapted modem)"
+msgstr "（查看已适配模组）"
+
+msgid "Loading modem information"
+msgstr "正在加载模组信息"
+
+msgid "Loading modem status"
+msgstr "正在加载模组状态"
+
+msgid "Loading modem"
+msgstr "正在加载模组"
+
+msgid "Dial Overview"
+msgstr "拨号总览"
+
+msgid "Check and add modem dialing configurations"
+msgstr "查看和添加模组拨号配置"
+
+msgid "Global Config"
+msgstr "全局配置"
+
+msgid "Dial Log"
+msgstr "拨号日志"
+
+msgid "Download Log"
+msgstr "下载日志"
+
+msgid "connect"
+msgstr "已连接"
+
+msgid "disconnect"
+msgstr "未连接"
+
+msgid "disabled"
+msgstr "未启用"
+
+msgid "Data Interface"
+msgstr "数据接口"
+
+msgid "Mode"
+msgstr "模式"
+
+msgid "Connect Status"
+msgstr "连接状态"
+
+msgid "Dial Config"
+msgstr "拨号配置"
+
+msgid "Config List"
+msgstr "配置列表"
+
+msgid "Debug Your Module"
+msgstr "调试你的模组"
+
+msgid "Select a modem for debugging"
+msgstr "选择一个模组进行调试"
+
+msgid "Network Preferences"
+msgstr "网络偏好"
+
+msgid "Apply Network Prefer"
+msgstr "应用网络偏好"
+
+msgid "Apply Band Prefer"
+msgstr "应用频段偏好"
+
+msgid "2G Band Preferences"
+msgstr "2G 频段偏好"
+
+msgid "3G Band Preferences"
+msgstr "3G 频段偏好"
+
+msgid "4G Band Preferences"
+msgstr "4G 频段偏好"
+
+msgid "5G Band Preferences"
+msgstr "5G 频段偏好"
+
+msgid "Self Test"
+msgstr "自检"
+
+msgid "Current"
+msgstr "当前"
+
+msgid "Option"
+msgstr "选项"
+
+msgid "Config"
+msgstr "配置"
+
+msgid "Item"
+msgstr "项目"
+
+msgid "Voltage"
+msgstr "电压"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Abnormal"
+msgstr "异常"
+
+msgid "Normal"
+msgstr "正常"
+
+msgid "Low"
+msgstr "偏低"
+
+msgid "Somewhat High"
+msgstr "偏高"
+
+msgid "Excessively High"
+msgstr "过高"
+
+msgid "AT Command"
+msgstr "AT命令"
+
+msgid "Quick Option"
+msgstr "快捷选项"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Quick Commands"
+msgstr "快捷命令"
+
+msgid "Enter Command"
+msgstr "输入命令"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Clean"
+msgstr "清空"
+
+msgid "Response"
+msgstr "响应"
+
+msgid "Return to old page"
+msgstr "返回旧界面"
+
+msgid "Return to modem debug"
+msgstr "返回模组调试界面"
+
+msgid "Custom quick commands"
+msgstr "自定义快捷命令"
+
+msgid "Customize your quick commands"
+msgstr "自定义你的快捷命令"
+
+msgid "Custom Commands"
+msgstr "自定义命令"
+
+msgid "Serial Number"
+msgstr "序号"
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Command"
+msgstr "命令"
+
+msgid "Modem Information"
+msgstr "模组信息"
+
+msgid "No modems found"
+msgstr "没有找到模组"
+
+msgid "(Check the reason)"
+msgstr "（查看原因）"
+
+msgid "Enable dial configurations"
+msgstr "启用拨号配置"
+
+msgid "General Settings"
+msgstr "通用配置"
+
+msgid "Advanced Settings"
+msgstr "高级配置"
+
+msgid "Remarks"
+msgstr "备注"
+
+msgid "Mobile Network"
+msgstr "移动网络"
+
+msgid "UNKNOWN"
+msgstr "未知"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "unknown"
+msgstr "未知"
+
+msgid "Mobile network not found"
+msgstr "未发现移动网络"
+
+msgid "The network device was not found"
+msgstr "找不到网络设备"
+
+msgid "Only display the modes available for the adaptation modem"
+msgstr "仅显示适配模组可用的拨号模式"
+
+msgid "Config ID"
+msgstr "配置 ID"
+
+msgid "Dial Tool"
+msgstr "拨号工具"
+
+msgid "After switching the dialing tool, it may be necessary to restart the module or restart the router to recognize the module."
+msgstr "切换拨号工具后，可能需要重启模组或重启路由器才能识别模组。"
+
+msgid "Auto Choose"
+msgstr "自动选择"
+
+msgid "quectel-CM"
+msgstr "移远模组拨号工具"
+
+msgid "mmcli"
+msgstr "调制解调器管理工具"
+
+msgid "PDP Type"
+msgstr "网络类型"
+
+msgid "Network Bridge"
+msgstr "网络桥接"
+
+msgid "After checking, enable network interface bridge."
+msgstr "勾选后，启用网络接口桥接。"
+
+msgid "APN"
+msgstr "接入点"
+
+msgid "China Mobile"
+msgstr "中国移动"
+
+msgid "China Unicom"
+msgstr "中国联通"
+
+msgid "China Telecom"
+msgstr "中国电信"
+
+msgid "China Broadcast"
+msgstr "中国广电"
+
+msgid "Skytone"
+msgstr "天际通"
+
+msgid "Authentication Type"
+msgstr "认证类型"
+
+msgid "PAP/CHAP (both)"
+msgstr "PAP/CHAP (均使用)"
+
+msgid "NONE"
+msgstr "无"
+
+msgid "PAP/CHAP Username"
+msgstr "PAP/CHAP 用户名"
+
+msgid "PAP/CHAP Password"
+msgstr "PAP/CHAP 密码"
+
+msgid "Message"
+msgstr "信息"
+
+msgid "Base Information"
+msgstr "基本信息"
+
+msgid "Manufacturer"
+msgstr "制造商"
+
+msgid "Revision"
+msgstr "固件版本"
+
+msgid "AT Port"
+msgstr "AT串口"
+
+msgid "Temperature"
+msgstr "温度"
+
+msgid "Update Time"
+msgstr "更新时间"
+
+msgid "SIM Information"
+msgstr "SIM卡信息"
+
+msgid "Unknown SIM card status"
+msgstr "未知SIM卡状态"
+
+msgid "SIM card not inserted"
+msgstr "SIM卡未插入"
+
+msgid "ISP"
+msgstr "运营商"
+
+msgid "SIM Status"
+msgstr "SIM卡状态"
+
+msgid "miss"
+msgstr "未插入"
+
+msgid "locked"
+msgstr "锁定"
+
+msgid "SIM Slot"
+msgstr "SIM卡卡槽"
+
+msgid "SIM Number"
+msgstr "SIM卡号码"
+
+msgid "IMEI"
+msgstr "国际移动设备识别码"
+
+msgid "IMSI"
+msgstr "国际移动用户识别码"
+
+msgid "ICCID"
+msgstr "集成电路卡识别码"
+
+msgid "Network Information"
+msgstr "网络信息"
+
+msgid "Network Type"
+msgstr "网络类型"
+
+msgid "CQI UL"
+msgstr "上行信道质量指示"
+
+msgid "CQI DL"
+msgstr "下行信道质量指示"
+
+msgid "AMBR UL"
+msgstr "上行访问最大比特率"
+
+msgid "AMBR DL"
+msgstr "下行访问最大比特率"
+
+msgid "Tx Rate"
+msgstr "上传速率"
+
+msgid "Rx Rate"
+msgstr "下载速率"
+
+msgid "RSSI"
+msgstr "接收信号强度指示"
+
+msgid "BER"
+msgstr "信道误码率"
+
+msgid "Cell Information"
+msgstr "小区信息"
+
+msgid "Network Mode"
+msgstr "网络模式"
+
+msgid "NR5G-SA Mode"
+msgstr "NR5G-SA 模式"
+
+msgid "EN-DC Mode"
+msgstr "EN-DC 模式"
+
+msgid "LTE Mode"
+msgstr "LTE 模式"
+
+msgid "WCDMA Mode"
+msgstr "WCDMA 模式"
+
+msgid "GSM Mode"
+msgstr "GSM 模式"
+
+msgid "MCC"
+msgstr "移动国家代码 (MCC)"
+
+msgid "MNC"
+msgstr "移动网络代码 (MNC)"
+
+msgid "Duplex Mode"
+msgstr "双工模式 (Duplex Mode)"
+
+msgid "LAC"
+msgstr "位置区码 (LAC)"
+
+msgid "Cell ID"
+msgstr "小区ID (Cell ID)"
+
+msgid "Physical Cell ID"
+msgstr "物理小区ID (Physical Cell ID)"
+
+msgid "TAC"
+msgstr "跟踪区编码 (TAC)"
+
+msgid "ARFCN"
+msgstr "绝对射频信道号 (ARFCN)"
+
+msgid "EARFCN"
+msgstr "E-UTRA绝对射频信道号 (EARFCN)"
+
+msgid "UARFCN"
+msgstr "UTRA绝对射频信道号 (UARFCN)"
+
+msgid "Band"
+msgstr "频段 (Band)"
+
+msgid "Freq band indicator"
+msgstr "频带指示 (Freq band indicator)"
+
+msgid "UL Bandwidth"
+msgstr "上行带宽 (UL Bandwidth)"
+
+msgid "DL Bandwidth"
+msgstr "下行带宽 (DL Bandwidth)"
+
+msgid "RSRP"
+msgstr "参考信号接收功率 (RSRP)"
+
+msgid "RSRQ"
+msgstr "参考信号接收质量 (RSRQ)"
+
+msgid "RSSI"
+msgstr "接收信号强度指示 (RSSI)"
+
+msgid "SINR"
+msgstr "信号与干扰加噪声比 (SINR)"
+
+msgid "RxLev"
+msgstr "接收信号功率 (RxLev)"
+
+msgid "RSSNR"
+msgstr "信号干扰比 (RSSNR)"
+
+msgid "SCS"
+msgstr "NR子载波间隔 (SCS)"
+
+msgid "CQI"
+msgstr "信道质量指示 (CQI)"
+
+msgid "TX Power"
+msgstr "TX 功率 (TX Power)"
+
+msgid "Srxlev"
+msgstr "服务小区接收信号功率 (Srxlev)"
+
+msgid "PSC"
+msgstr "主扰码 (PSC)"
+
+msgid "RAC"
+msgstr "路由区域码 (RAC)"
+
+msgid "RSCP"
+msgstr "接收信号码功率 (RSCP)"
+
+msgid "Eb/Io"
+msgstr "每比特能量与干扰功率密度(干扰比)之比"
+
+msgid "Eb/No"
+msgstr "每比特能量与噪声功率密度(噪声比)之比"
+
+msgid "Ec/Io"
+msgstr "每码片能量与干扰功率密度(干扰比)之比"
+
+msgid "Ec/No"
+msgstr "每码片能量与噪声功率密度(噪声比)之比"
+
+msgid "Physical Channel"
+msgstr "物理信道 (Physical Channel)"
+
+msgid "Spreading Factor"
+msgstr "扩频因子 (Spreading Factor)"
+
+msgid "Slot"
+msgstr "插槽格式 (Slot)"
+
+msgid "Speech Code"
+msgstr "语音编码 (Speech Code)"
+
+msgid "Compression Mode"
+msgstr "压缩模式 (Compression Mode)"
+
+msgid "CHN-CMCC"
+msgstr "中国移动"
+
+msgid "CMCC"
+msgstr "中国移动"
+
+msgid "46000"
+msgstr "中国移动"
+
+msgid "CHN-UNICOM"
+msgstr "中国联通"
+
+msgid "UNICOM"
+msgstr "中国联通"
+
+msgid "CUCC"
+msgstr "中国联通"
+
+msgid "46001"
+msgstr "中国联通"
+
+msgid "CHN-CT"
+msgstr "中国电信"
+
+msgid "CHN-TELECOM"
+msgstr "中国电信"
+
+msgid "CTCC"
+msgstr "中国电信"
+
+msgid "CT"
+msgstr "中国电信"
+
+msgid "46011"
+msgstr "中国电信"
+
+msgid "Excellent"
+msgstr "优秀"
+
+msgid "Good"
+msgstr "良好"
+
+msgid "Fair"
+msgstr "一般"
+
+msgid "Bad"
+msgstr "较差"
+
+msgid "Plugin Config"
+msgstr "插件配置"
+
+msgid "Check and modify the plugin configuration"
+msgstr "查看和修改插件配置"
+
+msgid "Modem Scan"
+msgstr "模组扫描"
+
+msgid "Scan"
+msgstr "扫描"
+
+msgid "Scaning modem..."
+msgstr "正在扫描中..."
+
+msgid "The automatic configuration modem is triggered only at modem startup, otherwise, manual scanning is necessary"
+msgstr "自动配置模组只有在模组启动的时候才会触发，其他情况需要手动点击扫描"
+
+msgid "Manual Configuration"
+msgstr "手动配置"
+
+msgid "Enable the manual configuration of modem information"
+msgstr "启用手动配置模组信息"
+
+msgid "(After enable, the automatic scanning and configuration function for modem information will be disabled)"
+msgstr "（启用后将禁用自动扫描并配置模组信息功能）"
+
+msgid "Network Interface Alias"
+msgstr "网络接口别名"
+
+msgid "Enable automatic creation of network interface alias (Effective upon reinstatement of dialing configuration)"
+msgstr "启用自动创建网络接口别名（重新启用拨号配置后生效）"
+
+msgid "Not null"
+msgstr "不能为空"
+
+msgid "missing"
+msgstr "有必填选项为空值"
+
+msgid "Plugin Info"
+msgstr "插件信息"
+
+msgid "Check the version information of the plugin"
+msgstr "查看插件的版本信息"
+
+msgid "Plugin Version"
+msgstr "插件版本"
+
+msgid "Dial Tool Info"
+msgstr "拨号工具信息"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Not installed"
+msgstr "未安装"
+
+msgid "Modem General Driver Info"
+msgstr "模组通用驱动信息"
+
+msgid "Driver Type"
+msgstr "驱动类型"
+
+msgid "Kernel Model"
+msgstr "内核模块"
+
+msgid "USB Network"
+msgstr "USB网络"
+
+msgid "Serial Port"
+msgstr "串口"
+
+msgid "Loaded"
+msgstr "已加载"
+
+msgid "Not loaded"
+msgstr "未加载"
+
+msgid "Modem USB Driver Info"
+msgstr "模组USB驱动信息"
+
+msgid "Modem PCIE Driver Info"
+msgstr "模组PCIE驱动信息"
+
+msgid "General"
+msgstr "通用"
+
+msgid "Private"
+msgstr "私有"
+
+msgid "Private (Quectel)"
+msgstr "私有（移远）"
+
+msgid "Private (Fibocom)"
+msgstr "私有（广和通）"
+
+msgid "Private (Meig)"
+msgstr "私有（美格）"
