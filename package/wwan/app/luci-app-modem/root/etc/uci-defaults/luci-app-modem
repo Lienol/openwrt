@@ -1,0 +1,24 @@
+#!/bin/sh
+# Copyright (C) 2023 Siriling <siriling@qq.com>
+
+uci -q get modem.global >/dev/null || uci -q batch <<-EOF >/dev/null
+	set modem.global=global
+	set modem.@global[0].enable_dial=1
+	set modem.@global[0].modem_number=0
+	set modem.@global[0].manual_configuration=0
+	set modem.@global[0].network_interface_alias=1
+	commit modem
+EOF
+
+/etc/init.d/modeminit enable
+/etc/init.d/modem enable
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@modem[-1]
+	add ucitrack modem
+	set ucitrack.@modem[-1].init=modem
+	commit ucitrack
+EOF
+
+rm -rf /tmp/luci-*cache
+exit 0

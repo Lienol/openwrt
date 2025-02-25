@@ -1,0 +1,842 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2023 Siriling <siriling@qq.com>
+
+START=90
+STOP=13
+USE_PROCD=1
+
+#脚本目录
+SCRIPT_DIR="/usr/share/modem"
+
+#运行目录
+MODEM_RUNDIR="/var/run/modem"
+MODEM_RUN_CONFIG="${MODEM_RUNDIR}/config.cache"
+
+#导入组件工具
+source "${SCRIPT_DIR}/modem_scan.sh"
+
+#设置拨号模式
+# $1:拨号模式
+# set_mode()
+# {
+# 	#获取AT串口、制造商、模块名
+# 	local at_port=$(uci -q get modem.modem${modem_no}.at_port)
+# 	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+# 	local name=$(uci -q get modem.modem${modem_no}.name)
+
+# 	#分制造商设置不同的AT命令
+# 	local command
+# 	if [ "$manufacturer" = "quectel" ]; then
+# 		local mode_num
+# 		case $1 in
+# 			"qmi") mode_num='0' ;;
+# 			"gobinet") mode_num='0' ;;
+# 			"ecm") mode_num='1' ;;
+# 			"mbim") mode_num='2' ;;
+# 			"rndis") mode_num='3' ;;
+# 			"ncm") mode_num='5' ;;
+# 			*) mode_num='0' ;;
+# 		esac
+
+# 		#查询当前拨号模式
+# 		command='AT+QCFG="usbnet"'
+# 		local at_result=$(sh ${SCRIPT_DIR}/modem_at.sh $at_port $command)
+# 		if [[ "$at_result" != *"$mode_num"* ]]; then
+			
+# 			#切换到指定的拨号模式
+# 			case $1 in
+# 				"qmi") command='AT+QCFG="usbnet",0' ;;
+# 				"gobinet") command='AT+QCFG="usbnet",0' ;;
+# 				"ecm") command='AT+QCFG="usbnet",1' ;;
+# 				"mbim") command='AT+QCFG="usbnet",2' ;;
+# 				"rndis") command='AT+QCFG="usbnet",3' ;;
+# 				"ncm") command='AT+QCFG="usbnet",5' ;;
+# 				*) command='AT+QCFG="usbnet",0' ;;
+# 			esac
+# 			at_result=$(sh ${SCRIPT_DIR}/modem_at.sh "$at_port" "$command")
+# 			#移远切换模式后，还需要重启模块，待测试
+# 			sleep 5
+# 			modem_scan
+#         fi
+# 	elif [ "$manufacturer" = "fibocom" ]; then
+# 		if [ "$name" = "fm150-ae" ]; then
+# 			local mode_num
+# 			case $1 in
+# 				"qmi") mode_num='32' ;;
+# 				"gobinet") mode_num='32' ;;
+# 				"ecm") mode_num='23' ;;
+# 				"mbim") mode_num='29' ;;
+# 				"rndis") mode_num='24' ;;
+# 				"ncm") mode_num='23' ;;
+# 				*) mode_num='32' ;;
+# 			esac
+
+# 			#查询当前拨号模式
+# 			command='AT+GTUSBMODE?'
+# 			local at_result=$(sh ${SCRIPT_DIR}/modem_at.sh $at_port $command)
+# 			if [[ "$at_result" != *"$mode_num"* ]]; then
+# 				#切换到指定的拨号模式
+# 				case $1 in
+# 					"qmi") command='AT+GTUSBMODE=32' ;;
+# 					"gobinet") command='AT+GTUSBMODE=32' ;;
+# 					"ecm") command='AT+GTUSBMODE=23' ;;
+# 					"mbim") command='AT+GTUSBMODE=29' ;;
+# 					"rndis") command='AT+GTUSBMODE=24' ;;
+# 					"ncm") command='AT+GTUSBMODE=23' ;;
+# 					*) command='AT+GTUSBMODE=32' ;;
+# 				esac
+# 				at_result=$(sh ${SCRIPT_DIR}/modem_at.sh "$at_port" "$command")
+# 				sleep 5
+# 				modem_scan
+# 			fi
+# 		elif [ "$name" = "fm650" ]; then
+# 			#待处理
+# 			echo "fm650"
+# 		fi
+# 	else
+# 		#没有匹配到制造商，需要手动切换模块的拨号模式
+# 		echo "请手动切换模块的拨号模式"
+# 	fi
+# }
+
+#设置防火墙
+# $1:网络接口名称
+set_firewall()
+{
+	local interface_name="$1"
+
+	local num=$(uci show firewall | grep "name='wan'" | wc -l)
+	local wwan_num=$(uci -q get firewall.@zone[$num].network | grep -w "${interface_name}" | wc -l)
+	if [ "$wwan_num" = "0" ]; then
+		uci add_list firewall.@zone[$num].network="${interface_name}"
+	fi
+	uci commit firewall
+}
+
+#设置IPv4网络接口
+# $1:网络接口名称
+# $2:网络接口
+set_ipv4_interface()
+{
+	local interface_name="$1"
+	local network_interface="$2"
+
+	#删除原网络配置
+	uci -q del network.${interface_name}.ipaddr
+	uci -q del network.${interface_name}.netmask
+	uci -q del network.${interface_name}.gateway
+	uci -q del network.${interface_name}.peerdns
+	uci -q del network.${interface_name}.dns
+
+	#添加或修改网络配置
+	uci set network.${interface_name}='interface'
+	uci set network.${interface_name}.proto='dhcp'
+	uci set network.${interface_name}.device="${network_interface}"
+	uci set network.${interface_name}.ifname="${network_interface}"
+	uci commit network
+
+	#加入WAN防火墙
+	set_firewall "${interface_name}"
+
+	#启动网络接口
+	ifup "${interface_name}"
+}
+
+#设置IPv6网络接口
+# $1:网络接口名称
+# $2:网络接口
+set_ipv6_interface()
+{
+	local interface_name="$1"
+	local network_interface="$2"
+
+	#添加或修改网络配置
+	uci set network.${interface_name}='interface'
+	uci set network.${interface_name}.proto='dhcpv6'
+	uci set network.${interface_name}.extendprefix='1'
+	uci set network.${interface_name}.device="${network_interface}"
+	uci set network.${interface_name}.ifname="${network_interface}"
+	uci commit network
+
+	#加入WAN防火墙
+	set_firewall "${interface_name}"
+	
+	#启动网络接口
+	ifup "${interface_name}"
+}
+
+#设置IPV4和IPv6网络接口
+# $1:IPV4网络接口名称
+# $2:IPv6网络接口名称
+# $3:网络接口
+set_ipv4v6_interface()
+{
+	local ipv4_interface_name="$1"
+	local ipv6_interface_name="$2"
+	local network_interface="$3"
+
+	#设置IPV4网络接口
+	set_ipv4_interface "${ipv4_interface_name}" "${network_interface}"
+
+	#设置IPV6网络接口
+	local network_interface_alias=$(uci -q get modem.@global[0].network_interface_alias)
+	case $network_interface_alias in
+		"0") set_ipv6_interface "${ipv6_interface_name}" "${network_interface}" ;;
+		"1") set_ipv6_interface "${ipv6_interface_name}" "@${ipv4_interface_name}" ;; #别名
+	esac
+}
+
+#设置网络接口
+# $1:模块序号
+# $2:网络接口
+set_interface()
+{
+	local modem_no="$1"
+	local network_interface="$2"
+
+	case $pdp_type in
+		"ipv4") set_ipv4_interface "wwan_5g_${modem_no}" "${network_interface}" ;;
+		"ipv6") set_ipv6_interface "wwan6_5g_${modem_no}" "${network_interface}" ;;
+		"ipv4v6") set_ipv4v6_interface "wwan_5g_${modem_no}" "wwan6_5g_${modem_no}" "${network_interface}" ;;
+		*) set_ipv4v6_interface "wwan_5g_${modem_no}" "wwan6_5g_${modem_no}" "${network_interface}" ;;
+	esac
+}
+
+#设置移远模组MAC地址
+set_quectel_mac()
+{
+	local mac_address="$(cat /sys/class/net/${network}/address)"
+	local null_mac="00:00:00:00:00:00"
+	[ -z "$mac_address" ] || [ "$mac_address" = "$null_mac" ] && {
+		#方法一（lua）
+		# local mac_address=$(lua -e 'math.randomseed(os.time()); for i=1,6 do io.write(string.format("%02X", math.random(0, 255))); if i < 6 then io.write(":") end; end')
+		#方法二（shell）
+		mac_address="$(generate_mac_address)"
+		ifconfig "${network}" hw ether "${mac_address}"
+	}
+}
+
+#移远拨号工具
+quectel_cm()
+{
+	#获取制造商
+	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+	#移远500系列模组特殊处理（解决在6.x内核下缺失MAC地址使用制造商驱动导致拨号异常问题）
+	[ "$manufacturer" = "quectel" ] && set_quectel_mac
+	
+	#拨号
+	procd_open_instance
+	procd_set_param command "quectel-CM"
+
+	case $pdp_type in
+		"ipv4") procd_append_param command "-4" ;;
+		"ipv6") procd_append_param command "-6" ;;
+		"ipv4v6") procd_append_param command "-4" "-6" ;;
+		*) procd_append_param command "-4" "-6" ;;
+	esac
+
+	if [ "$network_bridge" = "1" ]; then
+		procd_append_param command "-b"
+	fi
+	if [ "$apn" != "" ]; then
+		procd_append_param command "-s" "$apn"
+	fi
+	if [ "$username" != "" ]; then
+		procd_append_param command "$username"
+	fi
+	if [ "$password" != "" ]; then
+		procd_append_param command "$password"
+	fi
+	if [ "$auth" != "none" ]; then
+		procd_append_param command "$auth"
+	fi
+	if [ "$network" != "" ]; then
+		procd_append_param command "-i" "$network"
+	fi
+	#日志
+	procd_append_param command "-f" "${MODEM_RUNDIR}/modem${modem_no}_dial.cache"
+
+	procd_set_param respawn
+	procd_set_param procd_pid "${MODEM_RUNDIR}/modem${modem_no}.pid"
+	procd_close_instance
+}
+
+#设置网络接口（Modem Manager）
+# $1:接口名称
+# $2:模组路径
+set_interface_modemmanager()
+{
+	local interface_name="$1"
+	local path="$2"
+
+	if [ "$(uci -q get network.${interface_name}.device)" != "${path}" ] ; then
+		uci set network.${interface_name}='interface'
+		uci set network.${interface_name}.proto='modemmanager'
+		uci set network.${interface_name}.device="${path}"
+		uci set network.${interface_name}.auth="$auth"
+		uci set network.${interface_name}.iptype="$pdp_type"
+
+		if [ "$apn" != "" ]; then
+			uci set network.${interface_name}.apn="$apn"
+		fi
+		if [ "$pincode" != "" ]; then
+			uci set network.${interface_name}.pincode="$pincode"
+		fi
+		if [ "$username" != "" ]; then
+			uci set network.${interface_name}.username="$username"
+		fi
+		if [ "$password" != "" ]; then
+			uci set network.${interface_name}.password="$password"
+		fi
+
+		uci commit network
+
+		#加入WAN防火墙
+		set_firewall "${interface_name}"
+	fi
+
+	#启动网络接口
+	ifup "${interface_name}"
+}
+
+#模块管理
+modemmanager()
+{
+	#获取接口名称
+	local interface_name="wwan_5g_${modem_no}"
+	#获取调制解调器设备（模组路径）
+	local path=$(uci -q get modem.modem${modem_no}.path)
+	#设置Modem Manager网络接口
+	set_interface_modemmanager "$interface_name" "$path"
+
+	#拨号
+	procd_open_instance
+	procd_set_param command sh ${SCRIPT_DIR}/modem_network_task.sh "${id}" "${modem_no}" "modemmanager"
+	procd_set_param respawn
+	procd_close_instance
+}
+
+qmi()
+{
+	#选择拨号工具
+	case $dial_tool in
+		"quectel-CM") quectel_cm ;;
+		"mmcli") modemmanager ;;
+		"") quectel_cm ;;
+		*) quectel_cm ;;
+	esac
+}
+
+gobinet()
+{
+	#获取制造商
+	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+	
+	#拨号
+	case $manufacturer in
+		"quectel") qmi ;;
+		*)
+			procd_open_instance
+			procd_set_param command sh ${SCRIPT_DIR}/modem_network_task.sh "${id}" "${modem_no}" "gobinet"
+			procd_set_param respawn
+			procd_close_instance
+		;;
+	esac
+}
+
+ecm()
+{
+	#拨号
+	procd_open_instance
+	procd_set_param command sh ${SCRIPT_DIR}/modem_network_task.sh "${id}" "${modem_no}" "ecm"
+	procd_set_param respawn
+	procd_close_instance
+}
+
+mbim()
+{
+	qmi
+}
+
+rndis()
+{
+	#拨号
+	procd_open_instance
+	procd_set_param command sh ${SCRIPT_DIR}/modem_network_task.sh "${id}" "${modem_no}" "rndis"
+	procd_set_param respawn
+	procd_close_instance
+}
+
+ncm()
+{
+	ecm
+}
+
+stop_qmi()
+{
+	#获取modem的实例信息
+	local response=$(ubus call service list '{"name": "modem"}')
+	local instance_number=$(echo "$response" | jq -r '.modem.instances | length')
+	for i in $(seq 1 $((instance_number))); do
+		#获取拨号命令
+		local command=$(echo "$response" | jq -r ".modem.instances.instance$i.command")
+		#移远拨号工具
+		if [[ "$command" = *"$network"* ]]; then
+			local pid=$(echo "$response" | jq -r ".modem.instances.$i.pid")
+			kill $pid >/dev/null 2>&1
+		fi
+
+		#Modem Manager
+		#获取接口名称
+		local interface_name="wwan_5g_${modem_no}"
+		if [[ "$command" = *"$interface_name"* ]]; then
+			local pid=$(echo "$response" | jq -r ".modem.instances.$i.pid")
+			kill $pid >/dev/null 2>&1
+			
+			#获取调制解调器设备（模组路径）
+			local path=$(uci -q get modem.modem${modem_no}.path)
+			mmcli -m "$path" --simple-disconnect
+			#删除网络接口
+			uci -q del network.${interface_name}
+			uci commit network
+		fi
+	done
+}
+
+stop_gobinet()
+{
+	#获取AT串口、制造商
+	local at_port=$(uci -q get modem.modem${modem_no}.at_port)
+	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+
+	#停止拨号
+	local at_command
+	if [ "$manufacturer" = "quectel" ]; then
+		stop_qmi
+	elif [ "$manufacturer" = "fibocom" ]; then
+		at_command='AT$QCRMCALL=0,1'
+	elif [ "$manufacturer" = "meig" ]; then
+		at_command="AT$QCRMCALL=0,1,${define_connect},2,1"
+	else
+		at_command='ATI'
+	fi
+
+	tmp=$(at "${at_port}" "${at_command}")
+}
+
+stop_ecm()
+{
+	#获取AT串口、制造商、平台、连接定义
+	local at_port=$(uci -q get modem.modem${modem_no}.at_port)
+	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+	local platform=$(uci -q get modem.modem${modem_no}.platform)
+	local define_connect=$(uci -q get modem.modem${modem_no}.define_connect)
+
+	#停止拨号
+	local at_command
+	if [ "$manufacturer" = "quectel" ]; then
+		at_command="AT+QNETDEVCTL=${define_connect},2,1"
+	elif [ "$manufacturer" = "fibocom" ]; then
+		#联发科平台（广和通FM350-GL）
+		if [ "$platform" = "mediatek" ]; then
+			at_command="AT+CGACT=0,${define_connect}"
+		else
+			at_command="AT+GTRNDIS=0,${define_connect}"
+		fi
+	elif [ "$manufacturer" = "meig" ]; then
+		at_command="AT^NDISDUP=${define_connect},0"
+	elif [ "$manufacturer" = "huawei" ]; then
+		at_command="AT^NDISDUP=${define_connect},0"
+	else
+		at_command='ATI'
+	fi
+
+	tmp=$(at "${at_port}" "${at_command}")
+}
+
+stop_mbim()
+{
+	stop_qmi
+}
+
+stop_rndis()
+{
+	stop_ecm
+	#广和通的rndis和ecm不同，后续再测试
+}
+
+stop_ncm()
+{
+	stop_ecm
+}
+
+#获取模块序号
+# $1:移动网络
+get_modem_no()
+{
+	local modem_number=$(uci -q get modem.@global[0].modem_number)
+	local modem_network
+	for i in $(seq 0 $((modem_number-1))); do
+		modem_network=$(uci -q get modem.modem${i}.network)
+		if [ "$modem_network" = "$1" ]; then
+			#模块序号
+			modem_no=${i}
+			break
+		fi
+	done
+}
+
+#获取实例运行状态（未使用）
+# $1:配置ID
+get_instance_status()
+{
+	local config_id="$1"
+
+	#获取modem的实例信息
+	local response=$(ubus call service list '{"name": "modem"}')
+	local instance_number=$(echo "$response" | jq -r ".modem.instances | length")
+	for i in $(seq 1 $((instance_number))); do
+		#获取运行状态和拨号命令
+		local running_status=$(echo "$response" | jq -r ".modem.instances.instance$i.running")
+		local command=$(echo "$response" | jq -r ".modem.instances.instance$i.command")
+		if [ "$running_status" = "true" ] && [[ "$command" = *"$network"* ]]; then
+			#查看配置ID是否记录在已运行的文件里
+			local run_config="/var/run/modem"
+			local run_config_id=$(grep -n "$network" "$run_config" | cut -d ',' -f 2)
+			if [ "${config_id}" = "$run_config_id" ]; then
+				status=2
+				break
+			else
+				status=1
+				break
+			fi
+		fi
+	done
+}
+
+#获取拨号模式
+# $1:模块号
+get_mode()
+{
+	local modem_no="$1"
+
+	local manufacturer=$(uci -q get modem.modem${modem_no}.manufacturer)
+	local at_port=$(uci -q get modem.modem${modem_no}.at_port)
+	local platform=$(uci -q get modem.modem${modem_no}.platform)
+
+	mode=$(${manufacturer}_get_mode ${at_port} ${platform})
+	echo "$mode"
+}
+
+#网络预设
+connect_presets()
+{
+	local at_port=$(uci -q get modem.modem${modem_no}.at_port)
+
+	#运营商选择设置
+	local at_command='AT+COPS=0,0'
+	tmp=$(at "${at_port}" "${at_command}")
+
+	#获取连接定义
+	local define_connect=$(uci -q get modem.modem${modem_no}.define_connect)
+	#获取PDP类型和APN
+	local pdp_type_tmp="IPV4V6"
+	if [ -n "$pdp_type" ]; then
+		pdp_type_tmp=$(echo $pdp_type | tr 'a-z' 'A-Z')
+	fi
+	local apn_tmp=""
+	if [ -n "$apn" ]; then
+		apn_tmp=$(echo $apn | tr 'a-z' 'A-Z')
+	fi
+
+	#PDP设置
+	at_command="AT+CGDCONT=$define_connect,\"$pdp_type_tmp\",\"$apn_tmp\""
+	tmp=$(at "${at_port}" "${at_command}")
+
+	#制造商私有预设
+	# quectel_presets
+	# fibocom_presets
+}
+
+#停止拨号
+# $1:配置ID
+stop_dial()
+{
+	local id="$1" #配置ID
+	local network=$(uci -q get modem.$1.network) #移动网络
+
+	#把配置ID从临时列表中移除
+	if [ -f "${MODEM_RUN_CONFIG}" ] && grep -q "${network}" "${MODEM_RUN_CONFIG}"; then
+		#该配置ID在运行，需要删除记录
+		sed -i "/${id}/d" "${MODEM_RUN_CONFIG}"
+
+		#获取模块序号
+		get_modem_no "${network}"
+
+		#获取模组的拨号模式
+		[ -z "${modem_no}" ] && return 0
+		local mode=$(get_mode ${modem_no})
+		[ -z "$mode" ] || [ "$mode" = "unknown" ] && return
+
+		#根据不同的拨号模式停止拨号
+		if [ "$mode" = "qmi" ]; then
+			stop_qmi
+		elif [ "$mode" = "gobinet" ]; then
+			stop_gobinet
+		elif [ "$mode" = "ecm" ]; then
+			stop_ecm
+		elif [ "$mode" = "mbim" ]; then
+			stop_mbim
+		elif [ "$mode" = "rndis" ]; then
+			stop_rndis
+		elif [ "$mode" = "ncm" ]; then
+			stop_ncm
+		fi
+
+	fi
+}
+
+dial()
+{
+	local enable 	#启用
+	local id 		#ID
+
+	config_get enable $1 enable
+	config_get id $1 id
+
+	#停止拨号配置
+	[ "$enable" = "0" ] && {
+		stop_dial "$id"
+		return 0
+	}
+
+	local remarks			#备注
+	local network			#移动网络
+	local dial_tool			#拨号工具
+	local pdp_type			#网络类型（IP类型）
+	local network_bridge	#网络桥接
+	local apn				#接入点
+	local username			#用户名
+	local password			#密码
+	local auth				#认证类型
+
+	config_get remarks $1 remarks
+	config_get network $1 network
+	config_get dial_tool $1 dial_tool
+	config_get pdp_type $1 pdp_type
+	config_get network_bridge $1 network_bridge
+	config_get apn $1 apn
+	config_get username $1 username
+	config_get password $1 password
+	config_get auth $1 auth
+
+	#获取模块序号
+	get_modem_no "${network}"
+	[ -z "${modem_no}" ] && return 0
+	
+	#获取模组的拨号模式
+	local time=20
+	local mode
+	for i in $(seq 1 ${time}); do
+		mode=$(get_mode ${modem_no})
+		[ -n "$mode" ] && [ "$mode" != "unknown" ] && break
+		sleep 5s
+    done
+
+	#获取不到拨号模式
+	[ -z "$mode" ] || [ "$mode" = "unknown" ] && {
+		uci set modem.$1.enable=0
+		uci commit modem
+		return 0
+	}
+
+	#查看该移动网络是否已经有拨号配置在运行
+	mkdir -m 0755 -p "${MODEM_RUNDIR}"
+	if [ ! -f "${MODEM_RUN_CONFIG}" ] || ! grep -q "${network}" "${MODEM_RUN_CONFIG}"; then
+		#文件不存在或者未记录该移动网络
+		echo "${network},${id}" >> "${MODEM_RUN_CONFIG}"
+
+		#获取网络接口
+		local network_interface=$(uci -q get modem.modem${modem_no}.network_interface)
+		#设置网络接口
+		set_interface "${modem_no}" "${network_interface}"
+	else
+		local config_id=$(awk -v network="${network}" -F',' '!/^#/ && $0 ~ network { print $2 }' "${MODEM_RUN_CONFIG}")
+		#该移动网络已存在，且已有其他拨号配置在运行
+		if [ "$id" != "$config_id" ]; then
+			uci set modem.$1.enable=0
+			uci commit modem
+			return 0
+		fi
+	fi
+
+	#设置网络预设
+	connect_presets
+
+	#根据不同的拨号模式拨号
+	if [ "$mode" = "qmi" ]; then
+		qmi
+	elif [ "$mode" = "gobinet" ]; then
+		gobinet
+	elif [ "$mode" = "ecm" ]; then
+		ecm
+	elif [ "$mode" = "mbim" ]; then
+		mbim
+	elif [ "$mode" = "rndis" ]; then
+		rndis
+	elif [ "$mode" = "ncm" ]; then
+		ncm
+	fi
+
+	# sleep 15
+}
+
+#手动设置模组信息
+manual_set_modem_config()
+{
+	local manual	#手动配置
+	local network	#移动网络
+	# local name	#模组名称
+	# local at_port	#AT串口
+
+	config_get manual $1 manual
+	config_get network $1 network
+	# config_get name $1 name
+	# config_get at_port $1 at_port
+
+	[ -z "$manual" ] || [ "$manual" = "0" ] && return
+
+	#获取网络设备路径
+	local network_path="$(readlink -f /sys/class/net/${network})"
+
+	#只处理最上级的网络设备
+	local count=$(echo "${network_path}" | grep -o "/net" | wc -l)
+	[ "$count" -ge "2" ] && return
+
+    #判断路径是否带有usb（排除其他eth网络设备）
+	if [[ "$network" = *"eth"* ]] && [[ "$network_path" != *"usb"* ]]; then
+		return
+	fi
+
+	#获取物理路径
+	local physical_path=$(m_get_device_physical_path ${network_path})
+	
+	#获取当前模组数量（下面新增配置会导致多一个，这里需要减掉一个）
+	local modem_number=$(uci -q get modem.@global[0].modem_number)
+	uci set modem.@global[0].modem_number=$((modem_number-1))
+
+	#设置模组硬件配置
+	m_set_modem_hardware_config "${physical_path}"
+
+	#设置模组网络配置
+	m_set_network_config "${network}" "${physical_path}"
+
+	#设置模组串口
+	m_set_modem_port "${physical_path}"
+	
+	#获取模组数量
+	modem_number=$(uci -q get modem.@global[0].modem_number)
+	#获取模组序号
+	local modem_no
+	for i in $(seq 0 $((modem_number-1))); do
+		local modem_path=$(uci -q get modem.modem${i}.path)
+		if [ "$modem_path" = "$physical_path" ]; then
+			modem_no="${i}"
+			break
+		fi
+	done
+
+	#设置模组配置（由于AT串口已经提前设置，则跳过了模组配置，这里需要手动执行一次）
+	m_set_modem_config "${modem_no}" "${physical_path}"
+	uci commit modem
+}
+
+#删除拨号配置
+del_dial_config()
+{
+	#运行配置是否存在
+	if [ -f "${MODEM_RUN_CONFIG}" ]; then
+
+		local configs=$(cat ${MODEM_RUN_CONFIG})
+		for config in $configs; do
+			#设置标志位
+			local flag="0"
+			local id=$(echo "$config" | awk -F',' '{print $2}')
+
+			local config_number=2
+			for i in $(seq 0 $((config_number-1))); do
+				local config_id=$(uci -q get modem.@dial-config[${i}].id)
+				[ "$config_id" = "$id" ] && {
+					flag="1"
+				}
+			done
+
+			#删除运行配置
+			[ "$flag" = "0" ] && {
+				sed -i "/${id}/d" "${MODEM_RUN_CONFIG}"
+			}
+		done
+	fi
+}
+
+#统计模组数量
+count_modem_number()
+{
+	local network	#移动网络
+
+	config_get network $1 network
+
+	modem_count=$((modem_count+1))
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "modem"
+}
+
+start_service() {
+
+	#加载模组配置
+	config_load modem
+
+	#统计模组数量
+	modem_count=0
+	config_foreach count_modem_number "modem-device"
+	#设置模组数量
+	uci set modem.@global[0].modem_number=${modem_count}
+	uci commit modem
+
+	#手动设置模组信息
+	config_foreach manual_set_modem_config "modem-device"
+
+	local enable_dial=$(uci -q get modem.@global[0].enable_dial)
+	if [ "$enable_dial" = "0" ]; then
+		stop_service
+	else
+		#删除拨号配置
+		del_dial_config
+		#加载拨号配置
+		config_foreach dial "dial-config"
+	fi
+}
+
+stop_service()
+{
+	#删除记录文件
+	rm -rf ${MODEM_RUN_CONFIG}
+	#停止qmi、mbim拨号
+	killall quectel-CM >/dev/null 2>&1
+	#停止gobinet、ecm、rndis、ncm拨号
+	local modem_number=$(uci -q get modem.@global[0].modem_number)
+	for i in $(seq 0 $((modem_number-1))); do
+		modem_no=$i
+		local mode=$(uci -q get modem.modem${modem_no}.mode)
+		case $mode in
+			"gobinet") stop_gobinet ;;
+			"ecm") stop_ecm ;;
+			"rndis") stop_rndis ;;
+			"ncm") stop_ncm ;;
+			*) stop_ecm ;;
+		esac
+	done
+}
