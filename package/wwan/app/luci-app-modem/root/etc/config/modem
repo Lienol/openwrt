@@ -1,0 +1,6 @@
+
+config global 'global'
+	option enable_dial '1'
+	option modem_number '0'
+	option manual_configuration '0'
+	option network_interface_alias '1'

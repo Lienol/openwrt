@@ -1,0 +1,949 @@
+<%+header%>
+<%
+local fs = require "nixio.fs"
+local uci = luci.model.uci.cursor()
+
+nosms = 1
+if not fs.stat("/etc/nosim") then
+	nosms = 0
+end
+havegps = 0
+if fs.stat("/etc/havegps") then
+	havegps = 1
+end
+%>
+<style>
+	g {color:grey; font-size:75%; vertical-align: super;}
+	
+	/*移动端显示优化*/
+	/* @media (max-width: 768px) {
+		tr td:first-child {
+			width: 30%;
+		}
+	} */
+
+	/* 消息样式 */
+	#info_message {
+		text-align: left;
+		font-size: 1.8em;
+	}
+
+	#info_message img {
+		vertical-align: middle;
+	}
+
+	#info_message a {
+		color: rgb(61, 143, 173);
+		font-size: 50%;
+	}
+
+	/* 信号样式 */
+	.signal-view {
+		position: relative;
+		min-width: 11rem;
+		height: 1.5rem;
+		margin: 0 0;
+		border: thin solid #999;
+		background: #eee;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	/* 信号百分比样式 */
+	.signal-percent {
+		width: 0;
+		height: 100%;
+		/* transition: width .25s ease-in; */
+		border-top-left-radius: 4px;
+		border-bottom-left-radius: 4px;
+		/* border-top-right-radius: 4px;
+    	border-bottom-right-radius: 4px; */
+	}
+
+	/* 信号文字内容样式 */
+	.signal-context{
+		font-family: monospace;
+		/* font-size: 1em; */
+		font-weight: bold;
+		font-size-adjust: .38;
+		line-height: 1.5rem;
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		overflow: hidden;
+		content: attr(title);
+		text-align: center;
+		white-space: pre;
+		text-overflow: ellipsis;
+		/* color:#000000; */
+	}
+
+	.signal-context small{
+		font-family: monospace;
+		/* font-size: 1em; */
+		font-weight: bold;
+		font-size-adjust: .38;
+		line-height: 1.5rem;
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		overflow: hidden;
+		content: attr(title);
+		text-align: center;
+		white-space: pre;
+		text-overflow: ellipsis;
+		/* color:#000000; */
+	}
+
+	table {
+		width: 100%;
+  		border-spacing: 10px;
+		border: 0px;
+	}
+
+	tr td:first-child {
+		width: 33%;
+	}
+
+	/* 清除表格标题的样式 */
+	/* caption {
+		all: unset;
+	} */
+</style>
+<script type="text/javascript" src="<%=resource%>/xhr.js"></script>
+<script type="text/javascript">//<![CDATA[
+
+	window.onload=function()
+	{
+		//获取模组选择框元素
+		var modem_select = document.getElementById('modem_select');
+
+		//更换模组（AT串口）时触发
+		modem_select.addEventListener('change', function() {
+			//更新数据
+			update();
+		});
+	}
+
+	//获取SIM卡信息视图
+	function get_rate_view(rate)
+	{
+		const b=parseFloat(rate);
+		const kb=b/1024;
+		const mb=kb/1024;
+
+		var rate_view;
+		if (mb>=1) {
+			rate_view=mb.toFixed(2)+" MB/s";
+		}
+		else if (kb>=1) {
+			rate_view=kb.toFixed(2)+" KB/s";
+		}
+		else {
+			rate_view=b+" B/s";
+		}
+
+		return rate_view;
+	}
+
+	//获取SIM卡信息视图
+	function get_sim_info_view(sim_info,translation)
+	{
+		//初始化视图
+		var sim_info_view='';
+		//遍历每一条信息
+		for (var info of sim_info)
+		{
+			//遍历每一条信息里的键
+			for (var key in info)
+			{
+				//跳过全名
+				if (key=="full_name")
+				{
+					continue;
+				}
+
+				//获取全名
+				var full_name=info["full_name"];
+				if (full_name==null)
+				{
+					full_name='';
+				}
+				//写入视图（不显示空的信息）
+				var value=info[key];
+				if (value!="-"&&value!=""&&value!="ready")
+				{
+					// value=translation[value]; //是否翻译
+					sim_info_view+='<tr class="tr"><td class="td left" title="'+full_name+'">'+translation[key]+'</td><td class="td left" id="'+key+'">'+value+'</td></tr>';
+					break;
+				}
+			}
+		}
+		return sim_info_view;
+	}
+
+	//设置SIM卡信息
+	function set_sim_info(sim_info,translation)
+	{
+		//获取SIM卡信息视图
+		var sim_info_view=get_sim_info_view(sim_info,translation);
+		//获取SIM卡信息表格
+		var sim_info_Element=document.getElementById("sim_info");
+		sim_info_Element.innerHTML=sim_info_view;
+	}
+
+	//获取网络信息视图
+	function get_network_info_view(network_info,translation)
+	{
+		//初始化视图
+		var network_info_view='';
+		//遍历每一条信息
+		for (var info of network_info)
+		{
+			//遍历每一条信息里的键
+			for (var key in info)
+			{
+				//跳过全名
+				if (key=="full_name")
+				{
+					continue;
+				}
+
+				//获取全名
+				var full_name=info["full_name"];
+				if (full_name==null)
+				{
+					full_name='';
+				}
+				//写入视图（不显示空的信息）
+				var value=info[key];
+				if (value!="-"&&value!="")
+				{
+					//添加单位
+					if (key=="AMBR UL"||key=="AMBR DL") {
+						value=value+" Mbps";
+					}
+					else if (key=="Tx Rate"||key=="Rx Rate")
+					{
+						value=get_rate_view(value);
+					}
+					// value=translation[value]; //是否翻译
+					network_info_view+='<tr class="tr"><td class="td left" title="'+full_name+'">'+translation[key]+'</td><td class="td left" id="'+key+'">'+value+'</td></tr>';
+					break;
+				}
+			}
+		}
+		return network_info_view;
+	}
+
+	//设置网络信息
+	function set_network_info(network_info,translation)
+	{
+		//获取网络信息视图
+		var network_info_view=get_network_info_view(network_info,translation);
+		//获取网络信息表格
+		var network_info_Element=document.getElementById("network_info");
+		network_info_Element.innerHTML=network_info_view;
+	}
+
+	// 获取一个范围的百分比
+	function get_percent(value, min, max)
+	{
+		var percent;
+		if (value <= min) {
+			percent=0;
+		} else if (value >= max) {
+			percent=100;
+		} else {
+			percent=((value - min) / (max - min)) * 100;
+		}
+		return percent.toFixed(2);
+	}
+
+	// 获取参考信号的信息视图
+	function get_signal_info_view(network_type,key,value) {
+		value=parseFloat(value);
+		var signal_info_view={percent:100,quality:"Unknown",style:"width:100.00%;background-color: gray;"};
+
+		// 获取参考信号接收功率（RSRP）的信息视图'
+		if (key=="RSRP") {
+			set_rsrp_info_view(network_type,value,signal_info_view);
+		}
+		else if (key=="RSRQ") {
+			set_rsrq_info_view(network_type,value,signal_info_view);
+		}
+		else if (key=="SINR") {
+			set_sinr_info_view(network_type,value,signal_info_view);
+		}
+		else if (key=="RxLev") {
+			set_rxlev_info_view(network_type,value,signal_info_view);
+		}
+		
+		//添加100%时候的样式
+		if (signal_info_view.percent==100) {
+			signal_info_view.style+="border-top-right-radius: 4px;border-bottom-right-radius: 4px;";
+		}
+
+		return signal_info_view;
+	}
+
+	// 获取参考信号接收功率（RSRP）的信息视图
+	function set_rsrp_info_view(network_type,value,signal_info_view)
+	{
+		// 获取百分比
+		if (network_type.includes("NR"))
+		{
+			signal_info_view.percent=get_percent(value,-153,31);
+		}
+		else if (network_type.includes("LTE"))
+		{
+			signal_info_view.percent=get_percent(value,-140,-44);
+		}
+		else if (network_type.includes("WCDMA"))
+		{
+			// signal_info_view.percent=get_percent(value,-140,-44);
+		}
+
+		// 获取样式
+		var color="gray";
+		if (value>=-70)
+		{
+			signal_info_view.quality="Excellent";
+			color="limegreen";
+		}
+		else if (value>=-80&&value<-70)
+		{
+			signal_info_view.quality="Good";
+			color="lime";
+		}
+		else if (value>=-90&&value<-80)
+		{
+			signal_info_view.quality="Fair";
+			color="gold";
+		}
+		else if (value<-90)
+		{
+			signal_info_view.quality="Bad";
+			color="red";
+		}
+
+		signal_info_view.style='width:'+signal_info_view.percent+'%;background-color: '+color+';';
+	}
+
+	// 获取参考信号接收质量（RSRQ）的信息视图
+	function set_rsrq_info_view(network_type,value,signal_info_view)
+	{
+		// 获取百分比
+		if (network_type.includes("NR"))
+		{
+			signal_info_view.percent=get_percent(value,-43,20);
+		}
+		else if (network_type.includes("LTE"))
+		{
+			signal_info_view.percent=get_percent(value,-19.5,-3);
+		}
+		else if (network_type.includes("WCDMA"))
+		{
+			// signal_info_view.percent=get_percent(value,-19.5,-3);
+		}
+
+		// 获取样式
+		var color="gray";
+		if (value>=-10)
+		{
+			signal_info_view.quality="Excellent";
+			color="limegreen";
+		}
+		else if (value>=-15&&value<-10)
+		{
+			signal_info_view.quality="Good";
+			color="lime";
+		}
+		else if (value>=-20&&value<-15)
+		{
+			signal_info_view.quality="Fair";
+			color="gold";
+		}
+		else if (value<-20)
+		{
+			signal_info_view.quality="Bad";
+			color="red";
+		}
+
+		signal_info_view.style='width:'+signal_info_view.percent+'%;background-color: '+color+';';
+	}
+
+	// 获取信噪比（SINR）的信息视图
+	function set_sinr_info_view(network_type,value,signal_info_view)
+	{
+		// 获取百分比
+		if (network_type.includes("NR"))
+		{
+			signal_info_view.percent=get_percent(value,-23,40);
+		}
+		else if (network_type.includes("LTE"))
+		{
+			signal_info_view.percent=get_percent(value,-20,-30);
+		}
+		else if (network_type.includes("WCDMA"))
+		{
+			// signal_info_view.percent=get_percent(value,-20,-30);
+		}
+
+		// 获取样式
+		var color="gray";
+		if (value>=25)
+		{
+			signal_info_view.quality="Excellent";
+			color="limegreen";
+		}
+		else if (value>=15&&value<25)
+		{
+			signal_info_view.quality="Good";
+			color="lime";
+		}
+		else if (value>=10&&value<15)
+		{
+			signal_info_view.quality="Fair";
+			color="gold";
+		}
+		else if (value<10)
+		{
+			signal_info_view.quality="Bad";
+			color="red";
+		}
+
+		signal_info_view.style='width:'+signal_info_view.percent+'%;background-color: '+color+';';
+	}
+
+	// 获取接收信号功率（RxLev）的信息视图	
+	function set_rxlev_info_view(network_type,value,signal_info_view)
+	{
+		// 获取百分比
+		if (network_type.includes("NR"))
+		{
+			signal_info_view.percent=get_percent(value,-153,31);
+		}
+		else if (network_type.includes("LTE"))
+		{
+			signal_info_view.percent=get_percent(value,-140,-44);
+		}
+		else if (network_type.includes("WCDMA"))
+		{
+			signal_info_view.percent=get_percent(value,-120,-25);
+		}
+		else if (network_type.includes("GSM"))
+		{
+			signal_info_view.percent=get_percent(value,-110,-48);
+		}
+
+		// 获取样式
+		var color="gray";
+		if (value>=-70)
+		{
+			signal_info_view.quality="Excellent";
+			color="limegreen";
+		}
+		else if (value>=-80&&value<-70)
+		{
+			signal_info_view.quality="Good";
+			color="lime";
+		}
+		else if (value>=-90&&value<-80)
+		{
+			signal_info_view.quality="Fair";
+			color="gold";
+		}
+		else if (value<-90)
+		{
+			signal_info_view.quality="Bad";
+			color="red";
+		}
+
+		signal_info_view.style='width:'+signal_info_view.percent+'%;background-color: '+color+';';
+	}
+
+	//获取小区信息视图
+	function get_cell_info_view(network_mode_info,network_type,translation)
+	{
+		//初始化视图
+		var cell_info_view='';
+		//遍历每一条信息
+		for (var info of network_mode_info)
+		{
+			//遍历每一条信息里的键
+			for (var key in info)
+			{
+				//跳过全名
+				if (key=="full_name")
+				{
+					continue;
+				}
+
+				//获取全名
+				var full_name=info["full_name"];
+				if (full_name==null)
+				{
+					full_name='';
+				}
+				//写入视图（不显示空的信息）
+				var value=info[key];
+				if (value!="-"&&value!="")
+				{
+					//添加单位
+					if (key=="Band") {
+						if (network_type.includes("NR")) {
+							value="N"+value;
+						}
+						else if (network_type.includes("LTE")) {
+							value="B"+value;
+						}
+						else if (network_type.includes("WCDMA")) {
+							value="B"+value;
+						}
+					}
+					else if (key=="UL Bandwidth"||key=="DL Bandwidth") {
+						value=value+" MHz";
+					}
+					else if (key=="RSRP"||key=="TX Power"||key=="RxLev") {
+
+						if (key=="RSRP")
+						{
+							var unit="dBm";
+							var signal_info_view=get_signal_info_view(network_type,"RSRP",value);
+							// value='<div class="cbi-progressbar" title="'+value+' dBm | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)"><div style="'+signal_info_view.style+'"></div></div>';
+							value='<div class="signal-view"><div class="signal-percent" style="'+signal_info_view.style+'"><div class="signal-context"><small title="'+value+' '+unit+' | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)"><div style="'+signal_info_view.style+'">'+value+' dB | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)</small></div></div></div>';
+						}
+						else if (key=="RxLev")
+						{
+							var unit="dBm";
+							var signal_info_view=get_signal_info_view(network_type,"RxLev",value);
+							value='<div class="signal-view"><div class="signal-percent" style="'+signal_info_view.style+'"><div class="signal-context"><small title="'+value+' '+unit+' | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)"><div style="'+signal_info_view.style+'">'+value+' dB | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)</small></div></div></div>';
+						}
+						else
+						{
+							value=value+" dBm";
+						}
+					}
+					else if (key=="RSRQ"||key=="SINR"||key=="RSSNR"||key=="Srxlev"||key=="Ec/Io") {
+						
+						if (key=="RSRQ")
+						{
+							var unit="dB";
+							var signal_info_view=get_signal_info_view(network_type,"RSRQ",value);
+							value='<div class="signal-view"><div class="signal-percent" style="'+signal_info_view.style+'"><div class="signal-context"><small title="'+value+' '+unit+' | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)"><div style="'+signal_info_view.style+'">'+value+' dB | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)</small></div></div></div>';
+						}
+						else if (key=="SINR")
+						{
+							var unit="dB";
+							var signal_info_view=get_signal_info_view(network_type,"SINR",value);
+							value='<div class="signal-view"><div class="signal-percent" style="'+signal_info_view.style+'"><div class="signal-context"><small title="'+value+' '+unit+' | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)"><div style="'+signal_info_view.style+'">'+value+' dB | '+translation[signal_info_view.quality]+' ('+signal_info_view.percent+'%)</small></div></div></div>';
+						}
+						else
+						{
+							value=value+" dB";
+						}
+					}
+					else if (key=="SCS") {
+						value=value+" kHz";
+					}
+					cell_info_view+='<tr class="tr"><td class="td left" title="'+full_name+'">'+translation[key]+'</td><td class="td left" id="'+key+'">'+value+'</td></tr>';
+					break;
+				}
+ 			}
+		}
+		return cell_info_view;
+	}
+
+	//设置小区信息
+	function set_cell_info(cell_info,translation)
+	{
+		//获取网络模式
+		var network_mode=Object.keys(cell_info)[0];
+		//获取视图
+		var cell_info_view='<caption>'+translation[network_mode]+'</caption>'; //网络模式视图
+		// var cell_info_view='<tr class="tr"><td class="td center" colspan="2">'+translation[network_mode]+'</td></tr>'; //网络模式视图
+		//获取网络模式下的信息
+		var network_mode_info=cell_info[network_mode];
+		if (network_mode=="EN-DC Mode")
+		{
+			var lte=network_mode_info[0]["LTE"];
+			cell_info_view+='<tr class="tr"><td class="td left" colspan="2">LTE</td></tr>';
+			cell_info_view+=get_cell_info_view(lte,"LTE",translation);
+			var nsa=network_mode_info[1]["NR5G-NSA"];
+			cell_info_view+='<tr class="tr"><td class="td left" colspan="2">NR5G-NSA</td></tr>';
+			cell_info_view+=get_cell_info_view(nsa,"NR",translation);
+		}
+		else
+		{
+			// cell_info_view+='<tr><td colspan="3">NR5G-NSA</td></tr>';
+			cell_info_view+=get_cell_info_view(network_mode_info,network_mode,translation);
+		}
+
+		//获取表格
+		var cell_info_Element=document.getElementById("cell_info");
+		cell_info_Element.innerHTML=cell_info_view;
+	}
+
+	//显示信息
+	function set_info(info)
+	{
+		for (var key in info)
+		{	
+			var info_Element=document.getElementById(key);
+			if (info_Element!=null)
+			{
+				info_Element.innerHTML=info[key];
+			}
+		}
+	}
+
+	//基本信息界面
+	function base_info_view(manufacturer)
+	{
+		if (manufacturer!="unknown")
+		{
+			// 隐藏提示信息
+			document.getElementById("cbi-info").style.display="none";
+			// 显示基本信息
+			document.getElementById("cbi-baseinfo").style.display="block";
+		}
+		else //未适配模组
+		{
+			// 更新提示信息
+			document.getElementById("info_message").innerHTML='<strong><%:Not adapted to this modem%></strong> <a href="https://github.com/Siriling/5G-Modem-Support/blob/main/luci-app-modem/README.md" target="_blank"><%:(Check adapted modem)%></a>';
+			// 显示提示信息
+			document.getElementById("cbi-info").style.display="block";
+			// 显示基本信息
+			document.getElementById("cbi-baseinfo").style.display="block";
+			// 隐藏SIM卡信息
+			document.getElementById("cbi-siminfo").style.display="none";
+			// 隐藏网络信息
+			document.getElementById("cbi-networkinfo").style.display="none";
+			// 隐藏小区信息
+			document.getElementById("cbi-cellinfo").style.display="none";
+		}
+	}
+
+	//SIM卡信息界面
+	function sim_info_view(sim_status,connect_status)
+	{
+		//SIM卡状态未知
+		if (sim_status=="unknown")
+		{
+			// 更新提示信息
+			document.getElementById("info_message").innerHTML="<strong><%:Unknown SIM card status%></strong>";
+			// 显示提示信息
+			document.getElementById("cbi-info").style.display="block";
+			// 显示SIM卡信息
+			document.getElementById("cbi-siminfo").style.display="block";
+		}
+		//未插入SIM卡
+		else if (sim_status=="miss")
+		{
+			// 更新提示信息
+			document.getElementById("info_message").innerHTML="<strong><%:SIM card not inserted%></strong>";
+			// 显示提示信息
+			document.getElementById("cbi-info").style.display="block";
+			// 显示SIM卡信息
+			document.getElementById("cbi-siminfo").style.display="block";
+		}
+		//SIM卡就绪
+		else if (sim_status=="ready")
+		{
+			// 隐藏提示信息
+			document.getElementById("cbi-info").style.display="none";
+			// 显示SIM卡信息
+			document.getElementById("cbi-siminfo").style.display="block";
+		}
+		//SIM卡其他状态（锁定等）
+		else
+		{
+			// 更新提示信息
+			document.getElementById("info_message").innerHTML="<strong>"+sim_status+"</strong>";
+			// 显示提示信息
+			document.getElementById("cbi-info").style.display="block";
+			// 显示SIM卡信息
+			document.getElementById("cbi-siminfo").style.display="block";
+		}
+
+		//SIM卡未准备或网络未连接
+		if (sim_status!="ready"||connect_status!="connect")
+		{
+			// 隐藏网络信息
+			document.getElementById("cbi-networkinfo").style.display="none";
+			// 隐藏小区信息
+			document.getElementById("cbi-cellinfo").style.display="none";
+		}
+	}
+
+	//网络信息界面和小区信息界面
+	function network_info_view(connect_status)
+	{
+		//已连接
+		if (connect_status=="connect")
+		{
+			// 显示网络信息
+			document.getElementById("cbi-networkinfo").style.display="block";
+			// 显示小区信息
+			document.getElementById("cbi-cellinfo").style.display="block";
+		}
+		//未连接
+		else
+		{
+			// 隐藏网络信息
+			document.getElementById("cbi-networkinfo").style.display="none";
+			// 隐藏小区信息
+			document.getElementById("cbi-cellinfo").style.display="none";
+		}
+	}
+
+	// 更新模组信息
+	function update()
+	{
+		//获取选中的AT串口
+		var at_port=modem_select.options[modem_select.selectedIndex].value;
+
+		//获取模组信息
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "modem", "get_modem_info")%>', {"port":at_port},
+			function(x, data)
+			{
+				console.log(data);
+
+				var modem_info=data["modem_info"];
+				var translation=data["translation"];
+
+				// 设备信息
+				var device_info=modem_info["device_info"];
+				set_info(device_info);
+
+				// 更多信息
+				var more_info=modem_info["more_info"];
+				//基本信息
+				var base_info=more_info["base_info"];
+				set_info(base_info);
+
+				//基本信息界面控制
+				base_info_view(base_info["manufacturer"]);
+				//未适配模组
+				if (base_info["manufacturer"]=="unknown") {
+					return
+				}
+
+				//SIM卡信息
+				var sim_info=more_info["sim_info"];
+				set_sim_info(sim_info,translation);
+
+				//SIM卡信息显示控制
+				var sim_status=sim_info[0]["SIM Status"];
+				sim_info_view(sim_status,device_info["connect_status"]);
+				//SIM卡未插入或SIM卡被锁定
+				if (sim_status!="ready"||device_info["connect_status"]!="connect") {
+					return
+				}
+
+				//网络信息
+				var network_info=more_info["network_info"];
+				set_network_info(network_info,translation);
+
+				//小区信息
+				var cell_info=more_info["cell_info"];
+				set_cell_info(cell_info,translation);
+
+				//网络信息和小区信息界面显示控制
+				network_info_view(device_info["connect_status"]);
+			}
+		);
+	}
+
+	// 设置AT串口选项
+	function set_at_port(at_ports,translation)
+	{
+		//获取模块选择框元素
+		var modem_select = document.getElementById('modem_select');
+		// 记录所选
+		var selected=modem_select.value;
+		// 删除原来的选项
+		modem_select.options.length=0;
+		//遍历每一个AT串口
+		for (var port of at_ports)
+		{
+			//更新（key：AT串口，value：模块名称）
+			for (var key in port)
+			{
+				var option = document.createElement('option');
+				option.value = key;
+				var language=navigator.language;
+				if (port[key].includes("unknown"))
+				{
+					option.text = translation[port[key]];
+				}
+				else
+				{
+					option.text = port[key];
+				}
+				modem_select.appendChild(option);
+			}
+		}
+		// 恢复原来的选择
+		for (let i = 0; i < modem_select.options.length; i++)
+		{
+			if(modem_select.options[i].value == selected)
+			{
+				modem_select.selectedIndex=i;
+				break;
+			}
+		}
+	}
+
+	// 定时触发更新AT串口和模组数据
+	XHR.poll(5,'<%=luci.dispatcher.build_url("admin", "network", "modem", "get_at_port")%>', null,
+		function(x, data)
+		{
+			var at_ports=data["at_ports"];
+			var translation=data["translation"];
+
+			//设置AT串口选项
+			set_at_port(at_ports,translation);
+			//更新模组信息
+			if (Object.keys(at_ports).length==0)
+			{
+				no_modems_view();
+			}
+			else
+			{
+				update();
+			}
+		}
+	);
+
+	//无模组界面
+	function no_modems_view()
+	{
+		// 更新提示信息
+		document.getElementById("info_message").innerHTML='<strong><%:No modems found%></strong> <a href="https://blog.siriling.com:1212/2023/03/18/openwrt-5g-modem/#zi-dong-sao-miao-shi-bie-gong-neng" target="_blank"><%:(Check the reason)%></a>';
+		// 显示提示信息
+		document.getElementById("cbi-info").style.display="block";
+		// 隐藏基本信息
+		document.getElementById("cbi-baseinfo").style.display="none";
+		// 隐藏SIM卡信息
+		document.getElementById("cbi-siminfo").style.display="none";
+		// 隐藏网络信息
+		document.getElementById("cbi-networkinfo").style.display="none";
+		// 隐藏小区信息
+		document.getElementById("cbi-cellinfo").style.display="none";
+	}
+//]]>
+</script>
+
+<div class="cbi-map" id="cbi-modem">
+	<h2 name="content"><%:Modem Information%></h2>
+	<div class="cbi-map-descr"><%:Check the information of the adapted modem%></div>
+
+	<fieldset class="cbi-section" id="cbi-info" style="display: block;">
+		<div class="cbi-section fade-in">
+			<h3><%:Message%></h3>
+			<table class="table">
+				<tbody id="message">
+					<tr class="tr">
+						<td class="td left">
+							<div id="info_message">
+								<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>"/>
+								<%:Loading modem information%>...
+							</div>
+						</td>
+						<td class="td left"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-baseinfo" style="display: none;">
+		<div class="cbi-section fade-in">
+			<h3><%:Base Information%></h3>
+			<table class="table" id="base_info">
+				<tbody>
+					<tr class="tr">
+						<td class="td left"><%:Modem Name%></td>
+						<td class="td left" id="modem_name">
+							<select name="modem_select" id="modem_select"></select>
+						</td>
+					</tr>
+					<tr class="tr"><td class="td left"><%:Manufacturer%></td><td class="td left" id="manufacturer"></td></tr>
+					<tr class="tr"><td class="td left"><%:Revision%></td><td class="td left" id="revision"></td></tr>
+					<tr class="tr"><td class="td left"><%:Data Interface%></td><td class="td left" id="data_interface"></td></tr>
+					<tr class="tr"><td class="td left"><%:Mode%></td><td class="td left" id="mode"></td></tr>
+					<tr class="tr"><td class="td left"><%:AT Port%></td><td class="td left" id="at_port"></td></tr>
+					<tr class="tr"><td class="td left"><%:Mobile Network%></td><td class="td left" id="network"></td></tr>
+					<tr class="tr"><td class="td left"><%:Temperature%></td><td class="td left" id="temperature"></td></tr>
+					<tr class="tr"><td class="td left"><%:Update Time%></td><td class="td left" id="update_time"></td></tr>
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+
+	<% if nosms == 0 then %>
+	<% end %>
+
+	<fieldset class="cbi-section" id="cbi-siminfo" style="display: none;">
+		<div class="cbi-section fade-in">
+			<h3><%:SIM Information%></h3>
+			<table class="table" id="sim_info"></table>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-networkinfo" style="display: none;">
+		<div class="cbi-section fade-in">
+			<h3><%:Network Information%></h3>
+			<table id="network_info" class="table"></table>
+		</div>
+	</fieldset>
+
+	<fieldset class="cbi-section" id="cbi-cellinfo" style="display: none;">
+		<div class="cbi-section fade-in">
+			<h3><%:Cell Information%></h3>
+			<table class="table" id="cell_info"></table>
+		</div>
+	</fieldset>
+
+	<!-- <fieldset class="cbi-section" id="cbi-stationinfo" style="display: none;">
+		<h3><%:基站信息%></h3>
+		<table width="100%" cellspacing="10">
+			<tr><td width="20%"><%:MCC/MNC 国家码/网络码  %> :</td><td id="mcc"></td><td id="mnc"></td></tr>
+			<tr><td width="20%"><%:eNB ID : %></td><td><ul><span id="rnc" class="r"></span><span id="rncn" class="r"></span></ul></td><td></td></tr>
+			<tr><td width="20%"><%:TAC : %></td><td><ul><span id="lac" class="r"></span><span id="lacn" class="r"></span></ul></td><td></td></tr>
+			<tr><td width="20%"><%:Cell ID : %></td><td><ul><span id="cid" class="r"></span><span id="cidn" class="r"></span></ul></td><td></td></tr>
+			<tr><td width="20%"><%:Band 频段 : %></td><td id="lband"></td><td></td></tr>
+			<tr><td width="20%"><%:Channel 频点 : %></td><td id="channel"></td><td></td></tr>
+			<tr><td width="20%"><%:PCI 物理小区标识 : %></td><td id="pci"></td><td></td></tr>
+			<tr><td width="20%"><%:Maximum Qos 最大Qos级别 : %></td><td><ul><span id="down" class="r"></span><span id="up" class="r"></span></ul></td><td></td></tr>
+
+		</table>
+	</fieldset> -->
+
+	<% if havegps == 1 then %>
+	<!-- <fieldset class="cbi-section" id="cbi-gpsinfo">
+		<h3><%:GPS 定位%></h3>
+		<table>
+		<tr>
+			<td width="30%"><div align="right"><%:纬度 %> :</div></td>
+			<td><ul id="lat"></ul></td>
+			<td width="1%">&nbsp;</td>
+		</tr>
+		<tr>
+			<td><div align="right"><%:经度 %> :</div></td>
+			<td><ul id="long"></ul></td>
+			<td>&nbsp;</td>
+		</tr>
+		</table>
+	</fieldset> -->
+	<% end %>
+
+</div>
+<%+footer%>
+

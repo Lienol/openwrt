@@ -1,0 +1,51 @@
+<script type="text/javascript">
+    window.onload=function()
+    {
+        var url=window.location.pathname
+        var lastSlashIndex = url.lastIndexOf("/");
+        var uuid = url.substring(lastSlashIndex + 1);
+
+        // 查询network元素
+        var network = document.getElementById("widget.cbid.modem."+uuid+".network");
+        if (network===null)
+        {
+            // 查询所有以.network结尾的元素
+            var elements = document.querySelectorAll('[id$=".network"]');
+            network=elements[0];
+        }
+
+        //页面加载完成时触发
+        getMode(network,uuid);
+
+        // 更换移动网络时触发
+        network.addEventListener('change', function() {
+            // 获取对应的拨号模式，并设置到页面选项中
+            getMode(network,uuid);
+        });
+    };
+
+    // 获取对应的拨号模式，并设置到页面选项中
+    function getMode(network,uuid)
+    {
+        // 获取当前选中的值
+        var selected=network.options[network.selectedIndex].value;
+        XHR.get('<%=luci.dispatcher.build_url("admin", "network", "modem", "mode_info")%>', {"network":selected},
+            function(x, json)
+            {
+                modeSelect = document.getElementById("widget.cbid.modem."+uuid+".mode");
+                if (modeSelect===null)
+                {
+                    // 查询所有以.network结尾的元素
+                    var elements = document.querySelectorAll('[id$=".mode"]');
+                    modeSelect=elements[0];
+                }
+                
+                // 删除原来的选项
+                modeSelect.options.length=0;
+                for (var key in json) {
+                    modeSelect.add(new Option(json[key].toUpperCase(),json[key]));
+                }
+            }
+        );
+    }
+</script>

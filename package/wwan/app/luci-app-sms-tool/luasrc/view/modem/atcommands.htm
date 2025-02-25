@@ -1,0 +1,136 @@
+<%+header%>
+
+<!--
+-- Copyright 2020-2022 Rafał Wabik (IceG) - From eko.one.pl forum
+-- Licensed to the GNU General Public License v3.0.
+-->
+
+	<h2><%:AT 命令%></h2>
+	<div class="cbi-map-descr"><%:通过sms_tool处理AT命令的Web用户界面。关于sms-tool的更多信息，请见%> <a href="https://eko.one.pl/?p=openwrt-sms_tool" target="_blank"><%:eko.one.pl 论坛%></a>.</div>
+	<p></p>
+	<h4><%:向调制解调器发送命令%></h4>
+	<div class="table" width="100%">
+
+		<div class="tr">
+			<div class="td left"><%:用户AT命令%>:</div>
+
+			<div class="td left";">
+				<select name="ussd" id="pl" onclick="copyFunction()">
+
+ 				</select>
+			</div>
+			<div class="td left""></div>
+			</div>
+
+		<div class="tr">
+			<div class="td left" ><%:要发送的命令%>:</div>
+			<div class="td left" ><input type="text" id="code"></div>
+		</div>
+
+	</div>
+
+	<div class="table" width="100%">
+		<div class="td left";"><%:回复%>:
+		<p>
+		<pre id="odp" style="visibility: hidden;"></pre></div>
+
+		<div class="tr cbi-rowstyle-2">
+		<div class="td right"><input type="button" style="margin-right: 5%"; id="sendcmd" class="btn cbi-button cbi-button-neutral" value="<%:发送命令%>" /></div>
+		</div>
+
+	</div>
+
+<script type="text/javascript">
+
+window.onload = function readUSER() {
+
+
+			XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "sms", "user_atc")%>', null,
+			function(x, json)
+			{
+				select = document.getElementById('pl');
+
+				var count = Object.keys(json).length;
+
+
+					for(var d=0;d<=count;d++)
+						{
+    			    				var opt = document.createElement('option');
+							var s = json[d].atu;
+							var fields = s.split(/;/);
+							var name = fields[0];
+							var code = fields[1];
+							opt.text = name;
+							opt.value = code.trim();
+    					    		opt.innerHTML = name;
+    							select.appendChild(opt);
+						}
+
+			}
+			);
+
+
+
+}
+
+function copyFunction() {
+
+  var node = document.getElementById('odp');
+  node.style.visibility = 'hidden';
+
+  var x = document.getElementById("pl").value;
+  document.getElementById("code").value = x;
+  document.getElementById("odp").innerHTML = "";
+}
+
+
+function postcmd(cmd) {
+    (new XHR()).post("<%=luci.dispatcher.build_url("admin", "modem", "sms", "run_at")%>", {"code":cmd}, function(x) {
+        console.log(x.response)
+        console.log(x)
+
+        var aStr = x.response;
+	 var myre = /^[\s\t]*(\r\n|\n|\r)/gm;
+	 var bStr = aStr.replace(myre,"");
+        document.getElementById("odp").innerHTML = bStr;
+	 var el = document.getElementsByName("odp")[0];
+	 el.value.replace(/(\r\n|\n|\r)/gm, "");
+
+
+    });
+    return false;
+}
+
+
+document.addEventListener('DOMContentLoaded', function (ev) {var button = document.getElementById("sendcmd");
+        button.addEventListener("click", function () {
+
+
+		var s = document.getElementById("code").value;
+		if ( s.length == 0 )
+		{
+  			document.getElementById("odp").innerHTML = "";
+			alert("<%:Please enter a AT Command%>");
+			return false;
+		}
+
+        var cmd = document.getElementById("code");
+        postcmd(cmd.value);
+        cmd.value = "";
+
+	    var node = document.getElementById('odp');
+    	if (node.style.visibility=='visible') {
+        node.style.visibility = 'hidden';
+    	}
+    	else
+        node.style.visibility = 'visible'
+
+        return true;
+        });
+    }, true);
+
+
+</script>
+
+<%+footer%>
+
