@@ -94,7 +94,7 @@
  
 --- a/include/net/ip6_route.h
 +++ b/include/net/ip6_route.h
-@@ -207,6 +207,11 @@ void rt6_multipath_rebalance(struct fib6
+@@ -215,6 +215,11 @@ void rt6_multipath_rebalance(struct fib6
  void rt6_uncached_list_add(struct rt6_info *rt);
  void rt6_uncached_list_del(struct rt6_info *rt);
  
@@ -610,7 +610,7 @@
  	return 0;
  
  out_remove_new_fa:
-@@ -1775,6 +1781,9 @@ int fib_table_delete(struct net *net, st
+@@ -1776,6 +1782,9 @@ int fib_table_delete(struct net *net, st
  	if (fa_to_delete->fa_state & FA_S_ACCESSED)
  		rt_cache_flush(cfg->fc_nlinfo.nl_net);
  
@@ -620,7 +620,7 @@
  	fib_release_info(fa_to_delete->fa_info);
  	alias_free_mem_rcu(fa_to_delete);
  	return 0;
-@@ -2407,6 +2416,20 @@ void __init fib_trie_init(void)
+@@ -2408,6 +2417,20 @@ void __init fib_trie_init(void)
  					   0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
  }
  
@@ -643,7 +643,7 @@
  	struct fib_table *tb;
 --- a/net/ipv6/ndisc.c
 +++ b/net/ipv6/ndisc.c
-@@ -666,6 +666,7 @@ void ndisc_send_ns(struct net_device *de
+@@ -668,6 +668,7 @@ void ndisc_send_ns(struct net_device *de
  	if (skb)
  		ndisc_send_skb(skb, daddr, saddr);
  }
@@ -663,7 +663,7 @@
  static inline const void *choose_neigh_daddr(const struct in6_addr *p,
  					     struct sk_buff *skb,
  					     const void *daddr)
-@@ -3865,6 +3868,10 @@ int ip6_route_add(struct fib6_config *cf
+@@ -3868,6 +3871,10 @@ int ip6_route_add(struct fib6_config *cf
  		return PTR_ERR(rt);
  
  	err = __ip6_ins_rt(rt, &cfg->fc_nlinfo, extack);
@@ -674,7 +674,7 @@
  	fib6_info_release(rt);
  
  	return err;
-@@ -3886,6 +3893,9 @@ static int __ip6_del_rt(struct fib6_info
+@@ -3889,6 +3896,9 @@ static int __ip6_del_rt(struct fib6_info
  	err = fib6_del(rt, info);
  	spin_unlock_bh(&table->tb6_lock);
  
@@ -684,7 +684,7 @@
  out:
  	fib6_info_release(rt);
  	return err;
-@@ -6333,6 +6343,20 @@ static int ip6_route_dev_notify(struct n
+@@ -6336,6 +6346,20 @@ static int ip6_route_dev_notify(struct n
  	return NOTIFY_OK;
  }
  
@@ -843,7 +843,7 @@
  
 --- a/net/netfilter/nf_conntrack_standalone.c
 +++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -633,6 +633,7 @@ enum nf_ct_sysctl_index {
+@@ -630,6 +630,7 @@ enum nf_ct_sysctl_index {
  #endif
  	NF_SYSCTL_CT_PROTO_TCP_LOOSE,
  	NF_SYSCTL_CT_PROTO_TCP_LIBERAL,
@@ -851,7 +851,7 @@
  	NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST,
  	NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS,
  	NF_SYSCTL_CT_PROTO_TIMEOUT_UDP,
-@@ -840,6 +841,14 @@ static struct ctl_table nf_ct_sysctl_tab
+@@ -834,6 +835,14 @@ static struct ctl_table nf_ct_sysctl_tab
  		.extra1 	= SYSCTL_ZERO,
  		.extra2 	= SYSCTL_ONE,
  	},
@@ -866,7 +866,7 @@
  	[NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST] = {
  		.procname	= "nf_conntrack_tcp_ignore_invalid_rst",
  		.maxlen		= sizeof(u8),
-@@ -1050,6 +1059,7 @@ static void nf_conntrack_standalone_init
+@@ -1035,6 +1044,7 @@ static void nf_conntrack_standalone_init
  
  	XASSIGN(LOOSE, &tn->tcp_loose);
  	XASSIGN(LIBERAL, &tn->tcp_be_liberal);
