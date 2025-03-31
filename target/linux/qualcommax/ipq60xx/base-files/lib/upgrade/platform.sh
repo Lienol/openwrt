@@ -122,7 +122,8 @@ platform_do_upgrade() {
 	zn,m2)
 		nand_do_upgrade "$1"
 		;;
-	tplink,eap610-outdoor)
+	tplink,eap610-outdoor|\
+	tplink,eap623od-hd-v1)
 		tplink_do_upgrade "$1"
 		;;
 	jdcloud,re-cs-02|\
