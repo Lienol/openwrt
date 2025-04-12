@@ -20,6 +20,7 @@
 # at boot.
 
 START=26
+USE_PROCD=1
 
 sysctl_update() {
   local name value file
@@ -56,6 +57,17 @@ get_front_end_mode() {
       echo '0'
       ;;
   esac
+}
+
+disable_packet_steering() {
+  uci -q set network.globals.packet_steering=0 && uci commit network.globals.packet_steering
+  uci -q del network.globals.steering_flows    && uci commit network.globals.steering_flows
+
+  if [ -e "/usr/libexec/platform/packet-steering.sh" ]; then
+    /usr/libexec/platform/packet-steering.sh 0
+  else
+    /usr/libexec/network/packet-steering.uc -l 0 0
+  fi
 }
 
 disable_bridge_filtering() {
@@ -136,8 +148,19 @@ unload_ecm() {
   fi
 }
 
-start() {
+service_triggers() {
+  procd_add_reload_trigger "network"
+  procd_add_reload_trigger "packet_steering"
+}
+
+reload_service() {
+  disable_packet_steering
+}
+
+start_service() {
   load_ecm
+
+  disable_packet_steering
 
   # Only enable bridge filtering if using deprecated fw3
   if [ ! -r /sbin/fw4 ]; then
@@ -154,7 +177,7 @@ start() {
   fi
 }
 
-stop() {
+stop_service() {
   # If ECM is already not loaded, just return
   if [ ! -d /sys/module/ecm ]; then
     return
