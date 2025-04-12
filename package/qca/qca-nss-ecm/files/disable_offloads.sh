@@ -104,13 +104,19 @@ disable_feature() {
   local feature="$1"
   local interface="$2"
   local cmd
+  local current_state
 
-  # Construct ethtool command line
-  cmd="-K $interface $feature off"
+  current_state=$(ethtool -k $interface 2>/dev/null | awk -v feature="^$feature:" '$0 ~ feature {print $2}')
+  
+  # Only disable and log if the feature is currently enabled
+  if [ "$current_state" = "on" ]; then
+    # Construct ethtool command line
+    cmd="-K $interface $feature off"
 
-  # Try to disable flow control
-  ethtool $cmd 1> /dev/null 2> /dev/null
-  log $? "Disabling feature: $feature" "($interface)"
+    # Try to disable the feature
+    ethtool $cmd 1> /dev/null 2> /dev/null
+    log $? "Disabling feature: $feature" "($interface)"
+  fi
 }
 
 disable_flow_control() {
@@ -183,10 +189,11 @@ disable_offload() {
   config_get_bool disable_gro                  general disable_gro 0
   config_get_bool disable_gro_list             general disable_gro_list 1
 
-  [ -z $1 ] && interface=$(echo /sys/class/net/*) || interface=$*
+  [ -z $1 ] && interface=$(echo /sys/class/net/*/device) || interface=$*
 
   for iface in $interface; do
-    i=${iface##*/}
+    i=${iface%/*}
+    i=${i##*/}
 
     # Skip Loopback and Bonding Masters
     if [ $i == lo ] || [ -f $iface ]; then
