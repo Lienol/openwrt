@@ -1,0 +1,11 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@athena_led[-1]
+	add ucitrack athena_led
+	set ucitrack.@athena_led[-1].init=athena_led
+	commit ucitrack
+EOF
+
+rm -rf /tmp/luci-*cache
+exit 0
