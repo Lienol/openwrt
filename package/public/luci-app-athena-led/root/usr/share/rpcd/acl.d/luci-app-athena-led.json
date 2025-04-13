@@ -1,0 +1,11 @@
+{
+	"luci-app-athena-led": {
+		"description": "Grant UCI access for luci-app-athena-led",
+		"read": {
+			"uci": [ "athena_led" ]
+		},
+		"write": {
+			"uci": [ "athena_led" ]
+		}
+	}
+}
