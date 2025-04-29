@@ -30,16 +30,19 @@ config NSS_DRV_BRIDGE_ENABLE
 	bool
 	default n
 	prompt "Enable BRIDGE"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_CAPWAP_ENABLE
 	bool
 	default n
 	prompt "Enable CAPWAP"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_C2C_ENABLE
 	bool
 	default n
 	prompt "Enable C2C"
+	depends on TARGET_ipq806x || TARGET_qualcommax_ipq807x
 
 config NSS_DRV_CLMAP_ENABLE
 	bool
@@ -48,13 +51,14 @@ config NSS_DRV_CLMAP_ENABLE
 
 config NSS_DRV_CRYPTO_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable CRYPTO"
 
 config NSS_DRV_DTLS_ENABLE
 	bool
 	default n
 	prompt "Enable DTLS"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_GRE_ENABLE
 	bool
@@ -90,7 +94,7 @@ config NSS_DRV_IPV4_REASM_ENABLE
 
 config NSS_DRV_IPV6_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable IPV6"
 
 config NSS_DRV_IPV6_REASM_ENABLE
@@ -108,6 +112,7 @@ config NSS_DRV_LAG_ENABLE
 	bool
 	default n
 	prompt "Enable LAG"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_MAPT_ENABLE
 	bool
@@ -128,6 +133,7 @@ config NSS_DRV_OAM_ENABLE
 	bool
 	default n
 	prompt "Enable OAM"
+	depends on TARGET_qualcommax_ipq806x
 
 config NSS_DRV_PORTID_ENABLE
 	bool
@@ -146,7 +152,7 @@ config NSS_DRV_PPPOE_ENABLE
 
 config NSS_DRV_PPTP_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable PPTP"
 
 config NSS_DRV_PVXLAN_ENABLE
@@ -158,16 +164,19 @@ config NSS_DRV_QRFS_ENABLE
 	bool
 	default n
 	prompt "Enable QRFS"
+	depends on TARGET_qualcommax_ipq807x
 
 config NSS_DRV_QVPN_ENABLE
 	bool
 	default n
 	prompt "Enable OpenVpn (QVPN)"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_RMNET_ENABLE
 	bool
 	default n
 	prompt "Enable RMNET"
+	depends on TARGET_qualcommax_ipq807x
 
 config NSS_DRV_SHAPER_ENABLE
 	bool
@@ -183,6 +192,7 @@ config NSS_DRV_TLS_ENABLE
 	bool
 	default n
 	prompt "Enable TLS"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_TRUSTSEC_ENABLE
 	bool
@@ -193,6 +203,7 @@ config NSS_DRV_UDP_ST_ENABLE
 	bool
 	default n
 	prompt "Enable UDP Speedtest"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq50xx
 
 config NSS_DRV_TRUSTSEC_RX_ENABLE
 	bool
@@ -217,13 +228,14 @@ config NSS_DRV_TUNIPIP6_ENABLE
 
 config NSS_DRV_VIRT_IF_ENABLE
 	bool
-	default y
+	default n
 	prompt "Enable VIRT_IF"
 
 config NSS_DRV_VLAN_ENABLE
 	bool
 	default n
 	prompt "Enable VLAN"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq60xx
 
 config NSS_DRV_VXLAN_ENABLE
 	bool
@@ -250,5 +262,6 @@ config NSS_DRV_WIFI_MESH_ENABLE
 config NSS_DRV_WIFI_LEGACY_ENABLE
 	bool
 	default n
+	depends on TARGET_ipq806x
 	prompt "Enable Legacy WIFI"
 endmenu

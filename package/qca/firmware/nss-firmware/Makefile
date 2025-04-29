@@ -11,7 +11,7 @@ PKG_NAME:=nss-firmware
 PKG_SOURCE_DATE:=2024-08-04
 PKG_SOURCE_VERSION:=794fe3732fca4ef9b74e7be6f621d160d831b636
 PKG_MIRROR_HASH:=a3bb68bd729469470cbccd538d7fc529acabad46a2c9aa2ad6bb19fb05f01b45
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/qosmio/qca-sdk-nss-fw.git
@@ -33,7 +33,7 @@ STRIP:=:
 
 NSS_PROFILE:=R
 
-define Package/nss-firmware-default
+define Package/nss-firmware-common
 	TITLE:=NSS firmware
 	SECTION:=firmware
 	CATEGORY:=Firmware
@@ -41,28 +41,34 @@ define Package/nss-firmware-default
 	DEPENDS:=@TARGET_qualcommax
 endef
 
-define Package/nss-firmware-ipq8074
-$(Package/nss-firmware-default)
+define Package/nss-firmware
+$(call Package/nss-firmware-common,$(1))
+	DEPENDS+= +TARGET_qualcommax_ipq807x:nss-firmware-ipq807x \
+		  +TARGET_qualcommax_ipq60xx:nss-firmware-ipq60xx \
+		  +TARGET_qualcommax_ipq50xx:nss-firmware-ipq50xx
+endef
+
+define Package/nss-firmware-ipq807x
+$(call Package/nss-firmware-common,$(1))
 	IPQ_PLATFORM=IPQ8074
-	DEPENDS+= @TARGET_qualcommax_ipq807x +nss-firmware-default
 	NSS_SOC:=HK
 endef
 
-define Package/nss-firmware-ipq6018
-$(Package/nss-firmware-default)
+define Package/nss-firmware-ipq60xx
+$(call Package/nss-firmware-common,$(1))
 	IPQ_PLATFORM=IPQ6018
-	DEPENDS+= @TARGET_qualcommax_ipq60xx +nss-firmware-default
+	CONFLICTS=nss-firmware-ipq807x
 	NSS_SOC:=CP
 endef
 
-define Package/nss-firmware-ipq5018
-$(Package/nss-firmware-default)
+define Package/nss-firmware-ipq50xx
+$(call Package/nss-firmware-common,$(1))
 	IPQ_PLATFORM=IPQ5018
-	DEPENDS+= @TARGET_qualcommax_ipq50xx +nss-firmware-default
+	CONFLICTS=nss-firmware-ipq807x nss-firmware-ipq60xx
 	NSS_SOC:=MP
 endef
 
-define Package/nss-firmware-default/config
+define Package/nss-firmware/config
   menu "NSS Firmware Version"
 
   comment "Select NSS firmware version"
@@ -78,6 +84,7 @@ define Package/nss-firmware-default/config
 
     config NSS_FIRMWARE_VERSION_12_2
           bool "NSS Firmware 12.2 Release 161"
+          depends on !TARGET_qualcommax_ipq50xx
           help
                This version does NOT work with NSS MESH (802.11s)
 
@@ -87,7 +94,7 @@ define Package/nss-firmware-default/config
                This version does NOT work with NSS MESH (802.11s)
 
     config NSS_FIRMWARE_VERSION_11_4
-          bool "NSS Firmware 11.4.0.5 Release 5"
+          bool "NSS Firmware 11.4.0.5 Release 6"
           help
                This version WORKS with NSS MESH (802.11s)
   endchoice
@@ -119,7 +126,7 @@ endif
 define Build/Compile
 endef
 
-define Package/nss-firmware/install
+define Package/nss-firmware-common/install
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf \
 		$(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR).$(NSS_MINOR)/BIN-NSS*.$(NSS_MAJOR).$(NSS_MINOR)*-$(NSS_REL)*$(NSS_PROFILE).tar.bz2
@@ -134,23 +141,23 @@ ifeq ($(NSS_SOC),HK)
 endif
 endef
 
-define Package/nss-firmware-ipq8074/install
-	$(call Package/nss-firmware/install,$(1))
+define Package/nss-firmware-ipq807x/install
+	$(call Package/nss-firmware-common/install,$(1))
 endef
 
-define Package/nss-firmware-ipq6018/install
-	$(call Package/nss-firmware/install,$(1))
+define Package/nss-firmware-ipq60xx/install
+	$(call Package/nss-firmware-common/install,$(1))
 endef
 
-define Package/nss-firmware-ipq5018/install
-	$(call Package/nss-firmware/install,$(1))
+define Package/nss-firmware-ipq50xx/install
+	$(call Package/nss-firmware-common/install,$(1))
 endef
 
-define Package/nss-firmware-default/install
+define Package/nss-firmware/install
 	true
 endef
 
-$(eval $(call BuildPackage,nss-firmware-ipq8074))
-$(eval $(call BuildPackage,nss-firmware-ipq6018))
-$(eval $(call BuildPackage,nss-firmware-ipq5018))
-$(eval $(call BuildPackage,nss-firmware-default))
+$(eval $(call BuildPackage,nss-firmware-ipq807x))
+$(eval $(call BuildPackage,nss-firmware-ipq60xx))
+$(eval $(call BuildPackage,nss-firmware-ipq50xx))
+$(eval $(call BuildPackage,nss-firmware))

@@ -1,17 +1,17 @@
 #!/bin/sh
+# shellcheck disable=1090
 
 [ "$ACTION" != "add" ] && exit
 
-. /lib/netifd/offload/disable_offloads.sh
+INC="/lib/netifd/offload/disable_offloads.sh"
+. "$INC" 2> /dev/null || {
+  logger -t "$PROG" -p user.error "missing include script $INC. exiting..."
+  exit 1
+}
 
-if [ -n "$INTERFACE" ]; then
-	disable_offload "$INTERFACE"
-	# Disable tx-checksumming for mesh interfaces, as it breaks multicast traffic
-	if [ "$DEVTYPE" = "wlan" ]; then
-	  if ubus call network.wireless status | jsonfilter -e '@[*].interfaces[@.config.mode="mesh"].ifname' | grep -q "$INTERFACE"; then
-	    disable_feature tx-checksumming "$INTERFACE"
-	  fi
-	fi
+# Only disable offloads for physical interfaces
+if [ -r "/sys/class/net/$INTERFACE/device" ]; then
+  disable_offload "$INTERFACE"
 fi
 
 exit 0

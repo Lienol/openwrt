@@ -1,6 +1,6 @@
 --- a/nss_stats.c
 +++ b/nss_stats.c
-@@ -400,9 +400,9 @@ void nss_stats_create_dentry(char *name,
+@@ -407,9 +407,9 @@ void nss_stats_create_dentry(char *name,
  /*
   * gmac_stats_ops
   */
@@ -13,7 +13,7 @@
  
  /*
   * wt_stats_ops
-@@ -457,9 +457,9 @@ void nss_stats_init(void)
+@@ -464,9 +464,9 @@ void nss_stats_init(void)
  	/*
  	 * gmac_stats
  	 */
