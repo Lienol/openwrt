@@ -12,7 +12,7 @@ define Package/nss-eip-firmware
   SECTION:=firmware
   CATEGORY:=Firmware
   TITLE:=NSS EIP-197 firmware
-  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx)
+  DEPENDS:=@(TARGET_qualcommax_ipq807x||TARGET_qualcommax_ipq60xx)
 endef
 
 define Build/Compile

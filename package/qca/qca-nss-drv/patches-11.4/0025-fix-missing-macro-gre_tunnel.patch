@@ -1,0 +1,14 @@
+--- a/exports/nss_gre_tunnel.h
++++ b/exports/nss_gre_tunnel.h
+@@ -212,7 +212,11 @@ struct nss_gre_tunnel_stats {
+  *	GRE tunnel transmission statistics structure.
+  */
+ struct nss_gre_tunnel_stats_notification {
++#if defined(NSS_HAL_IPQ807x_SUPPORT)
+ 	uint64_t stats_ctx[NSS_GRE_TUNNEL_STATS_SESSION_MAX + NSS_CRYPTO_CMN_RESP_ERROR_MAX];
++#else
++	uint64_t stats_ctx[NSS_GRE_TUNNEL_STATS_SESSION_MAX];
++#endif
+ 							/**< Context transmission statistics. */
+ 	uint32_t core_id;				/**< Core ID. */
+ 	uint32_t if_num;				/**< Interface number. */

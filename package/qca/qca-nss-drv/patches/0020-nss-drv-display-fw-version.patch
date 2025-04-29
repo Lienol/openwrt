@@ -8,18 +8,12 @@
  #include "nss_core.h"
  #include "nss_tx_rx_common.h"
  #ifdef NSS_DATA_PLANE_GENERIC_SUPPORT
-@@ -51,6 +50,7 @@
+@@ -51,6 +50,57 @@
   */
  #define NSS_AP0_IMAGE "qca-nss0.bin"
  #define NSS_AP1_IMAGE "qca-nss1.bin"
 +#define BUFFER_SIZE 8192
- 
- /*
-  * File local/Static variables/functions
-@@ -58,6 +58,56 @@
- static const struct net_device_ops nss_netdev_ops;
- static const struct ethtool_ops nss_ethtool_ops;
- 
++
 +// Function to search for the byte sequence in the buffer
 +static unsigned char *search_sequence(const unsigned char *buffer,
 +				      size_t buffer_size,
@@ -69,19 +63,10 @@
 +
 +	return 0;
 +}
-+
+ 
  int nss_hal_firmware_load(struct nss_ctx_instance *nss_ctx, struct platform_device *nss_dev, struct nss_platform_data *npd)
  {
- 	const struct firmware *nss_fw;
-@@ -81,7 +131,6 @@ int nss_hal_firmware_load(struct nss_ctx
- 		return rc;
- 	}
- 
--
- 	load_mem = ioremap(npd->load_addr, nss_fw->size);
- 	if (!load_mem) {
- 		nss_info_always("%px: ioremap failed: %x", nss_ctx, npd->load_addr);
-@@ -89,6 +138,10 @@ int nss_hal_firmware_load(struct nss_ctx
+@@ -83,6 +133,10 @@ int nss_hal_firmware_load(struct nss_ctx
  		return rc;
  	}
  

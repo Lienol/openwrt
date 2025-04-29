@@ -27,7 +27,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -1421,6 +1421,8 @@ static inline void nss_core_handle_empty
+@@ -1426,6 +1426,8 @@ static inline void nss_core_handle_empty
  						 uint32_t count, uint32_t hlos_index,
  						 uint16_t mask)
  {
@@ -36,7 +36,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	while (count) {
  		/*
  		 * Since we only return the primary skb, we have no way to unmap
-@@ -1474,7 +1476,9 @@ next:
+@@ -1479,7 +1481,9 @@ next:
  	n2h_desc_ring->hlos_index = hlos_index;
  	if_map->n2h_hlos_index[NSS_IF_N2H_EMPTY_BUFFER_RETURN_QUEUE] = hlos_index;
  
@@ -47,7 +47,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  }
  
-@@ -1496,6 +1500,7 @@ static int32_t nss_core_handle_cause_que
+@@ -1501,6 +1505,7 @@ static int32_t nss_core_handle_cause_que
  	struct nss_ctx_instance *nss_ctx = int_ctx->nss_ctx;
  	struct nss_meminfo_ctx *mem_ctx = &nss_ctx->meminfo_ctx;
  	struct nss_if_mem_map *if_map = mem_ctx->if_map;
@@ -55,7 +55,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	qid = nss_core_cause_to_queue(cause);
  
-@@ -1507,7 +1512,8 @@ static int32_t nss_core_handle_cause_que
+@@ -1512,7 +1517,8 @@ static int32_t nss_core_handle_cause_que
  	n2h_desc_ring = &nss_ctx->n2h_desc_ring[qid];
  	desc_if = &n2h_desc_ring->desc_ring;
  	desc_ring = desc_if->desc;
@@ -65,7 +65,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  	nss_index = if_map->n2h_nss_index[qid];
  
-@@ -1536,13 +1542,23 @@ static int32_t nss_core_handle_cause_que
+@@ -1541,13 +1547,23 @@ static int32_t nss_core_handle_cause_que
  	start = hlos_index;
  	end = (hlos_index + count) & mask;
  	if (end > start) {
@@ -92,7 +92,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	}
  
  	/*
-@@ -1671,7 +1687,8 @@ next:
+@@ -1676,7 +1692,8 @@ next:
  	n2h_desc_ring->hlos_index = hlos_index;
  	if_map->n2h_hlos_index[qid] = hlos_index;
  
@@ -102,7 +102,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	return count;
-@@ -1683,11 +1700,12 @@ next:
+@@ -1688,11 +1705,12 @@ next:
   */
  static void nss_core_init_nss(struct nss_ctx_instance *nss_ctx, struct nss_if_mem_map *if_map)
  {
@@ -116,7 +116,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	/*
-@@ -1763,6 +1781,7 @@ static void nss_core_alloc_paged_buffers
+@@ -1768,6 +1786,7 @@ static void nss_core_alloc_paged_buffers
  				uint16_t count, int16_t mask, int32_t hlos_index, uint32_t alloc_fail_count,
  				uint32_t buffer_type, uint32_t buffer_queue, uint32_t stats_index)
  {
@@ -124,7 +124,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct sk_buff *nbuf;
  	struct page *npage;
  	struct hlos_h2n_desc_rings *h2n_desc_ring = &nss_ctx->h2n_desc_rings[buffer_queue];
-@@ -1832,7 +1851,9 @@ static void nss_core_alloc_paged_buffers
+@@ -1837,7 +1856,9 @@ static void nss_core_alloc_paged_buffers
  		/*
  		 * Flush the descriptor
  		 */
@@ -135,7 +135,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  		hlos_index = (hlos_index + 1) & (mask);
  		count--;
-@@ -1846,7 +1867,8 @@ static void nss_core_alloc_paged_buffers
+@@ -1851,7 +1872,8 @@ static void nss_core_alloc_paged_buffers
  	h2n_desc_ring->hlos_index = hlos_index;
  	if_map->h2n_hlos_index[buffer_queue] = hlos_index;
  
@@ -145,7 +145,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	NSS_PKT_STATS_INC(&nss_top->stats_drv[stats_index]);
-@@ -1859,7 +1881,7 @@ static void nss_core_alloc_paged_buffers
+@@ -1864,7 +1886,7 @@ static void nss_core_alloc_paged_buffers
  static void nss_core_alloc_jumbo_mru_buffers(struct nss_ctx_instance *nss_ctx, struct nss_if_mem_map *if_map,
  				int jumbo_mru, uint16_t count, int16_t mask, int32_t hlos_index)
  {
@@ -154,7 +154,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct sk_buff *nbuf;
  	struct hlos_h2n_desc_rings *h2n_desc_ring = &nss_ctx->h2n_desc_rings[NSS_IF_H2N_EMPTY_BUFFER_QUEUE];
  	struct h2n_desc_if_instance *desc_if = &h2n_desc_ring->desc_ring;
-@@ -1906,7 +1928,9 @@ static void nss_core_alloc_jumbo_mru_buf
+@@ -1911,7 +1933,9 @@ static void nss_core_alloc_jumbo_mru_buf
  		/*
  		 * Flush the descriptor
  		 */
@@ -165,7 +165,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  		hlos_index = (hlos_index + 1) & (mask);
  		count--;
-@@ -1920,7 +1944,8 @@ static void nss_core_alloc_jumbo_mru_buf
+@@ -1925,7 +1949,8 @@ static void nss_core_alloc_jumbo_mru_buf
  	h2n_desc_ring->hlos_index = hlos_index;
  	if_map->h2n_hlos_index[NSS_IF_H2N_EMPTY_BUFFER_QUEUE] = hlos_index;
  
@@ -175,7 +175,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	NSS_PKT_STATS_INC(&nss_top->stats_drv[NSS_DRV_STATS_TX_EMPTY]);
-@@ -1933,6 +1958,7 @@ static void nss_core_alloc_jumbo_mru_buf
+@@ -1938,6 +1963,7 @@ static void nss_core_alloc_jumbo_mru_buf
  static void nss_core_alloc_max_avail_size_buffers(struct nss_ctx_instance *nss_ctx, struct nss_if_mem_map *if_map,
  				uint16_t max_buf_size, uint16_t count, int16_t mask, int32_t hlos_index)
  {
@@ -183,7 +183,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct hlos_h2n_desc_rings *h2n_desc_ring = &nss_ctx->h2n_desc_rings[NSS_IF_H2N_EMPTY_BUFFER_QUEUE];
  	struct h2n_desc_if_instance *desc_if = &h2n_desc_ring->desc_ring;
  	struct h2n_descriptor *desc_ring = desc_if->desc;
-@@ -1940,6 +1966,7 @@ static void nss_core_alloc_max_avail_siz
+@@ -1945,6 +1971,7 @@ static void nss_core_alloc_max_avail_siz
  	uint16_t payload_len = max_buf_size + NET_SKB_PAD;
  	uint16_t start = hlos_index;
  	uint16_t prev_hlos_index;
@@ -191,7 +191,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	while (count) {
  		dma_addr_t buffer;
-@@ -1992,13 +2019,26 @@ static void nss_core_alloc_max_avail_siz
+@@ -1997,13 +2024,26 @@ static void nss_core_alloc_max_avail_siz
  	 * Flush the descriptors, including the descriptor at prev_hlos_index.
  	 */
  	if (prev_hlos_index > start) {
@@ -221,7 +221,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	}
  
  	/*
-@@ -2009,7 +2049,8 @@ static void nss_core_alloc_max_avail_siz
+@@ -2014,7 +2054,8 @@ static void nss_core_alloc_max_avail_siz
  	h2n_desc_ring->hlos_index = hlos_index;
  	if_map->h2n_hlos_index[NSS_IF_H2N_EMPTY_BUFFER_QUEUE] = hlos_index;
  
@@ -231,7 +231,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  
  	NSS_PKT_STATS_INC(&nss_top->stats_drv[NSS_DRV_STATS_TX_EMPTY]);
-@@ -2022,6 +2063,7 @@ static void nss_core_alloc_max_avail_siz
+@@ -2027,6 +2068,7 @@ static void nss_core_alloc_max_avail_siz
  static inline void nss_core_handle_empty_buffer_sos(struct nss_ctx_instance *nss_ctx,
  				struct nss_if_mem_map *if_map, uint16_t max_buf_size)
  {
@@ -239,7 +239,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	uint16_t count, size, mask;
  	int32_t nss_index, hlos_index;
  	struct hlos_h2n_desc_rings *h2n_desc_ring = &nss_ctx->h2n_desc_rings[NSS_IF_H2N_EMPTY_BUFFER_QUEUE];
-@@ -2032,7 +2074,8 @@ static inline void nss_core_handle_empty
+@@ -2037,7 +2079,8 @@ static inline void nss_core_handle_empty
  	/*
  	 * Check how many empty buffers could be filled in queue
  	 */
@@ -249,7 +249,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  	nss_index = if_map->h2n_nss_index[NSS_IF_H2N_EMPTY_BUFFER_QUEUE];
  
-@@ -2077,6 +2120,7 @@ static inline void nss_core_handle_empty
+@@ -2082,6 +2125,7 @@ static inline void nss_core_handle_empty
  static inline void nss_core_handle_paged_empty_buffer_sos(struct nss_ctx_instance *nss_ctx,
  				struct nss_if_mem_map *if_map, uint16_t max_buf_size)
  {
@@ -257,7 +257,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	uint16_t count, size, mask;
  	int32_t nss_index, hlos_index;
  	struct hlos_h2n_desc_rings *h2n_desc_ring = &nss_ctx->h2n_desc_rings[NSS_IF_H2N_EMPTY_PAGED_BUFFER_QUEUE];
-@@ -2084,7 +2128,8 @@ static inline void nss_core_handle_paged
+@@ -2089,7 +2133,8 @@ static inline void nss_core_handle_paged
  	/*
  	 * Check how many empty buffers could be filled in queue
  	 */
@@ -267,7 +267,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	NSS_CORE_DSB();
  	nss_index = if_map->h2n_nss_index[NSS_IF_H2N_EMPTY_PAGED_BUFFER_QUEUE];
  
-@@ -2652,9 +2697,11 @@ void nss_skb_reuse(struct sk_buff *nbuf)
+@@ -2667,9 +2712,11 @@ void nss_skb_reuse(struct sk_buff *nbuf)
   *	Sends one skb to NSS FW
   */
  static inline int32_t nss_core_send_buffer_simple_skb(struct nss_ctx_instance *nss_ctx,
@@ -281,7 +281,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct h2n_descriptor *desc_ring = desc_if->desc;
  	struct h2n_descriptor *desc;
  	uint16_t bit_flags;
-@@ -2708,7 +2755,8 @@ static inline int32_t nss_core_send_buff
+@@ -2723,7 +2770,8 @@ static inline int32_t nss_core_send_buff
  		(nss_ptr_t)nbuf, (uint16_t)(nbuf->data - nbuf->head), nbuf->len,
  		sz, (uint32_t)nbuf->priority, mss, bit_flags);
  
@@ -291,7 +291,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	/*
  	 * We are done using the skb fields and can reuse it now
-@@ -2732,7 +2780,8 @@ no_reuse:
+@@ -2747,7 +2795,8 @@ no_reuse:
  		(nss_ptr_t)nbuf, (uint16_t)(nbuf->data - nbuf->head), nbuf->len,
  		(uint16_t)skb_end_offset(nbuf), (uint32_t)nbuf->priority, mss, bit_flags);
  
@@ -301,7 +301,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_SIMPLE]);
  	return 1;
-@@ -2746,9 +2795,11 @@ no_reuse:
+@@ -2761,9 +2810,11 @@ no_reuse:
   * Used to differentiate from FRAGLIST
   */
  static inline int32_t nss_core_send_buffer_nr_frags(struct nss_ctx_instance *nss_ctx,
@@ -315,7 +315,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct h2n_descriptor *desc_ring = desc_if->desc;
  	struct h2n_descriptor *desc;
  	const skb_frag_t *frag;
-@@ -2788,7 +2839,8 @@ static inline int32_t nss_core_send_buff
+@@ -2803,7 +2854,8 @@ static inline int32_t nss_core_send_buff
  		(nss_ptr_t)NULL, nbuf->data - nbuf->head, nbuf->len - nbuf->data_len,
  		skb_end_offset(nbuf), (uint32_t)nbuf->priority, mss, bit_flags | H2N_BIT_FLAG_FIRST_SEGMENT);
  
@@ -325,7 +325,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	/*
  	 * Now handle rest of the fragments.
-@@ -2812,7 +2864,8 @@ static inline int32_t nss_core_send_buff
+@@ -2827,7 +2879,8 @@ static inline int32_t nss_core_send_buff
  			(nss_ptr_t)NULL, 0, skb_frag_size(frag), skb_frag_size(frag),
  			nbuf->priority, mss, bit_flags);
  
@@ -335,7 +335,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	}
  
  	/*
-@@ -2828,7 +2881,8 @@ static inline int32_t nss_core_send_buff
+@@ -2843,7 +2896,8 @@ static inline int32_t nss_core_send_buff
  	desc->bit_flags &= ~(H2N_BIT_FLAG_DISCARD);
  	desc->opaque = (nss_ptr_t)nbuf;
  
@@ -345,7 +345,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_NR_FRAGS]);
  	return i+1;
-@@ -2842,9 +2896,11 @@ static inline int32_t nss_core_send_buff
+@@ -2857,9 +2911,11 @@ static inline int32_t nss_core_send_buff
   * Used to differentiate from FRAGS
   */
  static inline int32_t nss_core_send_buffer_fraglist(struct nss_ctx_instance *nss_ctx,
@@ -359,7 +359,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	struct h2n_descriptor *desc_ring = desc_if->desc;
  	struct h2n_descriptor *desc;
  	dma_addr_t buffer;
-@@ -2883,7 +2939,8 @@ static inline int32_t nss_core_send_buff
+@@ -2898,7 +2954,8 @@ static inline int32_t nss_core_send_buff
  		(nss_ptr_t)nbuf, nbuf->data - nbuf->head, nbuf->len - nbuf->data_len,
  		skb_end_offset(nbuf), (uint32_t)nbuf->priority, mss, bit_flags | H2N_BIT_FLAG_FIRST_SEGMENT);
  
@@ -369,7 +369,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	/*
  	 * Walk the frag_list in nbuf
-@@ -2936,7 +2993,8 @@ static inline int32_t nss_core_send_buff
+@@ -2951,7 +3008,8 @@ static inline int32_t nss_core_send_buff
  			(nss_ptr_t)iter, iter->data - iter->head, iter->len - iter->data_len,
  			skb_end_offset(iter), iter->priority, mss, bit_flags);
  
@@ -379,7 +379,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  		i++;
  	}
-@@ -2955,7 +3013,8 @@ static inline int32_t nss_core_send_buff
+@@ -2970,7 +3028,8 @@ static inline int32_t nss_core_send_buff
  	 * Update bit flag for last descriptor.
  	 */
  	desc->bit_flags |= H2N_BIT_FLAG_LAST_SEGMENT;
@@ -389,7 +389,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  
  	NSS_PKT_STATS_INC(&nss_ctx->nss_top->stats_drv[NSS_DRV_STATS_TX_FRAGLIST]);
  	return i+1;
-@@ -3034,8 +3093,10 @@ int32_t nss_core_send_buffer(struct nss_
+@@ -3049,8 +3108,10 @@ int32_t nss_core_send_buffer(struct nss_
  		 * We need to work out if there's sufficent space in our transmit descriptor
  		 * ring to place all the segments of a nbuf.
  		 */
@@ -401,7 +401,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  		nss_index = if_map->h2n_nss_index[qid];
  		h2n_desc_ring->nss_index_local = nss_index;
  		count = ((nss_index - hlos_index - 1) + size) & (mask);
-@@ -3100,13 +3161,13 @@ int32_t nss_core_send_buffer(struct nss_
+@@ -3115,13 +3176,13 @@ int32_t nss_core_send_buffer(struct nss_
  	count = 0;
  	if (likely((segments == 0) || is_bounce)) {
  		count = nss_core_send_buffer_simple_skb(nss_ctx, desc_if, if_num,
@@ -418,7 +418,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	}
  
  	if (unlikely(count <= 0)) {
-@@ -3130,7 +3191,8 @@ int32_t nss_core_send_buffer(struct nss_
+@@ -3145,7 +3206,8 @@ int32_t nss_core_send_buffer(struct nss_
  	h2n_desc_ring->hlos_index = hlos_index;
  	if_map->h2n_hlos_index[qid] = hlos_index;
  

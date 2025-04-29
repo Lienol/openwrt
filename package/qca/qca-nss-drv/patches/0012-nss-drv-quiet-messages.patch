@@ -1,6 +1,6 @@
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -518,7 +518,7 @@ static uint32_t nss_soc_mem_info(void)
+@@ -517,7 +517,7 @@ static uint32_t nss_soc_mem_info(void)
  		goto err_use_default_memsize;
  	}
  

@@ -181,14 +181,3 @@
  		err = request_irq(irq, nss_hal_handle_irq, 0, "nss_profile_dma", int_ctx);
  	}
  
---- a/nss_hal/ipq95xx/nss_hal_pvt.c
-+++ b/nss_hal/ipq95xx/nss_hal_pvt.c
-@@ -889,7 +889,7 @@ static int __nss_hal_request_irq(struct
- 		return err;
- 	}
- 
--	netif_napi_add(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
-+	netif_napi_add_weight(&nss_ctx->napi_ndev, &int_ctx->napi, napi_poll_cb, napi_wgt);
- 	int_ctx->cause = cause;
- 	err = request_irq(irq, nss_hal_handle_irq, 0, irq_name, int_ctx);
- 	if (err) {
