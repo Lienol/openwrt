@@ -66,7 +66,7 @@
  
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -2279,7 +2279,7 @@ static void nss_core_handle_cause_nonque
+@@ -2283,7 +2283,7 @@ static void nss_core_handle_cause_nonque
  		nss_core_init_nss(nss_ctx, if_map);
  		nss_send_ddr_info(nss_ctx);
  
@@ -77,7 +77,7 @@
  #ifdef NSS_DRV_C2C_ENABLE
 --- a/nss_hal/nss_hal.c
 +++ b/nss_hal/nss_hal.c
-@@ -89,7 +89,7 @@ int nss_hal_firmware_load(struct nss_ctx
+@@ -83,7 +83,7 @@ int nss_hal_firmware_load(struct nss_ctx
  		return rc;
  	}
  
