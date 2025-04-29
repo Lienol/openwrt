@@ -92,13 +92,30 @@ enable_bridge_filtering() {
   fi
 }
 
+set_front_end() {
+  local get_front_end_mode=${1:-0}
+  local module_conf=/etc/modules.conf
+  [ ! -r "$module_conf" ] && touch "$module_conf"
+  # If "options ecm" exists, modify or append front_end_selection
+  if grep -q "^options ecm" "$module_conf"; then
+    if grep -q "front_end_selection=" "$module_conf"; then
+      sed -i -E "s/(options ecm.*)front_end_selection=[0-9]+/\1front_end_selection=$get_front_end_mode/" "$module_conf"
+    else
+      # Append front_end_selection if missing
+      sed -i -E "s/^(options ecm.*)/\1 front_end_selection=$get_front_end_mode/" "$module_conf"
+    fi
+  else
+    # Add new "options ecm" line
+    echo "options ecm front_end_selection=$get_front_end_mode" >> "$module_conf"
+  fi
+}
+
 load_ecm() {
   [ -d /sys/module/ecm ] || {
     local get_front_end_mode
     get_front_end_mode="$(get_front_end_mode)"
     modinfo ecm | awk '/depends/{gsub(",","\n",$NF);print $NF}' | xargs -r -n 1 modprobe
-    touch /etc/modules.conf
-    grep -q "options ecm" /etc/modules.conf || echo "options ecm front_end_selection=$get_front_end_mode" >> /etc/modules.conf
+    set_front_end $get_front_end_mode
     modprobe ecm
     echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
   }

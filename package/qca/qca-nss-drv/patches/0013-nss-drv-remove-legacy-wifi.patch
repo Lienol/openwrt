@@ -21,7 +21,7 @@
  			nss_wifili_log.o \
 --- a/nss_hal/nss_hal.c
 +++ b/nss_hal/nss_hal.c
-@@ -593,7 +593,9 @@ int nss_hal_probe(struct platform_device
+@@ -587,7 +587,9 @@ int nss_hal_probe(struct platform_device
  	if (npd->wifioffload_enabled == NSS_FEATURE_ENABLED) {
  		nss_top->wifi_handler_id = nss_dev->id;
  		nss_top->dynamic_interface_table[NSS_DYNAMIC_INTERFACE_TYPE_VAP] = nss_dev->id;

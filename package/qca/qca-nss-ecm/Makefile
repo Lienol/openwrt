@@ -1,19 +1,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_RELEASE:=5
+PKG_RELEASE:=6
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-09-02
-PKG_SOURCE_VERSION:=bd5057b
-PKG_MIRROR_HASH:=efaba0cfa986e12b368d1c8666c8553efe8d4f5721893bfdebcdcafc465ee56d
-QSDK_VERSION:=12.5.5
+PKG_SOURCE_DATE:=2024-11-06
+PKG_SOURCE_VERSION:=30fbfa4
+PKG_MIRROR_HASH:=0460127d04a4e91405de36d646de3f0bc886a808b9b3b59a97abe6f150c56e37
+QSDK_VERSION:=12.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
 
 PKG_BUILD_PARALLEL:=1
 PKG_FLAGS:=nonshared
 PKG_BUILD_FLAGS:=gc-sections lto
+
+PKG_CONFIG_DEPENDS:= \
+	CONFIG_NSS_DRV_PPPOE_ENABLE
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
@@ -22,20 +25,21 @@ define KernelPackage/qca-nss-ecm
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
-  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq807x||TARGET_ipq60xx) \
+  DEPENDS:=@(TARGET_qualcommbe||TARGET_qualcommax||TARGET_ipq806x) \
 		   +ethtool \
 		   +kmod-nf-conntrack \
-		   +@NSS_DRV_IPV6_ENABLE \
-		   +@NSS_DRV_VIRT_IF_ENABLE \
+		   +@(TARGET_qualcommax||TARGET_ipq806x):NSS_DRV_IPV6_ENABLE \
+		   +@(TARGET_qualcommax||TARGET_ipq806x):NSS_DRV_VIRT_IF_ENABLE \
+		   +@((TARGET_qualcommax||TARGET_ipq806x)&&PACKAGE_kmod-pppoe):NSS_DRV_PPPOE_ENABLE \
 		   +PACKAGE_kmod-qca-nss-drv:kmod-qca-nss-drv \
 		   +PACKAGE_kmod-qca-mcs:kmod-qca-mcs \
 		   +PACKAGE_kmod-bonding:kmod-bonding \
 		   +PACKAGE_kmod-vxlan:kmod-vxlan \
 		   +PACKAGE_kmod-nat46:kmod-nat46 \
+		   +PACKAGE_kmod-ppp:kmod-ppp \
 		   +PACKAGE_kmod-pppoe:kmod-pppoe \
 		   +PACKAGE_kmod-pppoe:kmod-pptp \
-		   +PACKAGE_kmod-pppoe:kmod-pppol2tp \
-		   +@(PACKAGE_kmod-pppoe):NSS_DRV_PPPOE_ENABLE
+		   +PACKAGE_kmod-pppoe:kmod-pppol2tp
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
   KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
@@ -70,13 +74,15 @@ EXTRA_CFLAGS+= \
 		 -I$(STAGING_DIR)/usr/include/nat46
 
 ifneq (, $(findstring $(CONFIG_TARGET_BOARD), "qualcommax" "ipq60xx"))
-ECM_MAKE_OPTS+=ECM_FRONT_END_NSS_ENABLE=y \
-			   ECM_FRONT_END_SFE_ENABLE=n \
-			   ECM_NON_PORTED_SUPPORT_ENABLE=y \
+ECM_MAKE_OPTS+= ECM_NON_PORTED_SUPPORT_ENABLE=y \
 			   ECM_INTERFACE_VLAN_ENABLE=y \
 			   ECM_CLASSIFIER_MARK_ENABLE=y \
 			   ECM_CLASSIFIER_DSCP_ENABLE=y \
 			   ECM_CLASSIFIER_PCC_ENABLE=n
+endif
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv),)
+ECM_MAKE_OPTS+=ECM_FRONT_END_NSS_ENABLE=y
 endif
 
 # Disable ECM IPv6 support when global IPv6 support is disabled.
@@ -182,7 +188,7 @@ define Build/Compile
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		M="$(PKG_BUILD_DIR)" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-error=unused-function " \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		SoC=$(SOC) \
 		$(KERNEL_MAKE_FLAGS) \
 		$(PKG_JOBS) \

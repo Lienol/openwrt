@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=15
+PKG_RELEASE:=16
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-04-06
-PKG_SOURCE_VERSION:=53a0dc1
-PKG_MIRROR_HASH:=2ee9bb3d23eea442f3f1a77384f54bf14c638e4246fbc2d95291c0e1864ab98e
+PKG_SOURCE_DATE:=2024-11-13
+PKG_SOURCE_VERSION:=d5ee67b
+PKG_MIRROR_HASH:=1b46282732b4746660dfb6136a9bf0cc88dcf6088f9dc5d0aa666dcee12121a2
 QSDK_VERSION:=12.5
 PKG_VERSION:=$(QSDK_VERSION).$(subst -,.,$(PKG_SOURCE_DATE))~$(PKG_SOURCE_VERSION)
 
@@ -79,9 +79,9 @@ define KernelPackage/qca-nss-drv
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@(TARGET_ipq806x||TARGET_qualcommax||TARGET_ipq807x||TARGET_ipq60xx) \
-  				 +!TARGET_ipq806x:kmod-qca-nss-dp \
-  				 +TARGET_qualcommax_ipq807x:nss-firmware-ipq8074
+  DEPENDS:=@(TARGET_ipq806x||TARGET_qualcommax) \
+  				 +TARGET_qualcommax:kmod-qca-nss-dp \
+  				 +TARGET_qualcommax:nss-firmware
   TITLE:=Kernel driver for NSS (core driver)
   FILES:=$(PKG_BUILD_DIR)/qca-nss-drv.ko
   AUTOLOAD:=$(call AutoLoad,32,qca-nss-drv)

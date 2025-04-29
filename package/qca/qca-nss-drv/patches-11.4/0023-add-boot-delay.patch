@@ -9,7 +9,7 @@
  /*
   * nss_core_update_max_ipv4_conn()
   *	Update the maximum number of configured IPv4 connections
-@@ -2187,6 +2189,19 @@ static inline void nss_core_handle_tx_un
+@@ -2192,6 +2194,19 @@ static inline void nss_core_handle_tx_un
  	nss_hal_disable_interrupt(nss_ctx, nss_ctx->int_ctx[0].shift_factor, NSS_N2H_INTR_TX_UNBLOCKED);
  }
  
@@ -29,7 +29,7 @@
  /*
   * nss_core_handle_cause_nonqueue()
   *	Handle non-queue interrupt causes (e.g. empty buffer SOS, Tx unblocked)
-@@ -2255,6 +2270,9 @@ static void nss_core_handle_cause_nonque
+@@ -2260,6 +2275,9 @@ static void nss_core_handle_cause_nonque
  #endif
  #endif
  	}

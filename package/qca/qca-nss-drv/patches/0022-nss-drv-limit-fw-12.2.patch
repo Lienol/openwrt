@@ -95,7 +95,7 @@
  
 --- a/exports/nss_wifili_if.h
 +++ b/exports/nss_wifili_if.h
-@@ -1444,8 +1444,10 @@ struct nss_wifili_rx_ctrl_stats {
+@@ -1496,8 +1496,10 @@ struct nss_wifili_rx_ctrl_stats {
  	uint32_t bcast_rcv_bytes;		/**< Total number of broadcast bytes received. */
  	uint32_t defrag_mcast_drop;		/**< Total number of defrag multicast dropped packets. */
  	uint32_t mcast_3addr_drop;		/**< Total number of 3 address multicast dropped packets. */
@@ -106,7 +106,7 @@
  };
  
  /**
-@@ -1457,8 +1459,10 @@ struct nss_wifili_retry_ctrl_stats {
+@@ -1509,8 +1511,10 @@ struct nss_wifili_retry_ctrl_stats {
  	uint32_t tx_retry_count;		/**< Transmit retry count. */
  	uint32_t tx_multiple_retry_count;	/**< Transmit multiple retry count. */
  	uint32_t rx_retry_count;		/**< Receive retry count. */

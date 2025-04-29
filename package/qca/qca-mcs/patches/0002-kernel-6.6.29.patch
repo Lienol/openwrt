@@ -1,6 +1,6 @@
 --- a/mc_osdep.h
 +++ b/mc_osdep.h
-@@ -24,7 +24,11 @@
+@@ -25,7 +25,11 @@
  #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
  static inline int os_br_pass_frame_up(struct sk_buff *skb)
  {
