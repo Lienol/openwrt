@@ -93,6 +93,12 @@ define U-Boot/Bananapro
   BUILD_DEVICES:=lemaker_bananapro
 endef
 
+define U-Boot/beelink_x2
+  BUILD_SUBTARGET:=cortexa7
+  NAME:=Beelink X2 (H3)
+  BUILD_DEVICES:=roofull_beelink-x2
+endef
+
 define U-Boot/Cubieboard
   BUILD_SUBTARGET:=cortexa8
   NAME:=Cubieboard
@@ -389,6 +395,7 @@ UBOOT_TARGETS := \
 	bananapi_p2_zero \
 	Bananapi_M2_Ultra \
 	Bananapro \
+	beelink_x2 \
 	Cubieboard \
 	Cubieboard2 \
 	Cubietruck \
