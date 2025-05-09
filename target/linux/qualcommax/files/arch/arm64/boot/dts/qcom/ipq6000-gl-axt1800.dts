@@ -21,10 +21,6 @@
 	model = "GL Technologies, Inc. AXT1800";
 	compatible = "glinet,gl-axt1800", "qcom,ipq6018", "qcom,ipq6018-cp03";
 
-	aliases {
-		sdhc0 = &sdhc_1;
-	};
-
 	V30:V30 {
 		compatible = "regulator-fixed";
 		regulator-name = "vmmc-supply";
@@ -112,7 +108,7 @@
 	status = "okay";
 };
 
-&sdhc_1 {
+&sdhc {
 	pinctrl-0 = <&sd_pins>;
 	pinctrl-names = "default";
 	cd-gpios = <&tlmm 62 1>;
