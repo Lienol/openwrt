@@ -13,7 +13,7 @@
 	};
 };
 
-&sdhc_1 {
+&sdhc {
 	status = "okay";
 
 	// reference: https://github.com/openwrt/openwrt/blob/c1ad783/target/linux/qualcommax/files/arch/arm64/boot/dts/qcom/ipq8072-301w.dts#L311-L317
