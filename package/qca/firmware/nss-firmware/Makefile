@@ -8,10 +8,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=nss-firmware
-PKG_SOURCE_DATE:=2024-08-04
-PKG_SOURCE_VERSION:=794fe3732fca4ef9b74e7be6f621d160d831b636
-PKG_MIRROR_HASH:=a3bb68bd729469470cbccd538d7fc529acabad46a2c9aa2ad6bb19fb05f01b45
-PKG_RELEASE:=2
+PKG_SOURCE_DATE:=2025-05-01
+PKG_SOURCE_VERSION:=e4726900138b3e77fbbeaa32e58aa40a66d6b01a
+PKG_MIRROR_HASH:=3ec87f221e8905d4b6b8b3d207b7f7c4666c3bc8db7c1f06d4ae2e78f863b8f4
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/qosmio/qca-sdk-nss-fw.git
@@ -84,7 +84,6 @@ define Package/nss-firmware/config
 
     config NSS_FIRMWARE_VERSION_12_2
           bool "NSS Firmware 12.2 Release 161"
-          depends on !TARGET_qualcommax_ipq50xx
           help
                This version does NOT work with NSS MESH (802.11s)
 
@@ -101,32 +100,39 @@ define Package/nss-firmware/config
   endmenu
 endef
 
+define nss-firmware-version
 ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_11_4),)
-   NSS_MAJOR=11
-   NSS_MINOR=4
-   NSS_REL=6
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_$(NSS_MAJOR).$(NSS_MINOR)/CS
+   override NSS_MAJOR=11
+   override NSS_MINOR=4
+   override NSS_REL=6
+   override VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2021.SPF_11.4/CS
 else ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_1),)
-   NSS_MAJOR=12
-   NSS_MINOR=1
-   NSS_REL=003
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
+   override NSS_MAJOR=12
+   override NSS_MINOR=1
+   override NSS_REL=003
+   override VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_12.1/ED1
 else ifneq ($(CONFIG_NSS_FIRMWARE_VERSION_12_2),)
-   NSS_MAJOR=12
-   NSS_MINOR=2
-   NSS_REL=161
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
+   override NSS_MAJOR=12
+   override NSS_MINOR=2
+   ifeq ($(1),IPQ5018)
+      override NSS_REL=156
+   else
+      override NSS_REL=161
+   endif
+   override VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2022.SPF_12.2/ED1
 else
-   NSS_MAJOR=12
-   NSS_MINOR=5
-   NSS_REL=210
-   VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2024.SPF_$(NSS_MAJOR).$(NSS_MINOR)/ED1
+   override NSS_MAJOR=12
+   override NSS_MINOR=5
+   override NSS_REL=210
+   override VERSION_PATH=$(PKG_BUILD_DIR)/QCA_Networking_2024.SPF_12.5/ED1
 endif
+endef
 
 define Build/Compile
 endef
 
 define Package/nss-firmware-common/install
+	$(eval $(call nss-firmware-version,$(IPQ_PLATFORM)))
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/$(IPQ_PLATFORM)
 	$(TAR) --strip-components=1 -C $(PKG_BUILD_DIR)/$(IPQ_PLATFORM) -xf \
 		$(VERSION_PATH)/$(IPQ_PLATFORM).ATH.$(NSS_MAJOR).$(NSS_MINOR)/BIN-NSS*.$(NSS_MAJOR).$(NSS_MINOR)*-$(NSS_REL)*$(NSS_PROFILE).tar.bz2

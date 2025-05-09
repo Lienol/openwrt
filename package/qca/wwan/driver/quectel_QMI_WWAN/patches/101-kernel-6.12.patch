@@ -1,0 +1,98 @@
+--- a/rmnet_nss.c
++++ b/rmnet_nss.c
+@@ -259,7 +259,9 @@ static int rmnet_nss_adjust_header(struc
+ 
+ 	/* subtract to account for skb_push */
+ 	skb->len -= bytes;
+-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
++	frag->offset += bytes;
++#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+ 	frag->bv_offset += bytes;
+ #else
+ 	frag->page_offset += bytes;
+@@ -277,7 +279,7 @@ static int rmnet_nss_adjust_header(struc
+  * handle it. Remove the ethernet header and pass it onward to the stack
+  * if possible.
+  */
+-void rmnet_nss_receive(struct net_device *dev, struct sk_buff *skb,
++static void rmnet_nss_receive(struct net_device *dev, struct sk_buff *skb,
+ 		       struct napi_struct *napi)
+ {
+ 	rmnet_nss_inc_stat(RMNET_NSS_EXCEPTIONS);
+@@ -331,7 +333,7 @@ drop:
+  * we add a dummy ethernet header with the approriate protocol field set,
+  * the pass the packet off to NSS for hardware acceleration.
+  */
+-int rmnet_nss_tx(struct sk_buff *skb)
++static int rmnet_nss_tx(struct sk_buff *skb)
+ {
+ 	struct ethhdr *eth;
+ 	struct rmnet_nss_ctx *ctx;
+@@ -402,7 +404,7 @@ fail:
+  * We need to pull the header off and invoke our ndo_start_xmit function
+  * to handle transmitting the packet to the network stack.
+  */
+-void rmnet_nss_xmit(struct net_device *dev, struct sk_buff *skb)
++static void rmnet_nss_xmit(struct net_device *dev, struct sk_buff *skb)
+ {
+ 	int rc;
+ 
+@@ -432,7 +434,7 @@ void rmnet_nss_xmit(struct net_device *d
+ }
+ 
+ /* Create and register an NSS context for an rmnet_data device */
+-int rmnet_nss_create_vnd(struct net_device *dev)
++static int rmnet_nss_create_vnd(struct net_device *dev)
+ {
+ 	struct rmnet_nss_ctx *ctx;
+ 
+@@ -454,7 +456,7 @@ int rmnet_nss_create_vnd(struct net_devi
+ }
+ 
+ /* Unregister and destroy the NSS context for an rmnet_data device */
+-int rmnet_nss_free_vnd(struct net_device *dev)
++static int rmnet_nss_free_vnd(struct net_device *dev)
+ {
+ 	struct rmnet_nss_ctx *ctx;
+ 
+@@ -470,7 +472,7 @@ static struct rmnet_nss_cb rmnet_nss = {
+ 	.nss_tx = rmnet_nss_tx,
+ };
+ 
+-int __init rmnet_nss_init(void)
++static int __init rmnet_nss_init(void)
+ {
+ 	pr_err("%s(): initializing rmnet_nss\n", __func__);
+ 	RCU_INIT_POINTER(rmnet_nss_callbacks, &rmnet_nss);
+@@ -478,7 +480,7 @@ int __init rmnet_nss_init(void)
+ 	return 0;
+ }
+ 
+-void __exit rmnet_nss_exit(void)
++static void __exit rmnet_nss_exit(void)
+ {
+ 	struct hlist_node *tmp;
+ 	struct rmnet_nss_ctx *ctx;
+--- a/qmi_wwan_q.c
++++ b/qmi_wwan_q.c
+@@ -1465,7 +1465,7 @@ typedef struct {
+ } BRMAC_SETTING;
+ #endif
+ 
+-int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size) {
++static int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size) {
+ 	struct net_device *netdev = to_net_dev(dev);
+ 	struct usbnet * usbnetdev = netdev_priv( netdev );
+ 	struct qmi_wwan_state *info = (void *)&usbnetdev->data;
+@@ -2007,8 +2007,8 @@ static void ql_net_get_drvinfo(struct ne
+ {
+ 	/* Inherit standard device info */
+ 	usbnet_get_drvinfo(net, info);
+-	strlcpy(info->driver, driver_name, sizeof(info->driver));
+-	strlcpy(info->version, VERSION_NUMBER, sizeof(info->version));
++	strscpy(info->driver, driver_name, sizeof(info->driver));
++	strscpy(info->version, VERSION_NUMBER, sizeof(info->version));
+ }
+ 
+ static struct ethtool_ops ql_net_ethtool_ops;

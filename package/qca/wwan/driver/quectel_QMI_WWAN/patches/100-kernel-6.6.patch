@@ -9,7 +9,7 @@
  #define CONFIG_QCA_NSS_DRV
  //#define CONFIG_QCA_NSS_PACKET_FILTER
  #endif
-@@ -846,12 +846,20 @@ static struct rtnl_link_stats64 *_rmnet_
+@@ -847,12 +847,20 @@ static struct rtnl_link_stats64 *_rmnet_
  		stats64 = per_cpu_ptr(dev->stats64, cpu);
  
  		do {
@@ -30,7 +30,7 @@
  
          stats->rx_packets += u64_stats_read(&rx_packets);
  		stats->rx_bytes += u64_stats_read(&rx_bytes);
-@@ -2588,7 +2585,6 @@ static void qmap_qmi_wwan_disconnect(str
+@@ -2644,7 +2652,6 @@ static void qmap_qmi_wwan_disconnect(str
  static struct usb_driver qmi_wwan_driver = {
  	.name		      = "qmi_wwan_q",
  	.id_table	      = products,

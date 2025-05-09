@@ -1,7 +1,7 @@
 --- a/match/nss_match_cmd.c
 +++ b/match/nss_match_cmd.c
 @@ -127,29 +127,30 @@ static enum nss_match_profile_type nss_m
- static int nss_match_cmd_procfs_config_handler(struct ctl_table *ctl, int write, void __user *buffer, size_t *lenp, loff_t *ppos)
+ static int nss_match_cmd_procfs_config_handler(compat_const struct ctl_table *ctl, int write, void __user *buffer, size_t *lenp, loff_t *ppos)
  {
  	char *command_str, *token, *param, *value;
 -	char *input_msg, *input_msg_orig;

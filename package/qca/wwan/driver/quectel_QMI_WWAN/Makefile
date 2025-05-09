@@ -20,11 +20,15 @@ PKG_BUILD_FLAGS:=gc-sections lto
 define KernelPackage/qmi_wwan_q
   SUBMENU:=WWAN Support
   TITLE:=Quectel Linux USB QMI WWAN Driver
-  DEPENDS:=+kmod-usb-net +kmod-usb-wdm +kmod-qca-nss-drv +@NSS_DRV_RMNET_ENABLE
+  DEPENDS:=@(TARGET_qualcommax_ipq807x||TARGET_qualcommax_ipq50xx) \
+	    +kmod-usb-net \
+	    +kmod-usb-wdm \
+	    +kmod-qca-nss-drv \
+	    +@NSS_DRV_RMNET_ENABLE
   FILES:=$(PKG_BUILD_DIR)/qmi_wwan_q.ko \
-  			 $(PKG_BUILD_DIR)/rmnet_nss.ko
+	    $(PKG_BUILD_DIR)/rmnet_nss.ko
   AUTOLOAD:=$(call AutoLoad,42,rmnet_nss) \
-  					$(call AutoLoad,81,qmi_wwan_q)
+	    $(call AutoLoad,81,qmi_wwan_q)
 endef
 
 define KernelPackage/qmi_wwan_q/description
