@@ -1,0 +1,120 @@
+--- a/mc_forward.c
++++ b/mc_forward.c
+@@ -29,6 +29,9 @@
+ #include "mc_snooping.h"
+ #include "mc_osdep.h"
+ 
++int mc_forward_init(void) __maybe_unused;
++void mc_forward_exit(void) __maybe_unused;
++
+ static void mc_retag(void *iph, __be16 etype, __be32 dscp)
+ {
+ 	__be32 _dscp = MC_DSCP(dscp);
+--- a/mc_netfilter.c
++++ b/mc_netfilter.c
+@@ -26,6 +26,7 @@
+ #include "mc_private.h"
+ #include "mc_api.h"
+ #include "mc_osdep.h"
++#include "mc_netfilter.h"
+ 
+ /* mc_br_port_get
+  *	get bridge port by ifindex
+@@ -49,15 +50,15 @@ static struct net_bridge_port *mc_br_por
+ /* mc_pre_routing_hook
+  *	prerouting hook
+  */
+-static unsigned int mc_pre_routing_hook(void *priv,
++unsigned int mc_pre_routing_hook(void *priv,
+ 				    struct sk_buff *skb,
+ 				    const struct nf_hook_state *state)
+ #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
+-static unsigned int mc_pre_routing_hook(const struct nf_hook_ops *ops, struct sk_buff *skb,
++unsigned int mc_pre_routing_hook(const struct nf_hook_ops *ops, struct sk_buff *skb,
+ 					const struct net_device *in, const struct net_device *out,
+ 					int(*okfn)(struct sk_buff *))
+ #else
+-static unsigned int mc_pre_routing_hook(unsigned int hooknum, struct sk_buff *skb,
++unsigned int mc_pre_routing_hook(unsigned int hooknum, struct sk_buff *skb,
+ 					const struct net_device *in, const struct net_device *out,
+ 					int(*okfn)(struct sk_buff *))
+ #endif
+@@ -233,15 +234,15 @@ static bool mc_is_report_or_leave(struct
+ /* mc_forward_hook
+  *	forward hook to the linux kernel
+  */
+-static unsigned int mc_forward_hook(void *priv,
++unsigned int mc_forward_hook(void *priv,
+ 				    struct sk_buff *skb,
+ 				    const struct nf_hook_state *state)
+ #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
+-static unsigned int mc_forward_hook(const struct nf_hook_ops *ops, struct sk_buff *skb,
++unsigned int mc_forward_hook(const struct nf_hook_ops *ops, struct sk_buff *skb,
+ 		const struct net_device *in, const struct net_device *out,
+ 		int(*okfn)(struct sk_buff *))
+ #else
+-static unsigned int mc_forward_hook(unsigned int hooknum, struct sk_buff *skb,
++unsigned int mc_forward_hook(unsigned int hooknum, struct sk_buff *skb,
+ 		const struct net_device *in, const struct net_device *out,
+ 		int(*okfn)(struct sk_buff *))
+ #endif
+--- a/mc_netfilter.h
++++ b/mc_netfilter.h
+@@ -23,7 +23,15 @@ void mc_netfilter_exit(void);
+ #include <linux/netfilter.h>
+ #include <linux/netdevice.h>
+ 
+-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 3, 0))
++unsigned int mc_pre_routing_hook(void *priv,
++				    struct sk_buff *skb,
++				    const struct nf_hook_state *state);
++
++unsigned int mc_forward_hook(void *priv,
++				    struct sk_buff *skb,
++				    const struct nf_hook_state *state);
++#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
+ unsigned int mc_pre_routing_hook(const struct nf_hook_ops *ops, struct sk_buff *skb,
+ 				 const struct net_device *in, const struct net_device *out,
+ 				 int(*okfn)(struct sk_buff *));
+--- a/mc_snooping.c
++++ b/mc_snooping.c
+@@ -15,6 +15,7 @@
+  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
++#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
+@@ -28,7 +29,11 @@
+ #include <linux/etherdevice.h>
+ #include <linux/rculist.h>
+ #include <linux/timer.h>
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
++#include <linux/unaligned.h>
++#else
+ #include <asm/unaligned.h>
++#endif
+ #include <asm/atomic.h>
+ #include <linux/random.h>
+ #include <net/ip.h>
+@@ -3240,7 +3245,6 @@ static void mc_acl_table_init(struct mc_
+ 	mc->mld_acl.pattern_count = 4;
+ #endif
+ 
+-	return;
+ }
+ 
+ /* mc_event_delay
+--- a/mc_snooping.h
++++ b/mc_snooping.h
+@@ -44,6 +44,8 @@ void mc_detach(struct net_device *dev);
+ 
+ int mc_has_more_instance(void);
+ 
++int mc_proc_create_snooper_entry(void);
++
+ extern void mc_nbp_change(struct mc_struct *mc, struct net_device *dev, int event);
+ 
+ extern void mc_fdb_change(__u8 *mac, int change);

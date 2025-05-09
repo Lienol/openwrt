@@ -1,6 +1,6 @@
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -2294,12 +2294,16 @@ static void nss_core_handle_cause_nonque
+@@ -2278,12 +2278,16 @@ static void nss_core_handle_cause_nonque
  	 * of processor will prevent any excessive penalties.
  	 */
  	if (unlikely(nss_ctx->state == NSS_CORE_STATE_UNINITIALIZED)) {
@@ -30,16 +30,6 @@
  		nss_warning("Failed to create qca-nss-drv/stats/edma/%d/err_stats file", 0);
  		return;
  	}
---- a/nss_n2h.c
-+++ b/nss_n2h.c
-@@ -2122,6 +2122,7 @@ nss_tx_status_t nss_n2h_flush_payloads(s
- 	nss_tx_status_t nss_tx_status;
- 
- 	nnflshpl = &nnm.msg.flush_payloads;
-+	nnflshpl->reserved = 0;
- 
- 	/*
- 	 * TODO: No additional information sent in message
 --- a/nss_match.c
 +++ b/nss_match.c
 @@ -244,7 +244,7 @@ EXPORT_SYMBOL(nss_match_unregister_insta
@@ -93,20 +83,7 @@
   * nss_match_unregister_instance
 --- a/nss_lag.c
 +++ b/nss_lag.c
-@@ -18,11 +18,9 @@
-  * nss_tx_rx_lag.c
-  *	NSS LAG Tx APIs
-  */
--
--#include <linux/if_bonding.h>
--
- #include "nss_tx_rx_common.h"
- #include "nss_lag_log.h"
-+#include <linux/if_bonding.h>
- 
- #define NSS_LAG_RESP_TIMEOUT 60000	/* 60 Sec */
- 
-@@ -237,7 +235,7 @@ nss_tx_status_t nss_lag_tx_slave_state(u
+@@ -237,7 +237,7 @@ nss_tx_status_t nss_lag_tx_slave_state(u
  	struct nss_lag_pvt lag_msg_state;
  
  	init_completion(&lag_msg_state.complete);
@@ -115,7 +92,7 @@
  
  	/*
  	 * Construct a message to the NSS to update it
-@@ -268,6 +266,6 @@ nss_tx_status_t nss_lag_tx_slave_state(u
+@@ -268,6 +268,6 @@ nss_tx_status_t nss_lag_tx_slave_state(u
  		return NSS_TX_FAILURE;
  	}
  

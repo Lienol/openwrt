@@ -1,0 +1,398 @@
+--- a/v2.0/src/nss_crypto_ctrl.c
++++ b/v2.0/src/nss_crypto_ctrl.c
+@@ -833,7 +833,7 @@ void nss_crypto_process_event(void *app_
+  * nss_crypto_free()
+  *	Free crypto context
+  */
+-void nss_crypto_free(struct nss_crypto_ctx *ctx)
++static void nss_crypto_free(struct nss_crypto_ctx *ctx)
+ {
+ 	struct nss_crypto_ctrl *ctrl = &g_control;
+ 	int32_t status;
+@@ -893,7 +893,7 @@ free:
+  * possible that the host to NSS queue is busy in which
+  * case we need to retry.
+  */
+-void nss_crypto_delayed_free(struct work_struct *work)
++static void nss_crypto_delayed_free(struct work_struct *work)
+ {
+ 	struct nss_crypto_ctrl *ctrl = &g_control;
+ 	struct nss_crypto_ctx *ctx;
+@@ -1244,7 +1244,7 @@ void nss_crypto_engine_free(struct nss_c
+  * nss_crypto_ndev_setup()
+  *	setup the dummy netdevice
+  */
+-void nss_crypto_ndev_setup(struct net_device *dev)
++static void nss_crypto_ndev_setup(struct net_device *dev)
+ {
+ 	nss_crypto_info("%px: dummy netdevice for crypto\n", dev);
+ }
+@@ -1575,11 +1575,10 @@ static int nss_crypto_device_probe(struc
+  * nss_crypto_device_remove()
+  *	remove crypto device and deregister everything
+  */
+-static int nss_crypto_device_remove(struct platform_device *pdev)
++static void nss_crypto_device_remove(struct platform_device *pdev)
+ {
+ 	nss_crypto_hw_deinit(pdev);
+ 	nss_crypto_node_free(platform_get_drvdata(pdev));
+-	return 0;
+ };
+ 
+ /*
+@@ -1588,7 +1587,11 @@ static int nss_crypto_device_remove(stru
+  */
+ static struct platform_driver nss_crypto_device = {
+ 	.probe		= nss_crypto_device_probe,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
++	.remove_new	= nss_crypto_device_remove,
++#else
+ 	.remove		= nss_crypto_device_remove,
++#endif
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "nss-crypto-device",
+@@ -1656,7 +1659,7 @@ static int nss_crypto_probe(struct platf
+  * nss_crypto_remove()
+  *	remove the crypto driver
+  */
+-static int nss_crypto_remove(struct platform_device *pdev)
++static void nss_crypto_remove(struct platform_device *pdev)
+ {
+ 	struct nss_crypto_ctrl *ctrl = platform_get_drvdata(pdev);
+ 
+@@ -1670,7 +1673,6 @@ static int nss_crypto_remove(struct plat
+ 	 * Clear the active state of driver
+ 	 */
+ 	ctrl->active = false;
+-	return 0;
+ }
+ 
+ /*
+@@ -1679,7 +1681,11 @@ static int nss_crypto_remove(struct plat
+  */
+ static struct platform_driver nss_crypto_drv = {
+ 	.probe		= nss_crypto_probe,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
++	.remove_new	= nss_crypto_remove,
++#else
+ 	.remove		= nss_crypto_remove,
++#endif
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "nss-crypto",
+@@ -1691,7 +1697,7 @@ static struct platform_driver nss_crypto
+  * nss_crypto_delayed_probe()
+  * 	delayed sequence to initialize crypto after NSS FW is initialized
+  */
+-void nss_crypto_delayed_probe(struct work_struct *work)
++static void nss_crypto_delayed_probe(struct work_struct *work)
+ {
+ 	struct nss_crypto_ctrl *ctrl;
+ 	struct nss_crypto_user *user;
+--- a/v2.0/tool/nss_crypto_bench.c
++++ b/v2.0/tool/nss_crypto_bench.c
+@@ -717,7 +717,7 @@ static int32_t crypto_bench_prep_buf(str
+ 	return CRYPTO_BENCH_OK;
+ }
+ 
+-void crypto_bench_mcmp(void)
++static void crypto_bench_mcmp(void)
+ {
+ 	struct crypto_op *op;
+ 	struct list_head *ptr;
+@@ -844,7 +844,7 @@ static int crypto_bench_tx(void *arg)
+ /*
+  * Context should be ATOMIC
+  */
+-void crypto_bench_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t error)
++static void crypto_bench_done(void *app_data, struct nss_crypto_hdr *ch, uint8_t error)
+ {
+ 	struct nss_crypto_buf *buf;
+ 	struct crypto_op *op;
+@@ -914,7 +914,7 @@ static const struct file_operations cmd_
+ 	.write = crypto_bench_cmd_write,
+ };
+ 
+-void  crypto_bench_attach(void *app_data, struct nss_crypto_user *user)
++static void crypto_bench_attach(void *app_data, struct nss_crypto_user *user)
+ {
+ 	spin_lock_init(&op_lock);
+ 
+@@ -960,13 +960,13 @@ void  crypto_bench_attach(void *app_data
+ 	debugfs_create_u32("enqueue_errors", CRYPTO_BENCH_PERM_RO, droot, &param.tx_err);
+ }
+ 
+-void crypto_bench_detach(void *app_data, struct nss_crypto_user *user)
++static void crypto_bench_detach(void *app_data, struct nss_crypto_user *user)
+ {
+ 	crypto_bench_flush();
+ 	kmem_cache_destroy(crypto_op_zone);
+ }
+ 
+-int __init crypto_bench_init(void)
++static int __init crypto_bench_init(void)
+ {
+ 	ctx = kmalloc(sizeof(struct nss_crypto_user_ctx), GFP_KERNEL);
+ 	if (!ctx) {
+@@ -980,7 +980,7 @@ int __init crypto_bench_init(void)
+ 
+ 	ctx->attach = crypto_bench_attach;
+ 	ctx->detach = crypto_bench_detach;
+-	strlcpy(ctx->name, "bench", sizeof(ctx->name));
++	strscpy(ctx->name, "bench", sizeof(ctx->name));
+ 	ctx->hdr_pool_sz = 1024;
+ 	ctx->default_hdr_sz = 512;
+ 	ctx->timeout_ticks = 1;
+@@ -991,7 +991,7 @@ int __init crypto_bench_init(void)
+ 	return 0;
+ }
+ 
+-void __exit crypto_bench_exit(void)
++static void __exit crypto_bench_exit(void)
+ {
+ 	crypto_bench_info("Crypto bench unloaded\n");
+ 
+--- a/v2.0/src/hal/ipq60xx/nss_crypto_eip197.h
++++ b/v2.0/src/hal/ipq60xx/nss_crypto_eip197.h
+@@ -19,7 +19,9 @@
+ #ifndef __NSS_CRYPTO_EIP197_H
+ #define __NSS_CRYPTO_EIP197_H
+ 
++#include <linux/of_platform.h>
+ #include <linux/types.h>
++#include <linux/fs.h>
+ 
+ /*
+  * Common configuration data for command and result
+--- a/v2.0/src/hal/ipq60xx/nss_crypto_hw.c
++++ b/v2.0/src/hal/ipq60xx/nss_crypto_hw.c
+@@ -15,8 +15,10 @@
+  * PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
++#include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include "nss_crypto_eip197.h"
++#include "nss_crypto_hw.h"
+ 
+ /*
+  * nss_crypto_hw_deinit()
+@@ -27,7 +29,6 @@ void nss_crypto_hw_deinit(struct platfor
+ 	/*
+ 	 * TODO: Add support for putting HW into reset
+ 	 */
+-	return;
+ }
+ 
+ /*
+--- a/v2.0/src/hal/ipq60xx/nss_crypto_eip197.c
++++ b/v2.0/src/hal/ipq60xx/nss_crypto_eip197.c
+@@ -455,7 +455,7 @@ free:
+  * nss_crypto_eip197_ctx_fill()
+  *	Fill context record specific information
+  */
+-int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
++static int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
+ 				struct nss_crypto_cmn_ctx *msg)
+ {
+ 	if (data->algo > NSS_CRYPTO_CMN_ALGO_MAX)
+@@ -477,7 +477,7 @@ int nss_crypto_eip197_ctx_fill(struct ns
+  * nss_crypto_eip197_engine_init()
+  *	allocate & initialize engine
+  */
+-int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
++static int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
+ 				struct resource *res, uint32_t offset)
+ {
+ 	struct nss_crypto_node *node = platform_get_drvdata(pdev);
+@@ -545,7 +545,7 @@ int nss_crypto_eip197_engine_init(struct
+  * nss_crypto_eip197_node_init()
+  *	allocate & initialize eip197 node
+  */
+-int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
++static int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
+ {
+ 	struct device_node *np = of_node_get(pdev->dev.of_node);
+ 	struct nss_crypto_node *node;
+--- a/v2.0/src/hal/ipq807x/nss_crypto_eip197.h
++++ b/v2.0/src/hal/ipq807x/nss_crypto_eip197.h
+@@ -20,6 +20,8 @@
+ #define __NSS_CRYPTO_EIP197_H
+ 
+ #include <linux/types.h>
++#include <linux/fs.h>
++#include <linux/of_platform.h>
+ 
+ /*
+  * Common configuration data for command and result
+--- a/v2.0/src/hal/ipq807x/nss_crypto_hw.c
++++ b/v2.0/src/hal/ipq807x/nss_crypto_hw.c
+@@ -15,8 +15,10 @@
+  * PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
++#include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include "nss_crypto_eip197.h"
++#include "nss_crypto_hw.h"
+ 
+ /*
+  * nss_crypto_hw_deinit()
+@@ -27,7 +29,6 @@ void nss_crypto_hw_deinit(struct platfor
+ 	/*
+ 	 * TODO: Add support for putting HW into reset
+ 	 */
+-	return;
+ }
+ 
+ /*
+--- a/v2.0/src/hal/ipq95xx/nss_crypto_eip197.h
++++ b/v2.0/src/hal/ipq95xx/nss_crypto_eip197.h
+@@ -20,6 +20,7 @@
+ #define __NSS_CRYPTO_EIP197_H
+ 
+ #include <linux/types.h>
++#include <linux/fs.h>
+ 
+ /*
+  * Common configuration data for command and result
+--- a/v2.0/src/hal/ipq95xx/nss_crypto_hw.c
++++ b/v2.0/src/hal/ipq95xx/nss_crypto_hw.c
+@@ -16,8 +16,10 @@
+  * PERFORMANCE OF THIS SOFTWARE.
+  */
+ 
++#include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include "nss_crypto_eip197.h"
++#include "nss_crypto_hw.h"
+ 
+ /*
+  * nss_crypto_hw_deinit()
+@@ -28,7 +30,6 @@ void nss_crypto_hw_deinit(struct platfor
+ 	/*
+ 	 * TODO: Add support for putting HW into reset
+ 	 */
+-	return;
+ }
+ 
+ /*
+--- a/v2.0/src/hal/ipq807x/nss_crypto_eip197.c
++++ b/v2.0/src/hal/ipq807x/nss_crypto_eip197.c
+@@ -455,7 +455,7 @@ free:
+  * nss_crypto_eip197_ctx_fill()
+  *	Fill context record specific information
+  */
+-int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
++static int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
+ 				struct nss_crypto_cmn_ctx *msg)
+ {
+ 	if (data->algo > NSS_CRYPTO_CMN_ALGO_MAX)
+@@ -477,7 +477,7 @@ int nss_crypto_eip197_ctx_fill(struct ns
+  * nss_crypto_eip197_engine_init()
+  *	allocate & initialize engine
+  */
+-int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
++static int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
+ 				struct resource *res, uint32_t offset)
+ {
+ 	struct nss_crypto_node *node = platform_get_drvdata(pdev);
+@@ -545,7 +545,7 @@ int nss_crypto_eip197_engine_init(struct
+  * nss_crypto_eip197_node_init()
+  *	allocate & initialize eip197 node
+  */
+-int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
++static int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
+ {
+ 	struct device_node *np = of_node_get(pdev->dev.of_node);
+ 	struct nss_crypto_node *node;
+--- a/v2.0/src/hal/ipq95xx/nss_crypto_eip197.c
++++ b/v2.0/src/hal/ipq95xx/nss_crypto_eip197.c
+@@ -456,7 +456,7 @@ free:
+  * nss_crypto_eip197_ctx_fill()
+  *	Fill context record specific information
+  */
+-int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
++static int nss_crypto_eip197_ctx_fill(struct nss_crypto_ctx *ctx, struct nss_crypto_session_data *data,
+ 				struct nss_crypto_cmn_ctx *msg)
+ {
+ 	if (data->algo > NSS_CRYPTO_CMN_ALGO_MAX)
+@@ -478,7 +478,7 @@ int nss_crypto_eip197_ctx_fill(struct ns
+  * nss_crypto_eip197_engine_init()
+  *	allocate & initialize engine
+  */
+-int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
++static int nss_crypto_eip197_engine_init(struct platform_device *pdev, struct device_node *np,
+ 				struct resource *res, uint32_t offset)
+ {
+ 	struct nss_crypto_node *node = platform_get_drvdata(pdev);
+@@ -550,7 +550,7 @@ int nss_crypto_eip197_engine_init(struct
+  * nss_crypto_eip197_node_init()
+  *	allocate & initialize eip197 node
+  */
+-int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
++static int nss_crypto_eip197_node_init(struct platform_device *pdev, const char *name)
+ {
+ 	struct device_node *np = of_node_get(pdev->dev.of_node);
+ 	struct nss_crypto_node *node;
+--- a/v2.0/src/hal/ipq807x/nss_crypto_eip197_init.c
++++ b/v2.0/src/hal/ipq807x/nss_crypto_eip197_init.c
+@@ -404,7 +404,7 @@ static void nss_crypto_eip197_hw_setup_c
+  * nss_crypto_eip197_hw_setup_cache()
+  *	setup EIP197 flow and transform cache
+  */
+-void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
+ {
+ 	void __iomem *addr;
+ 	uint32_t val;
+@@ -785,7 +785,7 @@ static void nss_crypto_eip197_hw_disable
+  * nss_crypto_eip197_hw_setup()
+  *	Pre initialization function for eip197
+  */
+-void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
+ {
+ 	/*
+ 	 * Reset EIP blocks and check if reset is complete
+--- a/v2.0/src/hal/ipq60xx/nss_crypto_eip197_init.c
++++ b/v2.0/src/hal/ipq60xx/nss_crypto_eip197_init.c
+@@ -437,7 +437,7 @@ static void nss_crypto_eip197_hw_setup_c
+  * nss_crypto_eip197_hw_setup_cache()
+  *	setup EIP197 flow and transform cache
+  */
+-void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
+ {
+ 	void __iomem *addr;
+ 	uint32_t val;
+@@ -823,7 +823,7 @@ static void nss_crypto_eip197_hw_disable
+  * nss_crypto_eip197_hw_setup()
+  *	Pre initialization function for eip197
+  */
+-void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
+ {
+ 	/*
+ 	 * Reset EIP blocks and check if reset is complete
+--- a/v2.0/src/hal/ipq95xx/nss_crypto_eip197_init.c
++++ b/v2.0/src/hal/ipq95xx/nss_crypto_eip197_init.c
+@@ -437,7 +437,7 @@ static void nss_crypto_eip197_hw_setup_c
+  * nss_crypto_eip197_hw_setup_cache()
+  *	setup EIP197 flow and transform cache
+  */
+-void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup_cache(void __iomem *base_addr)
+ {
+ 	void __iomem *addr;
+ 	uint32_t val;
+@@ -827,7 +827,7 @@ static void nss_crypto_eip197_hw_disable
+  * nss_crypto_eip197_hw_setup()
+  *	Pre initialization function for eip197
+  */
+-void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
++static void nss_crypto_eip197_hw_setup(void __iomem *base_addr)
+ {
+ 	/*
+ 	 * Reset EIP blocks and check if reset is complete
