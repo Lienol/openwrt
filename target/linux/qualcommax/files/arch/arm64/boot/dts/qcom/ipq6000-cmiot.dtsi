@@ -234,18 +234,18 @@
 	qcom,ath11k-fw-memory-mode = <2>;
  };
 
- &CPU0 {
+&cpu0 {
 	/delete-property/ cpu-supply;
 };
 
-&CPU1 {
+&cpu1 {
 	/delete-property/ cpu-supply;
 };
 
-&CPU2 {
+&cpu2 {
 	/delete-property/ cpu-supply;
 };
 
-&CPU3 {
+&cpu3 {
 	/delete-property/ cpu-supply;
 };
