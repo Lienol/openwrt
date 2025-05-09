@@ -30,9 +30,18 @@
  			break;
  
  		case NSS_FREQ_SCALE_NA:
+@@ -468,7 +468,7 @@ static int __nss_hal_clock_configure(str
+ 			return -EFAULT;
+ 		}
+ 	}
+-	nss_info_always("\n");
++	nss_info("\n");
+ 
+ 	/*
+ 	 * Set values only once for core0. Grab the proper clock.
 --- a/nss_hal/ipq60xx/nss_hal_pvt.c
 +++ b/nss_hal/ipq60xx/nss_hal_pvt.c
-@@ -532,16 +532,16 @@ static int __nss_hal_clock_configure(str
+@@ -532,22 +532,22 @@ static int __nss_hal_clock_configure(str
  		}
  	}
  
@@ -54,9 +63,16 @@
  		} else {
  			nss_info_always("Error\nNo Table/Invalid Frequency Found\n");
  			return -EFAULT;
+ 		}
+ 	}
+-	nss_info_always("\n");
++	nss_info("\n");
+ 
+ 	/*
+ 	 * Set values only once for core0. Grab the proper clock.
 --- a/nss_hal/ipq807x/nss_hal_pvt.c
 +++ b/nss_hal/ipq807x/nss_hal_pvt.c
-@@ -571,16 +571,16 @@ static int __nss_hal_clock_configure(str
+@@ -571,22 +571,22 @@ static int __nss_hal_clock_configure(str
  		}
  	}
  
@@ -78,3 +94,10 @@
  		} else {
  			nss_info_always("Error\nNo Table/Invalid Frequency Found\n");
  			return -EFAULT;
+ 		}
+ 	}
+-	nss_info_always("\n");
++	nss_info("\n");
+ 
+ 	/*
+ 	 * Set values only once for core0. Grab the proper clock.

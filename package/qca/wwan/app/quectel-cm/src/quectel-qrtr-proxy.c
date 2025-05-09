@@ -547,7 +547,7 @@ static int recv_qmi_from_client(PQCQMIMSG pQMI, int clientfd) {
         }
         else if (le16toh(pQMI->CTLMsg.QMICTLMsgHdr.QMICTLType) == QMICTL_GET_CLIENT_ID_REQ) {
             uint8_t QMIType = pQMI->CTLMsg.GetClientIdReq.QMIType;
-            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(256);
+            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(1040);
 
             if (pRsp) {
                 uint8_t ClientId = 0;
@@ -581,7 +581,7 @@ static int recv_qmi_from_client(PQCQMIMSG pQMI, int clientfd) {
             }
         }
         else if (le16toh(pQMI->CTLMsg.QMICTLMsgHdr.QMICTLType) == QMICTL_RELEASE_CLIENT_ID_REQ) {
-            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(256);
+            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(1040);
             release_qrtr_client_id(qrtr_con, pQMI->CTLMsg.ReleaseClientIdReq.QMIType, pQMI->CTLMsg.ReleaseClientIdReq.ClientId);
 
             if (pRsp) {
@@ -610,7 +610,7 @@ static int recv_qmi_from_client(PQCQMIMSG pQMI, int clientfd) {
             }
         }
         else if (le16toh(pQMI->CTLMsg.QMICTLMsgHdr.QMICTLType) == QMICTL_GET_VERSION_REQ) {
-            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(256);
+            PQCQMIMSG pRsp = (PQCQMIMSG)malloc(1040);
 
             if (pRsp) {
                 pRsp->QMIHdr.IFType = USB_CTL_MSG_TYPE_QMI;
