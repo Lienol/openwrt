@@ -30,7 +30,6 @@
 	compatible = "jdcloud,re-ss-01", "qcom,ipq6018-cp03", "qcom,ipq6018";
 
 	aliases {
-		sdhc1 = &sdhc_1;
 		serial0 = &blsp1_uart3;
 		led-boot = &status_red;
 		led-failsafe = &status_red;
@@ -317,7 +316,7 @@
 	label = "wan";
 };
 
-&sdhc_1 {
+&sdhc {
 	status = "okay";
 
 	/delete-property/ mmc-hs400-1_8v;
