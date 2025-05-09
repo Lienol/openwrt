@@ -1,0 +1,61 @@
+--- a/core/mhi_init.c
++++ b/core/mhi_init.c
+@@ -644,7 +644,11 @@ static int mon_text_release(struct inode
+ static const struct file_operations mon_fops_text_u = {
+ 	.owner =	THIS_MODULE,
+ 	.open =		mon_text_open,
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0))
+ 	.llseek =	no_llseek,
++#else
++	.llseek =	noop_llseek,
++#endif
+ 	.read =		mon_text_read_u,
+ 	.release =	mon_text_release,
+ };
+@@ -2366,7 +2370,11 @@ void mhi_unprepare_after_power_down(stru
+ }
+ 
+ /* match dev to drv */
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+ static int mhi_match(struct device *dev, struct device_driver *drv)
++#else
++static int mhi_match(struct device *dev, const struct device_driver *drv)
++#endif
+ {
+ 	struct mhi_device *mhi_dev = to_mhi_device(dev);
+ 	struct mhi_driver *mhi_drv = to_mhi_driver(drv);
+--- a/devices/mhi_netdev.c
++++ b/devices/mhi_netdev.c
+@@ -486,7 +486,7 @@ static int mhi_netdev_ioctl_extended(str
+ 		ext_cmd.u.data = 0;
+ 		break;
+ 	case RMNET_IOCTL_GET_DRIVER_NAME:
+-		strlcpy(ext_cmd.u.if_name, mhi_netdev->interface_name,
++		strscpy(ext_cmd.u.if_name, mhi_netdev->interface_name,
+ 			sizeof(ext_cmd.u.if_name));
+ 		break;
+ 	case RMNET_IOCTL_SET_SLEEP_STATE:
+@@ -560,8 +560,8 @@ static void mhi_netdev_get_drvinfo (stru
+ {
+ 	//struct mhi_netdev *mhi_netdev = ndev_to_mhi(ndev);
+ 
+-	strlcpy (info->driver, "pcie_mhi", sizeof info->driver);
+-	strlcpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
++	strscpy (info->driver, "pcie_mhi", sizeof info->driver);
++	strscpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
+ }
+ 
+ static const struct ethtool_ops mhi_netdev_ethtool_ops = {
+--- a/devices/mhi_netdev_quectel.c
++++ b/devices/mhi_netdev_quectel.c
+@@ -2308,8 +2308,8 @@ static void mhi_netdev_get_drvinfo (stru
+ {
+ 	//struct mhi_netdev *mhi_netdev = ndev_to_mhi(ndev);
+ 
+-	strlcpy (info->driver, "pcie_mhi", sizeof info->driver);
+-	strlcpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
++	strscpy (info->driver, "pcie_mhi", sizeof info->driver);
++	strscpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
+ }
+ 
+ static const struct ethtool_ops mhi_netdev_ethtool_ops = {

@@ -20,8 +20,9 @@ define KernelPackage/qca-nss-macsec
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Devices
-  DEPENDS:=@(TARGET_qualcommax||TARGET_ipq60xx) \
-  				 +libc
+  DEPENDS:=@(TARGET_qualcommax_ipq807x||TARGET_ipq60xx) \
+  				 +libc \
+  				 @BROKEN
   TITLE:=Kernel driver for NSS macsec
   FILES:=$(PKG_BUILD_DIR)/qca-nss-macsec.ko
   AUTOLOAD:=$(call AutoLoad,52,qca-nss-macsec)
@@ -35,8 +36,8 @@ QCA_NSS_MACSEC_CONFIG_OPTS+= TOOL_PATH=$(TOOLCHAIN_DIR)/bin/ \
                 SYS_PATH=$(LINUX_DIR) \
                 TOOLPREFIX=$(TARGET_CROSS) \
                 KVER=$(LINUX_VERSION) \
-		CFLAGS="$(TARGET_CFLAGS)" \
-		LDFLAGS="$(TARGET_LDFLAGS)" \
+                CFLAGS="$(TARGET_CFLAGS)" \
+                LDFLAGS="$(TARGET_LDFLAGS)" \
                 ARCH=$(LINUX_KARCH)
 
 define Build/InstallDev
