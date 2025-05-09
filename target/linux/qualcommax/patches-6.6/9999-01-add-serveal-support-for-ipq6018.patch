@@ -13,18 +13,6 @@
  	};
  
  	cpus: cpus {
-@@ -198,6 +204,11 @@
- 			reg = <0x0 0x00060000 0x0 0x6000>;
- 			no-map;
- 		};
-+		
-+		nss_region: nss@40000000 {
-+			no-map;
-+			reg = <0x0 0x40000000 0x0 0x01000000>;
-+		};
- 
- 		bootloader@4a100000 {
- 			reg = <0x0 0x4a100000 0x0 0x400000>;
 @@ -223,6 +234,16 @@
  			reg = <0x0 0x4ab00000 0x0 0x5500000>;
  			no-map;
@@ -57,29 +45,6 @@
  			#clock-cells = <1>;
  			#reset-cells = <1>;
  		};
-@@ -437,8 +462,21 @@
- 		};
- 
- 		tcsr: syscon@1937000 {
--			compatible = "qcom,tcsr-ipq6018", "syscon";
-+			compatible = "qcom,tcsr-ipq6018", "syscon", "simple-mfd";
- 			reg = <0x0 0x01937000 0x0 0x21000>;
-+			ranges = <0x0 0x0 0x01937000 0x21000>;
-+			#address-cells = <1>;
-+			#size-cells = <1>;
-+
-+			pwm: pwm@a010 {
-+				compatible = "qcom,ipq6018-pwm";
-+				reg = <0xa010 0x20>;
-+				clocks = <&gcc GCC_ADSS_PWM_CLK>;
-+				assigned-clocks = <&gcc GCC_ADSS_PWM_CLK>;
-+				assigned-clock-rates = <100000000>;
-+				#pwm-cells = <2>;
-+				status = "disabled";
-+			};
- 		};
- 
- 		usb2: usb@70f8800 {
 @@ -603,6 +641,20 @@
  			status = "disabled";
  		};
