@@ -60,7 +60,10 @@ define Build/grub-config
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@ROOTPART@#root=$(ROOTPART) rootwait#g' \
 		-e 's#@GPT_ROOTPART@#root=$(GPT_ROOTPART) rootwait#g' \
-		-e 's#@CMDLINE@#$(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE)#g' \
+		-e 's#@GRUB_SERIAL@#$(GRUB_SERIAL)#g' \
+		-e 's#@GRUB_BAUDRATE@#$(CONFIG_GRUB_BAUDRATE)#g' \
+		-e 's#@BOOTOPTS@#$(BOOTOPTS)#g' \
+		-e 's#@CONSOLE_CMDLINE@#$(GRUB_CONSOLE_CMDLINE)#g' \
 		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		-e 's#@TITLE@#$(GRUB_TITLE)#g' \
 		./grub-$(1).cfg > $@.boot/boot/grub/grub.cfg
