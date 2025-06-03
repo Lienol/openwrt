@@ -44,6 +44,7 @@ ALLWIFIBOARDS:= \
 	glinet_gl-ax1800 \
 	glinet_gl-axt1800 \
 	glinet_gl-b3000 \
+	iodata_wn-dax3000gr \
 	jdcloud_re-cs-02 \
 	jdcloud_re-ss-01 \
 	linksys_homewrk \
@@ -204,6 +205,7 @@ $(eval $(call generate-ipq-wifi-package,elecom_wrc-x3000gs2,ELECOM WRC-X3000GS2)
 $(eval $(call generate-ipq-wifi-package,glinet_gl-ax1800,GL.iNet GL-AX1800))
 $(eval $(call generate-ipq-wifi-package,glinet_gl-axt1800,GL.iNet GL-AXT1800))
 $(eval $(call generate-ipq-wifi-package,glinet_gl-b3000,GL.iNet GL-B3000))
+$(eval $(call generate-ipq-wifi-package,iodata_wn-dax3000gr,I-O DATA WN-DAX3000GR))
 $(eval $(call generate-ipq-wifi-package,jdcloud_re-cs-02,JDCloud RE-CS-02))
 $(eval $(call generate-ipq-wifi-package,jdcloud_re-ss-01,JDCloud RE-SS-01))
 $(eval $(call generate-ipq-wifi-package,linksys_homewrk,Linksys HomeWRK))
