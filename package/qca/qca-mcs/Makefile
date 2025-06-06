@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-mcs
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-mcs.git
 PKG_SOURCE_DATE:=2024-09-04
@@ -24,7 +24,8 @@ define KernelPackage/qca-mcs
   MAINTAINER:=Qualcomm Atheros, Inc.
   TITLE:=QCA Multicast Snooping Support
   DEPENDS:=+@KERNEL_IPV6_MROUTE +@KERNEL_IP_MROUTE
-  KCONFIG:=CONFIG_NETFILTER=y
+  KCONFIG:=CONFIG_NETFILTER=y \
+           CONFIG_BRIDGE_NETFILTER=y
   FILES:=$(PKG_BUILD_DIR)/qca-mcs.ko
   AUTOLOAD:=$(call AutoLoad,41,qca-mcs)
 endef
