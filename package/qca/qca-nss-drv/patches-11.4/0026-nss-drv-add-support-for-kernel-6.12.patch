@@ -40,16 +40,7 @@
  static int max_ipv4_conn = NSS_DEFAULT_NUM_CONN;
 --- a/Makefile
 +++ b/Makefile
-@@ -547,7 +547,7 @@ ccflags-y += -I$(obj)/nss_hal/include -I
- 
- ccflags-y += -I$(obj)/nss_data_plane/hal/include
- ccflags-y += -DNSS_PM_DEBUG_LEVEL=0 -DNSS_SKB_REUSE_SUPPORT=1
--ccflags-y += -Wall -Werror
-+ccflags-y += -Wall -Werror -Wno-missing-declarations -Wno-missing-prototypes
- 
- KERNELVERSION := $(word 1, $(subst ., ,$(KERNELVERSION))).$(word 2, $(subst ., ,$(KERNELVERSION)))
- 
-@@ -579,6 +579,8 @@ qca-nss-drv-objs += \
+@@ -579,6 +581,8 @@ qca-nss-drv-objs += \
  ccflags-y += -DNSS_FREQ_SCALE_SUPPORT=1
  endif
  
@@ -665,6 +656,16 @@
  {
  	int32_t if_num;
  	struct nss_ctx_instance *nss_ctx = nss_ppe_vp_get_context();
+@@ -779,8 +779,7 @@ static struct ctl_table nss_ppe_vp_table
+ 		.maxlen         = sizeof(nss_ppe_vp_cmd),
+ 		.mode           = 0644,
+ 		.proc_handler   = &nss_ppe_vp_destroy_handler,
+-	},
+-	{ }
++	}
+ };
+ 
+ static struct ctl_table_header *nss_ppe_vp_procfs_header;
 --- a/nss_pppoe.c
 +++ b/nss_pppoe.c
 @@ -203,7 +203,7 @@ static void nss_pppoe_handler(struct nss

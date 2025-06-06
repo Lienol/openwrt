@@ -5,13 +5,15 @@ comment "Build Options"
 
 choice
   prompt "Memory Profile"
-  default NSS_MEM_PROFILE_MEDIUM
+  default NSS_MEM_PROFILE_HIGH if TARGET_qualcommax_ipq807x
+  default NSS_MEM_PROFILE_MEDIUM if (TARGET_qualcommax_ipq60xx || TARGET_qualcommax_ipq50xx)
   help
   	This option allows you to select the memory profile.
   	It should correspond to the total RAM of your board.
 
   config NSS_MEM_PROFILE_HIGH
   	bool "Use 1G memory profile"
+  	depends on TARGET_qualcommax_ipq807x
   	help
   		This allows configuring NSS boards with 1GB+ memory.
 
@@ -133,12 +135,13 @@ config NSS_DRV_OAM_ENABLE
 	bool
 	default n
 	prompt "Enable OAM"
-	depends on TARGET_qualcommax_ipq806x
+	depends on TARGET_ipq806x
 
 config NSS_DRV_PORTID_ENABLE
 	bool
 	default n
 	prompt "Enable PORTID"
+	depends on TARGET_ipq806x
 
 config NSS_DRV_LSO_RX_ENABLE
 	bool
@@ -176,7 +179,7 @@ config NSS_DRV_RMNET_ENABLE
 	bool
 	default n
 	prompt "Enable RMNET"
-	depends on TARGET_qualcommax_ipq807x
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq50xx
 
 config NSS_DRV_SHAPER_ENABLE
 	bool
@@ -215,6 +218,7 @@ config NSS_DRV_TSTAMP_ENABLE
 	bool
 	default n
 	prompt "Enable TSTAMP"
+	depends on TARGET_ipq806x
 
 config NSS_DRV_TUN6RD_ENABLE
 	bool
