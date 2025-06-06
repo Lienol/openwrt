@@ -1,0 +1,11 @@
+--- a/arch/arm64/boot/dts/qcom/ipq8074.dtsi
++++ b/arch/arm64/boot/dts/qcom/ipq8074.dtsi
+@@ -151,7 +151,7 @@
+ 		#size-cells = <2>;
+ 		ranges;
+ 
+-		nss@40000000 {
++		nss_region: memory@40000000 {
+ 			no-map;
+ 			reg = <0x0 0x40000000 0x0 0x01000000>;
+ 		};
