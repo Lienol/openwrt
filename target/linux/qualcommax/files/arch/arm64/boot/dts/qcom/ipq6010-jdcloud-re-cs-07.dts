@@ -5,6 +5,7 @@
 #include "ipq6018.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -101,24 +102,11 @@
 	};
 };
 
-&blsp1_uart3 {
-	pinctrl-0 = <&serial_3_pins>;
-	pinctrl-names = "default";
-	status = "okay";
-};
-
 &blsp1_uart6 {
+	status = "okay";
+
 	pinctrl-0 = <&btuart_pins>;
 	pinctrl-names = "default";
-	status = "okay";
-};
-
-&qusb_phy_0 {
-	status = "okay";
-};
-
-&rpm {
-	status = "disabled";
 };
 
 &sdhc {
@@ -127,10 +115,6 @@
 	/delete-property/ mmc-hs400-1_8v;
 	mmc-ddr-1_8v;
 	mmc-hs200-1_8v;
-};
-
-&ssphy_0 {
-	status = "okay";
 };
 
 &mdio {
