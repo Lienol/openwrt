@@ -7,6 +7,7 @@
 #include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -448,10 +449,6 @@
 	};
 };
 
-&qpic_bam {
-	status = "okay";
-};
-
 &qpic_nand {
 	status = "okay";
 
@@ -487,10 +484,6 @@
 	};
 };
 
-&ssphy_0 {
-	status = "okay";
-};
-
 &dwc_0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -514,10 +507,6 @@
 &usb3 {
 	status = "okay";
 	vbus-supply = <&reg_usb_vbus>;
-};
-
-&pcie_phy {
-	status = "okay";
 };
 
 &pcie0 {

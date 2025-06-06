@@ -5,6 +5,7 @@
 #include "ipq6018.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -87,10 +88,6 @@
 	status = "okay";
 };
 
-&rpm {
-	status = "disabled";
-};
-
 &tlmm {
 	/* TZ has exclusive control over GPIO20 */
 	gpio-reserved-ranges = <20 1>;
@@ -146,10 +143,6 @@
 		drive-strength = <8>;
 		bias-pull-up;
 	};
-};
-
-&pcie_phy {
-	status = "okay";
 };
 
 &pcie0 {
@@ -393,10 +386,6 @@
 	};
 };
 
-&qpic_bam {
-	status = "okay";
-};
-
 &qpic_nand {
 	status = "okay";
 
@@ -441,12 +430,4 @@
 
 	nvmem-cell-names = "mac-address";
 	nvmem-cells = <&eth2addr>;
-};
-
-&qusb_phy_1 {
-	status = "okay";
-};
-
-&usb2 {
-	status = "okay";
 };
