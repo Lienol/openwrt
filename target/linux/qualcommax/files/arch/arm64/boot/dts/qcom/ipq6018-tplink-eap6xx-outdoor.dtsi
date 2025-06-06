@@ -6,6 +6,7 @@
 #include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -130,10 +131,6 @@
 			phy_address = <4>;
 		};
 	};
-};
-
-&qpic_bam {
-	status = "okay";
 };
 
 &qpic_nand {
