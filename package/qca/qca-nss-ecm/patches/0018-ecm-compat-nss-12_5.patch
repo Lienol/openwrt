@@ -1,0 +1,34 @@
+--- a/frontends/nss/ecm_nss_non_ported_ipv4.c
++++ b/frontends/nss/ecm_nss_non_ported_ipv4.c
+@@ -854,6 +854,7 @@ static void ecm_nss_non_ported_ipv4_conn
+ 			DEBUG_TRACE("%px: PPTP - unsupported\n", feci);
+ #endif
+ 			break;
++#ifdef NSS_FIRMWARE_VERSION_12_5
+ 		case ECM_DB_IFACE_TYPE_RAWIP:
+ #ifdef ECM_INTERFACE_RAWIP_ENABLE
+ 			nircm->valid_flags |= NSS_IPV4_RULE_CREATE_RAWIP_VALID;
+@@ -862,6 +863,7 @@ static void ecm_nss_non_ported_ipv4_conn
+ 			DEBUG_TRACE("%px: RAWIP - unsupported\n", feci);
+ #endif
+ 			break;
++#endif
+ 		default:
+ 			DEBUG_TRACE("%px: Ignoring: %d (%s)\n", feci, ii_type, ii_name);
+ 		}
+@@ -1071,6 +1073,7 @@ static void ecm_nss_non_ported_ipv4_conn
+ 			DEBUG_TRACE("%px: IPSEC - unsupported\n", feci);
+ #endif
+ 			break;
++#ifdef NSS_FIRMWARE_VERSION_12_5
+ 		case ECM_DB_IFACE_TYPE_RAWIP:
+ #ifdef ECM_INTERFACE_RAWIP_ENABLE
+ 			nircm->valid_flags |= NSS_IPV4_RULE_CREATE_RAWIP_VALID;
+@@ -1079,6 +1082,7 @@ static void ecm_nss_non_ported_ipv4_conn
+ 			DEBUG_TRACE("%px: RAWIP - unsupported\n", feci);
+ #endif
+ 			break;
++#endif
+ 		default:
+ 			DEBUG_TRACE("%px: Ignoring: %d (%s)\n", feci, ii_type, ii_name);
+ 		}

@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_RELEASE:=16
+PKG_RELEASE:=17
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv.git
 PKG_SOURCE_PROTO:=git
@@ -134,7 +134,8 @@ endef
 
 EXTRA_CFLAGS+= -I$(STAGING_DIR)/usr/include/qca-nss-dp \
 			   -I$(STAGING_DIR)/usr/include/qca-ssdk \
-			   -Wno-unused-variable -Wno-enum-conversion
+			   -Wno-missing-declarations -Wno-missing-prototypes \
+			   -Wno-empty-body -Wno-unused-variable
 
 ifdef CONFIG_NSS_MEM_PROFILE_MEDIUM
   EXTRA_CFLAGS += -DNSS_MEM_PROFILE_MEDIUM

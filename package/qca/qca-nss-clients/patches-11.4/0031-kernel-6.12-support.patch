@@ -30,6 +30,16 @@
  						int write, void __user *buffer,
  						size_t *lenp, loff_t *ppos)
  {
+@@ -1593,8 +1593,7 @@ static struct ctl_table nss_bridge_mgr_t
+ 		.maxlen         = sizeof(char) * IFNAMSIZ,
+ 		.mode           = 0644,
+ 		.proc_handler   = &nss_bridge_mgr_wan_intf_del_handler,
+-	},
+-	{ }
++	}
+ };
+ 
+ /*
 --- a/dtls/v2.0/nss_dtlsmgr_ctx_dev.c
 +++ b/dtls/v2.0/nss_dtlsmgr_ctx_dev.c
 @@ -284,7 +284,11 @@ void nss_dtlsmgr_ctx_dev_rx_outer(struct
@@ -148,15 +158,32 @@
  	if (IS_ERR(rt)) {
  		nss_connmgr_gre_warning("route look up failed for %pI4\n", &raddr);
  		return GRE_ERR_RADDR_ROUTE_LOOKUP;
-@@ -210,7 +218,7 @@ int nss_connmgr_gre_v4_set_config(struct
+@@ -208,9 +216,9 @@ int nss_connmgr_gre_v4_set_config(struct
+ 		t->parms.o_key = cfg->okey;
+ 	}
  
- 	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
+-	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
++	nss_connmgr_gre_set_gre_flags(cfg, (uint16_t *)&t->parms.o_flags, (uint16_t *)&t->parms.i_flags);
  
 -	strlcpy(t->parms.name, dev->name, IFNAMSIZ);
 +	strscpy(t->parms.name, dev->name, IFNAMSIZ);
  	t->dev = dev;
  	return GRE_SUCCESS;
  }
+@@ -322,8 +330,13 @@ int nss_connmgr_gre_v4_get_config(struct
+ 	memcpy(cmsg->src_ip, &src_ip, 4);
+ 	memcpy(cmsg->dest_ip, &dest_ip, 4);
+ 
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(t->parms.o_flags,
+ 								     t->parms.i_flags,
++#else
++	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(*t->parms.o_flags,
++								     *t->parms.i_flags,
++#endif
+ 								     iphdr->tos, iphdr->ttl,
+ 								     iphdr->frag_off);
+ 
 --- a/ipsecmgr/v1.0/nss_ipsecmgr.c
 +++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
 @@ -526,7 +526,11 @@ static struct net_device *nss_ipsecmgr_t
@@ -269,6 +296,36 @@
  					  int write, void __user *buffer,
  					  size_t *lenp, loff_t *ppos)
  {
+@@ -985,8 +989,7 @@ static struct ctl_table nss_connmgr_l2tp
+ 		.maxlen		= L2TP_SYSCTL_STR_LEN_MAX,
+ 		.mode		= 0644,
+ 		.proc_handler	= &nss_connmgr_l2tpv2_proc_handler,
+-	},
+-	{ }
++	}
+ };
+ 
+ /*
+@@ -997,8 +1000,7 @@ static struct ctl_table nss_connmgr_l2tp
+ 		.procname		= "l2tpv2",
+ 		.mode			= 0555,
+ 		.child			= nss_connmgr_l2tpv2_table,
+-	},
+-	{ }
++	}
+ };
+ 
+ /*
+@@ -1009,8 +1011,7 @@ static struct ctl_table nss_connmgr_l2tp
+ 		.procname		= "nss",
+ 		.mode			= 0555,
+ 		.child			= nss_connmgr_l2tpv2_dir,
+-	},
+-	{ }
++	}
+ };
+ #endif
+ 
 --- a/l2tp/l2tpv2/nss_l2tpv2_stats.c
 +++ b/l2tp/l2tpv2/nss_l2tpv2_stats.c
 @@ -129,7 +129,11 @@ void nss_l2tpv2_update_dev_stats(struct
@@ -321,6 +378,16 @@
  {
  	int ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
  
+@@ -688,8 +688,7 @@ static struct ctl_table nss_match_table[
+ 		.maxlen                 = sizeof(nss_match_data),
+ 		.mode			= 0400,
+ 		.proc_handler		= &nss_match_cmd_procfs_read_help,
+-	},
+-	{ }
++	}
+ };
+ 
+ static struct ctl_table_header *nss_match_ctl_header;
 --- a/mirror/nss_mirror_ctl.c
 +++ b/mirror/nss_mirror_ctl.c
 @@ -132,7 +132,7 @@ static int nss_mirror_ctl_get_netdev_by_
@@ -350,6 +417,16 @@
  		 void __user *buf, size_t *lenp, loff_t *ppos)
  {
  	char *buffer, *pfree;
+@@ -914,8 +914,7 @@ static struct ctl_table nss_mirror_table
+ 		.maxlen		= sizeof(nss_mirror_config_data),
+ 		.mode		= 0644,
+ 		.proc_handler	= &nss_mirror_ctl_config_handler,
+-	},
+-	{ }
++	}
+ };
+ 
+ /*
 --- a/netlink/nss_nlipv4.c
 +++ b/netlink/nss_nlipv4.c
 @@ -129,7 +129,11 @@ static struct neighbour *nss_nlipv4_get_
@@ -454,6 +531,20 @@
  	if (unlikely(IS_ERR(rt))) {
  		nss_ovpnmgr_warn("%px: Failed to find IPv4 route.\n", skb);
  		tun->outer.stats.host_pkt_drop++;
+--- a/openvpn/src/nss_ovpnmgr_app.c
++++ b/openvpn/src/nss_ovpnmgr_app.c
+@@ -51,7 +51,11 @@ static struct net_device *nss_ovpnmgr_ap
+ 	struct rtable *rt4;
+ 
+ 	if (rt->ip_version == IPVERSION) {
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0);
++#else
++		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0, 0);
++#endif
+ 		if (IS_ERR(rt4)) {
+ 			return NULL;
+ 		}
 --- a/tunipip6/nss_connmgr_tunipip6.c
 +++ b/tunipip6/nss_connmgr_tunipip6.c
 @@ -174,7 +174,11 @@ static void nss_tunipip6_encap_exception
@@ -560,6 +651,16 @@
  {
  	int ret = proc_dointvec(ctl, write, buffer, lenp, ppos);
  
+@@ -445,8 +445,7 @@ static struct ctl_table nss_tunipip6_tab
+ 		.maxlen			= sizeof(nss_tunipip6_data),
+ 		.mode			= 0400,
+ 		.proc_handler		= &nss_tunipip6_cmd_procfs_read_help,
+-	},
+-	{ }
++	}
+ };
+ 
+ static struct ctl_table_header *nss_tunipip6_ctl_header;
 --- a/vlan/nss_vlan_mgr.c
 +++ b/vlan/nss_vlan_mgr.c
 @@ -1549,7 +1549,7 @@ static int nss_vlan_mgr_update_ppe_tpid(
@@ -571,6 +672,16 @@
  					  int write, void __user *buffer,
  					  size_t *lenp, loff_t *ppos)
  {
+@@ -1577,8 +1577,7 @@ static struct ctl_table nss_vlan_table[]
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= &nss_vlan_mgr_tpid_proc_handler,
+-	},
+-	{ }
++	}
+ };
+ 
+ /*
 --- a/nss_qdisc/nss_htb.c
 +++ b/nss_qdisc/nss_htb.c
 @@ -647,7 +647,11 @@ static int nss_htb_graft_class(struct Qd
@@ -677,15 +788,32 @@
  	}
 --- a/gre/nss_connmgr_gre_v6.c
 +++ b/gre/nss_connmgr_gre_v6.c
-@@ -324,7 +324,7 @@ int nss_connmgr_gre_v6_set_config(struct
+@@ -322,9 +322,9 @@ int nss_connmgr_gre_v6_set_config(struct
+ 		t->parms.o_key = cfg->okey;
+ 	}
  
- 	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
+-	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
++	nss_connmgr_gre_set_gre_flags(cfg, (uint16_t *)&t->parms.o_flags, (uint16_t *)&t->parms.i_flags);
  
 -	strlcpy(t->parms.name, dev->name, IFNAMSIZ);
 +	strscpy(t->parms.name, dev->name, IFNAMSIZ);
  	t->dev = dev;
  	return GRE_SUCCESS;
  }
+@@ -359,8 +359,13 @@ int nss_connmgr_gre_v6_get_config(struct
+ 	/*
+ 	 * IPv6 outer tos field is always inherited from inner IP header.
+ 	 */
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(t->parms.o_flags,
+ 								     t->parms.i_flags,
++#else
++	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(*t->parms.o_flags,
++								     *t->parms.i_flags,
++#endif
+ 								     t->parms.flowinfo,
+ 								     t->parms.hop_limit, 0);
+ 
 --- /dev/null
 +++ b/compat.h
 @@ -0,0 +1,15 @@
@@ -718,3 +846,25 @@
  		nss_qdisc_info("Detaching old: %px\n", *old);
  		nim_detach.msg.shaper_configure.config.msg.shaper_node_config.qos_tag = q->nq.qos_tag;
  
+--- a/netlink/nss_nldtls.c
++++ b/netlink/nss_nldtls.c
+@@ -1090,7 +1090,7 @@ static ssize_t nss_nldtls_tunnel_stats_r
+ 	list_for_each_entry(entry, &gbl_ctx.dtls_list_head, list) {
+ 		spin_lock_bh(&gbl_ctx.lock);
+ 		memcpy(&stats, &entry->stats, sizeof(stats));
+-		strlcpy(dev_name, entry->dev_name, IFNAMSIZ);
++		strscpy(dev_name, entry->dev_name, IFNAMSIZ);
+ 		spin_unlock_bh(&gbl_ctx.lock);
+ 
+ 		size_wr += scnprintf(lbuf + size_wr, size_al - size_wr, "\n--------------------------------");
+--- a/netlink/nss_nlipsec.c
++++ b/netlink/nss_nlipsec.c
+@@ -391,7 +391,7 @@ static int nss_nlipsec_op_create_tunnel(
+ 	 * the tunnel I/F name into the same rule and send it
+ 	 * as part of the response for the create operation
+ 	 */
+-	strlcpy(nl_rule->ifname, dev->name, IFNAMSIZ);
++	strscpy(nl_rule->ifname, dev->name, IFNAMSIZ);
+ 
+ 	/*
+ 	 * Send to userspace

@@ -158,15 +158,32 @@
  	if (IS_ERR(rt)) {
  		nss_connmgr_gre_warning("route look up failed for %pI4\n", &raddr);
  		return GRE_ERR_RADDR_ROUTE_LOOKUP;
-@@ -218,7 +226,7 @@ int nss_connmgr_gre_v4_set_config(struct
+@@ -216,9 +224,9 @@ int nss_connmgr_gre_v4_set_config(struct
+ 		t->parms.o_key = cfg->okey;
+ 	}
  
- 	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
+-	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
++	nss_connmgr_gre_set_gre_flags(cfg, (uint16_t *)&t->parms.o_flags, (uint16_t *)&t->parms.i_flags);
  
 -	strlcpy(t->parms.name, dev->name, IFNAMSIZ);
 +	strscpy(t->parms.name, dev->name, IFNAMSIZ);
  	t->dev = dev;
  	return GRE_SUCCESS;
  }
+@@ -330,8 +338,13 @@ int nss_connmgr_gre_v4_get_config(struct
+ 	memcpy(cmsg->src_ip, &src_ip, 4);
+ 	memcpy(cmsg->dest_ip, &dest_ip, 4);
+ 
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(t->parms.o_flags,
+ 								     t->parms.i_flags,
++#else
++	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(*t->parms.o_flags,
++								     *t->parms.i_flags,
++#endif
+ 								     iphdr->tos, iphdr->ttl,
+ 								     iphdr->frag_off);
+ 
 --- a/ipsecmgr/v1.0/nss_ipsecmgr.c
 +++ b/ipsecmgr/v1.0/nss_ipsecmgr.c
 @@ -526,7 +526,11 @@ static struct net_device *nss_ipsecmgr_t
@@ -514,6 +531,20 @@
  	if (unlikely(IS_ERR(rt))) {
  		nss_ovpnmgr_warn("%px: Failed to find IPv4 route.\n", skb);
  		tun->outer.stats.host_pkt_drop++;
+--- a/openvpn/src/nss_ovpnmgr_app.c
++++ b/openvpn/src/nss_ovpnmgr_app.c
+@@ -51,7 +51,11 @@ static struct net_device *nss_ovpnmgr_ap
+ 	struct rtable *rt4;
+ 
+ 	if (rt->ip_version == IPVERSION) {
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0);
++#else
++		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0, 0);
++#endif
+ 		if (IS_ERR(rt4)) {
+ 			return NULL;
+ 		}
 --- a/tunipip6/nss_connmgr_tunipip6.c
 +++ b/tunipip6/nss_connmgr_tunipip6.c
 @@ -174,7 +174,11 @@ static void nss_tunipip6_encap_exception
@@ -757,15 +788,32 @@
  	}
 --- a/gre/nss_connmgr_gre_v6.c
 +++ b/gre/nss_connmgr_gre_v6.c
-@@ -324,7 +324,7 @@ int nss_connmgr_gre_v6_set_config(struct
+@@ -322,9 +322,9 @@ int nss_connmgr_gre_v6_set_config(struct
+ 		t->parms.o_key = cfg->okey;
+ 	}
  
- 	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
+-	nss_connmgr_gre_set_gre_flags(cfg, &t->parms.o_flags, &t->parms.i_flags);
++	nss_connmgr_gre_set_gre_flags(cfg, (uint16_t *)&t->parms.o_flags, (uint16_t *)&t->parms.i_flags);
  
 -	strlcpy(t->parms.name, dev->name, IFNAMSIZ);
 +	strscpy(t->parms.name, dev->name, IFNAMSIZ);
  	t->dev = dev;
  	return GRE_SUCCESS;
  }
+@@ -359,8 +359,13 @@ int nss_connmgr_gre_v6_get_config(struct
+ 	/*
+ 	 * IPv6 outer tos field is always inherited from inner IP header.
+ 	 */
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
+ 	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(t->parms.o_flags,
+ 								     t->parms.i_flags,
++#else
++	cmsg->flags |= nss_connmgr_gre_get_nss_config_flags(*t->parms.o_flags,
++								     *t->parms.i_flags,
++#endif
+ 								     t->parms.flowinfo,
+ 								     t->parms.hop_limit, 0);
+ 
 --- /dev/null
 +++ b/compat.h
 @@ -0,0 +1,15 @@
@@ -820,17 +868,3 @@
  
  	/*
  	 * Send to userspace
---- a/openvpn/src/nss_ovpnmgr_app.c
-+++ b/openvpn/src/nss_ovpnmgr_app.c
-@@ -51,7 +51,11 @@ static struct net_device *nss_ovpnmgr_ap
- 	struct rtable *rt4;
- 
- 	if (rt->ip_version == IPVERSION) {
-+#if LINUX_VERSION_CODE <= KERNEL_VERSION(6, 10, 0)
- 		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0);
-+#else
-+		rt4 = ip_route_output(&init_net, rt->ip_addr[0], 0, 0, 0, 0);
-+#endif
- 		if (IS_ERR(rt4)) {
- 			return NULL;
- 		}

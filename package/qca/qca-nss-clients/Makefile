@@ -468,7 +468,7 @@ define KernelPackage/qca-nss-drv-ovpn-mgr
 	   +kmod-qca-nss-drv \
 	   +@NSS_DRV_QVPN_ENABLE \
 	   +kmod-qca-nss-cfi-cryptoapi \
-	   +kmod-ipt-conntrack \
+	   +kmod-nf-conntrack \
 	   +kmod-tun \
 	   @BROKEN
   FILES:=$(PKG_BUILD_DIR)/openvpn/src/qca-nss-ovpn-mgr.ko
@@ -810,9 +810,10 @@ ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-drv-wifi-meshmgr),)
 NSS_CLIENTS_MAKE_OPTS+=wifi-meshmgr=y
 endif
 
-EXTRA_CFLAGS+= -Wno-incompatible-pointer-types \
-	-Wno-missing-prototypes -Wno-int-conversion \
-	-Wno-missing-declarations
+EXTRA_CFLAGS+= \
+	-Wno-missing-prototypes \
+	-Wno-missing-declarations \
+	-Wno-empty-body
 
 define Build/Compile
 	+$(MAKE) -C "$(LINUX_DIR)" $(strip $(NSS_CLIENTS_MAKE_OPTS)) \

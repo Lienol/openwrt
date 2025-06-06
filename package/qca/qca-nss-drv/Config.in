@@ -133,12 +133,13 @@ config NSS_DRV_OAM_ENABLE
 	bool
 	default n
 	prompt "Enable OAM"
-	depends on TARGET_qualcommax_ipq806x
+	depends on TARGET_ipq806x
 
 config NSS_DRV_PORTID_ENABLE
 	bool
 	default n
 	prompt "Enable PORTID"
+	depends on TARGET_ipq806x
 
 config NSS_DRV_LSO_RX_ENABLE
 	bool
@@ -215,6 +216,7 @@ config NSS_DRV_TSTAMP_ENABLE
 	bool
 	default n
 	prompt "Enable TSTAMP"
+	depends on TARGET_ipq806x
 
 config NSS_DRV_TUN6RD_ENABLE
 	bool
