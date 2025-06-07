@@ -6,6 +6,7 @@
 #include "ipq8074-ac-cpu.dtsi"
 #include "ipq8074-ess.dtsi"
 #include "ipq8074-nss.dtsi"
+#include "ipq8074-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -98,30 +99,6 @@
 			bias-pull-up;
 		};
 	};
-};
-
-&blsp1_uart3 {
-	status = "okay";
-};
-
-&blsp1_uart5 {
-	status = "okay";
-};
-
-&cryptobam {
-	status = "okay";
-};
-
-&crypto {
-	status = "okay";
-};
-
-&prng {
-	status = "okay";
-};
-
-&qpic_bam {
-	status = "okay";
 };
 
 &qpic_nand {
