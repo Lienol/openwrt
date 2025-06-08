@@ -17,6 +17,7 @@
 	aliases {
 		serial0 = &blsp1_uart3;
 		serial1 = &blsp1_uart6;
+
 		led-boot = &led_status_blue;
 		led-failsafe = &led_status_red;
 		led-running = &led_status_green;
@@ -58,17 +59,17 @@
 	leds {
 		compatible = "gpio-leds";
 
-		led_status_red: red {
+		led_status_red: status-red {
 			label = "red:status";
 			gpios = <&tlmm 57 GPIO_ACTIVE_HIGH>;
 		};
 
-		led_status_green: green {
+		led_status_green: status-green {
 			label = "green:status";
 			gpios = <&tlmm 58 GPIO_ACTIVE_HIGH>;
 		};
 
-		led_status_blue: blue {
+		led_status_blue: status-blue {
 			label = "blue:status";
 			gpios = <&tlmm 79 GPIO_ACTIVE_HIGH>;
 		};
@@ -124,12 +125,14 @@
 
 &blsp1_uart6 {
 	status = "okay";
+
 	pinctrl-0 = <&btuart_pins>;
 	pinctrl-names = "default";
 };
 
 &sdhc {
 	status = "okay";
+
 	/delete-property/ mmc-hs400-1_8v;
 	mmc-ddr-1_8v;
 	mmc-hs200-1_8v;
@@ -139,18 +142,12 @@
 	status = "okay";
 	perst-gpios = <&tlmm 53 GPIO_ACTIVE_LOW>;
 
-	bridge@0,0 {
-		reg = <0x00000000 0 0 0 0>;
-		#address-cells = <3>;
-		#size-cells = <2>;
-		ranges;
-
-		wifi@1,0 {
+	pcie@0 {
+		wifi@0,0 {
 			status = "okay";
 			compatible = "pci17cb,1104";
 			qcom,ath11k-fw-memory-mode = <1>;
 			qcom,ath11k-calibration-variant = "JDC-RE-CS-02";
-			qcom,board_id = <163>;
 			reg = <0x00010000 0 0 0 0>;
 		};
 	};
@@ -211,18 +208,22 @@
 			port_id = <1>;
 			phy_address = <24>;
 		};
+
 		port@2 {
 			port_id = <2>;
 			phy_address = <25>;
 		};
+
 		port@3 {
 			port_id = <3>;
 			phy_address = <26>;
 		};
+
 		port@4 {
 			port_id = <4>;
 			phy_address = <27>;
 		};
+
 		port@5 {
 			port_id = <5>;
 			phy_address = <12>;
@@ -235,7 +236,6 @@
 	status = "okay";
 	qcom,ath11k-fw-memory-mode = <1>;
 	qcom,ath11k-calibration-variant = "JDC-RE-CS-02";
-	qcom,board_id = <19>;
 };
 
 &dp1 {
