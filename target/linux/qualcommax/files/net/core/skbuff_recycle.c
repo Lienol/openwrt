@@ -304,7 +304,9 @@ static void skb_recycler_free_skb(struct sk_buff_head *list)
 		skbuff_debugobj_activate(skb);
 		next = skb->next;
 		__skb_unlink(skb, list);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,2,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)		
+		skb_release_data(skb, SKB_CONSUMED);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6,2,0)
 		skb_release_data(skb, SKB_CONSUMED, false);
 #else
 		skb_release_data(skb);
@@ -680,10 +682,10 @@ void skb_recycler_print_all_lists(void)
 {
 
 	unsigned long flags;
-	int cpu;
+	struct sk_buff_head *h;
 #ifdef CONFIG_SKB_RECYCLER_MULTI_CPU
 	int i;
-	struct sk_buff_head *h;
+	int cpu;
 
 	cpu = get_cpu();
 	spin_lock_irqsave(&glob_recycler.lock, flags);
@@ -704,8 +706,8 @@ void skb_recycler_print_all_lists(void)
 
 	preempt_disable();
 	local_irq_save(flags);
-	h = &per_cpu(recycle_list, cpu);
-	skbuff_debugobj_print_skb_list(h->next, "Recycle List", cpu);
+	h = &get_cpu_var(recycle_list);
+	//skbuff_debugobj_print_skb_list(h->next, "Recycle List", cpu);
 
 	local_irq_restore(flags);
 	preempt_enable();
