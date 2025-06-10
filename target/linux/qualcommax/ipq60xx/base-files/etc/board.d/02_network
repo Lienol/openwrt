@@ -25,6 +25,7 @@ ipq60xx_setup_interfaces()
 		ucidef_set_interfaces_lan_wan "lan"
 		;;
 	cmiot,ax18|\
+	jdcloud,re-cs-07|\
 	jdcloud,re-ss-01|\
 	qihoo,360v6|\
 	redmi,ax5|\
