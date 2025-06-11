@@ -77,11 +77,13 @@ ramips_setup_interfaces()
 	genexis,pulse-ex400|\
 	humax,e10|\
 	keenetic,kn-3510|\
+	maginon,mc-1200ac|\
 	meig,slt866|\
 	openfi,5pro|\
 	wavlink,ws-wn572hp3-4g|\
 	winstars,ws-wn583a6|\
 	yuncore,ax820|\
+        zyxel,lte7490-m904|\
 	zyxel,nr7101)
 		ucidef_set_interfaces_lan_wan "lan" "wan"
 		;;
@@ -269,12 +271,6 @@ ramips_setup_macs()
 		label_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		lan_mac=$(macaddr_add "$label_mac" 1)
 		wan_mac=$label_mac
-		;;
-	hiwifi,hc5962)
-		lan_mac=$(mtd_get_mac_ascii bdinfo "Vfac_mac")
-		label_mac=$lan_mac
-		[ -n "$lan_mac" ] || lan_mac=$(cat /sys/class/net/eth0/address)
-		wan_mac=$(macaddr_add "$lan_mac" 1)
 		;;
 	iodata,wnpr2600g)
 		wan_mac=$(mtd_get_mac_ascii u-boot-env wanaddr)

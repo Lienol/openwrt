@@ -17,14 +17,8 @@
 		led-upgrade = &led_power;
 	};
 
-
-	chosen {
-		bootargs = "console=ttyS0,57600";
-	};
-
 	gpio_export {
 		compatible = "gpio-export";
-		#size-cells = <0>;
 
 		power_modem {
 			gpio-export,name = "power_modem";
@@ -95,20 +89,6 @@
 		};
 
 	};
-
-	reg_power_usb: regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "power_usb";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-boot-on;
-	};
-};
-
-&xhci {
-	vbus-supply = <&reg_power_usb>;
 };
 
 &nand {
@@ -219,4 +199,11 @@
 		nvmem-cell-names = "eeprom", "mac-address";
 	};
 
+};
+
+&reg_vbus {
+	/delete-property/ regulator-always-on;
+	gpios = <&gpio 7 GPIO_ACTIVE_HIGH>;
+	enable-active-high;
+	regulator-boot-on;
 };
