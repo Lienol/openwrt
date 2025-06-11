@@ -28,7 +28,6 @@ preinit_set_mac_address() {
 		ip link set dev eth1 address "$addr"
 		;;
 	mercusys,mr90x-v1|\
-	tplink,archer-ax80-v1|\
 	tplink,re6000xd)
 		addr=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
 		ip link set dev eth1 address "$(macaddr_add $addr 1)"

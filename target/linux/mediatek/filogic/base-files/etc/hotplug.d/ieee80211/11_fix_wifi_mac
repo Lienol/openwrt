@@ -55,6 +55,7 @@ case "$board" in
 		[ "$PHYNBR" = "1" ] && macaddr_add $addr 3 > /sys${DEVPATH}/macaddress
 		;;
 	bananapi,bpi-r4|\
+	bananapi,bpi-r4-2g5|\
 	bananapi,bpi-r4-poe)
 		addr=$(cat /sys/class/net/eth0/address)
 		[ "$PHYNBR" = "0" ] && macaddr_add $addr 2 > /sys${DEVPATH}/macaddress
@@ -79,7 +80,6 @@ case "$board" in
 	cudy,m3000-v1|\
 	cudy,re3000-v1|\
 	cudy,tr3000-v1|\
-	cudy,wr3000e-v1|\
 	cudy,wr3000s-v1|\
 	cudy,wr3000h-v1|\
 	cudy,wr3000-v1)
@@ -128,7 +128,6 @@ case "$board" in
 		[ "$PHYNBR" = "1" ] && macaddr_add $label_mac -2 > /sys${DEVPATH}/macaddress
 		;;
 	mercusys,mr90x-v1|\
-	tplink,archer-ax80-v1|\
 	tplink,re6000xd)
 		addr=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
 		[ "$PHYNBR" = "0" ] && echo "$addr" > /sys${DEVPATH}/macaddress
@@ -151,6 +150,11 @@ case "$board" in
 		addr=$(cat /sys/class/net/eth0/address)
 		[ "$PHYNBR" = "0" ] && macaddr_add $addr 1 > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_add $addr 2 > /sys${DEVPATH}/macaddress
+		;;
+	nradio,c8-668gl)
+		hw_mac_addr=$(mmc_get_mac_ascii bdinfo "fac_mac ")
+		[ "$PHYNBR" = "0" ] && echo "$hw_mac_addr" > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && macaddr_setbit_la $hw_mac_addr > /sys${DEVPATH}/macaddress
 		;;
 	qihoo,360t7)
 		addr=$(mtd_get_mac_ascii factory lanMac)

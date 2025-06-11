@@ -1,5 +1,5 @@
 REQUIRE_IMAGE_METADATA=1
-RAMFS_COPY_BIN='fitblk'
+RAMFS_COPY_BIN='fitblk fit_check_sign'
 
 platform_do_upgrade() {
 	local board=$(board_name)
@@ -16,16 +16,7 @@ platform_do_upgrade() {
 		;;
 	buffalo,wsr-2533dhp2|\
 	buffalo,wsr-3200ax4s)
-		local magic="$(get_magic_long "$1")"
-
-		# use "mtd write" if the magic is "DHP2 (0x44485032)"
-		# or "DHP3 (0x44485033)"
-		if [ "$magic" = "44485032" -o "$magic" = "44485033" ]; then
-			buffalo_upgrade_ubinized "$1"
-		else
-			CI_KERNPART="firmware"
-			nand_do_upgrade "$1"
-		fi
+		buffalo_do_upgrade "$1"
 		;;
 	dlink,eagle-pro-ai-m32-a1|\
 	dlink,eagle-pro-ai-r32-a1|\
@@ -78,11 +69,8 @@ platform_check_image() {
 		return $?
 		;;
 	*)
-		[ "$magic" != "d00dfeed" ] && {
-			echo "Invalid image type."
-			return 1
-		}
-		return 0
+		fit_check_image "$1"
+		return $?
 		;;
 	esac
 

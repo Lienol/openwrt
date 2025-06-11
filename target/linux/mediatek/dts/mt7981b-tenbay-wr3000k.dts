@@ -1,9 +1,21 @@
 // SPDX-License-Identifier: (GPL-2.0 OR MIT)
 
-#include <dt-bindings/leds/common.h>
-#include "mt7981.dtsi"
+/dts-v1/;
+#include "mt7981b.dtsi"
 
 / {
+	model = "Tenbay WR3000K";
+	compatible = "tenbay,wr3000k", "mediatek,mt7981";
+
+	aliases {
+		led-boot = &led_run;
+		led-failsafe = &led_blue;
+		led-running = &led_green;
+		led-upgrade = &led_blue;
+		serial0 = &uart0;
+		label-mac-device = &wan;
+	};
+
 	chosen {
 		stdout-path = "serial0:115200n8";
 	};
@@ -21,6 +33,28 @@
 			label = "wps";
 			linux,code = <KEY_WPS_BUTTON>;
 			gpios = <&pio 0 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		led_run: led-0 {
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pio 10 GPIO_ACTIVE_LOW>;
+		};
+
+		led_green: led-1 {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pio 11 GPIO_ACTIVE_LOW>;
+		};
+
+		led_blue: led-2 {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pio 12 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -42,9 +76,8 @@
 		compatible = "mediatek,eth-mac";
 		reg = <0>;
 		phy-mode = "2500base-x";
-
+		nvmem-cells = <&macaddr_factory_4 (-1)>;
 		nvmem-cell-names = "mac-address";
-		nvmem-cells = <&macaddr_bdinfo_de00 0>;
 
 		fixed-link {
 			speed = <2500>;
@@ -66,12 +99,53 @@
 	};
 };
 
+&switch {
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			label = "lan1";
+		};
+
+		port@1 {
+			reg = <1>;
+			label = "lan2";
+		};
+
+		port@2 {
+			reg = <2>;
+			label = "lan3";
+		};
+
+		wan: port@3 {
+			reg = <3>;
+			label = "wan";
+			nvmem-cells = <&macaddr_factory_4 (-2)>;
+			nvmem-cell-names = "mac-address";
+		};
+
+		port@6 {
+			reg = <6>;
+			ethernet = <&gmac0>;
+			phy-mode = "2500base-x";
+
+			fixed-link {
+				speed = <2500>;
+				full-duplex;
+				pause;
+			};
+		};
+	};
+};
+
 &spi0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi0_flash_pins>;
 	status = "okay";
 
-	spi_nand: flash@0 {
+	flash@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "spi-nand";
@@ -105,10 +179,9 @@
 			partition@100000 {
 				label = "u-boot-env";
 				reg = <0x0100000 0x0080000>;
-				read-only;
 			};
 
-			partition@180000 {
+			factory: partition@180000 {
 				label = "Factory";
 				reg = <0x180000 0x0200000>;
 				read-only;
@@ -121,37 +194,40 @@
 					eeprom_factory_0: eeprom@0 {
 						reg = <0x0 0x1000>;
 					};
-				};
-			};
 
-			partition@380000 {
-				label = "bdinfo";
-				reg = <0x380000 0x0040000>;
-				read-only;
-
-				nvmem-layout {
-					compatible = "fixed-layout";
-					#address-cells = <1>;
-					#size-cells = <1>;
-
-					macaddr_bdinfo_de00: macaddr@de00 {
+					macaddr_factory_4: macaddr@4 {
 						compatible = "mac-base";
-						reg = <0xde00 0x6>;
+						reg = <0x4 0x6>;
 						#nvmem-cell-cells = <1>;
 					};
 				};
 			};
 
-			partition@3c0000 {
+			partition@380000 {
 				label = "FIP";
-				reg = <0x3c0000 0x0200000>;
+				reg = <0x380000 0x0200000>;
 				read-only;
 			};
 
-			partition@5c0000 {
+			partition@580000 {
 				label = "ubi";
-				reg = <0x5c0000 0x4000000>;
 				compatible = "linux,ubi";
+				reg = <0x580000 0x3000000>;
+			};
+
+			partition@3580000 {
+			    label = "ubi1";
+			    reg = <0x3580000 0x3000000>;
+			};
+
+			partition@6580000 {
+				label = "Product";
+				reg = <0x6580000 0x0020000>;  // 128 KB
+			};
+
+			partition@65a0000 {
+				label = "Custom";
+				reg = <0x65a0000 0x1000000>;  // 16 MB
 			};
 		};
 	};
@@ -163,22 +239,11 @@
 			function = "spi";
 			groups = "spi0", "spi0_wp_hold";
 		};
-		conf-pu {
-			pins = "SPI0_CS", "SPI0_HOLD", "SPI0_WP";
-			drive-strength = <MTK_DRIVE_8mA>;
-			bias-pull-up = <MTK_PUPD_SET_R1R0_11>;
-		};
-
-		conf-pd {
-			pins = "SPI0_CLK", "SPI0_MOSI", "SPI0_MISO";
-			drive-strength = <MTK_DRIVE_8mA>;
-			bias-pull-down = <MTK_PUPD_SET_R1R0_11>;
-		};
 	};
 };
 
 &wifi {
-	status = "okay";
 	nvmem-cells = <&eeprom_factory_0>;
 	nvmem-cell-names = "eeprom";
+	status = "okay";
 };
