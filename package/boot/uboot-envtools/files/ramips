@@ -71,6 +71,7 @@ zte,mf283plus)
 	;;
 asus,rt-ax53u|\
 asus,rt-ax54|\
+asus,4g-ax56|\
 belkin,rt1800|\
 elecom,wrc-x1800gs|\
 h3c,tx1800-plus|\
@@ -138,6 +139,7 @@ zyxel,lte3301-plus)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x1000" "0x80000"
 	;;
 zyxel,lte5398-m904|\
+zyxel,lte7490-m904|\
 zyxel,nr7101)
 	idx="$(find_mtd_index Config)"
 	[ -n "$idx" ] && \
