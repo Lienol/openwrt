@@ -7,13 +7,17 @@ touch /etc/config/ubootenv
 
 board=$(board_name)
 
+ubootenv_add_mtd() {
+	local idx="$(find_mtd_index "${1}")"
+	[ -n "$idx" ] && \
+		ubootenv_add_uci_config "/dev/mtd$idx" "${2}" "${3}" "${4}" "${5}"
+}
+
 case "$board" in
 8devices,mango-dvk|\
 8devices,mango-dvk-sfp|\
 cambiumnetworks,xe3-4)
-	idx="$(find_mtd_index 0:APPSBLENV)"
-	[ -n "$idx" ] && \
-		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x10000" "0x10000"
+	ubootenv_add_mtd "0:APPSBLENV" "0x0" "0x10000" "0x10000"
 	;;
 cmiot,ax18|\
 qihoo,360v6|\
@@ -25,16 +29,12 @@ zn,m2|\
 netgear,wax214|\
 netgear,wax610|\
 netgear,wax610y)
-	idx="$(find_mtd_index 0:appsblenv)"
-	[ -n "$idx" ] && \
-		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x40000" "0x20000" "2"
+	ubootenv_add_mtd "0:appsblenv" "0x0" "0x40000" "0x20000" "2"
 	;;
 tplink,eap610-outdoor|\
 tplink,eap623od-hd-v1|\
 tplink,eap625-outdoor-hd-v1)
-	idx="$(find_mtd_index 0:appsblenv)"
-	[ -n "$idx" ] && \
-		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x40000" "0x20000"
+	ubootenv_add_mtd "0:appsblenv" "0x0" "0x0" "0x40000" "0x20000"
 	;;
 jdcloud,re-cs-02|\
 jdcloud,re-ss-01|\
@@ -45,14 +45,10 @@ redmi,ax5-jdcloud)
 	;;
 linksys,mr7350|\
 linksys,mr7500)
-	idx="$(find_mtd_index u_env)"
-	[ -n "$idx" ] && \
-		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x40000" "0x20000" "2"
+	ubootenv_add_mtd "u_env" "0x0" "0x40000" "0x20000" "2"
 	;;
 yuncore,fap650)
-	idx="$(find_mtd_index 0:appsblenv)"
-	[ -n "$idx" ] && \
-		ubootenv_add_uci_config "/dev/mtd$idx" "0x0" "0x10000" "0x10000"
+	ubootenv_add_mtd "0:appsblenv" "0x0" "0x10000" "0x10000"
 	;;
 esac
 
