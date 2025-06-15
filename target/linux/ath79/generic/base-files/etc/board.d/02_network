@@ -50,6 +50,7 @@ ath79_setup_interfaces()
 	extreme-networks,ws-ap3805i|\
 	fortinet,fap-220-b|\
 	fortinet,fap-221-b|\
+	fortinet,fap-221-c|\
 	glinet,gl-ar300m-lite|\
 	glinet,gl-usb150|\
 	hak5,wifi-pineapple-nano|\
@@ -97,9 +98,6 @@ ath79_setup_interfaces()
 	tplink,eap225-v4|\
 	tplink,eap245-v1|\
 	tplink,re350k-v1|\
-	tplink,re355-v1|\
-	tplink,re450-v1|\
-	tplink,re450-v2|\
 	tplink,re450-v3|\
 	tplink,re455-v1|\
 	tplink,tl-wa1201-v2|\
@@ -195,6 +193,7 @@ ath79_setup_interfaces()
 	nec,wg1400hp|\
 	nec,wg1800hp|\
 	nec,wg1800hp2|\
+	nec,wg2200hp|\
 	tplink,archer-c5-v1|\
 	tplink,archer-c7-v1|\
 	tplink,archer-c7-v2|\
@@ -418,6 +417,10 @@ ath79_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0@eth0" "5:wan" "6@eth1" "4:lan"
 		;;
+	longdata,aps256)
+		ucidef_add_switch "switch0" \
+			"0@eth0" "1:lan:2" "2:lan:1" "5:wan"
+		;;
 	meraki,mr12)
 		ucidef_set_interface_lan "eth0"
 		ucidef_add_switch "switch0" \
@@ -504,6 +507,10 @@ ath79_setup_interfaces()
 		ucidef_set_interface_lan "eth0 eth1"
 		ucidef_add_switch "switch0" \
 			"0u@eth1" "4:lan:1" "3:lan:2" "2:lan:3" "1:lan:4"
+		;;
+	ruckus,r500)
+		ucidef_add_switch "switch0" \
+			"6u@eth0" "5:lan:1" "3:lan:2" "0@eth1"
 		;;
 	teltonika,rut955|\
 	teltonika,rut955-h7v3c0)
@@ -758,9 +765,6 @@ ath79_setup_macs()
 	hak5,packet-squirrel)
 		label_mac=$(mtd_get_mac_binary u-boot 0x1fc00)
 		;;
-	huawei,ap5030dn)
-		label_mac=$(mtd_get_mac_binary art 0x2005b)
-		;;
 	iodata,etg3-r)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		wan_mac=$(macaddr_add "$lan_mac" -1)
@@ -816,6 +820,7 @@ ath79_setup_macs()
 		wan_mac=$(mtd_get_mac_binary factory 0x0)
 		lan_mac=$(macaddr_setbit_la "$wan_mac")
 		;;
+	ruckus,r500|\
 	ruckus,zf7025|\
 	ruckus,zf7321|\
 	ruckus,zf7341|\
@@ -867,9 +872,6 @@ ath79_setup_macs()
 		;;
 	xiaomi,aiot-ac2350)
 		lan_mac=$(mtd_get_mac_binary art 0x1002)
-		;;
-	zyxel,nbg6616)
-		label_mac=$(mtd_get_mac_ascii u-boot-env ethaddr)
 		;;
 	esac
 

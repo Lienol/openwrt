@@ -19,7 +19,6 @@
 
 	gpio-export {
 		compatible = "gpio-export";
-		#size-cells = <0>;
 
 		watchdog-enable {
 			gpio-export,name = "watchdog-enable";
@@ -154,10 +153,6 @@
 					macaddr_art_6: macaddr@6 {
 						reg = <0x6 0x6>;
 					};
-
-					macaddr_art_1002: macaddr@1002 {
-						reg = <0x1002 0x6>;
-					};
 				};
 			};
 
@@ -170,9 +165,13 @@
 	};
 };
 
+&wdt {
+	status = "disabled";
+};
+
 &wmac {
 	status = "okay";
 
-	nvmem-cells = <&cal_art_1000>, <&macaddr_art_1002>;
-	nvmem-cell-names = "calibration", "mac-address";
+	nvmem-cells = <&cal_art_1000>;
+	nvmem-cell-names = "calibration";
 };

@@ -18,7 +18,6 @@
 
 	gpio-export {
 		compatible = "gpio-export";
-		#size-cells = <0>;
 
 		microsd-detect {
 			gpio-export,name = "microsd-detect";
@@ -28,12 +27,6 @@
 		usb-alarm {
 			gpio-export,name = "usb-alarm";
 			gpios = <&gpio 20 GPIO_ACTIVE_LOW>;
-		};
-
-		usb-power {
-			gpio-export,name = "usb-power";
-			gpio-export,output = <0>;
-			gpios = <&gpio 23 GPIO_ACTIVE_LOW>;
 		};
 	};
 
@@ -56,6 +49,14 @@
 			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy0tpt";
 		};
+	};
+
+	reg_power_usb: regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "power_usb";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpios = <&gpio 23 GPIO_ACTIVE_LOW>;
 	};
 };
 
@@ -123,6 +124,8 @@
 
 &usb {
 	status = "okay";
+
+	vbus-supply = <&reg_power_usb>;
 };
 
 &usb_phy {
