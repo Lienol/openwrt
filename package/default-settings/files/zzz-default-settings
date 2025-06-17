@@ -1,69 +1,93 @@
 #!/bin/sh
 
+# 创建 root 用户的 crontab 文件
 touch /etc/crontabs/root
 
+# 设置 LuCI 默认语言为中文、默认主题为 bootstrap
 uci set luci.main.lang=zh_cn
-#设置默认主题
 uci set luci.main.mediaurlbase=/luci-static/bootstrap
 uci commit luci
 
+# 设置时区为中国上海
 uci set system.@system[0].timezone=CST-8
 uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 
+# 允许自动挂载未定义设备
 uci set fstab.@global[0].anon_mount=1
 uci commit fstab
 
+# 创建 ip 命令软链接（部分脚本依赖）
 ln -sf /sbin/ip /usr/bin/ip
 
+# ✅ 替换 opkg 软件源为 mirrors.pku.edu.cn（自动识别分支和架构）
+if [ -f /etc/openwrt_release ]; then
+  . /etc/openwrt_release
+  RELEASE="${DISTRIB_RELEASE:-snapshot}"
+  ARCH="$(opkg print-architecture | awk 'NR==2 {print $2}')"
+
+  echo "使用 PKU 源: RELEASE=${RELEASE}, ARCH=${ARCH}"
+
+  # 替换下载地址为北大源
+  sed -i "s|https\?://downloads.openwrt.org/releases|https://mirrors.pku.edu.cn/openwrt/releases|g" /etc/opkg/distfeeds.conf
+
+  # 替换软件包架构
+  sed -i "s|/packages/[^/]\+|/packages/${ARCH}|g" /etc/opkg/distfeeds.conf
+
+  # 启用所有被注释的源
+  sed -i 's|^#\(src/gz.*\)|\1|' /etc/opkg/distfeeds.conf
+
+  # 添加标记用于校验
+  sed -i '/DISTRIB_SOURCE/d' /etc/openwrt_release
+  echo "DISTRIB_SOURCE='PKU-MIRROR'" >> /etc/openwrt_release
+fi
+
+# 清理不需要的软件源项
 sed -i '/lienol/d' /etc/opkg/distfeeds.conf
 sed -i '/other/d' /etc/opkg/distfeeds.conf
-#sed -i 's/downloads.openwrt.org/openwrt.proxy.ustclug.org/g' /etc/opkg/distfeeds.conf
-#sed -i 's/http/https/g' /etc/opkg/distfeeds.conf
 sed -i "s/# //g" /etc/opkg/distfeeds.conf
 
-#sed -i 's/root::0:0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.:0:0:99999:7:::/g' /etc/shadow
-
+# IPv6 DHCP 和路由通告配置
 uci set dhcp.lan.ra='server'
 uci -q del dhcp.lan.dhcpv6
 uci set dhcp.lan.dns_service='0'
 uci set dhcp.lan.ra_management='1'
 uci -q del dhcp.lan.ra_slaac
-#uci set dhcp.@dnsmasq[0].localservice=0
-#uci set dhcp.@dnsmasq[0].nonwildcard=0
 uci commit dhcp
 
+# 默认 LAN 地址（如有需要请取消注释）
 #uci set network.lan.ipaddr='192.168.119.254'
 #uci set network.lan.netmask='255.255.255.0'
 #uci set network.lan.ip6assign='64'
 #uci commit network
 
+# 启用所有无线接口
 sed -i '/option disabled/d' /etc/config/wireless
 sed -i '/set wireless.radio${devidx}.disabled/d' /lib/wifi/mac80211.sh
 wifi up
 
+# 修改系统版本显示信息
 sed -i '/DISTRIB_DESCRIPTION/d' /etc/openwrt_release
-echo "DISTRIB_DESCRIPTION='OpenWrt 24.10'" >> /etc/openwrt_release
+echo "DISTRIB_DESCRIPTION='OpenWrt 24.10 with PKU Mirror'" >> /etc/openwrt_release
 
-# 删除状态页不需显示的
+# 删除状态页（可用于精简 UI）
 rm -rf /usr/lib/lua/luci/view/admin_status/index
-#mv -f /usr/lib/lua/luci/view/admin_status/index /usr/lib/lua/luci/view/admin_status/index_backup 2>/dev/null
 
+# 替换页脚 GitHub 链接为 lienol
 sed -i 's#openwrt/luci#lienol/openwrt-luci#g' /usr/lib/lua/luci/view/themes/*/footer.htm
 
-#禁用某些可能会自启动且用不上的依赖包服务
-/etc/init.d/php7-fastcgi disable 2>/dev/null
-/etc/init.d/php7-fpm disable 2>/dev/null
-/etc/init.d/php8-fastcgi disable 2>/dev/null
-/etc/init.d/php8-fpm disable 2>/dev/null
-/etc/init.d/softethervpnbridge disable 2>/dev/null
-/etc/init.d/softethervpnserver disable 2>/dev/null
-/etc/init.d/softethervpnclient disable 2>/dev/null
-/etc/init.d/haproxy disable 2>/dev/null
-/etc/init.d/kcptun disable 2>/dev/null
+# 禁用不常用服务，避免资源占用
+for svc in \
+  php7-fastcgi php7-fpm php8-fastcgi php8-fpm \
+  softethervpnbridge softethervpnserver softethervpnclient \
+  haproxy kcptun; do
+  /etc/init.d/$svc disable 2>/dev/null
+done
 
+# 修复 init 脚本权限
 chmod 0755 /etc/init.d/*
 
+# 清理 LuCI 缓存
 rm -rf /tmp/luci-*cache
 
 exit 0
