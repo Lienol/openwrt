@@ -1,0 +1,34 @@
+#src-git packages https://github.com/Lienol/openwrt-packages.git;24.10
+#src-git luci https://github.com/Lienol/openwrt-luci.git;17.01-dev
+#src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
+#src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
+#src-git lienol https://github.com/Lienol/openwrt-package.git;main
+#src-git other https://github.com/Lienol/openwrt-package.git;other
+
+# 全套使用官方oepnwrt的
+src-git packages https://github.com/openwrt/packages.git;openwrt-24.10
+src-git luci https://github.com/openwrt/luci.git;openwrt-24.10
+src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
+src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
+src-git lienol https://github.com/Lienol/openwrt-package.git;main
+src-git other https://github.com/Lienol/openwrt-package.git;other
+
+# Passwall2 必需 feeds
+src-git passwall https://github.com/xiaorouji/openwrt-passwall.git;main
+src-git passwall2 https://github.com/xiaorouji/openwrt-passwall2.git;main
+src-git custom_pkgs https://github.com/xiaorouji/openwrt-packages.git;main
+
+
+
+# #全套替换为lede的
+# src-git packages https://github.com/coolsnowwolf/packages
+# #src-git luci https://github.com/coolsnowwolf/luci
+# src-git luci https://github.com/coolsnowwolf/luci.git;openwrt-23.05
+# src-git routing https://github.com/coolsnowwolf/routing
+# src-git telephony https://github.com/coolsnowwolf/telephony.git
+# #src-git helloworld https://github.com/fw876/helloworld.git
+# #src-git oui https://github.com/zhaojh329/oui.git
+# #src-git video https://github.com/openwrt/video.git
+# #src-git targets https://github.com/openwrt/targets.git
+# #src-git oldpackages http://git.openwrt.org/packages.git
+# #src-link custom /usr/src/openwrt/custom-feed
