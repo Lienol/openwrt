@@ -14,9 +14,9 @@ src-git lienol https://github.com/Lienol/openwrt-package.git;main
 src-git other https://github.com/Lienol/openwrt-package.git;other
 
 # Passwall2 必需 feeds
-#src-git passwall https://github.com/xiaorouji/openwrt-passwall.git;main
-#src-git passwall2 https://github.com/xiaorouji/openwrt-passwall2.git;main
-#src-git custom_pkgs https://github.com/xiaorouji/openwrt-packages.git;main
+src-git passwall https://github.com/ending7495/openwrt-passwall.git;main
+src-git passwall2 https://github.com/ending7495/openwrt-passwall2.git;main
+src-git custom_pkgs https://github.com/ending7495/openwrt-passwall-packages.git;main
 
 
 
