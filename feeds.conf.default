@@ -6,10 +6,10 @@
 #src-git other https://github.com/Lienol/openwrt-package.git;other
 
 # 全套使用官方oepnwrt的
-src-git packages https://github.com/openwrt/packages.git;openwrt-24.10
-src-git luci https://github.com/openwrt/luci.git;openwrt-24.10
-src-git routing https://github.com/openwrt/routing.git;openwrt-24.10
-src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
+src-git packages https://github.com/ending7495/packages.git;openwrt-24.10
+src-git luci https://github.com/ending7495/luci.git;openwrt-24.10
+src-git routing https://github.com/ending7495/routing.git;openwrt-24.10
+src-git telephony https://github.com/ending7495/telephony.git;openwrt-24.10
 src-git lienol https://github.com/Lienol/openwrt-package.git;main
 src-git other https://github.com/Lienol/openwrt-package.git;other
 
