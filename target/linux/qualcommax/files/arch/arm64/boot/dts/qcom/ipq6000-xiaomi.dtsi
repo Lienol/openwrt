@@ -3,9 +3,9 @@
 /dts-v1/;
 
 #include "ipq6018.dtsi"
-#include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -114,10 +114,6 @@
 &blsp1_uart3 {
 	pinctrl-0 = <&serial_3_pins>;
 	pinctrl-names = "default";
-	status = "okay";
-};
-
-&qpic_bam {
 	status = "okay";
 };
 
@@ -234,20 +230,4 @@
 	status = "okay";
 
 	qcom,ath11k-fw-memory-mode = <1>;
-};
-
-&qusb_phy_0 {
-	status = "ok";
-};
-
-&ssphy_0 {
-	status = "ok";
-};
-
-&usb2 {
-	status = "okay";
-};
-
-&usb3 {
-	status = "ok";
 };

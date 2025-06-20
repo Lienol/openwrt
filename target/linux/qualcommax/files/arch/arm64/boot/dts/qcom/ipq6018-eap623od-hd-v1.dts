@@ -4,9 +4,9 @@
 /dts-v1/;
 
 #include "ipq6018.dtsi"
-#include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -124,10 +124,6 @@
 	phy-handle = <&rtl8211f>;
 	phy-mode = "sgmii";
 	label = "lan";
-};
-
-&qpic_bam {
-	status = "okay";
 };
 
 &qpic_nand {
