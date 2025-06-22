@@ -1,0 +1,68 @@
+1. Enable QUECTEL_BRIDGE_MODE in qmi_wwan_q.c
+
+2. Guide to use ....
+Welcome to Buildroot for the Orange Pi Zero
+OrangePi_Zero login: root
+# insmod qmi_wwan_q.ko 
+[   90.591841] qmi_wwan_q 3-1:1.4: cdc-wdm0: USB WDM device
+[   90.597185] qmi_wwan_q 3-1:1.4: Quectel EC25&EC21&EG91&EG95&EG06&EP06&EM06&EG12&EP12&EM12&EG16&EG18&BG96&AG35 work on RawIP mode
+[   90.610176] qmi_wwan_q 3-1:1.4: rx_urb_size = 32768
+[   90.620589] qmi_wwan_q 3-1:1.4 wwan0: register 'qmi_wwan_q' at usb-1c1b000.usb-1, WWAN/QMI device, 96:42:59:a9:f5:e4
+[   90.631293] usbcore: registered new interface driver qmi_wwan_q
+# brctl addbr br0
+# brctl addif br0 eth0
+[  100.413071] br0: port 1(eth0) entered blocking state
+[  100.418081] br0: port 1(eth0) entered disabled state
+[  100.423356] device eth0 entered promiscuous mode
+# brctl addif br0 wwan0
+[  102.696724] br0: port 2(wwan0) entered blocking state
+[  102.701823] br0: port 2(wwan0) entered disabled state
+[  102.707182] device wwan0 entered promiscuous mode
+# ifconfig br0 up
+[  110.405561] br0: port 1(eth0) entered blocking state
+[  110.410567] br0: port 1(eth0) entered forwarding state
+# brctl show
+bridge name	bridge id		STP enabled	interfaces
+br0		8000.0242b22e80d8	no		eth0
+							wwan0
+# ./quectel-CM &
+# [01-01_06:37:02:386] Quectel_QConnectManager_Linux_V1.4.3
+[01-01_06:37:02:388] Find /sys/bus/usb/devices/3-1 idVendor=0x2c7c idProduct=0x512
+[01-01_06:37:02:388] Auto find qmichannel = /dev/cdc-wdm0
+[01-01_06:37:02:388] Auto find usbnet_adapter = wwan0
+[01-01_06:37:02:389] qmap_mode = 1, muxid = 0x81, qmap_netcard = wwan0
+[01-01_06:37:02:389] Modem works in QMI mode
+[01-01_06:37:02:389] qmap_mode = 1, muxid = 0x81, qmap_netcard = wwan0
+[01-01_06:37:02:394] cdc_wdm_fd = 7
+[01-01_06:37:02:561] Get clientWDS = 18
+[01-01_06:37:02:633] Get clientDMS = 1
+[01-01_06:37:02:689] Get clientNAS = 2
+[01-01_06:37:02:753] Get clientUIM = 1
+[01-01_06:37:02:817] Get clientWDA = 1
+[01-01_06:37:02:881] requestBaseBandVersion EM12GBATE1127
+[01-01_06:37:02:945] qmap_settings.rx_urb_size = 16384
+[01-01_06:37:03:201] requestGetSIMStatus SIMStatus: SIM_READY
+[01-01_06:37:03:265] requestGetProfile[1] ctnet///0
+[01-01_06:37:03:329] requestRegistrationState2 MCC: 460, MNC: 11, PS: Attached, DataCap: LTE
+[01-01_06:37:03:393] requestQueryDataCall IPv4ConnectionStatus: DISCONNECTED
+[01-01_06:37:03:457] requestSetupDataCall WdsConnectionIPv4Handle: 0x192a5ed0
+[01-01_06:37:03:717] ifconfig wwan0 up
+[01-01_06:37:03:747] echo '0x64b69855' > /sys/module/qmi_wwan_q/parameters/bridge_ipv4
+
+[  117.030116] net wwan0: link_state 0x0 -> 0x1
+[  117.041259] br0: port 2(wwan0) entered blocking state
+[  117.046326] br0: port 2(wwan0) entered forwarding state
+[  117.336688] net wwan0: sip = 100.182.152.85, tip=100.182.152.86, ipv4=100.182.152.85
+[  121.612281] random: crng init done
+[  128.143645] net wwan0: PC Mac Address: 5e:6b:82:fa:ab:c3
+[  128.151936] net wwan0: rx_pkts=1, rx_len=312
+[  128.203578] net wwan0: PC Mac Address: 5e:6b:82:fa:ab:c3
+[  131.012891] net wwan0: sip = 100.182.152.85, tip=100.182.152.86, ipv4=100.182.152.85
+[  131.341780] net wwan0: rx_pkts=1, rx_len=316
+[  131.434642] net wwan0: rx_pkts=1, rx_len=1404
+[  131.439416] net wwan0: rx_pkts=3, rx_len=4212
+[  131.512782] net wwan0: rx_pkts=4, rx_len=5616
+[  131.535345] net wwan0: rx_pkts=7, rx_len=9828
+[  133.778699] net wwan0: rx_pkts=8, rx_len=11232
+[  134.143941] net wwan0: rx_pkts=9, rx_len=12636
+[  140.053957] net wwan0: rx_pkts=11, rx_len=15444

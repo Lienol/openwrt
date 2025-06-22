@@ -1,0 +1,11 @@
+--- a/qmi_wwan_q.c
++++ b/qmi_wwan_q.c
+@@ -1472,7 +1472,7 @@ typedef struct {
+ } BRMAC_SETTING;
+ #endif
+ 
+-int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size) {
++static int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size) {
+ 	struct net_device *netdev = to_net_dev(dev);
+ 	struct usbnet * usbnetdev = netdev_priv( netdev );
+ 	struct qmi_wwan_state *info = (void *)&usbnetdev->data;

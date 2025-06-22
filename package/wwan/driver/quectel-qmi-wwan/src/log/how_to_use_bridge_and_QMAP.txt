@@ -1,0 +1,234 @@
+1. Enable QUECTEL_BRIDGE_MODE in qmi_wwan_q.c
+
+2. set qmap_mode to 4
+
+3. if you want add wwan0.2 to br2, wwan0.3 to br3
+   set bridge_mode to BIT(1)|BIT(2)
+
+4. Guide to use ....
+# insmod qmi_wwan_q.ko qmap_mode=4 bridge_mode=6
+[243467.331669] qmi_wwan_q 3-1:1.4: cdc-wdm0: USB WDM device
+[243467.337136] qmi_wwan_q 3-1:1.4: Quectel EC25&EC21&EG91&EG95&EG06&EP06&EM06&EG12&EP12&EM12&EG16&EG18&BG96&AG35 work on RawIP mode
+[243467.349471] qmi_wwan_q 3-1:1.4: rx_urb_size = 32768
+[243467.364803] qmi_wwan_q 3-1:1.4 wwan0: register 'qmi_wwan_q' at usb-1c1b000.usb-1, WWAN/QMI device, 96:42:59:a9:f5:e4
+[243467.376025] net wwan0: qmap_register_device wwan0.1
+[243467.381658] net wwan0: qmap_register_device wwan0.2
+[243467.387281] net wwan0: qmap_register_device wwan0.3
+[243467.392851] net wwan0: qmap_register_device wwan0.4
+[243467.398106] usbcore: registered new interface driver qmi_wwan_q
+
+# cat /sys/class/net/wwan0.2/bridge_mode 
+1
+
+# cat /sys/class/net/wwan0.3/bridge_mode 
+1
+
+# brctl addbr br2
+# brctl addif br2 wwan0.2
+[243492.518563] br2: port 1(wwan0.2) entered blocking state
+[243492.523888] br2: port 1(wwan0.2) entered disabled state
+[243492.535948] device wwan0.2 entered promiscuous mode
+
+# brctl addbr br3
+# brctl addif br3 wwan0.3
+[243507.486717] br3: port 1(wwan0.3) entered blocking state
+[243507.492248] br3: port 1(wwan0.3) entered disabled state
+[243507.497982] device wwan0.3 entered promiscuous mode
+
+# brctl show
+bridge name	bridge id		STP enabled	interfaces
+br2		8000.964259a9f5e4	no		wwan0.2
+br3		8000.964259a9f5e4	no		wwan0.3
+
+# ./quectel-qmi-proxy &
+# Find /sys/bus/usb/devices/3-1 idVendor=2c7c idProduct=0512
+Find /sys/bus/usb/devices/3-1:1.4/usbmisc/cdc-wdm0
+Will use cdc-wdm /dev/cdc-wdm0
+qmi_proxy_init enter
+qmi_proxy_loop enter
+link_prot 2
+ul_data_aggregation_protocol 5
+dl_data_aggregation_protocol 5
+dl_data_aggregation_max_datagrams 32
+dl_data_aggregation_max_size 16384
+ul_data_aggregation_max_datagrams 16
+ul_data_aggregation_max_size 3072
+qmi_proxy_init finished, rx_urb_size is 16384
+local server: quectel-qmi-proxy sockfd = 4
+qmi_start_server: qmi_proxy_server_fd = 4
+
+# ./quectel-CM -n 2 &
+# [01-04_02:13:53:053] Quectel_QConnectManager_Linux_V1.4.3
+[01-04_02:13:53:056] Find /sys/bus/usb/devices/3-1 idVendor=0x2c7c idProduct=0x512
+[01-04_02:13:53:056] Auto find qmichannel = /dev/cdc-wdm0
+[01-04_02:13:53:056] Auto find usbnet_adapter = wwan0
+[01-04_02:13:53:056] qmap_mode = 4, muxid = 0x82, qmap_netcard = wwan0.2
+[01-04_02:13:53:057] Modem works in QMI mode
+[01-04_02:13:53:057] qmap_mode = 4, muxid = 0x82, qmap_netcard = wwan0.2
++++ ClientFd=5
+[01-04_02:13:53:058] connect to quectel-qmi-proxy sockfd = 7
+
+[01-04_02:13:53:058] cdc_wdm_fd = 7
++++ ClientFd=5 QMIType=1 ClientId=18
+[01-04_02:13:53:130] Get clientWDS = 18
++++ ClientFd=5 QMIType=2 ClientId=1
+[01-04_02:13:53:194] Get clientDMS = 1
++++ ClientFd=5 QMIType=3 ClientId=2
+[01-04_02:13:53:258] Get clientNAS = 2
++++ ClientFd=5 QMIType=11 ClientId=2
+[01-04_02:13:53:333] Get clientUIM = 2
+[01-04_02:13:53:386] requestBaseBandVersion EM12GBATE1127
+[01-04_02:13:53:642] requestGetSIMStatus SIMStatus: SIM_READY
+[01-04_02:13:53:706] requestGetProfile[2] IMS///0
+[01-04_02:13:53:770] requestRegistrationState2 MCC: 460, MNC: 11, PS: Attached, DataCap: LTE
+[01-04_02:13:53:841] requestQueryDataCall IPv4ConnectionStatus: DISCONNECTED
+[01-04_02:13:54:058] requestSetupDataCall WdsConnectionIPv4Handle: 0x78a3aba0
+[243527.630628] net wwan0: link_state 0x0 -> 0x2
+[01-04_02:13:54:319] ifconfig wwan0 up
+[01-04_02:13:54:325] ifconfig wwan0.2 up
+[01-04_02:13:54:330] echo '0x645026c8' > /sys/class/net/wwan0.2/bridge_ipv4
+
+# udhcpc -i br2
+udhcpc: started, v1.29.3
+[243532.653027] br2: port 1(wwan0.2) entered blocking state
+[243532.658384] br2: port 1(wwan0.2) entered forwarding state
+udhcpc: sending discover
+[243532.784337] wwan0.2 PC Mac Address: 96:42:59:a9:f5:e4
+[243532.794813] net wwan0: rx_pkts=1, rx_len=312
+udhcpc: sending select for 100.80.38.200
+[243532.894325] wwan0.2 PC Mac Address: 96:42:59:a9:f5:e4
+udhcpc: lease of 100.80.38.200 obtained, lease time 7200
+deleting routers
+adding dns 202.102.213.68
+adding dns 61.132.163.68
+
+
+# ./quectel-CM -n 3 &
+# [01-04_02:14:03:645] Quectel_QConnectManager_Linux_V1.4.3
+[01-04_02:14:03:648] Find /sys/bus/usb/devices/3-1 idVendor=0x2c7c idProduct=0x512
+[01-04_02:14:03:648] Auto find qmichannel = /dev/cdc-wdm0
+[01-04_02:14:03:648] Auto find usbnet_adapter = wwan0
+[01-04_02:14:03:649] qmap_mode = 4, muxid = 0x83, qmap_netcard = wwan0.3
+[01-04_02:14:03:649] Modem works in QMI mode
+[01-04_02:14:03:649] qmap_mode = 4, muxid = 0x83, qmap_netcard = wwan0.3
+[01-04_02:14:03:650] connect to quectel-qmi-proxy sockfd = 7
+
++++ ClientFd=6
+[01-04_02:14:03:650] cdc_wdm_fd = 7
++++ ClientFd=6 QMIType=1 ClientId=19
+[01-04_02:14:03:722] Get clientWDS = 19
++++ ClientFd=6 QMIType=2 ClientId=2
+[01-04_02:14:03:786] Get clientDMS = 2
++++ ClientFd=6 QMIType=3 ClientId=3
+[01-04_02:14:03:850] Get clientNAS = 3
++++ ClientFd=6 QMIType=11 ClientId=3
+[01-04_02:14:03:914] Get clientUIM = 3
+[01-04_02:14:03:978] requestBaseBandVersion EM12GBATE1127
+[01-04_02:14:04:235] requestGetSIMStatus SIMStatus: SIM_READY
+[01-04_02:14:04:298] requestGetProfile[3] lte///0
+[01-04_02:14:04:362] requestRegistrationState2 MCC: 460, MNC: 11, PS: Attached, DataCap: LTE
+[01-04_02:14:04:426] requestQueryDataCall IPv4ConnectionStatus: DISCONNECTED
+[01-04_02:14:04:555] requestSetupDataCall WdsConnectionIPv4Handle: 0x78a5c850
+[243538.126755] net wwan0: link_state 0x2 -> 0x6
+[01-04_02:14:04:815] ifconfig wwan0 up
+[01-04_02:14:04:824] ifconfig wwan0.3 up
+[01-04_02:14:04:829] echo '0x64548ae0' > /sys/class/net/wwan0.3/bridge_ipv4
+
+# udhcpc -i br3
+udhcpc: started, v1.29.3
+[243541.850178] br3: port 1(wwan0.3) entered blocking state
+[243541.855509] br3: port 1(wwan0.3) entered forwarding state
+udhcpc: sending discover
+[243541.976693] wwan0.3 PC Mac Address: 96:42:59:a9:f5:e4
+udhcpc: sending select for 100.84.138.224
+[243542.056668] wwan0.3 PC Mac Address: 96:42:59:a9:f5:e4
+udhcpc: lease of 100.84.138.224 obtained, lease time 7200
+deleting routers
+adding dns 202.102.213.68
+adding dns 61.132.163.68
+
+# ./quectel-CM -n 1 &
+# [01-04_02:14:12:742] Quectel_QConnectManager_Linux_V1.4.3
+[01-04_02:14:12:744] Find /sys/bus/usb/devices/3-1 idVendor=0x2c7c idProduct=0x512
+[01-04_02:14:12:745] Auto find qmichannel = /dev/cdc-wdm0
+[01-04_02:14:12:745] Auto find usbnet_adapter = wwan0
+[01-04_02:14:12:745] qmap_mode = 4, muxid = 0x81, qmap_netcard = wwan0.1
+[01-04_02:14:12:745] Modem works in QMI mode
+[01-04_02:14:12:746] qmap_mode = 4, muxid = 0x81, qmap_netcard = wwan0.1
+[01-04_02:14:12:746] connect to quectel-qmi-proxy sockfd = 7
+
++++ ClientFd=7
+[01-04_02:14:12:746] cdc_wdm_fd = 7
++++ ClientFd=7 QMIType=1 ClientId=20
+[01-04_02:14:12:842] Get clientWDS = 20
++++ ClientFd=7 QMIType=2 ClientId=3
+[01-04_02:14:12:906] Get clientDMS = 3
++++ ClientFd=7 QMIType=3 ClientId=4
+[01-04_02:14:12:970] Get clientNAS = 4
++++ ClientFd=7 QMIType=11 ClientId=4
+[01-04_02:14:13:034] Get clientUIM = 4
+[01-04_02:14:13:098] requestBaseBandVersion EM12GBATE1127
+[01-04_02:14:13:354] requestGetSIMStatus SIMStatus: SIM_READY
+[01-04_02:14:13:418] requestGetProfile[1] ctnet///0
+[01-04_02:14:13:483] requestRegistrationState2 MCC: 460, MNC: 11, PS: Attached, DataCap: LTE
+[01-04_02:14:13:546] requestQueryDataCall IPv4ConnectionStatus: DISCONNECTED
+[01-04_02:14:13:610] requestSetupDataCall WdsConnectionIPv4Handle: 0x78a92b30
+[243547.182801] net wwan0: link_state 0x6 -> 0x7
+[01-04_02:14:13:874] ifconfig wwan0 up
+[01-04_02:14:13:880] ifconfig wwan0.1 up
+[01-04_02:14:13:885] busybox udhcpc -f -n -q -t 5 -i wwan0.1
+udhcpc: started, v1.29.3
+udhcpc: sending discover
+udhcpc: sending select for 10.175.212.85
+udhcpc: lease of 10.175.212.85 obtained, lease time 7200
+[01-04_02:14:14:175] deleting routers
+[01-04_02:14:14:194] adding dns 202.102.213.68
+[01-04_02:14:14:195] adding dns 61.132.163.68
+
+# ifconfig 
+
+br2       Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          inet addr:100.80.38.200  Bcast:100.80.38.207  Mask:255.255.255.240
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:612 (612.0 B)  TX bytes:684 (684.0 B)
+
+br3       Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          inet addr:100.84.138.224  Bcast:100.84.138.255  Mask:255.255.255.192
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:612 (612.0 B)  TX bytes:684 (684.0 B)
+
+
+wwan0     Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          UP BROADCAST RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+wwan0.1   Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          inet addr:10.175.212.85  Bcast:10.175.212.87  Mask:255.255.255.252
+          UP BROADCAST RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:612 (612.0 B)  TX bytes:664 (664.0 B)
+
+wwan0.2   Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          UP BROADCAST RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:612 (612.0 B)  TX bytes:664 (664.0 B)
+
+wwan0.3   Link encap:Ethernet  HWaddr 96:42:59:A9:F5:E4  
+          UP BROADCAST RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:612 (612.0 B)  TX bytes:664 (664.0 B)
