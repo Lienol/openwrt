@@ -26,7 +26,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
 
 --- a/drivers/net/wireless/ath/ath11k/core.h
 +++ b/drivers/net/wireless/ath/ath11k/core.h
-@@ -118,6 +118,7 @@ static inline enum wme_ac ath11k_tid_to_
+@@ -121,6 +121,7 @@ static inline enum wme_ac ath11k_tid_to_
  enum ath11k_skb_flags {
  	ATH11K_SKB_HW_80211_ENCAP = BIT(0),
  	ATH11K_SKB_CIPHER_SET = BIT(1),
@@ -34,7 +34,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  };
  
  struct ath11k_skb_cb {
-@@ -930,10 +931,13 @@ struct ath11k_dp_ring_bp_stats {
+@@ -934,10 +935,13 @@ struct ath11k_dp_ring_bp_stats {
  struct ath11k_soc_dp_tx_err_stats {
  	/* TCL Ring Descriptor unavailable */
  	u32 desc_na[DP_TCL_NUM_RING_MAX];
@@ -50,7 +50,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  };
 --- a/drivers/net/wireless/ath/ath11k/dp.c
 +++ b/drivers/net/wireless/ath/ath11k/dp.c
-@@ -372,7 +372,7 @@ void ath11k_dp_stop_shadow_timers(struct
+@@ -359,7 +359,7 @@ void ath11k_dp_stop_shadow_timers(struct
  	if (!ab->hw_params.supports_shadow_regs)
  		return;
  
@@ -59,7 +59,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		ath11k_dp_shadow_stop_timer(ab, &ab->dp.tx_ring_timer[i]);
  
  	ath11k_dp_shadow_stop_timer(ab, &ab->dp.reo_cmd_timer);
-@@ -387,7 +387,7 @@ static void ath11k_dp_srng_common_cleanu
+@@ -428,7 +428,7 @@ static void ath11k_dp_srng_common_cleanu
  	ath11k_dp_srng_cleanup(ab, &dp->wbm_desc_rel_ring);
  	ath11k_dp_srng_cleanup(ab, &dp->tcl_cmd_ring);
  	ath11k_dp_srng_cleanup(ab, &dp->tcl_status_ring);
@@ -68,7 +68,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		ath11k_dp_srng_cleanup(ab, &dp->tx_ring[i].tcl_data_ring);
  		ath11k_dp_srng_cleanup(ab, &dp->tx_ring[i].tcl_comp_ring);
  	}
-@@ -421,6 +421,11 @@ static int ath11k_dp_srng_common_setup(s
+@@ -464,6 +464,11 @@ static int ath11k_dp_srng_common_setup(s
  		goto err;
  	}
  
@@ -80,7 +80,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	ret = ath11k_dp_srng_setup(ab, &dp->tcl_status_ring, HAL_TCL_STATUS,
  				   0, 0, DP_TCL_STATUS_RING_SIZE);
  	if (ret) {
-@@ -428,7 +433,7 @@ static int ath11k_dp_srng_common_setup(s
+@@ -471,7 +476,7 @@ static int ath11k_dp_srng_common_setup(s
  		goto err;
  	}
  
@@ -89,7 +89,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		tcl_num = ab->hw_params.hal_params->tcl2wbm_rbm_map[i].tcl_ring_num;
  		wbm_num = ab->hw_params.hal_params->tcl2wbm_rbm_map[i].wbm_ring_num;
  
-@@ -451,7 +456,7 @@ static int ath11k_dp_srng_common_setup(s
+@@ -494,7 +499,7 @@ static int ath11k_dp_srng_common_setup(s
  		}
  
  		srng = &ab->hal.srng_list[dp->tx_ring[i].tcl_data_ring.ring_id];
@@ -98,7 +98,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
  		ath11k_dp_shadow_init_timer(ab, &dp->tx_ring_timer[i],
  					    ATH11K_SHADOW_DP_TIMER_INTERVAL,
-@@ -1065,7 +1070,7 @@ void ath11k_dp_free(struct ath11k_base *
+@@ -1108,7 +1113,7 @@ void ath11k_dp_free(struct ath11k_base *
  
  	ath11k_dp_reo_cmd_list_cleanup(ab);
  
@@ -107,7 +107,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		spin_lock_bh(&dp->tx_ring[i].tx_idr_lock);
  		idr_for_each(&dp->tx_ring[i].txbuf_idr,
  			     ath11k_dp_tx_pending_cleanup, ab);
-@@ -1116,7 +1121,7 @@ int ath11k_dp_alloc(struct ath11k_base *
+@@ -1159,7 +1164,7 @@ int ath11k_dp_alloc(struct ath11k_base *
  
  	size = sizeof(struct hal_wbm_release_ring) * DP_TX_COMP_RING_SIZE;
  
@@ -255,15 +255,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  }
  
  static void
-@@ -395,6 +405,7 @@ ath11k_dp_tx_htt_tx_complete_buf(struct
- 	struct ath11k_skb_cb *skb_cb;
- 	struct ath11k *ar;
- 	struct ath11k_peer *peer;
-+	u8 flags = 0;
- 
- 	spin_lock(&tx_ring->tx_idr_lock);
- 	msdu = idr_remove(&tx_ring->txbuf_idr, ts->msdu_id);
-@@ -413,10 +424,30 @@ ath11k_dp_tx_htt_tx_complete_buf(struct
+@@ -413,12 +423,25 @@ ath11k_dp_tx_htt_tx_complete_buf(struct
  
  	if (atomic_dec_and_test(&ar->dp.num_tx_pending))
  		wake_up(&ar->dp.tx_empty_waitq);
@@ -271,8 +263,9 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
  	dma_unmap_single(ab->dev, skb_cb->paddr, msdu->len, DMA_TO_DEVICE);
  
+-	if (!skb_cb->vif) {
+-		ieee80211_free_txskb(ar->hw, msdu);
 +	flags = skb_cb->flags;
-+
 +	/* Free skb here if stats is disabled */
 +	if (ab->stats_disable && !(flags & ATH11K_SKB_TX_STATUS)) {
 +		if (msdu->destructor) {
@@ -284,26 +277,14 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
 +			skb_shinfo(msdu)->frag_list = NULL;
 +		}
 +		dev_kfree_skb(msdu);
-+ 		return;
-+	}
-+
-+	if (unlikely(!skb_cb->vif)) {
-+		dev_kfree_skb_any(msdu);
 +		return;
 +	}
-+
- 	if (!skb_cb->vif) {
- 		ieee80211_free_txskb(ar->hw, msdu);
++	if (unlikely(!skb_cb->vif)) {
++		dev_kfree_skb_any(msdu);
  		return;
-@@ -636,6 +667,7 @@ static void ath11k_dp_tx_complete_msdu(s
- 	struct ath11k_peer *peer;
- 	struct ath11k_sta *arsta;
- 	struct rate_info rate;
-+	u8 flags = 0;
+ 	}
  
- 	if (WARN_ON_ONCE(ts->buf_rel_source != HAL_WBM_REL_SRC_MODULE_TQM)) {
- 		/* Must not happen */
-@@ -646,6 +678,20 @@ static void ath11k_dp_tx_complete_msdu(s
+@@ -646,6 +669,20 @@ static void ath11k_dp_tx_complete_msdu(s
  
  	dma_unmap_single(ab->dev, skb_cb->paddr, msdu->len, DMA_TO_DEVICE);
  
@@ -324,7 +305,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	if (unlikely(!rcu_access_pointer(ab->pdevs_active[ar->pdev_idx]))) {
  		ieee80211_free_txskb(ar->hw, msdu);
  		return;
-@@ -704,7 +750,7 @@ static void ath11k_dp_tx_complete_msdu(s
+@@ -704,7 +741,7 @@ static void ath11k_dp_tx_complete_msdu(s
  
  	spin_lock_bh(&ab->base_lock);
  	peer = ath11k_peer_find_by_id(ab, ts->peer_id);
@@ -333,7 +314,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		ath11k_dbg(ab, ATH11K_DBG_DATA,
  			   "dp_tx: failed to find the peer with peer_id %d\n",
  			    ts->peer_id);
-@@ -760,19 +806,36 @@ static inline void ath11k_dp_tx_status_p
+@@ -760,19 +797,36 @@ static inline void ath11k_dp_tx_status_p
  		ts->rate_stats = 0;
  }
  
@@ -364,15 +345,16 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	struct hal_tx_status ts = { 0 };
  	struct dp_tx_ring *tx_ring = &dp->tx_ring[ring_id];
  	int valid_entries;
- 	u32 *desc;
+-	u32 *desc;
 -	u32 msdu_id;
++	struct hal_wbm_release_ring *desc;
 +	u32 msdu_id, desc_id;
  	u8 mac_id;
 +	struct hal_wbm_release_ring *tx_status;
  
  	spin_lock_bh(&status_ring->lock);
  
-@@ -787,33 +850,27 @@ void ath11k_dp_tx_completion_handler(str
+@@ -787,33 +841,28 @@ void ath11k_dp_tx_completion_handler(str
  
  	ath11k_hal_srng_dst_invalidate_entry(ab, status_ring, valid_entries);
  
@@ -384,7 +366,8 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
 -		tx_ring->tx_status_head =
 -			ATH11K_TX_COMPL_NEXT(tx_ring->tx_status_head);
 -	}
-+	while ((desc = ath11k_hal_srng_dst_get_next_cache_entry(ab, status_ring))) {
++	while ((desc = (struct hal_wbm_release_ring *)
++		ath11k_hal_srng_dst_get_next_cache_entry(ab, status_ring))) {
 +		if (!ath11k_dp_tx_completion_valid((struct hal_wbm_release_ring *)desc))
 +			continue;
  
@@ -420,7 +403,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		ath11k_dp_tx_status_parse(ab, tx_status, &ts);
  
  		desc_id = FIELD_GET(BUFFER_ADDR_INFO1_SW_COOKIE,
-@@ -846,7 +903,6 @@ void ath11k_dp_tx_completion_handler(str
+@@ -846,7 +895,6 @@ void ath11k_dp_tx_completion_handler(str
  			wake_up(&ar->dp.tx_empty_waitq);
  
  		ath11k_dp_tx_complete_msdu(ar, msdu, &ts);
@@ -430,7 +413,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
 --- a/drivers/net/wireless/ath/ath11k/mac.c
 +++ b/drivers/net/wireless/ath/ath11k/mac.c
-@@ -6484,12 +6484,22 @@ static void ath11k_mac_op_tx(struct ieee
+@@ -6487,12 +6487,22 @@ static void ath11k_mac_op_tx(struct ieee
  	if (control->sta)
  		arsta = ath11k_sta_to_arsta(control->sta);
  
@@ -524,7 +507,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	},
  	{
  		.name = "wcn6855 hw2.0",
-@@ -2256,6 +2258,9 @@ int ath11k_core_pre_init(struct ath11k_b
+@@ -2320,6 +2322,9 @@ int ath11k_core_pre_init(struct ath11k_b
  	if (nss_offload)
  		ab->nss.stats_enabled = 1;
  

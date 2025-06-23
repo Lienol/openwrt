@@ -21,7 +21,7 @@ Signed-off-by: Seevalamuthu Mariappan <seevalam@codeaurora.org>
 
 --- a/drivers/net/wireless/ath/ath11k/core.h
 +++ b/drivers/net/wireless/ath/ath11k/core.h
-@@ -122,6 +122,7 @@ struct ath11k_skb_cb {
+@@ -125,6 +125,7 @@ struct ath11k_skb_cb {
  	u32 cipher;
  	struct ath11k *ar;
  	struct ieee80211_vif *vif;

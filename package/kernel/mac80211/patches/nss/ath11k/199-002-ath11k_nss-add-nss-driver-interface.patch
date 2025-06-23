@@ -2806,7 +2806,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  static inline void ath11k_pci_select_window(struct ath11k_pci *ab_pci, u32 offset)
  {
  	struct ath11k_base *ab = ab_pci->ab;
-@@ -723,6 +737,7 @@ static const struct ath11k_hif_ops ath11
+@@ -725,6 +739,7 @@ static const struct ath11k_hif_ops ath11
  	.map_service_to_pipe = ath11k_pcic_map_service_to_pipe,
  	.ce_irq_enable = ath11k_pci_hif_ce_irq_enable,
  	.ce_irq_disable = ath11k_pci_hif_ce_irq_disable,
@@ -2816,7 +2816,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  
 --- a/drivers/net/wireless/ath/ath11k/dp_rx.c
 +++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
-@@ -993,6 +993,29 @@ unlock_exit:
+@@ -994,6 +994,29 @@ unlock_exit:
  	spin_unlock_bh(&ab->base_lock);
  }
  
@@ -2998,7 +2998,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  int ath11k_dp_pdev_reo_setup(struct ath11k_base *ab);
 --- a/drivers/net/wireless/ath/ath11k/mac.c
 +++ b/drivers/net/wireless/ath/ath11k/mac.c
-@@ -6250,6 +6250,16 @@ static int ath11k_mac_op_start(struct ie
+@@ -6253,6 +6253,16 @@ static int ath11k_mac_op_start(struct ie
  		goto err;
  	}
  
@@ -3017,7 +3017,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	/* TODO: Do we need to enable ANI? */
 --- a/drivers/net/wireless/ath/ath11k/core.h
 +++ b/drivers/net/wireless/ath/ath11k/core.h
-@@ -896,6 +896,8 @@ struct ath11k_soc_dp_tx_err_stats {
+@@ -900,6 +900,8 @@ struct ath11k_soc_dp_tx_err_stats {
  	 * idr unavailable etc.
  	 */
  	atomic_t misc_fail;
@@ -3026,3 +3026,11 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  };
  
  struct ath11k_soc_dp_stats {
+@@ -941,6 +943,7 @@ struct ath11k_base {
+ 	struct ath11k_htc htc;
+ 
+ 	struct ath11k_dp dp;
++	struct ath11k_soc_nss nss;
+ 
+ 	void __iomem *mem;
+ 	void __iomem *mem_ce;
