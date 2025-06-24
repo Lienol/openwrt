@@ -5,13 +5,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_RELEASE:=3
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=https://w1.fi/hostap.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2024-09-15
-PKG_SOURCE_VERSION:=5ace39b0a4cdbe18ddbc4e18f80ee3876233c20b
-PKG_MIRROR_HASH:=43187d1ddd923970ef3821a0fe267880c2483f6f1a5acd0dd2d7906661ab1372
+PKG_SOURCE_DATE:=2025-05-23
+PKG_SOURCE_VERSION:=4b8ac10cb77c3d4dbf7ccefbe697dc0578da374c
+PKG_MIRROR_HASH:=25a77ae4b26adef9c0d71c3b175445f246a4530e63563e81b8e19c2436934100
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-3-Clause
@@ -125,7 +125,7 @@ ifeq ($(SSL_VARIANT),wolfssl)
     DRIVER_MAKEOPTS += CONFIG_AP=y CONFIG_MESH=y CONFIG_WPS_NFC=1
   endif
   ifeq ($(LOCAL_VARIANT),full)
-    DRIVER_MAKEOPTS += CONFIG_OWE=y CONFIG_SUITEB192=y CONFIG_AP=y CONFIG_MESH=y CONFIG_WPS_NFC=1
+    DRIVER_MAKEOPTS += CONFIG_OWE=y CONFIG_SUITEB192=y CONFIG_AP=y CONFIG_MESH=y CONFIG_WPS_NFC=1 CONFIG_EAP_PWD=y
   endif
 endif
 
@@ -158,7 +158,7 @@ define Package/hostapd/Default
   CATEGORY:=Network
   SUBMENU:=WirelessAPD
   TITLE:=IEEE 802.1x Authenticator
-  URL:=http://hostap.epitest.fi/
+  URL:=https://w1.fi/hostapd/
   DEPENDS:=$(DRV_DEPENDS) +hostapd-common $(CORE_DEPENDS)
   EXTRA_DEPENDS:=hostapd-common (=$(PKG_VERSION)-r$(PKG_RELEASE))
   USERID:=network=101:network=101
@@ -267,7 +267,7 @@ define Package/wpad/Default
   DEPENDS:=$(DRV_DEPENDS) +hostapd-common $(CORE_DEPENDS)
   EXTRA_DEPENDS:=hostapd-common (=$(PKG_VERSION)-r$(PKG_RELEASE))
   USERID:=network=101:network=101
-  URL:=http://hostap.epitest.fi/
+  URL:=https://w1.fi/
   PROVIDES:=hostapd wpa-supplicant
   CONFLICTS:=$(HOSTAPD_PROVIDERS) $(SUPPLICANT_PROVIDERS)
   HOSTAPD_PROVIDERS+=$(1)
@@ -408,7 +408,7 @@ define Package/wpa-supplicant/Default
   CATEGORY:=Network
   SUBMENU:=WirelessAPD
   TITLE:=WPA Supplicant
-  URL:=http://hostap.epitest.fi/wpa_supplicant/
+  URL:=https://w1.fi/wpa_supplicant/
   DEPENDS:=$(DRV_DEPENDS) +hostapd-common $(CORE_DEPENDS)
   EXTRA_DEPENDS:=hostapd-common (=$(PKG_VERSION)-r$(PKG_RELEASE))
   USERID:=network=101:network=101
@@ -506,7 +506,7 @@ define Package/hostapd-utils
   CATEGORY:=Network
   SUBMENU:=WirelessAPD
   TITLE:=IEEE 802.1x Authenticator (utils)
-  URL:=http://hostap.epitest.fi/
+  URL:=https://w1.fi/hostapd/
   DEPENDS:=@$(subst $(space),||,$(foreach pkg,$(HOSTAPD_PROVIDERS),PACKAGE_$(pkg)))
   VARIANT:=*
 endef
