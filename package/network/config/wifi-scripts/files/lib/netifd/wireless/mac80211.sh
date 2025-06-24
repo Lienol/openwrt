@@ -12,7 +12,7 @@ MP_CONFIG_INT="mesh_retry_timeout mesh_confirm_timeout mesh_holding_timeout mesh
 	       mesh_hwmp_rann_interval mesh_gate_announcements mesh_sync_offset_max_neighor
 	       mesh_rssi_threshold mesh_hwmp_active_path_to_root_timeout mesh_hwmp_root_interval
 	       mesh_hwmp_confirmation_interval mesh_awake_window mesh_plink_timeout"
-MP_CONFIG_BOOL="mesh_auto_open_plinks mesh_fwding mesh_nolearn"
+MP_CONFIG_BOOL="mesh_auto_open_plinks mesh_fwding"
 MP_CONFIG_STRING="mesh_power_mode"
 
 wdev_tool() {
@@ -471,7 +471,6 @@ mac80211_hostapd_setup_base() {
 			he_su_beamformer:${he_phy_cap:6:2}:0x80:$he_su_beamformer \
 			he_su_beamformee:${he_phy_cap:8:2}:0x1:$he_su_beamformee \
 			he_mu_beamformer:${he_phy_cap:8:2}:0x2:$he_mu_beamformer \
-			he_spr_psr_enabled:${he_phy_cap:14:2}:0x1:$he_spr_psr_enabled \
 			he_twt_required:${he_mac_cap:0:2}:0x6:$he_twt_required
 
 		if [ "$he_bss_color_enabled" -gt 0 ]; then
@@ -480,6 +479,7 @@ mac80211_hostapd_setup_base() {
 				append base_cfg "he_spr_non_srg_obss_pd_max_offset=$he_spr_non_srg_obss_pd_max_offset" "$N"
 				he_spr_sr_control=$((he_spr_sr_control | (1 << 2)))
 			}
+			[ "$he_spr_psr_enabled" -gt 0 ] && he_spr_psr_enabled=$((0x${he_phy_cap:14:2} & 0x1))
 			[ "$he_spr_psr_enabled" -gt 0 ] || he_spr_sr_control=$((he_spr_sr_control | (1 << 0)))
 			append base_cfg "he_spr_sr_control=$he_spr_sr_control" "$N"
 		else
