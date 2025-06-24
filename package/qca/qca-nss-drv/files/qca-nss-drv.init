@@ -3,7 +3,7 @@
 # shellcheck disable=2155,3010,3019,3043,3057,3060
 
 # shellcheck disable=2034
-START=94
+START=42
 PROG="qca-nss-drv"
 
 log_msg() {
