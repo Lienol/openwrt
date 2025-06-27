@@ -33,9 +33,7 @@ tplink,eap625-outdoor-hd-v1)
 jdcloud,re-cs-02|\
 jdcloud,re-ss-01|\
 redmi,ax5-jdcloud)
-	mmcpart="$(find_mmc_part 0:APPSBLENV)"
-	[ -n "$mmcpart" ] && \
-		ubootenv_add_uci_config "$mmcpart" "0x0" "0x40000" "0x20000" "2"
+	ubootenv_add_mmc "0:APPSBLENV" "" "0x0" "0x40000" "0x20000" "2"
 	;;
 linksys,mr7350|\
 linksys,mr7500)
