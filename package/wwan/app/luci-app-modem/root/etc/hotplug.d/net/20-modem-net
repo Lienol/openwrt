@@ -1,0 +1,29 @@
+#!/bin/sh
+# Copyright (C) 2023 Siriling <siriling@qq.com>
+
+#导入组件工具
+source "/usr/share/modem/modem_util.sh"
+
+#网络设备名称不存在，退出
+[ -z "${INTERFACE}" ] && exit
+#网络设备路径不存在，退出
+[ -z "${DEVPATH}" ] && exit
+
+#始终确保存在运行目录
+mkdir -m 0755 -p "${MODEM_RUNDIR}"
+
+#初始化模组配置
+# [[ "${INTERFACE}" = *"ip6tnl0"* ]] && {
+#     sh "${SCRIPT_DIR}/modem_init.sh"
+# }
+
+if [[ "${INTERFACE}" = *"usb"* ]] || [[ "${INTERFACE}" = *"wwan"* ]] || [[ "${INTERFACE}" = *"eth"* ]]; then
+    #配置网络设备
+    m_set_network_device "${ACTION}" "${INTERFACE}" "/sys${DEVPATH}" "usb"
+
+elif [[ "${INTERFACE}" = *"mhi_hwip"* ]] || [[ "${INTERFACE}" = *"rmnet_mhi"* ]]; then
+    #配置网络设备
+	m_set_network_device "${ACTION}" "${INTERFACE}" "/sys${DEVPATH}" "pcie"
+else
+    exit
+fi
