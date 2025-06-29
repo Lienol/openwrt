@@ -1,0 +1,78 @@
+#!/bin/sh
+. /lib/functions.sh
+info()
+{
+    state=$(uci get qmodem.$1.state)
+    if [ "$state" = "disabled" ]; then
+        return
+    fi
+    info=$(/usr/share/qmodem/modem_ctrl.sh info $1)
+    json_array=$(echo $json_array | jq ". += [ $info ]")
+}
+
+sim_info()
+{
+    state=$(uci get qmodem.$1.state)
+    if [ "$state" = "disabled" ]; then
+        return
+    fi
+    /usr/share/qmodem/modem_ctrl.sh sim_info $1
+}
+
+base_info()
+{
+    state=$(uci get modem.$1.state)
+    if [ "$state" = "disabled" ]; then
+        return
+    fi
+    /usr/share/qmodem/modem_ctrl.sh base_info $1
+}
+
+network_info()
+{
+    state=$(uci get qmodem.$1.state)
+    if [ "$state" = "disabled" ]; then
+        return
+    fi
+    /usr/share/qmodem/modem_ctrl.sh network_info $1
+}
+
+cell_info()
+{
+    state=$(uci get qmodem.$1.state)
+    if [ "$state" = "disabled" ]; then
+        return
+    fi
+    /usr/share/qmodem/modem_ctrl.sh cell_info $1
+}
+case "$1" in
+	list)
+		echo '{ "info": {  }, "base_info": { }, "failme": {} }'
+	;;
+	call)
+		case "$2" in
+			"info")
+                json_array="[]"
+                config_load qmodem
+                config_foreach info modem-device
+                echo "{\"info\":$json_array}"
+			;;
+            "base_info")
+                config_load qmodem
+                config_foreach base_info modem-device
+            ;;
+            "sim_info")
+                config_load qmodem
+                config_foreach sim_info modem-device
+            ;;
+            "network_info")
+                config_load qmodem
+                config_foreach network_info modem-device
+            ;;
+            "cell_info")
+                config_load qmodem
+                config_foreach cell_info modem-device
+            ;;
+		esac
+	;;
+esac

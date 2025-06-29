@@ -1,0 +1,1034 @@
+<%+header%>
+<script>
+var pduParser = {};
+
+pduParser.parse = function(pdu) {
+    //Cursor points to the last octet we've read.
+    var cursor = 0;
+
+    var buffer = new Buffer(pdu.slice(0,4), 'hex');
+    var smscSize = buffer[0];
+    var smscType = buffer[1].toString(16);
+    cursor = (smscSize*2+2);
+    var smscNum  = pduParser.deSwapNibbles(pdu.slice(4, cursor));
+
+    var buffer = new Buffer(pdu.slice(cursor,cursor+6), 'hex');
+    cursor += 6;
+    var smsDeliver = buffer[0];
+
+    var smsDeliverBits = ("00000000"+parseInt(smsDeliver).toString(2)).slice(-8);
+    var udhi = smsDeliverBits.slice(1,2) === "1";
+
+    var senderSize = buffer[1];
+    if(senderSize % 2 === 1)
+        senderSize++;
+
+    var senderType = parseInt(buffer[2]).toString(16)
+
+    var encodedSender = pdu.slice(cursor, cursor + senderSize);
+    var senderNum;
+    if (senderType === '91') {
+        senderNum = pduParser.deSwapNibbles(encodedSender);
+    } else if (senderType === 'd0') {
+        senderNum = this.decode7Bit(encodedSender).replace(/\0/g, '');
+    } else {
+        console.error('unsupported sender type.');
+    }
+
+    cursor += senderSize;
+
+    var protocolIdentifier = pdu.slice(cursor, cursor+2);
+    cursor += 2;
+
+    var dataCodingScheme = pdu.slice(cursor, cursor+2);
+    cursor = cursor+2;
+
+    var encoding = pduParser.detectEncoding(dataCodingScheme);
+
+    var timestamp = pduParser.deSwapNibbles(pdu.slice(cursor, cursor+14));
+
+
+    var time = new Date;
+    time.setUTCFullYear('20'+timestamp.slice(0,2));
+    time.setUTCMonth(timestamp.slice(2,4)-1);
+    time.setUTCDate(timestamp.slice(4,6));
+    time.setUTCHours(timestamp.slice(6,8));
+    time.setUTCMinutes(timestamp.slice(8,10));
+    time.setUTCSeconds(timestamp.slice(10,12));
+
+    var firstTimezoneOctet = parseInt(timestamp.slice(12,13));
+    var binary = ("0000"+firstTimezoneOctet.toString(2)).slice(-4);
+    var factor = binary.slice(0,1) === '1' ? 1 : -1;
+    var binary = '0'+binary.slice(1, 4);
+    var firstTimezoneOctet = parseInt(binary, 2).toString(10);
+    var timezoneDiff = parseInt(firstTimezoneOctet + timestamp.slice(13, 14));
+    var time = new Date(time.getTime() + (timezoneDiff * 15 * 1000 * 60 * factor));
+
+    cursor += 14;
+
+    var dataLength = parseInt(pdu.slice(cursor, cursor+2), 16).toString(10);
+    cursor += 2;
+
+    if(udhi) { //User-Data-Header-Indicator: means there's some User-Data-Header.
+        var udhLength = pdu.slice(cursor, cursor+2);
+        var iei = pdu.slice(cursor+2, cursor+4);
+        if(iei == "00") { //Concatenated sms.
+            var headerLength = pdu.slice(cursor+4, cursor+6);
+            var referenceNumber = pdu.slice(cursor+6, cursor+8);
+            var parts = pdu.slice(cursor+8, cursor+10);
+            var currentPart = pdu.slice(cursor+10, cursor+12);
+        }
+
+        if(iei == "08") { //Concatenaded sms with a two-bytes reference number
+            var headerLength = pdu.slice(cursor+4, cursor+6);
+            var referenceNumber = pdu.slice(cursor+6, cursor+10);
+            var parts = pdu.slice(cursor+10, cursor+12);
+            var currentPart = pdu.slice(cursor+12, cursor+14);
+        }
+
+        if(encoding === '16bit')
+            if(iei == '00')
+                cursor += (udhLength-2)*4;
+            else if(iei == '08')
+                cursor += ((udhLength-2)*4)+2;
+        else
+            cursor += (udhLength-2)*2;
+    }
+
+    if(encoding === '16bit')
+        var text = pduParser.decode16Bit(pdu.slice(cursor), dataLength);
+    else if(encoding === '7bit')
+        var text = pduParser.decode7Bit(pdu.slice(cursor), dataLength);
+    else if(encoding === '8bit')
+        var text = ''; //TODO
+
+    var data = {
+        'smsc' : smscNum,
+        'smsc_type' : smscType,
+        'sender' : senderNum,
+        'sender_type' : senderType,
+        'encoding' : encoding,
+        'time' : time,
+        'text' : text
+    };
+
+    if(udhi) {
+        data['udh'] = {
+            'length' : udhLength,
+            'iei' : iei,
+        };
+
+        if(iei == '00' || iei == '08') {
+            data['udh']['reference_number'] = referenceNumber;
+            data['udh']['parts'] = parseInt(parts);
+            data['udh']['current_part'] = parseInt(currentPart);
+        }
+    }
+
+    return data;
+}
+
+pduParser.detectEncoding = function(dataCodingScheme) {
+    var binary = ('00000000'+(parseInt(dataCodingScheme, 16).toString(2))).slice(-8);
+
+    if(binary == '00000000')
+        return '7bit';
+
+    if(binary.slice(0, 2) === '00') {
+        var compressed = binary.slice(2, 1) === '1';
+        var bitsHaveMeaning = binary.slice(3, 1) === '1';
+
+        if(binary.slice(4,6) === '00')
+            return '7bit';
+
+        if(binary.slice(4,6) === '01')
+            return '8bit';
+
+        if(binary.slice(4,6) === '10')
+            return '16bit';
+    }
+}
+
+pduParser.decode16Bit = function(data, length) {
+    //We are getting ucs2 characters.
+    var ucs2 = '';
+    for(var i = 0;i<=data.length;i=i+4) {
+        ucs2 += String.fromCharCode("0x"+data[i]+data[i+1]+data[i+2]+data[i+3]);
+    }
+
+    return ucs2;
+}
+
+pduParser.deSwapNibbles = function(nibbles) {
+    var out = '';
+    for(var i = 0; i< nibbles.length; i=i+2) {
+        if(nibbles[i] === 'F') //Dont consider trailing F.
+            out += parseInt(nibbles[i+1], 16).toString(10);
+        else
+            out += parseInt(nibbles[i+1], 16).toString(10)+parseInt(nibbles[i], 16).toString(10);
+    }
+    return out;
+}
+
+pduParser.decode7Bit = function(code, count) {
+    //We are getting 'septeps'. We should decode them.
+    var binary = '';
+    for(var i = 0; i<code.length;i++)
+        binary += ('0000'+parseInt(code.slice(i,i+1), 16).toString(2)).slice(-4);
+
+    var bin = Array();
+    var cursor = 0;
+    var fromPrevious = '';
+    var i = 0;
+    while(binary[i]) {
+        var remaining = 7 - fromPrevious.length;
+        var toNext = 8 - remaining;
+        bin[i] = binary.slice(cursor+toNext, cursor+toNext+remaining) + fromPrevious;
+        var fromPrevious = binary.slice(cursor, cursor+toNext);
+        if(toNext === 8)
+            fromPrevious = '';
+        else
+            cursor += 8;
+        i++;
+    }
+
+    var ascii = '';
+    for(i in bin)
+        ascii += String.fromCharCode(parseInt(bin[i], 2));
+
+    return ascii;
+}
+
+pduParser.encode7Bit = function(ascii) {
+    //We should create septeps now.
+    var octets = new Array();
+    for(var i = 0; i<ascii.length; i++)
+        octets.push(('0000000'+(ascii.charCodeAt(i).toString(2))).slice(-7));
+
+    for(var i in octets) {
+        var i = parseInt(i);
+        var freeSpace = 8 - octets[i].length;
+
+        if(octets[i+1] && freeSpace !== 8) {
+            octets[i] = octets[i+1].slice(7-freeSpace) + octets[i];
+            octets[i+1] = octets[i+1].slice(0, 7-freeSpace);
+        }
+    }
+
+    var hex = '';
+    for(i in octets)
+        if(octets[i].length > 0)
+            hex += ('00'+(parseInt(octets[i], 2).toString(16))).slice(-2);
+    return hex;
+}
+
+//TODO: TP-Validity-Period (Delivery)
+pduParser.generate = function(message) {
+    var pdu = '00';
+
+    var parts = 1;
+    if(message.encoding === '16bit' && message.text.length > 70)
+        parts = message.text.length / 66;
+
+    else if(message.encoding === '7bit' && message.text.length > 160)
+        parts = message.text.length / 153;
+
+    parts = Math.ceil(parts);
+
+    TPMTI  = 1;
+    TPRD   = 4;
+    TPVPF  = 8;
+    TPSRR  = 32;
+    TPUDHI = 64;
+    TPRP   = 128;
+
+    var submit = TPMTI;
+
+    if(parts > 1) //UDHI
+        submit = submit | TPUDHI;
+
+    submit = submit | TPSRR;
+
+    pdu += submit.toString(16);
+
+    pdu += '00'; //TODO: Reference Number;
+
+    var receiverSize = ('00'+(parseInt(message.receiver.length, 10).toString(16))).slice(-2);
+    var receiver = pduParser.swapNibbles(message.receiver);
+    var receiverType = 81; //TODO: NOT-Hardcoded PDU generation. Please note that Hamrah1 doesnt work if we set it to 91 (International).
+
+    pdu += receiverSize.toString(16) + receiverType + receiver;
+
+    pdu += '00'; //TODO TP-PID
+
+    if(message.encoding === '16bit')
+        pdu += '08';
+    else if(message.encoding === '7bit')
+        pdu += '00';
+
+    var pdus = new Array();
+
+    var csms = randomHexa(2); // CSMS allows to give a reference to a concatenated message
+
+    for(var i=0; i< parts; i++) {
+        pdus[i] = pdu;
+
+        if(message.encoding === '16bit') {
+            /* If there are more than one messages to be sent, we are going to have to put some UDH. Then, we would have space only
+             * for 66 UCS2 characters instead of 70 */
+            if(parts === 1)
+                var length = 70;
+            else
+                var length = 66;
+
+        } else if(message.encoding === '7bit') {
+            /* If there are more than one messages to be sent, we are going to have to put some UDH. Then, we would have space only
+             * for 153 ASCII characters instead of 160 */
+            if(parts === 1)
+                var length = 160;
+            else
+                var length = 153;
+        }
+        var text = message.text.slice(i*length, (i*length)+length);
+
+        if(message.encoding === '16bit') {
+            user_data = pduParser.encode16Bit(text);
+            var size = (user_data.length / 2);
+
+            if(parts > 1)
+                size += 6; //6 is the number of data headers we append.
+
+        } else if(message.encoding === '7bit') {
+            user_data = pduParser.encode7Bit(text);
+            var size = user_data.length / 2;
+        }
+
+        pdus[i] += ('00'+parseInt(size).toString(16)).slice(-2);
+
+        if(parts > 1) {
+            pdus[i] += '05';
+            pdus[i] += '00';
+            pdus[i] += '03';
+            pdus[i] +=  csms;
+            pdus[i] += ('00'+parts.toString(16)).slice(-2);
+            pdus[i] += ('00'+(i+1).toString(16)).slice(-2);
+        }
+        pdus[i] += user_data;
+    }
+
+    return pdus;
+}
+
+
+pduParser.encode16Bit = function(text) {
+    var out = '';
+    for(var i = 0; i<text.length;i++) {
+        out += ('0000'+(parseInt(text.charCodeAt(i), 10).toString(16))).slice(-4);
+    }
+    return out;
+}
+
+pduParser.swapNibbles = function(nibbles) {
+    var out = '';
+    for(var i = 0; i< nibbles.length; i=i+2) {
+        if(typeof(nibbles[i+1]) === 'undefined') // Add a trailing F.
+            out += 'F'+parseInt(nibbles[i], 16).toString(10);
+        else
+            out += parseInt(nibbles[i+1], 16).toString(10)+parseInt(nibbles[i], 16).toString(10);
+    }
+    return out;
+}
+
+pduParser.parseStatusReport = function(pdu) {
+    //Cursor points to the last octet we've read.
+    var cursor = 0;
+
+    var smscSize = parseInt(pdu.slice(0, 2), 16);
+    cursor += 2;
+
+    var smscType = parseInt(pdu.slice(cursor, cursor+2), 16);
+    cursor += 2;
+
+    var smscNum  = pduParser.deSwapNibbles(pdu.slice(cursor, (smscSize*2)+2));
+    cursor = (smscSize*2+2);
+
+    var header = parseInt(pdu.slice(cursor,cursor+2));
+    cursor += 2;
+
+    var reference = parseInt(pdu.slice(cursor,cursor+2), 16);
+    cursor += 2;
+
+    var senderSize = parseInt(pdu.slice(cursor,cursor+2), 16);
+    if(senderSize % 2 === 1)
+        senderSize++;
+    cursor += 2;
+
+    var senderType = parseInt(pdu.slice(cursor,cursor+2));
+    cursor += 2;
+
+    var sender = pduParser.deSwapNibbles(pdu.slice(cursor, cursor+senderSize));
+
+    var status = pdu.slice(-2);
+
+    return {
+        smsc:smscNum,
+        reference:reference,
+        sender:sender,
+        status:status
+    }
+}
+
+function randomHexa(size)
+{
+    var text = "";
+    var possible = "0123456789ABCDEF";
+    for( var i=0; i < size; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+}
+
+
+class LuciTable{
+        constructor(){
+            this.rows = [];
+            this.tbody;
+            this.fieldset;
+            this.init_table();
+        }
+
+        init_table(){
+            //create a luci fieldset (class cbi-section)
+            var fieldset = document.createElement('fieldset');
+            fieldset.className="cbi-section";
+            //set fieldset Header name
+            var legend = document.createElement('legend');
+            var title_span = document.createElement('span');
+            title_span.className="panel-title"
+            //init table
+            var table = document.createElement('table');
+            var tbody = document.createElement('tbody');
+            table.className="table"
+            //save
+            this.fieldset = fieldset;
+            this.tbody = tbody
+            this.title_span = title_span
+            this.legend = legend
+            
+            fieldset.appendChild(legend);
+            fieldset.appendChild(title_span);
+            table.appendChild(tbody)
+            fieldset.appendChild(table)
+        }
+
+        new_tr(data,index){
+            var type = data.type;
+            var col = data.col;
+            var left = data.left;
+            var right = data.right;
+            //clear the row
+            this.rows[index].left.innerHTML = "";
+            this.rows[index].right.innerHTML = "";
+            //set the row
+            this.rows[index].left.appendChild(left);
+            this.rows[index].right.appendChild(right);
+            if (right == null || right == "") {
+                this.rows[index].row.style.display = "none";
+            }
+            else{
+                this.rows[index].row.style.display = "";
+            }
+        }
+
+
+        set title(value){
+            this.legend.innerHTML = value;
+            this.title_span.innerHTML = value;
+        }
+
+        set object_data(value){
+            var row_length = this.rows.length;
+            var value_length = Object.keys(value).length;
+            if (row_length < value_length) {
+                for ( let i = row_length; i < value_length; i++) {
+                    let row = document.createElement('tr');
+                    row.className = "tr"
+                    let cell_left = document.createElement('td');
+                    cell_left.classList.add("td")
+                    cell_left.setAttribute("width","33%")
+                    let cell_right = document.createElement('td');
+                    cell_right.classList.add("td");
+                    row.appendChild(cell_left);
+                    row.appendChild(cell_right);
+                    this.tbody.appendChild(row);
+                    var row_dict = {
+                        "row":row,
+                        "left":cell_left,
+                        "right":cell_right,
+                    }
+                    this.rows.push(row_dict);
+                }
+            }
+            else if(row_length > value_length){
+                for (let i = value_length; i < row_length; i++) {
+                    this.tbody.removeChild(this.rows[i].row);
+                }
+                this.rows = this.rows.slice(0,value_length);
+            }
+            var index = 0;
+            for (var key in value) {
+                this.rows[index].left.innerHTML = key;
+                this.rows[index].right.innerHTML = value[key];
+                index++;
+            }
+        }
+        
+        set array_data(value){
+            var row_length = this.rows.length;
+            var value_length = value.length;
+            if (row_length < value_length) {
+                for ( let i = row_length; i < value_length; i++) {
+                    let row = document.createElement('tr');
+                    row.className = "tr"
+                    let cell_left = document.createElement('td');
+                    cell_left.classList.add("td")
+                    cell_left.setAttribute("width","33%")
+                    let cell_right = document.createElement('td');
+                    cell_right.classList.add("sms_recv_content")
+                    cell_right.classList.add("td")
+                    row.appendChild(cell_left);
+                    row.appendChild(cell_right);
+                    this.tbody.appendChild(row);
+                    var row_dict = {
+                        "row":row,
+                        "left":cell_left,
+                        "right":cell_right,
+                    }
+                    this.rows.push(row_dict);
+                }
+            }
+            else if(row_length > value_length){
+                for (let i = value_length; i < row_length; i++) {
+                    this.tbody.removeChild(this.rows[i].row);
+                }
+                this.rows = this.rows.slice(0,value_length);
+            }
+            for (let i = 0; i < value.length; i++) {
+                this.new_tr(value[i],i);
+            }
+        }
+
+        set data(value){
+            if (value == null) {
+                return;
+            }
+            if (Array.isArray(value)) {
+                this.array_data = value;
+            }
+            else{
+                this.object_data = value;
+            }
+        }
+    }
+
+class ModemSMS {
+    constructor() {
+        this.data = null;
+        this.cfg_id = null;
+        this.modem_cfg_list = [];
+        this.sms_recvbox_table = new LuciTable();
+        this.sms_send_table = new LuciTable();
+        this.sms_storage_table = new LuciTable();
+        this.sms_send_table.title = "<%:Send SMS%>";
+        this.cbi_map = document.querySelector('.cbi-map');
+        this.cbi_map.appendChild(this.sms_storage_table.fieldset);
+        this.cbi_map.appendChild(this.sms_recvbox_table.fieldset);
+        this.cbi_map.appendChild(this.sms_send_table.fieldset);
+        
+        this.modem_selector = document.getElementById('modem_selector');
+        this.create_modem_cfg_selector();
+        this.update_modem_cfg_list();
+        this.init_send_table_view();
+        this.init_msg_box();
+        this.init_sms_storage_table();
+    }
+
+    init_sms_storage_table() {
+    const createOption = (value, text, disabled = false, selected = false) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.innerHTML = text;
+        opt.disabled = disabled;
+        opt.selected = selected;
+        return opt;
+    };
+
+    const reading_storage = document.createElement('select');
+    const writing_storage = document.createElement('select');
+    const etc_storage = document.createElement('select');
+    const set_storage_btn = document.createElement('input');
+    set_storage_btn.type = "button";
+    set_storage_btn.value = "Set";
+    set_storage_btn.onclick = () => this.set_sms_storage();
+
+    const opt_mt = createOption("ME", "<%: Mobile equipment message storage %>");
+    const opt_sm = createOption("SM", "<%: (U)SIM message storage %>");
+    const opt_loading = createOption("Loading", "<%: Loading... %>", true, true);
+
+    const storages = [reading_storage, writing_storage, etc_storage];
+    storages.forEach(storage => {
+        storage.appendChild(opt_mt.cloneNode(true));
+        storage.appendChild(opt_sm.cloneNode(true));
+        storage.appendChild(opt_loading.cloneNode(true));
+        storage.options[2].selected = true;
+    });
+
+    const data = [
+        { "col": 2, "left": document.createTextNode("<%: Reading Storage%>"), "right": reading_storage },
+        { "col": 2, "left": document.createTextNode("<%: Writing Storage%>"), "right": writing_storage },
+        { "col": 2, "left": document.createTextNode("<%: ETC Storage%>"), "right": etc_storage },
+        { "col": 2, "left": document.createTextNode("<%: Set Storage%>"), "right": set_storage_btn }
+    ];
+
+    this.sms_storage_table.title = "<%:SMS Storage%>";
+    this.sms_storage_table.data = data;
+    this.reading_storage = reading_storage;
+    this.writing_storage = writing_storage;
+    this.etc_storage = etc_storage;
+    this.opt_mt1 = storages[0].querySelector('option[value="ME"]');
+    this.opt_sm1 = storages[0].querySelector('option[value="SM"]');
+    this.opt_mt2 = storages[1].querySelector('option[value="ME"]');
+    this.opt_sm2 = storages[1].querySelector('option[value="SM"]');
+    this.opt_mt3 = storages[2].querySelector('option[value="ME"]');
+    this.opt_sm3 = storages[2].querySelector('option[value="SM"]');
+}
+
+    init_msg_box()
+    {
+        var warn_msg_box = document.createElement('div');
+        warn_msg_box.className = "cbi-section";
+        var warn_msg = document.createElement('div');
+        warn_msg.className = "alert";
+        warn_msg_box.appendChild(warn_msg);
+        this.cbi_map.appendChild(warn_msg_box);
+        this.warn_msg_box = warn_msg_box;
+        //hide
+        this.warn_msg_box.style.display = "none";
+    }
+
+    warn_msg(msg,timeout){
+        this.warn_msg_box.style.display = "";
+        this.warn_msg_box.classList.add("alert-warning");
+        this.warn_msg_box.firstChild.innerHTML = msg;
+        setTimeout(()=>{
+            this.warn_msg_box.style.display = "none";
+            this.warn_msg_box.classList.remove("alert-warning");
+        },timeout);
+    }
+
+    log_msg(msg,timeout){
+        this.warn_msg_box.style.display = "";
+        this.warn_msg_box.classList.add("alert-info");
+        this.warn_msg_box.firstChild.innerHTML = msg;
+        setTimeout(()=>{
+            this.warn_msg_box.style.display = "none";
+            this.warn_msg_box.classList.remove("alert-info");
+        },timeout);
+    }
+
+    create_modem_cfg_selector(){
+        var selector = document.createElement('select');
+        selector.addEventListener('change', (event) => {
+            this.update();
+            this.cfg_id = event.target.value;
+            console.log(this.cfg_id);
+        });
+        this.modem_selector.appendChild(selector);
+        this.selector = selector;
+        this.poll_info();
+    }
+
+    send(){
+        //if content contain non-ascii char, use raw pdu
+        var content = this.message_content.value;
+        var is_ascii = /^[\x00-\x7F]*$/.test(content);
+        if (is_ascii) {
+            this.send_raw_pdu();
+        }
+        else{
+            this.send_raw_pdu();
+        }
+    }
+
+    send_gsm(){
+        var phone_number = this.phone_number.value;
+        var message_content = this.message_content.value;
+        XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "send_sms")%>',{
+            "cfg": this.cfg_id,
+            "phone_number": phone_number,
+            "message_content": message_content,
+        },(x,data)=>{
+            this.update();
+            data.result.status == 1 ? this.log_msg("<%:Send SMS Success%>",3000) : this.warn_msg("<%:Send SMS Failed%>",3000);
+        });
+    }
+
+    send_raw_pdu(){
+        var pdu = pduParser.generate(
+            {
+                text: this.message_content.value,
+                encoding: "16bit",
+                receiver: this.phone_number.value,
+            }
+        )
+        //if pdu is array,send first pdu
+        if (Array.isArray(pdu)) {
+            pdu = pdu[0];
+        }
+        XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "send_sms")%>',{
+            "cfg": this.cfg_id,
+            "pdu": pdu,
+        },(x,data)=>{
+            this.update();
+            data.result.status == 1 ? this.log_msg("<%:Send SMS Success%>",3000) : this.warn_msg("<%:Send SMS Failed%>",3000);
+        });
+    }
+
+    set_sms_storage(){
+        let payload;
+        let mem1,mem2,mem3;
+        mem1 = this.reading_storage.value;
+        mem2 = this.writing_storage.value;
+        mem3 = this.etc_storage.value;
+        payload = {
+            "mem1": mem1,
+            "mem2": mem2,
+            "mem3": mem3,
+        }
+        XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "modem_ctrl")%>', {
+            "cfg": this.cfg_id,
+            "action":"set_sms_storage",
+            "params": JSON.stringify(JSON.stringify(payload))
+        },(x,data)=>{
+            this.update();
+        });
+    }
+
+    lock(){
+        var delete_btns = document.querySelectorAll('input[value="<%:Delete%>"]');
+        for (let btn of delete_btns) {
+            console.log(btn);
+            btn.disabled = true;
+        }
+    }
+
+    release(){
+        var delete_btns = document.querySelectorAll('input[value="<%:Delete%>"]');
+        for (let btn of delete_btns) {
+            btn.disabled = false;
+        }
+    }
+
+
+    init_send_table_view(){
+        let phone_number,message_content,send_button,send_raw_pdu_button;
+        phone_number = document.createElement('input');
+        phone_number.type = "text";
+        message_content = document.createElement('textarea');
+        message_content.rows = 5;
+        message_content.cols = 50;
+        send_button = document.createElement('input');
+        send_button.type = "button";
+        send_button.value = "<%:Send%>";
+
+        send_button.addEventListener('click',()=>{
+            this.send();
+        });
+        this.phone_number = phone_number;
+        this.message_content = message_content;
+        this.sms_send_table.data = [
+            {
+                "col": 2,
+                "left": document.createTextNode("<%:Phone Number%>"),
+                "right": phone_number,
+            },
+            {
+                "col": 2,
+                "left": document.createTextNode("<%:Message Content%>"),
+                "right": message_content,
+            },
+            {
+                "col": 2,
+                "left": document.createTextNode("<%:Send%>"),
+                "right": send_button,
+            }
+        ];
+    }
+
+    poll_info(){
+        if (this.cfg_id == null){
+            return;
+        }
+        XHR.poll(10,'<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_sms")%>',{
+            "cfg": this.cfg_id,
+        }, (x,data) => {
+            this.combine_messages(data);
+        });
+    }
+
+    update(){
+        XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_sms")%>',{
+            "cfg": this.cfg_id,
+        }, (x,data) => {
+            this.combine_messages(data);
+            this.update_sms_capabilities(data);
+        });
+    }
+
+    update_modem_cfg_list(){
+        XHR.poll(5,'<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_modem_cfg")%>',{},(x,data)=>{
+            var new_cfg_list = [];
+            var cfgs = data.cfgs;
+            for (let i = 0; i < cfgs.length; i++) {
+                var cfg = cfgs[i];
+                var name = cfg.name;
+                var value = cfg.cfg;
+                new_cfg_list.push({"value":value,"name":name});
+            }
+            if (new_cfg_list != this.modem_cfg_list) {
+                this.cfg_options = new_cfg_list;
+            }
+        });
+    }
+
+
+    combine_messages(data){
+        var messages,reference_table,msgs;
+        messages = []
+        reference_table = {}
+        msgs = data.msg;
+        for ( let msg of msgs){
+            let part,total,index,reference,sender,timestamp,content;
+            if (msg.reference){
+                reference = `${msg.reference}.${msg.sender}`;
+                if (reference in reference_table){
+                    reference_table[reference].push(msg);
+                }
+                else{
+                    reference_table[reference] = [msg];
+                }
+            }
+            else{
+                msg.index = [msg.index]
+                messages.push(msg);
+            }
+
+            
+        }
+        //combile the messages in reference_table
+        for (let key in reference_table){
+                let reference_msgs = reference_table[key];
+                let total = reference_msgs[0].total;
+                let part = [];
+                let content = "";
+                let sender = reference_msgs[0].sender;
+                let timestamp = reference_msgs[0].timestamp;
+                let index = [];
+                reference_msgs.sort((a,b)=>{
+                    return a.part - b.part;
+                });
+                for (let reference_msg of reference_msgs){
+                    content += reference_msg.content;
+                    part.push(reference_msg.part);
+                    index.push(reference_msg.index);
+                }
+                messages.push({
+                    "sender":sender,
+                    "timestamp":timestamp,
+                    "content":content,
+                    "part":part,
+                    "total":total,
+                    "index":index,
+                });
+            }
+            messages.sort((a,b)=>{
+                //filter timestamp space and / :
+                let at,bt
+                at = a.timestamp;
+                bt = b.timestamp;
+                if (typeof at == "string") {
+                    at = at.replace(/ /g,"");
+                    bt = bt.replace(/ /g,"");
+                    at = at.replace(/\//g,"");
+                    bt = bt.replace(/\//g,"");
+                    at = at.replace(/:/g,"");
+                    bt = bt.replace(/:/g,"");
+                }
+
+                return bt - at;
+            });
+            this.view = messages;
+
+    }
+
+    update_sms_capabilities(data) {
+    const sms_capabilities = data.sms_capabilities;
+    const storages = [
+        { mem: sms_capabilities.mem1, storage: this.reading_storage, opts: ['opt_mt1', 'opt_sm1'] },
+        { mem: sms_capabilities.mem2, storage: this.writing_storage, opts: ['opt_mt2', 'opt_sm2'] },
+        { mem: sms_capabilities.mem3, storage: this.etc_storage, opts: ['opt_mt3', 'opt_sm3'] }
+    ];
+
+    const updateStorage = (mem, storage, mtOpt, smOpt) => {
+        let mt = "", sm = "";
+        if (mem === "MT" || mem === "ME") {
+            if (storage.value === "Loading") storage.value = "ME";
+            mt = "[<%:Using%>]";
+        } else if (mem === "SM") {
+            if (storage.value === "Loading") storage.value = "SM";
+            sm = "[<%:Using%>]";
+        } else {
+            storage.value = "Loading";
+        }
+        this[mtOpt].innerHTML = mt + me_message_text;
+        this[smOpt].innerHTML = sm + sm_message_text;
+    };
+
+    const me_message_text = sms_capabilities.ME.used
+        ? `<%: Mobile equipment message storage %> <%: (Used/Total) %>(${sms_capabilities.ME.used}/${sms_capabilities.ME.total})`
+        : "<%: Mobile equipment message storage %>";
+
+    const sm_message_text = sms_capabilities.SM.used
+        ? `<%: (U)SIM message storage %> <%: (Used/Total) %>(${sms_capabilities.SM.used}/${sms_capabilities.SM.total})`
+        : "<%: (U)SIM message storage %>";
+
+    storages.forEach(({ mem, storage, opts }) => updateStorage(mem, storage, opts[0], opts[1]));
+}
+
+    set cfg_options(value){
+        var longger = this.modem_cfg_list.length > value.length ? this.modem_cfg_list : value;
+        if (longger.length == 0) {
+            return;
+        }
+        for (let i = 0; i < longger.length; i++) {
+            var option = this.selector.options[i];
+            if (i < value.length) {
+                if (i >= this.selector.options.length) {
+                    option = document.createElement('option');
+                    this.selector.appendChild(option);
+                }
+                option.value = value[i].value;
+                option.innerHTML = value[i].name;
+                
+            }
+            else{
+                this.selector.removeChild(option);
+            }
+        }
+        this.cfg_id = this.selector.value;
+        this.modem_cfg_list = value;
+        this.update();
+    }
+
+    set view(data){
+        this.data = data;
+        if (data == null) {
+            return;
+        }
+        var enties = []
+        
+
+        var msgs = data;
+        for (let msg of msgs){
+            let sender,timestamp,content,part,total,index;
+            sender = msg.sender;
+            if (typeof(msg.timestamp) == "number") {
+                timestamp = new Date(msg.timestamp*1000).toISOString()
+            }
+            else{
+                timestamp = msg.timestamp;
+            }
+            content = msg.content;
+            part = msg.part;
+            total = msg.total;
+            index = msg.index;
+            let sender_strong,timestamp_strong,content_strong,part_strong,total_strong,delete_btn;
+            let left,right;
+            left = document.createElement('div');
+            right = document.createElement('div');
+            delete_btn = document.createElement('input');
+            delete_btn.type = "button";
+            delete_btn.value = "<%:Delete%>";
+            delete_btn.addEventListener('click',()=>{
+                this.lock();
+                XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "delete_sms")%>',{
+                    "cfg": this.cfg_id,
+                    "index": index.sort((a,b)=>{return b-a}).join(" "),
+                },(x,data)=>{
+                    this.update();
+                    this.release
+                });
+            });
+            sender_strong = document.createElement('strong');
+            sender_strong.innerHTML = `<%:Sender%>: ${sender}`;
+            timestamp_strong = document.createElement('strong');
+            timestamp_strong.innerHTML = `<%:Timestamp%>: ${timestamp}`;
+            content_strong = document.createElement('strong');
+            content_strong.innerHTML = `<%:Content%>: ${content}`;
+            left.appendChild(sender_strong);
+            left.appendChild(document.createElement('br'));
+            left.appendChild(timestamp_strong);
+            left.appendChild(document.createElement('br'));
+            left.appendChild(delete_btn);
+            right.appendChild(content_strong);
+            if (part != null) {
+                part_strong = document.createElement('strong');
+                part_strong.innerHTML = `(${part}/${total})`;
+                right.appendChild(document.createElement('br'));
+                right.appendChild(part_strong);
+            }
+            enties.push({
+                "col" : 2,
+                "left" : left,
+                "right" : right
+            });
+        }
+
+
+        this.sms_recvbox_table.data = enties;
+        this.sms_recvbox_table.title = "SMS";
+    }
+}
+
+
+
+window.onload = function(){
+    const getSMS = new ModemSMS();
+}
+</script>
+
+<style>
+    .sms_recv_content {
+        text-align: left;
+        word-wrap: break-word; 
+        white-space: normal; 
+        overflow-wrap: break-word; 
+    }
+</style>
+<div>
+    <div class="cbi-map">
+        <fieldset class="cbi-section">
+            
+            <table class="table">
+                <tbody>
+                    <tr class="tr">
+                        <td class="td" width="33%"><%:Modem Name%></td>
+                        <td class="td" id="modem_selector">
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    </div>
+</div>
+<%+footer%>

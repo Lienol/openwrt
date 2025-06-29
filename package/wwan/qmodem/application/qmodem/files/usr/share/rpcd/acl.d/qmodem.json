@@ -1,0 +1,50 @@
+{
+	"qmodem": {
+		"description": "QModem control interface",
+		"read": {
+			"ubus": {
+				"qmodem": [
+					"base_info",
+					"cell_info",
+					"dial_status",
+					"get_at_cfg",
+					"get_copyright",
+					"get_dial_log",
+					"get_disabled_features",
+					"get_dns",
+					"get_imei",
+					"get_lockband",
+					"get_mode",
+					"get_neighborcell",
+					"get_network_prefer",
+					"get_reboot_caps",
+					"get_sms",
+					"info",
+					"network_info",
+					"sim_info"
+				]
+			}
+		},
+		"write": {
+			"ubus": {
+				"qmodem": [
+					"clear_dial_log",
+					"delete_sms",
+					"do_reboot",
+					"modem_dial",
+					"modem_hang",
+					"modem_redial",
+					"send_at",
+					"send_raw_pdu",
+					"send_sms",
+					"set_imei",
+					"set_lockband",
+					"set_mode",
+					"set_neighborcell",
+					"set_network_prefer",
+					"set_sms_storage"
+				]
+			}
+		}
+	}
+}

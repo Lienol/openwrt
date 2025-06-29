@@ -1,0 +1,29 @@
+From e59637cdf9d29e23639e7ca4530a4cc9d613ded0 Mon Sep 17 00:00:00 2001
+From: dwj0 <45187345+dwj0@users.noreply.github.com>
+Date: Thu, 14 Oct 2021 12:40:03 +0800
+Subject: [PATCH] Update sms_main.c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+修正中文编码首字节大于0x80时显示错误
+---
+ sms_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sms_main.c b/sms_main.c
+index 2eb4f5d..f591f6a 100644
+--- a/sms_main.c
++++ b/sms_main.c
+@@ -155,7 +155,7 @@ static void print_json_escape_char(char c1, char c2)
+ 		else if(c2 < ' ') printf("\\u00%02x", c2);
+ 		else printf("%c", c2);
+ 	} else {
+-		printf("\\u%02x%02x", c1, c2);
++		printf("\\u%02x%02x", (unsigned char)c1, (unsigned char)c2);
+ 	}
+ }
+ 
+-- 
+2.25.1
+

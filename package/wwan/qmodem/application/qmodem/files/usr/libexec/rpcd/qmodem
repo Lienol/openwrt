@@ -1,0 +1,914 @@
+#!/bin/sh
+# RPCD interface for QModem control
+# This script provides ubus methods for modem management
+
+. /usr/share/libubox/jshn.sh
+. /usr/share/qmodem/generic.sh
+
+# Helper function for caching
+try_cache() {
+    cache_timeout=$1
+    cache_file=$2
+    function_name=$3
+    current_time=$(date +%s)
+    file_time=$(stat -t "$cache_file" 2>/dev/null | awk '{print $14}')
+    [ -z "$file_time" ] && file_time=0
+    if [ ! -f "$cache_file" ] || [ $((current_time - file_time)) -gt $cache_timeout ]; then
+        touch "$cache_file"
+        json_add_array modem_info
+        $function_name
+        json_close_array
+        json_dump > "$cache_file"
+        cat "$cache_file"
+    else
+        cat "$cache_file"
+    fi
+}
+
+# Helper function for SMS retrieval
+get_sms() {
+    [ -n "$sms_at_port" ] && at_port=$sms_at_port
+    cache_timeout=$1
+    cache_file=$2
+    current_time=$(date +%s)
+    file_time=$(stat -t "$cache_file" 2>/dev/null | awk '{print $14}')
+    [ -z "$file_time" ] && file_time=0
+    get_sms_capabilities
+    if [ ! -f "$cache_file" ] || [ $((current_time - file_time)) -gt $cache_timeout ]; then
+        touch "$cache_file"
+        tom_modem $use_ubus_flag -d "$at_port" -o r > "$cache_file"
+        echo "$(cat "$cache_file" ; json_dump)" | jq -s 'add'
+    else
+        echo "$(cat "$cache_file" ; json_dump)" | jq -s 'add'
+    fi
+}
+
+# Helper function to load vendor-specific script
+load_vendor_script() {
+    local vendor="$1"
+    local vendor_script_prefix="/usr/share/qmodem/vendor"
+    local dynamic_load_json="$vendor_script_prefix/dynamic_load.json"
+    local vendor_file="${vendor_script_prefix}/$(jq -r --arg vendor "$vendor" '.[$vendor]' "$dynamic_load_json" 2>/dev/null)"
+    
+    if [ -z "$vendor" ] || [ ! -f "$vendor_file" ]; then
+        . /usr/share/qmodem/vendor/generic.sh
+    else
+        . "$vendor_file"
+    fi
+}
+
+# Helper function to get modem configuration
+get_modem_config() {
+    local section="$1"
+    at_port=$(uci get qmodem.$section.at_port 2>/dev/null)
+    override_at_port=$(uci get qmodem.$section.override_at_port 2>/dev/null)
+    [ -n "$override_at_port" ] && at_port=$override_at_port
+    sms_at_port=$(uci -q get qmodem.$section.sms_at_port 2>/dev/null)
+    vendor=$(uci get qmodem.$section.manufacturer 2>/dev/null)
+    platform=$(uci get qmodem.$section.platform 2>/dev/null)
+    pdp_index=$(uci get qmodem.$section.pdp_index 2>/dev/null)
+    [ -z "$pdp_index" ] && pdp_index=$(uci get qmodem.$section.suggest_pdp_index 2>/dev/null)
+    use_ubus=$(uci get qmodem.$section.use_ubus 2>/dev/null)
+    modem_path=$(uci get qmodem.$section.path 2>/dev/null)
+    modem_slot=$(basename "$modem_path" 2>/dev/null)
+    
+    [ -z "$pdp_index" ] && pdp_index="1"
+    [ "$use_ubus" = "1" ] && use_ubus_flag="-u"
+}
+
+# Helper function to get AT port configuration (for SMS and AT commands)
+get_at_port_config() {
+    local section="$1"
+    local use_sms_port="$2"
+    at_port=$(uci get qmodem.$section.at_port 2>/dev/null)
+    override_at_port=$(uci get qmodem.$section.override_at_port 2>/dev/null)
+    [ -n "$override_at_port" ] && at_port=$override_at_port
+    
+    if [ "$use_sms_port" = "1" ]; then
+        sms_at_port=$(uci -q get qmodem.$section.sms_at_port 2>/dev/null)
+        [ -n "$sms_at_port" ] && at_port=$sms_at_port
+    fi
+    
+    use_ubus=$(uci get qmodem.$section.use_ubus 2>/dev/null)
+    [ "$use_ubus" = "1" ] && use_ubus_flag="-u"
+}
+
+# Helper function to get vendor information
+get_vendor_info() {
+    local section="$1"
+    vendor=$(uci get qmodem.$section.manufacturer 2>/dev/null)
+    platform=$(uci get qmodem.$section.platform 2>/dev/null)
+}
+
+# Helper function for AT configuration
+get_at_cfg() {
+    json_add_object at_cfg
+    duns=$(ls /dev/mhi_DUN* 2>/dev/null)
+    ttys=$(ls /dev/ttyUSB* 2>/dev/null)
+    ttyacms=$(ls /dev/ttyACM* 2>/dev/null)
+    wwanNatN=$(ls /dev/wwan* 2>/dev/null | grep -E 'wwan[0-9]at[0-9]')
+    all_ttys="$duns $ttys $ttyacms $wwanNatN"
+    json_add_array other_ttys
+    for tty in $all_ttys; do
+        [ -n "$tty" ] && json_add_string "" "$tty"
+    done
+    json_close_array
+    json_add_array ports
+    ports=$(uci get qmodem.$config_section.ports 2>/dev/null)
+    for port in $ports; do
+        json_add_string "" "$port"
+    done
+    json_close_array
+    json_add_array valid_ports
+    v_ports=$(uci get qmodem.$config_section.valid_at_ports 2>/dev/null)
+    for port in $v_ports; do
+        json_add_string "" "$port"
+    done
+    json_close_array
+    override_at_port=$(uci get qmodem.$config_section.override_at_port 2>/dev/null)
+    at_port=$(uci get qmodem.$config_section.at_port 2>/dev/null)
+    [ -n "$override_at_port" ] && at_port=$override_at_port
+    json_add_string using_port "$at_port"
+    json_add_array cmds
+    
+    # Determine language and select appropriate AT commands file
+    lang=$(uci get luci.main.lang 2>/dev/null || echo "en")
+    case "$lang" in
+        zh*|cn|auto)
+            at_commands_file="/usr/share/qmodem/at_commands_zh.json"
+            ;;
+        *)
+            at_commands_file="/usr/share/qmodem/at_commands_en.json"
+            ;;
+    esac
+    
+    # Fallback to default file if language-specific file doesn't exist
+    [ ! -f "$at_commands_file" ] && at_commands_file="/usr/share/qmodem/at_commands.json"
+    
+    general_cmd=$(jq -rc '.general[]|to_entries| .[] | @sh "key=\(.key) value=\(.value)"' "$at_commands_file" 2>/dev/null)
+    platform_cmd=$(jq -rc ".${vendor}.${platform}[]|to_entries| .[] | @sh \"key=\(.key) value=\(.value)\"" "$at_commands_file" 2>/dev/null)
+    [ -z "$platform_cmd" ] && platform_cmd=$(jq -rc ".$vendor.general[]|to_entries| .[] | @sh \"key=\(.key) value=\(.value)\"" "$at_commands_file" 2>/dev/null)
+    cmds=$(echo -e "$general_cmd\n$platform_cmd")
+    IFS=$'\n'
+    for cmd in $cmds; do
+        json_add_object cmd
+        eval $cmd
+        json_add_string "name" "$key"
+        json_add_string "value" "$value"
+        json_close_object
+    done
+    json_close_array
+    json_close_object
+    json_dump
+    unset IFS
+}
+
+case "$1" in
+    list)
+        cat <<EOF
+{
+    "base_info": {
+        "config_section": "string"
+    },
+    "cell_info": {
+        "config_section": "string"
+    },
+    "clear_dial_log": {
+        "config_section": "string"
+    },
+    "dial_status": {
+        "config_section": "string"
+    },
+    "get_dial_log": {
+        "config_section": "string"
+    },
+    "modem_dial": {
+        "config_section": "string"
+    },
+    "modem_hang": {
+        "config_section": "string"
+    },
+    "modem_redial": {
+        "config_section": "string"
+    },
+    "delete_sms": {
+        "config_section": "string",
+        "index": "string"
+    },
+    "do_reboot": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "get_at_cfg": {
+        "config_section": "string"
+    },
+    "get_copyright": {
+        "config_section": "string"
+    },
+    "get_disabled_features": {
+        "config_section": "string"
+    },
+    "get_dns": {
+        "config_section": "string"
+    },
+    "get_imei": {
+        "config_section": "string"
+    },
+    "get_lockband": {
+        "config_section": "string"
+    },
+    "get_mode": {
+        "config_section": "string"
+    },
+    "get_neighborcell": {
+        "config_section": "string"
+    },
+    "get_network_prefer": {
+        "config_section": "string"
+    },
+    "get_reboot_caps": {
+        "config_section": "string"
+    },
+    "get_sms": {
+        "config_section": "string"
+    },
+    "get_connect_status": {
+        "config_section": "string"
+    },
+    "info": {
+        "config_section": "string"
+    },
+    "network_info": {
+        "config_section": "string"
+    },
+    "send_at": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "send_raw_pdu": {
+        "config_section": "string",
+        "cmd": "string"
+    },
+    "send_sms": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "set_imei": {
+        "config_section": "string",
+        "imei": "string"
+    },
+    "set_lockband": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "set_mode": {
+        "config_section": "string",
+        "mode": "string"
+    },
+    "set_neighborcell": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "set_network_prefer": {
+        "config_section": "string",
+        "params": "object"
+    },
+    "set_sms_storage": {
+        "config_section": "string",
+        "storage": "string"
+    },
+    "sim_info": {
+        "config_section": "string"
+    },
+    "remove_modem": {
+        "config_section": "string"
+    },
+    "scan_pcie": {},
+    "scan_usb": {},
+    "scan_all": {},
+    "get_pcie_devices": {},
+    "get_usb_devices": {},
+    "get_available_devices": {},
+    "get_leds": {},
+    "get_network_interfaces": {},
+    "get_tty_ports": {},
+    "get_sim_switch_capabilities": {
+        "config_section": "string"
+    },
+    "get_sim_slot": {
+        "config_section": "string"
+    },
+    "set_sim_slot": {
+        "config_section": "string",
+        "slot": "string"
+    }
+}
+EOF
+        ;;
+    call)
+        read -r input
+        config_section=$(echo "$input" | jsonfilter -e '@.config_section')
+        if [ -n "$config_section" ]; then
+            get_modem_config "$config_section" > /dev/null
+            load_vendor_script "$vendor" > /dev/null
+            . /usr/share/qmodem/modem_util.sh
+        fi
+
+        case "$2" in
+            base_info|cell_info|info|network_info|sim_info|get_copyright|\
+            get_disabled_features|get_dns|get_imei|get_lockband|get_mode|\
+            get_neighborcell|get_network_prefer|get_reboot_caps|get_sms|\
+            get_at_cfg|clear_dial_log|dial_status|get_dial_log|get_connect_status|\
+            remove_modem|\
+            get_sim_switch_capabilities|get_sim_slot)
+                # Execute method
+                case "$2" in
+                    base_info)
+                        json_init
+                        cache_file="/tmp/cache_base_info_$config_section"
+                        try_cache 10 "$cache_file" base_info
+                        ;;
+                    cell_info)
+                        json_init
+                        cache_file="/tmp/cache_cell_info_$config_section"
+                        try_cache 10 "$cache_file" cell_info
+                        ;;
+                    clear_dial_log)
+                        json_init
+                        json_add_object result
+                        log_file="/var/run/qmodem/${config_section}_dir/dial_log"
+                        if [ -f "$log_file" ]; then
+                            echo "" > "$log_file"
+                            json_add_string status "1"
+                        else
+                            json_add_string status "0"
+                        fi
+                        json_close_object
+                        json_dump
+                        ;;
+                    dial_status)
+                        status_output=$(/etc/init.d/qmodem_network modem_status "$config_section" 2>/dev/null)
+                        json_init
+                        if [[ "$status_output" != *"Not Running"* ]]; then
+                            json_add_string running true
+                        else
+                            json_add_string running false
+                        fi
+                        json_dump
+                        ;;
+                    get_dial_log)
+                        json_init
+                        log_file="/var/run/qmodem/${config_section}_dir/dial_log"
+                        if [ -f "$log_file" ]; then
+                            log_content=$(cat "$log_file" | tail -n 100)
+                            json_add_string log "$log_content"
+                        else
+                            json_add_string log ""
+                        fi
+                        json_dump
+                        ;;
+                    get_at_cfg)
+                        json_init
+                        get_at_cfg
+                        ;;
+                    get_copyright)
+                        json_init
+                        _copyright
+                        json_dump
+                        ;;
+                    get_disabled_features)
+                        json_init
+                        json_add_array disabled_features
+                        vendor_get_disabled_features
+                        get_modem_disabled_features
+                        get_global_disabled_features
+                        json_close_array
+                        json_dump
+                        ;;
+                    get_dns)
+                        json_init
+                        get_dns
+                        json_dump
+                        ;;
+                    get_imei)
+                        json_init
+                        get_imei
+                        json_dump
+                        ;;
+                    get_lockband)
+                        json_init
+                        get_lockband
+                        json_dump
+                        ;;
+                    get_mode)
+                        json_init
+                        get_mode
+                        json_dump
+                        ;;
+                    get_neighborcell)
+                        json_init
+                        get_neighborcell
+                        json_dump
+                        ;;
+                    get_network_prefer)
+                        json_init
+                        get_network_prefer
+                        json_dump
+                        ;;
+                    get_reboot_caps)
+                        json_init
+                        get_reboot_caps
+                        json_dump
+                        ;;
+                    get_sms)
+                        get_sms 10 "/tmp/cache_sms_$config_section"
+                        ;;
+                    info)
+                        json_init
+                        cache_file="/tmp/cache_info_$config_section"
+                        try_cache 10 "$cache_file" get_info
+                        ;;
+                    network_info)
+                        json_init
+                        cache_file="/tmp/cache_network_info_$config_section"
+                        try_cache 10 "$cache_file" network_info
+                        ;;
+                    sim_info)
+                        json_init
+                        cache_file="/tmp/cache_sim_info_$config_section"
+                        try_cache 10 "$cache_file" sim_info
+                        ;;
+                    get_connect_status)
+                        json_init
+                        get_connect_status
+                        json_add_string connection_status "$connect_status"
+                        json_dump
+                        ;;
+                    remove_modem)
+                        json_init
+                        /usr/share/qmodem/modem_scan.sh remove "$config_section" >/dev/null 2>&1
+                        json_add_string status "$?"
+                        json_dump
+                        ;;
+                    get_sim_switch_capabilities)
+                        json_init
+                        sim_switch_capabilities
+                        json_dump
+                        ;;
+                    get_sim_slot)
+                        json_init
+                        get_sim_slot
+                        json_dump
+                        ;;
+                esac
+                ;;
+                
+            delete_sms)
+                read -r input
+                index=$(echo "$input" | jsonfilter -e '@.index')
+                
+                # Source helper functions and get configuration
+                . /usr/share/qmodem/modem_util.sh
+                get_at_port_config "$config_section" 1
+                
+                json_init
+                json_add_object result
+                for i in $index; do
+                    tom_modem $use_ubus_flag -d "$at_port" -o d -i "$i"
+                    if [ "$?" = "0" ]; then
+                        json_add_string status "1"
+                        json_add_string "index$i" "tom_modem $use_ubus_flag -d $at_port -o d -i $i"
+                    else
+                        json_add_string status "0"
+                    fi
+                done
+                json_close_object
+                json_dump
+                rm -rf "/tmp/cache_sms_$config_section"
+                ;;
+                
+            do_reboot)
+                params=$(echo "$input" | jsonfilter -e '@.params')
+                reboot_method=$(echo "$params" | jq -r '.method')
+                
+                case "$reboot_method" in
+                    "hard")
+                        hard_reboot
+                        ;;
+                    "soft")
+                        soft_reboot
+                        ;;
+                esac
+                
+                json_init
+                json_add_object result
+                json_add_string status "1"
+                json_add_string method "$reboot_method"
+                json_close_object
+                json_dump
+                ;;
+                
+            send_at)
+
+                params=$(echo "$input" | jsonfilter -e '@.params')
+                cmd=$(echo "$params" | jq -r '.at')
+                port=$(echo "$params" | jq -r '.port')
+                use_ubus_flag=$(echo "$params" | jq -r '.use_ubus_flag')
+                if [ "$use_ubus_flag" = "1" ]; then
+                    use_ubus_flag="-u"
+                else
+                    use_ubus_flag=""
+                fi
+                res=$(at "$port" "$cmd")
+                ret=$?
+                
+                json_init
+                json_add_object at_cfg
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string cmd "at $port $cmd"
+                    json_add_string res "$res"
+                else
+                    json_add_string status "0"
+                fi
+                json_close_object
+                json_dump
+                ;;
+                
+            send_raw_pdu)
+                read -r input
+                cmd=$(echo "$input" | jsonfilter -e '@.cmd')
+                
+                # Source helper functions and get configuration
+                . /usr/share/qmodem/modem_util.sh
+                get_at_port_config "$config_section" 1
+                
+                res=$(tom_modem $use_ubus_flag -d "$at_port" -o s -p "$cmd")
+                ret=$?
+                
+                json_init
+                json_add_object result
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string cmd "tom_modem $use_ubus_flag -d $at_port -o s -p \"$cmd\""
+                    json_add_string res "$res"
+                else
+                    json_add_string status "0"
+                fi
+                json_close_object
+                json_dump
+                ;;
+                
+            send_sms)
+                read -r input
+                params=$(echo "$input" | jsonfilter -e '@.params')
+                phone_number=$(echo "$params" | jq -r '.phone_number')
+                message_content=$(echo "$params" | jq -r '.message_content')
+                
+                # Source helper functions and get configuration
+                . /usr/share/qmodem/modem_util.sh
+                get_at_port_config "$config_section" 1
+                
+                sms_tool_q -d "$at_port" send "$phone_number" "$message_content" > /dev/null
+                ret=$?
+                
+                json_init
+                json_add_object result
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string cmd "sms_tool_q -d $at_port send \"$phone_number\" \"$message_content\""
+                    json_add_string cmd_json "$params"
+                else
+                    json_add_string status "0"
+                fi
+                json_close_object
+                json_dump
+                ;;
+                
+            set_imei)
+                imei=$(echo "$input" | jsonfilter -e '@.imei')
+                json_init
+                json_add_string imei "$imei"
+                json_add_object result
+                json_add_string status "1"
+                json_close_object
+                set_imei "$imei"
+                json_dump
+                ;;
+                
+            set_lockband|set_neighborcell|set_network_prefer)
+                config_section=$(echo "$input" | jsonfilter -e '@.config_section')
+                params=$(echo "$input" | jsonfilter -e '@.params')
+                
+                # Source helper functions and get configuration
+                . /usr/share/qmodem/modem_util.sh
+                get_modem_config "$config_section"
+                
+                # Load vendor-specific script
+                load_vendor_script "$vendor"
+                
+                json_init
+                case "$2" in
+                    set_lockband)
+                        set_lockband "$params"
+                        ;;
+                    set_neighborcell)
+                        set_neighborcell "$params"
+                        ;;
+                    set_network_prefer)
+                        set_network_prefer "$params"
+                        ;;
+                esac
+                json_dump
+                ;;
+                
+            set_mode)
+                mode=$(echo "$input" | jsonfilter -e '@.mode')
+                json_init
+                set_mode "$mode"
+                json_add_string result "$mode"
+                json_dump
+                ;;
+                
+            set_sms_storage)
+                storage=$(echo "$input" | jsonfilter -e '@.storage')
+                json_init
+                set_sms_storage "$storage"
+                json_dump
+                ;;
+
+            set_sim_slot)
+                slot=$(echo "$input" | jsonfilter -e '@.slot')
+                json_init
+                set_sim_slot "$slot"
+                json_dump
+                ;;
+            
+            modem_dial)
+                json_init
+                /etc/init.d/qmodem_network dial "$config_section" >/dev/null 2>&1
+                ret=$?
+                json_add_object result
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string message "Dial command executed successfully"
+                else
+                    json_add_string status "0"
+                    json_add_string message "Dial command failed"
+                fi
+                json_close_object
+                json_dump
+                ;;
+            
+            modem_hang)
+                json_init
+                /etc/init.d/qmodem_network hang "$config_section" >/dev/null 2>&1
+                ret=$?
+                json_add_object result
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string message "Hang command executed successfully"
+                else
+                    json_add_string status "0"
+                    json_add_string message "Hang command failed"
+                fi
+                json_close_object
+                json_dump
+                ;;
+            
+            modem_redial)
+                json_init
+                /etc/init.d/qmodem_network redial "$config_section" >/dev/null 2>&1
+                ret=$?
+                json_add_object result
+                if [ "$ret" = "0" ]; then
+                    json_add_string status "1"
+                    json_add_string message "Redial command executed successfully"
+                else
+                    json_add_string status "0"
+                    json_add_string message "Redial command failed"
+                fi
+                json_close_object
+                json_dump
+                ;;
+            
+            scan_pcie)
+                json_init
+                if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
+                    output=$(/usr/share/qmodem/modem_scan.sh scan 0 pcie 2>&1)
+                    scan_result=$?
+                    json_add_int "code" "$scan_result"
+                    if [ "$scan_result" -eq 0 ]; then
+                        json_add_string "message" "PCIe scan completed successfully"
+                    else
+                        json_add_string "message" "PCIe scan failed with exit code: $scan_result"
+                        json_add_string "output" "$output"
+                    fi
+                else
+                    json_add_int "code" 127
+                    json_add_string "message" "Scan script not found or not executable"
+                fi
+                json_dump
+                ;;
+            
+            scan_usb)
+                json_init
+                if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
+                    output=$(/usr/share/qmodem/modem_scan.sh scan 0 usb 2>&1)
+                    scan_result=$?
+                    json_add_int "code" "$scan_result"
+                    if [ "$scan_result" -eq 0 ]; then
+                        json_add_string "message" "USB scan completed successfully"
+                    else
+                        json_add_string "message" "USB scan failed with exit code: $scan_result"
+                        json_add_string "output" "$output"
+                    fi
+                else
+                    json_add_int "code" 127
+                    json_add_string "message" "Scan script not found or not executable"
+                fi
+                json_dump
+                ;;
+            
+            scan_all)
+                json_init
+                if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
+                    output=$(/usr/share/qmodem/modem_scan.sh scan 2>&1)
+                    scan_result=$?
+                    json_add_int "code" "$scan_result"
+                    if [ "$scan_result" -eq 0 ]; then
+                        json_add_string "message" "Full scan completed successfully"
+                    else
+                        json_add_string "message" "Full scan failed with exit code: $scan_result"
+                        json_add_string "output" "$output"
+                    fi
+                else
+                    json_add_int "code" 127
+                    json_add_string "message" "Scan script not found or not executable"
+                fi
+                json_dump
+                ;;
+            
+            get_pcie_devices)
+                json_init
+                json_add_array "devices"
+                if [ -d "/sys/bus/pci/devices/" ]; then
+                    for device in /sys/bus/pci/devices/*; do
+                        [ -e "$device" ] || continue
+                        device_id=$(basename "$device")
+                        json_add_object
+                        json_add_string "id" "$device_id"
+                        json_add_string "label" "$device_id [pcie]"
+                        json_close_object
+                    done
+                fi
+                json_close_array
+                json_dump
+                ;;
+            
+            get_usb_devices)
+                json_init
+                json_add_array "devices"
+                if [ -d "/sys/bus/usb/devices/" ]; then
+                    for device in /sys/bus/usb/devices/*; do
+                        [ -e "$device" ] || continue
+                        device_id=$(basename "$device")
+                        # Skip root hubs (usb1, usb2, etc.)
+                        echo "$device_id" | grep -q '^usb[0-9]\+$' && continue
+                        json_add_object
+                        json_add_string "id" "$device_id"
+                        json_add_string "label" "$device_id [usb]"
+                        json_close_object
+                    done
+                fi
+                json_close_array
+                json_dump
+                ;;
+            
+            get_available_devices)
+                json_init
+                json_add_object "devices"
+                # Add PCIe devices
+                if [ -d "/sys/bus/pci/devices/" ]; then
+                    for device in /sys/bus/pci/devices/*; do
+                        [ -e "$device" ] || continue
+                        device_id=$(basename "$device")
+                        # Convert to UCI-safe name
+                        uci_name=$(echo "$device_id" | sed 's/\./_/g; s/:/_/g; s/-/_/g')
+                        json_add_object "$uci_name"
+                        json_add_string "label" "$device_id [pcie]"
+                        json_add_string "type" "pcie"
+                        json_add_string "path" "/sys/bus/pci/devices/$device_id"
+                        json_close_object
+                    done
+                fi
+                # Add USB devices
+                if [ -d "/sys/bus/usb/devices/" ]; then
+                    for device in /sys/bus/usb/devices/*; do
+                        [ -e "$device" ] || continue
+                        device_id=$(basename "$device")
+                        # Skip root hubs (usb1, usb2, etc.)
+                        echo "$device_id" | grep -q '^usb[0-9]\+$' && continue
+                        # Convert to UCI-safe name
+                        uci_name=$(echo "$device_id" | sed 's/\./_/g; s/:/_/g; s/-/_/g')
+                        json_add_object "$uci_name"
+                        json_add_string "label" "$device_id [usb]"
+                        json_add_string "type" "usb"
+                        json_add_string "path" "/sys/bus/usb/devices/$device_id"
+                        json_close_object
+                    done
+                fi
+                json_close_object
+                json_dump
+                ;;
+            
+            get_leds)
+                json_init
+                json_add_array "leds"
+                if [ -d "/sys/class/leds/" ]; then
+                    for led in /sys/class/leds/*; do
+                        [ -e "$led" ] || continue
+                        led_name=$(basename "$led")
+                        json_add_object
+                        json_add_string "id" "$led_name"
+                        json_add_string "label" "$led_name"
+                        json_close_object
+                    done
+                fi
+                json_close_array
+                json_dump
+                ;;
+            
+            get_network_interfaces)
+                json_init
+                json_add_array "interfaces"
+                if [ -d "/sys/class/net/" ]; then
+                    for iface in /sys/class/net/*; do
+                        [ -e "$iface" ] || continue
+                        iface_name=$(basename "$iface")
+                        json_add_object
+                        json_add_string "id" "$iface_name"
+                        json_add_string "label" "$iface_name"
+                        json_close_object
+                    done
+                fi
+                json_close_array
+                json_dump
+                ;;
+            
+            get_tty_ports)
+                json_init
+                json_add_array "ports"
+                # Add ttyUSB ports (USB modems)
+                for i in 0 1 2 3 4 5 6 7; do
+                    if [ -e "/dev/ttyUSB$i" ]; then
+                        json_add_object
+                        json_add_string "id" "/dev/ttyUSB$i"
+                        json_add_string "label" "/dev/ttyUSB$i"
+                        json_close_object
+                    fi
+                done
+                # Add ttyACM ports (CDC ACM modems)
+                for i in 0 1 2 3; do
+                    if [ -e "/dev/ttyACM$i" ]; then
+                        json_add_object
+                        json_add_string "id" "/dev/ttyACM$i"
+                        json_add_string "label" "/dev/ttyACM$i"
+                        json_close_object
+                    fi
+                done
+                # Add mhi ports (PCIe modems with MHI interface)
+                for port in /dev/mhi_*; do
+                    if [ -e "$port" ]; then
+                        port_name=$(basename "$port")
+                        json_add_object
+                        json_add_string "id" "$port"
+                        json_add_string "label" "$port_name"
+                        json_close_object
+                    fi
+                done
+                # Add wwan ports
+                for port in /dev/wwan*at; do
+                    if [ -e "$port" ]; then
+                        port_name=$(basename "$port")
+                        json_add_object
+                        json_add_string "id" "$port"
+                        json_add_string "label" "$port_name"
+                        json_close_object
+                    fi
+                done
+                json_close_array
+                json_dump
+                ;;
+                
+            *)
+                json_init
+                json_add_object error
+                json_add_string message "Unknown method: $2"
+                json_close_object
+                json_dump
+                return 1
+                ;;
+        esac
+        ;;
+esac

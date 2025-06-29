@@ -1,0 +1,35 @@
+#!/bin/sh /etc/rc.common
+USE_PROCD=1
+START=99
+STOP=10
+PROG="/usr/share/qmodem/modem_sim.sh"
+start_service() {
+    local sim_auto_switch=$(uci -q get qmodem_hc_sim.main.sim_auto_switch)
+    logger -t modem_sim start_service $sim_auto_switch
+    if [ "$sim_auto_switch" == 1 ];then
+        start_instace
+    else
+        stop_service
+    fi
+}
+
+start_instace(){
+    procd_open_instance "$PROG"
+    procd_set_param command /usr/share/qmodem/modem_sim.sh
+    procd_close_instance
+    logger -t modem_sim running
+}
+
+reload_service() {
+    stop
+	start
+}
+
+stop_service() {
+    logger -t modem_sim stop_service
+    service_stop "$PROG"
+}
+
+service_triggers() {
+	procd_add_reload_trigger 'qmodem_hc_sim'
+}

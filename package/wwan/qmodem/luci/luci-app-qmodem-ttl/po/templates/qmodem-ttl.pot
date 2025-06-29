@@ -1,0 +1,19 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: luasrc/controller/qmodem_ttl.lua:6
+#: luasrc/model/cbi/qmodem/modem_ttl.lua:2
+msgid "TTL Config"
+msgstr ""
+
+#: luasrc/model/cbi/qmodem/modem_ttl.lua:3
+msgid "Global Config"
+msgstr ""
+
+#: luasrc/model/cbi/qmodem/modem_ttl.lua:5
+msgid "Enable"
+msgstr ""
+
+#: luasrc/model/cbi/qmodem/modem_ttl.lua:8
+msgid "TTL"
+msgstr ""

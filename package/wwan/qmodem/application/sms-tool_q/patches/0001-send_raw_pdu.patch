@@ -1,0 +1,65 @@
+--- a/sms_main.c	2024-10-08 23:11:01.169908895 +0800
++++ b/sms_main.c	2024-10-08 23:10:52.929909691 +0800
+@@ -200,7 +200,12 @@
+ 	{
+ 		if(argc < 2)
+ 			usage();
+-	}else if (!strcmp("recv", argv[0]))
++	}
++	else if (!strcmp("send_raw_pdu", argv[0])){
++		if(argc < 2)
++			usage();
++	}
++	else if (!strcmp("recv", argv[0]))
+ 	{
+ 	}else if (!strcmp("status", argv[0]))
+ 	{
+@@ -288,6 +293,48 @@
+ 		fprintf(stderr,"reading port\n");
+ 	}
+ 
++	if (!strcmp("send_raw_pdu", argv[0]))
++	{
++		int pdu_len;
++		int pdu_len_except_smsc;
++		char pdustr[1024];
++		
++		alarm(5);
++		pdu_len_except_smsc = strlen(argv[1]) / 2 - 1;
++		sprintf(pdustr, "%s%c\r\n", argv[1],0x1A);
++		sprintf(cmdstr,  "AT+CMGS=%d\r\n", pdu_len_except_smsc);
++		//set to pdu mode
++		fputs("AT+CMGF=0\r\n", pf);
++		while(fgets(buf, sizeof(buf), pfi)) {
++			if(starts_with("OK", buf))
++				break;
++		}
++		fputs(cmdstr, pf);
++		sleep(1);
++		fputs(pdustr, pf);
++
++		errno = 0;
++
++		while(fgets(buf, sizeof(buf), pfi))
++		{
++			if(starts_with("+CMGS:", buf))
++			{
++				printf("sms sent sucessfully: %s", buf + 7);
++				return 0;
++			} else if(starts_with("+CMS ERROR:", buf))
++			{
++				fprintf(stderr,"sms not sent, code: %s\n", buf + 11);
++			} else if(starts_with("ERROR", buf))
++			{
++				fprintf(stderr,"sms not sent, command error\n");
++			} else if(starts_with("OK", buf))
++			{
++				return 0;
++			}
++		}
++		fprintf(stderr,"reading port\n");
++	}
++	
+ 	if (!strcmp("recv", argv[0]))
+ 	{
+ 		alarm(10);

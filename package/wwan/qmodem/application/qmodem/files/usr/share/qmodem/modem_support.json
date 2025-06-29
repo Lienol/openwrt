@@ -1,0 +1,1869 @@
+{
+    "modem_support": {
+        "usb": {
+            "s10": {
+                "manufacturer_id": "12dc",
+                "manufacturer": "huawei",
+                "platform": "hisilicon",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/18/19/20/25/26/28/66/71/38/39/40/41/66/71",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "rndis"
+                ]
+            },
+            "em05": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/18/19/20/25/26/28/66/71/38/39/40/41/66/71",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "em05-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/18/19/20/25/26/28/66/71/38/39/40/41/66/71",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "ep06": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/3/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "em12": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/8/9/19",
+                "lte_band": "1/2/3/4/5/7/8/9/12/13/14/17/18/19/20/21/25/26/28/29/30/32/66",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "em120k": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte12",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/31/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "em160r-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte12",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
+            "mt5700m-cn": {
+                "manufacturer_id": "3466",
+                "manufacturer": "huawei",
+                "platform": "hisilicon",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/28/41/78/79",
+                "modes": [
+                    "ecm",
+                    "ncm"
+                ]
+            },
+            "mt5710_cn": {
+                "manufacturer_id": "3466",
+                "manufacturer": "huawei",
+                "platform": "hisilicon",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/28/41/78/79",
+                "modes": [
+                    "ecm",
+                    "ncm"
+                ]
+            },
+            "mh5000-31": {
+                "manufacturer_id": "12d1",
+                "manufacturer": "huawei",
+                "platform": "hisilicon",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/41/78/79",
+                "modes": [
+                    "ecm"
+                ]
+            },
+            "mh5000-82": {
+                "manufacturer_id": "12d1",
+                "manufacturer": "huawei",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/41/78/79",
+                "modes": [
+                    "ecm",
+                    "ncm",
+                    "rndis"
+                ]
+            },
+            "mh5000-82m": {
+                "manufacturer_id": "12d1",
+                "manufacturer": "huawei",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/41/78/79",
+                "modes": [
+                    "ecm",
+                    "ncm",
+                    "rndis"
+                ]
+            },
+            "rg200u-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "1/3/5/8/28/41/77/78/79",
+                "sa_band": "1/3/5/8/28/41/77/78/79",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg801": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "hisilicon",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/28/41/78/79",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500u-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "1/3/5/8/28/41/77/78/79",
+                "sa_band": "1/3/5/8/28/41/77/78/79",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500u-cnv": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/3/5/8/28/41/77/78/79",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500u-ea": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/5/8",
+                "lte_band": "1/2/3/4/5/7/8/20/28/38/40/41/66",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/66/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/66/77/78",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500s-ce": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/5/8",
+                "lte_band": "1/2/3/4/5/7/8/20/28/38/40/41/66",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/66/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/66/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500q-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/28/41/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm510q-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm510q-glha": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg500q-ea": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/3/5/6/8/19",
+                "lte_band": "1/3/5/7/8/18/19/20/26/28/32/34/38/39/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/77/78/79",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500q-ae": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm500q-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm502q-ae": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm502q-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm505q-ae": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm520n-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/8",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "41/78/79",
+                "sa_band": "1/3/5/8/28/41/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm520n-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm520n-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm520f-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm520f-bl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "2/4/7/25/41/42/43/66",
+                "nsa_band": "2/7/25/41/66/77/78",
+                "sa_band": "2/7/25/41/66/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm521f-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm530n-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rm551e-gl": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg501q-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg520n-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg520n-eb": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "mh8001-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg520f-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg520f-eb": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg520f-jo": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "0",
+                "nsa_band": "0",
+                "sa_band": "78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg530f-na": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "2/4/5/7/12/13/14/17/25/26/29/30/38/41/42/43/46/48/66/71",
+                "nsa_band": "2/5/7/12/13/14/25/26/29/30/38/41/48/66/70/71/77/78/257/258/260/261",
+                "sa_band": "2/5/7/12/13/14/25/26/29/30/38/41/48/66/70/71/77/78/257/258/260/261",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "rg650v-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/3/5",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/26/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/26/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm650-cn": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm350-gl": {
+                "manufacturer_id": "0e8d",
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "usb",
+                "pdp_index": "3",
+                "modes": [
+                    "rndis"
+                ]
+            },
+            "fm350-gl-00": {
+                "manufacturer_id": "0e8d",
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "usb",
+                "pdp_index": "3",
+                "modes": [
+                    "rndis"
+                ]
+            },
+            "fm350r-gl": {
+                "manufacturer_id": "0e8d",
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "usb",
+                "pdp_index": "3",
+                "modes": [
+                    "rndis"
+                ]
+            },
+            "rw350r-gl": {
+                "manufacturer_id": "0e8d",
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "usb",
+                "pdp_index": "3",
+                "modes": [
+                    "rndis"
+                ]
+            },
+            "fm150-ae": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm160-cn": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm160-eau": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm160-na": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "fm190w-gl": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "l610-eu": {
+                "manufacturer_id": "1782",
+                "manufacturer": "fibocom",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "nl668": {
+                "manufacturer_id": "1508",
+                "manufacturer": "fibocom",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "nl678": {
+                "manufacturer_id": "2cb7",
+                "manufacturer": "fibocom",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "srm815": {
+                "manufacturer_id": "2dee",
+                "manufacturer": "meig",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "srm825": {
+                "manufacturer_id": "2dee",
+                "manufacturer": "meig",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "ec20f": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "ec25": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "ec21": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "ec200a": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "mbim",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "srm825n": {
+                "manufacturer_id": "2dee",
+                "manufacturer": "meig",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "em9190": {
+                "manufacturer_id": "1199",
+                "manufacturer": "sierra",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
+            "mc7354": {
+                "manufacturer_id": "1199",
+                "manufacturer": "sierra",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi"
+                ]
+            },
+            "mc7355": {
+                "manufacturer_id": "1199",
+                "manufacturer": "sierra",
+                "platform": "lte",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi"
+                ]
+            },
+            "fn990a40": {
+                "manufacturer_id": "1bc7",
+                "manufacturer": "telit",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "rndis",
+                    "qmi",
+                    "ecm"
+                ]
+            },
+            "simcom_d8200g": {
+                "manufacturer_id": "1a0e",
+                "manufacturer": "simcom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "rndis"
+                ]
+            },
+            "simcom_sim8200ea-m2": {
+                "manufacturer": "simcom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "rndis"
+                ]
+            },
+            "simcom_sim8202g-m2": {
+                "manufacturer": "simcom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/9/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/67/71",
+                "nsa_band": "41/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "rndis",
+                    "mbim"
+                ]
+            },
+            "simcom_sim8380g-m2": {
+                "manufacturer": "simcom",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "rndis"
+                ]
+            },
+            "t77w968": {
+                "manufacturer_id": "413c",
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/38/39/40/41/42/43/46/66",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "mbim"
+                ]
+            },
+            "t99w175": {
+                "manufacturer_id": "05c6",
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
+            "t99w373": {
+                "manufacturer_id": "05c6",
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
+            "srm821": {
+                "manufacturer_id": "1782",
+                "manufacturer": "meig",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm",
+                    "rndis",
+                    "ncm"
+                ]
+            },
+            "n510m": {
+                "manufacturer_id": "3763",
+                "manufacturer": "neoway",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "ecm"
+                ]
+            },
+            "me3630-w" :{
+                "manufacturer" : "gosuncn",
+                "platform" : "lte",
+                "data_interface" : "usb",
+                "pdp_index" : "1",
+                "modes" : [
+                    "ecm"
+                ],
+                "lte_band" : "1/3/5/8/38/39/40/41"
+            }
+        },
+        "pcie": {
+            "rm510q-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79/257/258/260/261",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm500s-ce": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "t99w175": {
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "t99w373": {
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "t99w640": {
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "simcom_sim8380g-m2": {
+                "manufacturer": "simcom",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/28/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi"
+                ]
+            },
+            "rm500q-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm500q-ae": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg500q-ea": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/3/5/6/8/19",
+                "lte_band": "1/3/5/7/8/18/19/20/26/28/32/34/38/39/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/77/78/79",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg501q-eu": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm502q-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm502q-ae": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/3/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/20/25/28/38/40/41/48/66/71/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm520n-eu": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm520n-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm520f-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm520f-bl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "2/4/7/25/41/42/43/66",
+                "nsa_band": "2/7/25/41/66/77/78",
+                "sa_band": "2/7/25/41/66/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm521f-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm530n-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rm551e-gl": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/29/30/38/40/41/48/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg520n-eu": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg520n-eb": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "mh8001-eu": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg520f-eb": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg520f-eu": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/5/8",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43",
+                "nsa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/28/38/40/41/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg520f-jo": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "0",
+                "nsa_band": "0",
+                "sa_band": "78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg530f-na": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "0",
+                "lte_band": "2/4/5/7/12/13/14/17/25/26/29/30/38/41/42/43/46/48/66/71",
+                "nsa_band": "2/5/7/12/13/14/25/26/29/30/38/41/48/66/70/71/77/78/257/258/260/261",
+                "sa_band": "2/5/7/12/13/14/25/26/29/30/38/41/48/66/70/71/77/78/257/258/260/261",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "rg650v-eu": {
+                "manufacturer": "quectel",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/3/5",
+                "lte_band": "1/3/5/7/8/20/28/32/38/40/41/42/43/71",
+                "nsa_band": "1/3/5/7/8/20/26/28/38/40/41/71/75/76/77/78",
+                "sa_band": "1/3/5/7/8/20/26/28/38/40/41/71/75/76/77/78",
+                "modes": [
+                    "qmi",
+                    "gobinet",
+                    "mbim"
+                ]
+            },
+            "fm350-gl": {
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "fm350r-gl": {
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "rw350r-gl": {
+                "manufacturer": "fibocom",
+                "platform": "mediatek",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "fm150-ae": {
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi",
+                    "mbim"
+                ]
+            },
+            "fm190w-gl": {
+                "manufacturer": "fibocom",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "qmi"
+                ]
+            },
+            "em9190": {
+                "manufacturer": "sierra",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
+            "fn990a40": {
+                "manufacturer": "telit",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "modes": [
+                    "mbim",
+                    "qmi"
+                ]
+            }
+        },
+        "device": {
+            "quectel": {
+                "unisoc": {
+                    "vendor_id": [
+                        "2c7c"
+                    ],
+                    "product_id": [
+                        "6001",
+                        "6002",
+                        "6004",
+                        "6005",
+                        "6006",
+                        "6007",
+                        "0900",
+                        "0901",
+                        "0902",
+                        "0903",
+                        "0904"
+                    ]
+                },
+                "qualcomm": {
+                    "vendor_id": [
+                        "2c7c"
+                    ],
+                    "product_id": [
+                        "0121",
+                        "0125",
+                        "0133",
+                        "0191",
+                        "0195",
+                        "0296",
+                        "0306",
+                        "030b",
+                        "0435",
+                        "0452",
+                        "0455",
+                        "0512",
+                        "0620",
+                        "0800",
+                        "0801"
+                    ]
+                },
+                "mediatek": {
+                    "vendor_id": [
+                        "2c7c"
+                    ],
+                    "product_id": [
+                        "0700",
+                        "7001",
+                        "7003"
+                    ]
+                }
+            },
+            "fibocom": {
+                "unisoc": {
+                    "vendor_id": [
+                        "2cb7",
+                        "3c93",
+                        "3763"
+                    ],
+                    "product_id": [
+                        "0a04",
+                        "0a05",
+                        "0a06",
+                        "0a07",
+                        "3c93",
+                        "ffff"
+                    ]
+                },
+                "qualcomm": {
+                    "vendor_id": [
+                        "2cb7"
+                    ],
+                    "product_id": [
+                        "0104",
+                        "0105",
+                        "0106",
+                        "0107",
+                        "0108",
+                        "0109",
+                        "010A",
+                        "010B",
+                        "010F",
+                        "0110",
+                        "0111"
+                    ]
+                },
+                "mediatek": {
+                    "vendor_id": [
+                        "0e8d"
+                    ],
+                    "product_id": [
+                        "7126",
+                        "7127"
+                    ]
+                }
+            },
+            "meig": {
+                "unisoc": {
+                    "vendor_id": [
+                        "2dee",
+                        "1782"
+                    ],
+                    "product_id": [
+                        "4d50",
+                        "4d51",
+                        "4d52",
+                        "4d53",
+                        "4039",
+                        "4038",
+                        "4040"
+                    ]
+                },
+                "qualcomm": {
+                    "vendor_id": [
+                        "2dee",
+                        "05c6"
+                    ],
+                    "product_id": [
+                        "4d22",
+                        "4d23",
+                        "4d38",
+                        "4d45",
+                        "f601"
+                    ]
+                },
+                "hisilicon": {
+                    "vendor_id": [
+                        "2dee",
+                        "4d20"
+                    ],
+                    "product_id": [
+                        "7126",
+                        "7127"
+                    ]
+                },
+                "asrmicro": {
+                    "vendor_id": [
+                        "2dee"
+                    ],
+                    "product_id": [
+                        "4d57",
+                        "4d58",
+                        "4d59"
+                    ]
+                }
+            },
+            "simcom": {
+                "qualcomm": {
+                    "vendor_id": [
+                        "1a0e",
+                        "1e0e",
+                        "17cb"
+                    ],
+                    "product_id": [
+                        "9001",
+                        "9011",
+                        "0308"
+                    ]
+                }
+            },
+            "foxconn": {
+                "qualcomm": {
+                    "vendor_id": [
+                        "17cb",
+                        "05c6",
+                        "105b",
+                        "413c",
+                        "03f0"
+                    ],
+                    "product_id": [
+                        "0306",
+                        "0308",
+                        "90d5",
+                        "9025",
+                        "e0ab",
+                        "81d7",
+                        "0a6c"
+                    ]
+                }
+            },
+            "neoway": {
+                "unisoc": {
+                    "vendor_id": [
+                        "3763"
+                    ],
+                    "product_id": [
+                        "3c93"
+                    ]
+                }
+            },
+            "telit": {
+                "qualcomm": {
+                    "vendor_id": [
+                        "1bc7"
+                    ],
+                    "product_id": [
+                        "1075"
+                    ]
+                }
+            }
+        }
+    }
+}

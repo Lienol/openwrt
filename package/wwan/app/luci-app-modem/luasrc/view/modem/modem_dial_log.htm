@@ -1,0 +1,283 @@
+<script type="text/javascript">//<![CDATA[
+	
+	function set_tab_event()
+	{
+		var tab_menu = document.getElementById("tab_menu");
+		//获取子元素
+		var childElements = tab_menu.children;
+		//获取需要禁用的元素
+		for (var i = 0; i < childElements.length; i++)
+		{
+			childElements[i].addEventListener('click', function(event) {
+				tab_event(this);
+			});
+		}
+	}
+
+	//获取需要禁用的元素
+	function get_enable_element(parent_element)
+	{
+		var enable_element;
+		//获取子元素
+		var childElements = parent_element.children;
+		//获取已启用的元素
+		for (var i = 0; i < childElements.length; i++)
+		{
+			// 检查当前子元素的class属性是否为cbi-tab
+			if (childElements[i].classList.contains('cbi-tab'))
+			{
+				enable_element=childElements[i];
+				break;
+			}
+		}
+		return enable_element;
+	}
+
+	// 设置标签显示
+	function set_tab_view(disenable_element,enable_element)
+	{
+		//获取tab内容父元素
+		var tab_context = document.getElementById('dial_log_view');
+
+		//禁用tab
+		disenable_element.classList.remove('cbi-tab');
+		disenable_element.classList.add('cbi-tab-disabled');
+		//禁用tab内容
+		var data_tab_disenable = disenable_element.getAttribute('data-tab');
+		var tab_context_disenable_element = tab_context.querySelector('div[data-tab="'+data_tab_disenable+'"]');
+		tab_context_disenable_element.setAttribute('data-tab-active','false');
+		tab_context_disenable_element.style.display="none";
+
+		//启用tab
+		enable_element.classList.remove('cbi-tab-disabled');
+		enable_element.classList.add('cbi-tab');
+		//启用tab内容
+		var data_tab_enable = enable_element.getAttribute('data-tab');
+		var tab_context_enable_element = tab_context.querySelector('div[data-tab="'+data_tab_enable+'"]');
+		tab_context_enable_element.setAttribute('data-tab-active','true');
+		tab_context_enable_element.style.display="block";
+	}
+
+	// 标签事件处理（更新选中的标签及标签内容）
+	function tab_event(tab_element)
+	{
+		//获取需要禁用的tab元素
+		var tab_menu = document.getElementById("tab_menu");
+		var disenable_element=get_enable_element(tab_menu);
+		if (tab_element != disenable_element) {
+			set_tab_view(disenable_element,tab_element);
+		}
+	}
+
+	// 设置滚动条
+	function set_scroll_top(log_ids)
+	{
+		for(var log_id in log_ids)
+		{
+			var log_element=document.getElementById(log_id);
+			if (log_ids[log_id]==-1)
+			{
+				log_element.scrollTop = log_element.scrollHeight;
+			}
+			else
+			{
+				log_element.scrollTop = log_ids[log_id];
+			}
+		}
+	}
+
+	// 下载日志
+	function download_dial_log()
+	{
+		// 获取启用的标签名
+		var enable_element=get_enable_element(tab_menu);
+		var enable_tab=enable_element.getAttribute("data-tab");
+		var enable_tab_name=enable_tab.replace("_tab","");
+
+		// 获取拨号日志
+		var log_element=document.getElementById(enable_tab_name+"_log");
+		var log=log_element.value
+
+		// 创建下载链接
+		var file = new Blob([log], {type: 'text/plain'});
+		var fileURL = URL.createObjectURL(file);
+		
+		// 创建超链接并触发点击
+		var download_link = document.createElement("a");
+		download_link.href = fileURL;
+		download_link.download = enable_tab_name+"_dial_log.txt";
+		download_link.click();
+	}
+
+	// 清理拨号日志
+	function clean_dial_log()
+	{
+		// 获取启用的标签名
+		var enable_element=get_enable_element(tab_menu);
+		var enable_tab=enable_element.getAttribute("data-tab");
+		var enable_tab_name=enable_tab.replace("_tab","");
+
+		// 清空页面拨号日志
+		var log_element=document.getElementById(enable_tab_name+"_log");
+		log_element.value="";
+
+		// 获取拨号日志路径
+		var path="/tmp/run/modem/"+enable_tab_name+"_dial.cache";
+
+		// 清空文件拨号日志
+		XHR.get('<%=luci.dispatcher.build_url("admin", "network", "modem", "clean_dial_log")%>', {"path":path},
+			function(x, data)
+			{
+				// console.log(data);
+			}
+		);
+	}
+
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "network", "modem", "get_dial_log_info")%>', null,
+		function(x, data)
+		{
+			var dial_log_info=data["dial_log_info"];
+			var modem_name_info=data["modem_name_info"];
+			var translation=data["translation"];
+
+			var tab_menu=document.getElementById("tab_menu");
+			var dial_log_div=document.getElementById('dial_log_view');
+			if (Object.keys(dial_log_info).length!=0)
+			{
+				// 新添加标签或覆盖标签
+				var tab_view = "";
+				var dial_log_view = "";
+				var log_ids={};
+				var enable_tab_name_cache=""; // 缓存已启用标签名
+				for (var dial_log of dial_log_info)
+				{
+					//遍历拨号日志的信息
+					for ( var key in dial_log)
+					{
+						var class_name="cbi-tab-disabled";
+						var active="false";
+						var display="none";
+						var log_style="";
+
+						if (tab_menu.hasChildNodes())
+						{
+							// 获取启用的标签元素
+							var enable_element=get_enable_element(tab_menu);
+
+							// 设置启用的标签为上一次的启用标签
+							enable_tab=enable_element.getAttribute("data-tab");
+							enable_tab_name_cache=enable_tab.replace("_tab","");
+							if (enable_tab_name_cache==key)
+							{
+								class_name="cbi-tab";
+								active="true";
+								display="block";
+							}
+							
+							var log_element=document.getElementById(key+'_log');
+							if (log_element!=null)
+							{
+								// 设置样式
+								log_style=log_element.getAttribute("style");
+
+								// 判断日志是否更新
+								var log=log_element.value;
+								if (dial_log[key]!=log)
+								{
+									// 更新的移动滚动条到最下面
+									log_ids[key+'_log']=-1;
+								}
+								else
+								{
+									// 记录滚到条位置
+									log_ids[key+'_log']=log_element.scrollTop;
+								}
+							}
+						}
+
+						// 设置拨号日志标签
+						var modem_name=translation[modem_name_info[key]].toUpperCase();
+						tab_view+='<li class="'+class_name+'" data-tab="'+key+'_tab"><a>'+modem_name+' ('+key.replace("modem","")+')</a></li>';
+						// 设置拨号日志
+						dial_log_view += '<div class="cbi-section" data-tab="'+key+'_tab" data-tab-title="'+key+'" data-tab-active="'+active+'" style="display: '+display+';">';
+						dial_log_view += '<div><textarea readonly="readonly" id="'+key+'_log" rows="20" maxlength="160" style="'+log_style+'">'+dial_log[key]+'</textarea></div>';
+						dial_log_view += '</div>'
+					}
+				}
+
+				// 添加到页面中
+				tab_menu.innerHTML=tab_view;
+				dial_log_div.innerHTML=dial_log_view;
+
+				// 设置默认启用的标签（上次启用标签已删除）
+				var enable_element=document.getElementById(enable_tab_name_cache+"_log");
+				if (enable_element==null)
+				{
+					//设置启用的为第一个标签
+					enable_element=tab_menu.firstChild;
+					enable_element.classList.remove('cbi-tab-disabled');
+					enable_element.classList.add('cbi-tab');
+
+					enable_element=dial_log_div.firstChild;
+					enable_element.setAttribute('data-tab-active','true');
+					enable_element.style.display="block";
+				}
+
+				//设置滚动条
+				set_scroll_top(log_ids);
+				
+				// 设置标签事件
+				set_tab_event();
+
+				// 显示拨号日志（标签、日志内容、滚动条、标签事件加载完成才显示）
+				document.getElementById("modem_dial_log_field").style.display="block";
+			}
+			else
+			{
+				var log_view="<strong><%:No dial log%></strong>";
+				dial_log_div.innerHTML=log_view;
+				// 隐藏拨号日志
+				document.getElementById("modem_dial_log_field").style.display="none";
+			}
+		}
+	);
+//]]>
+</script>
+
+<style type="text/css">
+	/* AT命令响应 */
+	textarea {
+		background:#373737;
+		border:none;
+		color:#FFF;
+		width: 100%;
+		border-top-width: 2px;
+		padding-top: 12px;
+	}
+</style>
+
+<fieldset id="modem_dial_log_field" class="cbi-section" style="display: none;">
+	<div class="cbi-section fade-in">
+		<!-- <legend><%:Dial Log%></legend> -->
+		<h3 id="dial_log_title"><%:Dial Log%></h3>
+	</div>
+	<!-- <div id="response_label"><%:Response%></div><br/> -->
+	<table class="table" id="at_command_info">
+		<tbody>
+			<tr class="tr">
+				<td colspan="2" class="td left">
+					<ul class="cbi-tabmenu" id="tab_menu"></ul>
+					<div id="dial_log_view">
+						<!-- <div class="cbi-section" data-tab="modem0_tab" data-tab-title="<%:Modem0%>" data-tab-active="true" style="display: block;">
+							<div><textarea readonly="readonly" id="response" rows="20" maxlength="160"></textarea></div>
+						</div> -->
+					</div>
+					<div class="cbi-page-actions">
+						<input class="btn cbi-button cbi-button-link" type="button" value="<%:Download Log%>" onclick="download_dial_log()" alt="<%:Download Log%>" title="<%:Download Log%>">
+						<input class="cbi-button cbi-button-reset" type="button" value="<%:Clean%>" onclick="clean_dial_log()" alt="<%:Clean%>" title="<%:Clean%>">
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</fieldset>

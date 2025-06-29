@@ -1,0 +1,11 @@
+#!/bin/sh /etc/rc.common
+
+START=70
+
+start() {
+	/sbin/modprobe -q pcie_mhi
+}
+
+stop() {
+	[ -d "/sys/module/pcie_mhi" ] && /sbin/rmmod pcie_mhi
+}

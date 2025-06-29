@@ -1,0 +1,59 @@
+#!/bin/sh
+# Copyright (C) 2024 Tom <fjrcn@outlook.com>
+manual=$(uci -q get qmodem.main.block_auto_probe)
+[ "${manual}" -eq 1 ] && exit
+
+logger -t modem_hotplug "net slot: ${DEVPATH} action: ${ACTION}"
+#网络设备名称不存在，退出
+[ -z "${INTERFACE}" ] && exit
+#网络设备路径不存在，退出
+[ -z "${DEVPATH}" ] && exit
+
+slot_path=$(readlink -f "/sys/${DEVPATH}/device")
+[ -z "${slot_path}" ] && exit
+
+slot=$(basename "$(dirname "${slot_path}")")
+
+if [ -d "/sys/bus/usb/devices/${slot}" ]; then
+    slot_type="usb"
+elif [ -d "/sys/bus/pci/devices/${slot}" ]; then
+    slot_type="pcie"
+else
+    exit
+fi
+
+if [ "${slot_type}" = "usb" ]; then
+    vendor_file="/sys/bus/usb/devices/${slot}/idVendor"
+    product_file="/sys/bus/usb/devices/${slot}/idProduct"
+    
+    if [ -f "${vendor_file}" ] && [ -f "${product_file}" ]; then
+        slot_vid=$(cat "${vendor_file}")
+        slot_pid=$(cat "${product_file}")
+        
+        if [ -n "$slot_vid" ] && [ -n "$slot_pid" ]; then
+            modem_port_rule=$(cat /usr/share/qmodem/modem_port_rule.json)
+            modem_port_config=$(echo $modem_port_rule | jq '.modem_port_rule."'$slot_type'"."'$slot_vid:$slot_pid'"')
+
+            if [ "$modem_port_config" != "null" ] && [ -n "$modem_port_config" ]; then
+                config_modem_name=$(echo $modem_port_config | jq -r '.name')
+                include_ports=$(echo $modem_port_config | jq -r '.include[]')
+
+                [ -n "$include_ports" ] && {
+                    logger -t modem_hotplug "using special config for $config_modem_name($slot_vid:$slot_pid) with ports: $include_ports"
+                    echo "$slot_vid $slot_pid" > /sys/bus/usb-serial/drivers/option1/new_id 2>/dev/null || 
+                        logger -t modem_hotplug "failed to set option driver"
+                }
+            fi
+        else
+            logger -t modem_hotplug "Unable to read VID/PID from device: $slot"
+        fi
+    fi
+fi
+
+logger -t modem_hotplug "net slot: ${slot} action: ${ACTION} slot_type: ${slot_type}"
+case "${ACTION}" in
+    add|\
+    bind)
+        /usr/share/qmodem/modem_scan.sh add "${slot}" "${slot_type}"
+        ;;
+esac

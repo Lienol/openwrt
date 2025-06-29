@@ -1,0 +1,198 @@
+Release Notes
+[QFirehose_Linux_Android_V1.4.21]
+Date:   08/14/2024
+enhancement:
+  1. Support EG120KEABA upgrade in RNDIS mode
+fix:
+
+[QFirehose_Linux_Android_V1.4.20]
+Date:   07/18/2024
+enhancement:
+  1. Support AG600K to upgrade using adb command let module into edl
+  2. Support sec-boot upgrade file to burn
+fix:
+
+Release Notes
+[QFirehose_Linux_Android_V1.4.19]
+Date:   04/30/2024
+enhancement:
+  1. The input parameter can be a precise file to specify the reading of the upgrade file.
+  2. RG650V using rndis can use this tool to upgrade.(./QFirehose -f ${upgrade_file_path} -d emmc)
+fix:
+
+[QFirehose_Linux_Android_V1.4.18]
+Date:   12/29/2023
+enhancement:
+  1. New support for upgrading the laptop module EM120K-GL
+  2. New support for SA885GAPNA(ufs) upgrade
+  3. Added support for AG215SGLBA(with a single image greater than 40M in the firmware package) upgrade
+  4. New support for RM520NGL(custom PID is 0x0804) upgrade
+fix:
+
+[QFirehose_Linux_Android_V1.4.17]
+Date:   09/13/2023
+enhancement:
+  1. Added support for upgrading using zip and 7z package
+  2. Optimize pcie code
+  3. Optimize sahara code
+fix:
+
+[QFirehose_Linux_Android_V1.4.16]
+Date:   08/08/2023
+enhancement:
+  1. Update copyright
+  2. Hide -e full wipe, but retain this feature
+  3. Fix errors in klocwork scanning
+  4. Code optimization for erase partitioning operations for nand storage modules
+fix:
+
+[QFirehose_Linux_Android_V1.4.15]
+Date:   06/29/2023
+enhancement:
+  1. Added support for upgrading laptop EM05G-SE10
+  2. Modify the copyright time and add copyright to some c or h files
+  3. Optimize sahara protocol code
+fix:
+
+[QFirehose_Linux_Android_V1.4.14]
+Date:   04/29/2023
+enhancement:
+  1. Added support for upgrading laptop EM05-G and EM061KGL
+  2. Added support for AG590ECNAB upgrade
+  3. Added support for upgrading the RM520NGL Lenovo 5G module (with a specified PID of 0x0803)
+  4. Added support for upgrading AG215S-GLR signed firmware version packs
+fix:
+
+[QFirehose_Linux_Android_V1.4.13]
+Date:   02/20/2023
+enhancement:
+  1. New support for upgrading multiple PCIE modules in a specified way, with a maximum of 10 PCIE modules connected at the same time
+  2. Optimization module connection USB3.0 upgrade
+fix:
+
+[QFirehose_Linux_Android_V1.4.12]
+Date:   12/15/2022
+enhancement:
+  1. Added support for Qualcomm subcontracting firmware upgrade (also compatible with non subcontracting firmware)
+  2. Added EC20��3C93 FFFF��upgrade
+  3. Add BG95M3 anti misburning function
+  4. Add other device type full wipe upgrade functions except nand
+fix:
+
+[QFirehose_Linux_Android_V1.4.11]
+Date:   08/29/2022
+enhancement:
+  1. Better support emmc and ufs smart module
+  2. remove function upgrade one file by '-f filename', nobody use it
+     and make source code complex and difficult to understand.
+     if customer need this function, can by modify firehose/rawprogram_nand_p4K_b256K_factory.xml
+  3. if there is no md5.txt, just ignore, donot treat as error
+  4. New support for upgrading Qualcomm AG215SGLR module and AG215SGLBA module
+fix:
+
+[QFirehose_Linux_Android_V1.4.10]
+Date:   07/15/2022
+enhancement:
+  1. New support for laptop EM05 series and EG060K-EA module upgrade
+fix:
+
+[QFirehose_Linux_Android_V1.4.9]
+Date:   01/17/2022
+enhancement:
+  1. Solve the problem that DM upgrade is stuck because DM keeps spitting logs
+fix:
+
+[QFirehose_Linux_Android_V1.4.8]
+Date:   11/12/2021
+enhancement:
+  1. EM05CE Interface0 is a non-DM port with input and output endpoints. The actual DM port is Interface3
+  2. EM05-G Upgrade Process Power off and power on. The next upgrade takes a long time to switch to download mode. Increase the waiting time to 10 seconds
+  3. Optimized receiving and sending buf, no longer sharing one buf
+fix:
+
+[QFirehose_Linux_Android_V1.4.7]
+Date:   9/28/2021
+enhancement:
+  1. Support EM05-G, DM is at usb interface 3
+  2. Added support for smart platform SC600Y-EM and SC60-CE upgrade
+  3. Support sdx20 quallcomm default 056c/901f
+fix:
+
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.4.6]
+Date:   6/11/2021
+enhancement:
+fix:
+	1. ���Ӷ�EC20������Ŀ
+
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.4.5]
+Date:   3/4/2021
+enhancement:
+fix:
+	1. fix upgrdae fail of AG550/EM120
+	
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.4.4]
+Date:   1/27/202
+enhancement:
+fix:
+	1. increase timeout of erase cmd to 15 seconds (from 6 seconds)	
+	 
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.4.3]	 
+Date:   12/2/2020
+enhancement:
+  1. '-u usbmon.log': The time stamp in usbmon.log is same QFirehose self
+  2. USB ZLP: if kernel verison <= 4.2 and usb controoler type is XHCI.
+     there is a USB ZLP bug which cause FW upgrade fail at 0%,
+     print Warnning for this bug and tell customer how to fix.
+fix:
+	1. AG35: FW upgrade fail (A very low probability) in one customer's factory	
+	  
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.4]
+Date:   8/26/2020
+enhancement:
+  1.  release to <Technical Writer>
+fix:
+  
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.3.3]	  
+Date:   7/27/2020 
+enhancement:
+fix:
+	1. 	AG525 has more than 32 partitions, support this
+
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.3.2]	  
+Date:   7/27/2020 
+enhancement: 
+fix:
+	1. filter out ASR/HISI modems, only support MDM/SDX modems
+  2. FW upgrade fail when USB3.0 modems switch EDL mode (05c6:9008),
+     will become usb2.0 device, and the /sys/bus/usb/devices/x-x will change
+
+[Quectel_LTE&5G_QFirehose_Linux&Android_V1.3]
+Date:   4/14/2020 
+enhancement: 
+  1. X55 support upgrade from RAM DUMP state
+fix:
+
+[LTE&5G_QFirehose_Linux&Android_V1.2.4]
+Date:   3/26/2020
+enhancement:
+	1. make sure 'first erase SBL, last program SBL', even The sequence in update/firehose/rawprogram*.xml is wrong
+fix:  
+
+[LTE&5G_QFirehose_Linux&Android_V1.2.3]
+Date:   2/24/2019
+enhancement:
+  1. support 'vendor' attribute in rawprogram*.xml
+  2. support '-u usbmon_logfile', can capture usbmon log when upgrade module.
+fix:  
+
+[LTE&5G_QFirehose_Linux&Android_V1.2.2]
+Date:   12/11/2019
+enhancement:
+  1. auto detect and detach kernel driver when modem in EDL mode (05c6:9008).
+fix:  
+  1. Do not exit if get version command fails
+	   
+[LTE&5G_QFirehose_Linux&Android_V1.2]
+Date:   2019/07/31
+enhancement:
+  1. First Release Version of QFirehose Tool.

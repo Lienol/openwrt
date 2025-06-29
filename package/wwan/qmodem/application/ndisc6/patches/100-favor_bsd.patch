@@ -1,0 +1,20 @@
+--- a/src/trace-tcp.c
++++ b/src/trace-tcp.c
+@@ -24,6 +24,7 @@
+ 
+ #undef _GNU_SOURCE
+ #define _BSD_SOURCE 1
++#define __FAVOR_BSD 1
+ 
+ #include <string.h>
+ #include <inttypes.h>
+--- a/src/trace-udp.c
++++ b/src/trace-udp.c
+@@ -24,6 +24,7 @@
+ 
+ #undef _GNU_SOURCE
+ #define _BSD_SOURCE 1
++#define __FAVOR_BSD 1
+ 
+ #include <string.h>
+ #include <stdbool.h>

@@ -1,0 +1,207 @@
+#modem_sms.htm
+msgid "Sender"
+msgstr "发信人"
+
+msgid "Timestamp"
+msgstr "时间戳"
+
+msgid "Content"
+msgstr "内容"
+
+msgid "Send SMS"
+msgstr "发送短信"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "SMS"
+msgstr "短信"
+
+msgid "Message Content"
+msgstr "短信内容"
+
+msgid "Phone Number"
+msgstr "电话号码"
+
+msgid "Send SMS Failed"
+msgstr "发送短信失败"
+
+msgid "Send SMS Success"
+msgstr "发送短信成功"
+
+msgid "SMS Storage"
+msgstr "短信存储"
+
+msgid "Set Storage"
+msgstr "设置存储"
+
+msgid "ETC Storage"
+msgstr "ETC存储"
+
+msgid "Writing Storage"
+msgstr "写入存储"
+
+msgid "Reading Storage"
+msgstr "读取存储"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "(U)SIM message storage"
+msgstr "(U)SIM短信存储"
+
+msgid "Mobile equipment message storage"
+msgstr "移动设备短信存储"
+
+msgid "Using"
+msgstr "使用中"
+
+msgid "(Used/Total)"
+msgstr "(已用/总可用)"
+
+msgid "Set"
+msgstr "设置"
+
+msgid "SMS Forward"
+msgstr "短信转发"
+
+msgid "SMS Forward Configuration"
+msgstr "短信转发配置"
+
+msgid "SMS Forward Service"
+msgstr "短信转发服务"
+
+msgid "Enable SMS Forward Service"
+msgstr "启用短信转发服务"
+
+msgid "SMS Forward Instances"
+msgstr "短信转发实例"
+
+msgid "Instance Name"
+msgstr "实例名称"
+
+msgid "Listen Port"
+msgstr "监听端口"
+
+msgid "Poll Interval (seconds)"
+msgstr "轮询间隔（秒）"
+
+msgid "Minimum 15 seconds, maximum 10 minutes"
+msgstr "最少15秒，最多10分钟"
+
+msgid "Forward API Type"
+msgstr "转发API类型"
+
+msgid "API Configuration"
+msgstr "API配置"
+
+msgid "ServerChat"
+msgstr "ServerChat"
+
+msgid "Telegram Bot"
+msgstr "Telegram机器人"
+
+msgid "Generic Webhook"
+msgstr "通用Webhook"
+
+msgid "Custom Script"
+msgstr "自定义脚本"
+
+msgid "PushDeer"
+msgstr "PushDeer"
+
+msgid "Feishu Bot"
+msgstr "飞书机器人"
+
+msgid "Push Key"
+msgstr "推送密钥"
+
+msgid "Delete After Forward"
+msgstr "转发后删除"
+
+msgid "Delete SMS messages from modem after successful forwarding"
+msgstr "转发成功后从调制解调器中删除短信"
+
+msgid "Delete SMS messages from modem after successful forwarding. This helps keep the modem's SMS storage clean but messages will be permanently removed."
+msgstr "转发成功后从调制解调器中删除短信。这有助于保持调制解调器的短信存储空间整洁，但短信将被永久删除。"
+
+msgid "PushDeer Push Key from http://pushdeer.com"
+msgstr "从 http://pushdeer.com 获取的推送密钥"
+
+msgid "API Endpoint (optional)"
+msgstr "API接口地址（可选）"
+
+msgid "Custom PushDeer API endpoint, leave empty to use default"
+msgstr "自定义PushDeer API接口地址，留空使用默认地址"
+
+msgid "JSON format configuration. Examples:<br/>"
+msgstr "JSON格式配置。示例：<br/>"
+
+msgid "Recommended to enable for SMS forwarding service and better AT command performance."
+msgstr "推荐启用以获得更好的短信转发服务和AT命令性能。"
+
+msgid "SMS Forward Service Status"
+msgstr "短信转发服务状态"
+
+msgid "Current Status"
+msgstr "当前状态"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "Start Service"
+msgstr "启动服务"
+
+msgid "Stop Service"
+msgstr "停止服务"
+
+msgid "Restart Service"
+msgstr "重启服务"
+
+msgid "Enable the SMS forward daemon service. When enabled, the daemon will start automatically."
+msgstr "启用短信转发守护进程服务。启用后，守护进程将自动启动。"
+
+msgid "Log Level"
+msgstr "日志级别"
+
+msgid "Set the logging verbosity level for the SMS daemon."
+msgstr "设置短信守护进程的日志详细级别。"
+
+msgid "Configure multiple SMS forward instances. Each instance can monitor a different modem port and forward to different APIs."
+msgstr "配置多个短信转发实例。每个实例可以监控不同的调制解调器端口并转发到不同的API。"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Modem Port"
+msgstr "调制解调器端口"
+
+msgid "Poll Interval"
+msgstr "轮询间隔"
+
+msgid "API Type"
+msgstr "API类型"
+
+msgid "Polling interval in seconds (15-600)"
+msgstr "轮询间隔（秒）（15-600）"
+
+msgid "SMS Forward Advanced Configuration"
+msgstr "短信转发高级配置"
+
+msgid "Advanced SMS Forward configuration with type-specific options."
+msgstr "具有特定类型选项的高级短信转发配置。"
+
+msgid "SMS Forwarder Configuration"
+msgstr "短信转发器配置"
+
+msgid "SMS Forward Daemon allows automatic forwarding of SMS messages to various APIs."
+msgstr "短信转发器允许自动将短信转发到各种API。"

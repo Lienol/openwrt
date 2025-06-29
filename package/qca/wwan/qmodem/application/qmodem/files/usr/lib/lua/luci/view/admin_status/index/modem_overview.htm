@@ -1,0 +1,407 @@
+<style type="text/css">
+    #warning_message_box  {
+		margin: 1rem;
+		padding: 1rem;
+		height: auto;
+
+	}
+    
+    .table {
+        display: table;
+    }
+    
+    .compat-progressbar {
+	border: 1px solid var(--border-color-high,var(--progressbarColor,var(--background-color)));
+	border-radius: 3px;
+	position: relative;
+	min-width: 170px;
+	height: 8px;
+	margin: 1.4em 0 4px 0;
+	background: var(--background-color-medium,var(--progressbarColor));
+    }
+
+    .compat-progressbar > div {
+        background: var(--progressbar, var(--primary, var(--primary-color-medium)));
+        height: 100%;
+        transition: width .25s ease-in;
+        width: 0%;
+        border-radius: 2px;
+    }
+
+    .compat-progressbar::before {
+        position: absolute;
+        top: -1.4em;
+        left: 0;
+        content: attr(title);
+        white-space: pre;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+<script>
+    function hasCssClass(className) {
+        // 获取所有样式表
+        const styleSheets = document.styleSheets;
+
+        // 遍历每个样式表
+        for (let i = 0; i < styleSheets.length; i++) {
+            const rules = styleSheets[i].cssRules || styleSheets[i].rules; // 兼容不同浏览器
+
+            // 遍历每个样式规则
+            for (let j = 0; j < rules.length; j++) {
+                if (rules[j].selectorText && rules[j].selectorText.includes(className)) {
+                    return true; // 找到定义，返回 true
+                }
+            }
+        }
+
+        return false; // 没有找到定义，返回 false
+    }
+
+    const progressbar_className = hasCssClass('.cbi-progressbar') ? 'cbi-progressbar' : 'compat-progressbar';
+    class LuciTable{
+            constructor(){
+                this.rows = [];
+                this.tbody;
+                this.fieldset;
+                this.init_table();
+            }
+    
+            init_table(){
+                //create a luci fieldset (class cbi-section)
+                var fieldset = document.createElement('fieldset');
+                fieldset.className="cbi-section";
+                //set fieldset Header name
+                var legend = document.createElement('legend');
+                var title_span = document.createElement('h2');
+                title_span.className="panel-title"
+                //init table
+                var table = document.createElement('table');
+                var tbody = document.createElement('tbody');
+                table.className="table"
+                //save
+                this.fieldset = fieldset;
+                this.tbody = tbody
+                this.title_span = title_span
+                this.legend = legend
+                
+                fieldset.appendChild(legend);
+                fieldset.appendChild(title_span);
+                table.appendChild(tbody)
+                fieldset.appendChild(table)
+            }
+    
+            new_tr(data,index){
+                var type = data.type;
+                switch(type){
+                    case "plain_text":
+                        var key,value,full_name;
+                        key = data.key;
+                        value = data.value;
+                        full_name = data.full_name ? data.full_name : key;
+                        this.rows[index].left.innerHTML = full_name;
+                        this.rows[index].right.innerHTML = value;
+    
+                        if (value == null || value == "") {
+                            this.rows[index].row.style.display = "none";
+                        }
+                        else{
+                            this.rows[index].row.style.display = "";
+                        }
+                        break;
+                    case "progress_bar":
+                        var key,title,min,max,precentage,full_name;
+                        key = data.key;
+                        full_name = data.full_name ? data.full_name : key;
+                        title = `(${data.value}/${data.max_value}${data.unit})`
+                        min = data.min_value;
+                        max = data.max_value;
+                        precentage = (data.value - min) / (max - min) * 100;
+                        this.rows[index].left.innerHTML = full_name;
+                        var progress_bar = document.createElement('div')
+                        progress_bar.className = progressbar_className
+                        progress_bar.title = title;
+                        var progress_bar_bar = document.createElement('div')
+                        progress_bar_bar.setAttribute("style","width:"+precentage+"%")
+                        progress_bar.appendChild(progress_bar_bar)
+                        this.rows[index].right.innerHTML = ""
+                        this.rows[index].right.appendChild(progress_bar)
+                        break;
+                    }
+            }
+    
+    
+            set title(value){
+                this.legend.innerHTML = value;
+                this.title_span.innerHTML = value;
+            }
+    
+            set object_data(value){
+                var row_length = this.rows.length;
+                var value_length = Object.keys(value).length;
+                if (row_length < value_length) {
+                    for ( let i = row_length; i < value_length; i++) {
+                        let row = document.createElement('tr');
+                        row.className = "tr"
+                        let cell_left = document.createElement('td');
+                        cell_left.classList.add("td")
+                        cell_left.setAttribute("width","33%")
+                        let cell_right = document.createElement('td');
+                        cell_right.classList.add("td")
+                        row.appendChild(cell_left);
+                        row.appendChild(cell_right);
+                        this.tbody.appendChild(row);
+                        var row_dict = {
+                            "row":row,
+                            "left":cell_left,
+                            "right":cell_right,
+                        }
+                        this.rows.push(row_dict);
+                    }
+                }
+                else if(row_length > value_length){
+                    for (let i = value_length; i < row_length; i++) {
+                        this.tbody.removeChild(this.rows[i].row);
+                    }
+                    this.rows = this.rows.slice(0,value_length);
+                }
+                var index = 0;
+                for (var key in value) {
+                    this.rows[index].left.innerHTML = key;
+                    this.rows[index].right.innerHTML = value[key];
+                    index++;
+                }
+            }
+            
+            set array_data(value){
+                var row_length = this.rows.length;
+                var value_length = value.length;
+                if (row_length < value_length) {
+                    for ( let i = row_length; i < value_length; i++) {
+                        let row = document.createElement('tr');
+                        row.className = "tr"
+                        let cell_left = document.createElement('td');
+                        cell_left.classList.add("td")
+                        cell_left.setAttribute("width","33%")
+                        let cell_right = document.createElement('td');
+                        cell_right.classList.add("td")
+                        row.appendChild(cell_left);
+                        row.appendChild(cell_right);
+                        this.tbody.appendChild(row);
+                        var row_dict = {
+                            "row":row,
+                            "left":cell_left,
+                            "right":cell_right,
+                        }
+                        this.rows.push(row_dict);
+                    }
+                }
+                else if(row_length > value_length){
+                    for (let i = value_length; i < row_length; i++) {
+                        this.tbody.removeChild(this.rows[i].row);
+                    }
+                    this.rows = this.rows.slice(0,value_length);
+                }
+                for (let i = 0; i < value.length; i++) {
+                    this.new_tr(value[i],i);
+                }
+            }
+    
+            set data(value){
+                if (value == null) {
+                    return;
+                }
+                if (Array.isArray(value)) {
+                    this.array_data = value;
+                }
+                else{
+                    this.object_data = value;
+                }
+            }
+        }
+    
+    class ModemInfo {
+        constructor(cfg_id) {
+            this.data = null;
+            this.cfg_id = null;
+            this.modem_cfg_list = [];
+            this.tables = {};
+            this.cbi_map = document.getElementById("modem_" + cfg_id)
+            this.init_warning_message_box();
+            this.cfg_id = cfg_id;
+        }
+    
+        init_warning_message_box()
+        {
+            var warning_message_box,title,message_box;
+            warning_message_box = document.createElement('div');
+            warning_message_box.className = "alert-message alert-danger";
+            warning_message_box.id = "warning_message_box";
+            title=document.createElement('strong');
+            title.innerHTML = "<%:Warning!%>";
+            message_box=document.createElement('div');
+            message_box.id = "warning_message";
+            warning_message_box.style.display = "none";
+            warning_message_box.appendChild(title);
+            warning_message_box.appendChild(message_box);
+            this.cbi_map.appendChild(warning_message_box);
+            this.message_box = message_box;
+            this.warning_message_box = warning_message_box;
+        }
+    
+        warning_message(node_list)
+        {
+            this.warning_message_box.style.display = "";
+            this.message_box.innerHTML = ""
+            this.message_box.appendChild(node_list);
+        }
+    
+        hide_warning_message()
+        {
+            this.warning_message_box.style.display = "none";
+        }
+    
+        poll_info(){
+            if (this.cfg_id == null){
+                return;
+            }
+            XHR.poll(10,'<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "modem_ctrl")%>',{
+                "cfg": this.cfg_id,
+                "action": "info",
+                "translate": "1"
+            }, (x,data) => {
+                this.view = data;
+            });
+        }
+    
+        update(){
+            XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "modem_ctrl")%>',{
+                "cfg": this.cfg_id,
+                "action": "info",
+                "translate": "1"
+            }, (x,data) => {
+                this.view = data;
+            });
+        }
+    
+        update_modem_cfg_list(){
+            XHR.poll(5,'<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_modem_cfg")%>',{},(x,data)=>{
+                var new_cfg_list = [];
+                var cfgs = data.cfgs;
+                for (let i = 0; i < cfgs.length; i++) {
+                    var cfg = cfgs[i];
+                    var name = cfg.name;
+                    var value = cfg.cfg;
+                    new_cfg_list.push({"value":value,"name":name});
+                }
+                if (new_cfg_list != this.modem_cfg_list) {
+                    this.cfg_options = new_cfg_list;
+                }
+            });
+        }
+    
+        set cfg_options(value){
+            var longger = this.modem_cfg_list.length > value.length ? this.modem_cfg_list : value;
+            if (longger.length == 0) {
+                return;
+            }
+            for (let i = 0; i < longger.length; i++) {
+                var option = this.selector.options[i];
+                if (i < value.length) {
+                    if (i >= this.selector.options.length) {
+                        option = document.createElement('option');
+                        this.selector.appendChild(option);
+                    }
+                    option.value = value[i].value;
+                    option.innerHTML = value[i].name;
+                    
+                }
+                else{
+                    this.selector.removeChild(option);
+                }
+            }
+            this.cfg_id = this.selector.value;
+            this.modem_cfg_list = value;
+            this.update();
+        }
+    
+        set view(data){
+            this.data = data;
+            if (data == null) {
+                return;
+            }
+            var keys = []
+            
+            var tables_map = {}
+    
+            var warning_message = [];
+            for (let entry of data){
+                let class_name,class_no_translate,full_name,value,type;
+                class_no_translate = entry.class_origin;
+                class_name = this.cfg_id + " <%:Base Information%>";
+                if (entry.type == "warning_message") {
+                    continue;
+                }
+                if (class_no_translate != "Base Information" && entry.type != "progress_bar"){
+                    continue
+                }
+                if (tables_map[class_name] == null) {
+                    tables_map[class_name] = []
+                }
+                tables_map[class_name].push(entry);
+            }
+            for (let class_name in tables_map) {
+                if (this.tables[class_name] == null) {
+                    this.tables[class_name] = new LuciTable();
+                    this.cbi_map.appendChild(this.tables[class_name].fieldset);
+                }
+                this.tables[class_name].title = class_name;
+                this.tables[class_name].data = tables_map[class_name];
+            }
+            for (let table in this.tables) {
+                if (tables_map[table] == null) {
+                    this.cbi_map.removeChild(this.tables[table].fieldset);
+                    delete this.tables[table];
+                }
+            }
+    
+            if (warning_message.length > 0) {
+                for (let i = 0; i < warning_message.length; i++) {
+                    let entry = warning_message[i];
+                    let full_name = entry.full_name ? entry.full_name : entry.key;
+    
+                    let node = document.createElement('p');
+                    node.innerHTML = full_name + entry.value;
+                    this.warning_message(node);
+                }
+            }
+            else{
+                this.hide_warning_message();
+            }
+        }
+    }
+
+    </script>
+
+
+<% 
+local uci = luci.model.uci.cursor()
+modem_configs = {}
+local modem = uci:foreach("qmodem", "modem-device",function(s)
+    table.insert(modem_configs,s[".name"])
+    end)
+for _,v in ipairs(modem_configs) do
+%>
+<div id="modem_<%=v%>">
+    
+</div>
+<script>
+    const modem_info_<%=v%> = new ModemInfo("<%=v%>");
+    modem_info_<%=v%>.poll_info();
+    modem_info_<%=v%>.update();
+</script>
+
+<%
+end
+%>

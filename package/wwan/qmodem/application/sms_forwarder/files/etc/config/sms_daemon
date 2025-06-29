@@ -1,0 +1,35 @@
+config sms_forward 'sms_forward'
+	option enable '0'
+	option log_level 'info'
+
+config sms_forward_instance
+	option enable '0'
+	option listen_port '/dev/ttyUSB2'
+	option poll_interval '30'
+	option api_type 'tgbot'
+	option tg_bot_token ''
+	option tg_chat_id ''
+	option api_config '{"bot_token":"","chat_id":""}'
+	option delete_after_forward '0'
+
+config sms_forward_instance
+	option enable '0'
+	option listen_port '/dev/ttyUSB3'
+	option poll_interval '60'
+	option api_type 'webhook'
+	option webhook_url 'https://example.com/webhook'
+	option webhook_headers ''
+	option api_config '{"webhook_url":"https://example.com/webhook"}'
+	option delete_after_forward '0'
+
+config sms_forward_instance
+	option enable '0'
+	option listen_port '/dev/ttyUSB4'
+	option poll_interval '60'
+	option api_type 'serverchan'
+	option serverchan_token ''
+	option serverchan_channel ''
+	option serverchan_noip '0'
+	option serverchan_openid ''
+	option api_config '{"token":"","channel":"","noip":"","openid":""}'
+	option delete_after_forward '0'

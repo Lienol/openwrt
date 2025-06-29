@@ -1,0 +1,11 @@
+config ubus-at-daemon 'main'
+    option enabled '1'
+    option config_file '/etc/ubus-at-daemon.json'
+
+config port
+    option at_port '/dev/ttyUSB2'
+    option baudrate '115200'
+    option databits '8'
+    option parity '0'
+    option stopbits '1'
+    option timeout '5'

@@ -1,0 +1,20 @@
+. /lib/functions.sh
+
+[ "${ACTION}" = "ifup" ] || exit
+echo "${DEVICE}" | grep -q -e "usb" -e "wwan" -e "cpewan" || exit
+
+logger -t hotplug "QModem WWAN LED: ${DEVICE} / Action: ${ACTION} set led."
+
+case $(board_name) in
+  HC,HC-G80*)
+    uci delete system.wwan
+    uci set system.wwan=led
+    uci set system.wwan.name='wwan'
+    uci set system.wwan.sysfs='wwan'
+    uci set system.wwan.trigger='netdev'
+    uci set system.wwan.dev="${DEVICE}"
+    uci set system.wwan.mode='link tx rx'
+    uci commit system
+    /etc/init.d/led restart
+  ;;
+esac

@@ -1,0 +1,45 @@
+# Cross-compile setup for ImmortalWrt
+STAGING_DIR ?= $(HOME)/qwrt_works/immortalwrt/staging_dir
+TARGET_DIR ?= $(STAGING_DIR)/target-aarch64_generic_musl
+TOOLCHAIN_DIR ?= $(STAGING_DIR)/toolchain-aarch64_generic_gcc-13.3.0_musl
+
+# Cross-compiler and tools
+CROSS_COMPILE ?= aarch64-openwrt-linux-musl-
+CC = $(TOOLCHAIN_DIR)/bin/$(CROSS_COMPILE)gcc
+AR = $(TOOLCHAIN_DIR)/bin/$(CROSS_COMPILE)ar
+STRIP = $(TOOLCHAIN_DIR)/bin/$(CROSS_COMPILE)strip
+
+# Include and library paths
+CFLAGS = -Wall -Wextra -std=c99 -D_GNU_SOURCE
+CFLAGS += -I$(TARGET_DIR)/usr/include
+CFLAGS += -I$(TARGET_DIR)/usr/include/libubox
+CFLAGS += -I$(TARGET_DIR)/usr/include/json-c
+
+CC ?= gcc
+CFLAGS += -Wall -std=c99
+LDFLAGS += -ljson-c
+
+TARGET = sms_forwarder
+SOURCES = main.c
+LDFLAGS = -L$(TARGET_DIR)/usr/lib
+LDFLAGS += -L$(TARGET_DIR)/lib
+LDFLAGS += -ljson-c
+
+all: $(TARGET)
+
+$(TARGET): $(SOURCES)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+debug_test: debug_test.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(TARGET) debug_test
+
+.PHONY: all clean
+
+install:
+	scp /home/fjr/hobbies/modem_feeds/application/sms_forwarder/files/etc/init.d/sms_forwarder root@192.168.1.1:/etc/init.d/sms_forwarder
+	ssh root@192.168.1.1 "/etc/init.d/sms_forwarder stop"
+	scp sms_forwarder root@192.168.1.1:/usr/bin/sms_forwarder
+	ssh root@192.168.1.1 "/etc/init.d/sms_forwarder start"
