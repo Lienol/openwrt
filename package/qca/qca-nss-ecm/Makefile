@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm.git
 PKG_SOURCE_PROTO:=git
@@ -42,9 +42,7 @@ define KernelPackage/qca-nss-ecm
 		   +PACKAGE_kmod-pppoe:kmod-pppol2tp
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/ecm.ko
-  KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
-		   CONFIG_NF_CONNTRACK_EVENTS=y \
-		   CONFIG_NF_CONNTRACK_DSCPREMARK_EXT=y
+  KCONFIG:=CONFIG_NF_CONNTRACK_DSCPREMARK_EXT=y
 endef
 
 define KernelPackage/qca-nss-ecm/Description

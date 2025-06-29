@@ -16,6 +16,28 @@ PKG_BUILD_PARALLEL:=1
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
+define KernelPackage/qca-nss-crypto
+	SECTION:=kernel
+	CATEGORY:=Kernel modules
+	SUBMENU:=Cryptographic API modules
+	DEPENDS:=@(TARGET_qualcommax||TARGET_ipq806x) \
+		+kmod-qca-nss-drv \
+		+@NSS_DRV_CRYPTO_ENABLE \
+		+TARGET_qualcommax_ipq807x:nss-eip-firmware \
+		+TARGET_qualcommax_ipq60xx:nss-eip-firmware
+	TITLE:=Kernel driver for NSS crypto driver
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-crypto),)
+	FILES:=$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/src/qca-nss-crypto.ko \
+	$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/tool/qca-nss-crypto-tool.ko
+	AUTOLOAD:=$(call AutoProbe,qca-nss-crypto)
+endif
+endef
+
+define KernelPackage/qca-nss-crypto/Description
+This package contains a NSS crypto driver for QCA chipset
+endef
+
+ifneq ($(CONFIG_PACKAGE_kmod-qca-nss-crypto),)
 # v1.0 is for Akronite
 # v2.0 is for Hawkeye/Cypress/Maple
 ifneq (, $(findstring $(CONFIG_TARGET_SUBTARGET), "ipq807x" "ipq60xx" "ipq50xx"))
@@ -23,30 +45,6 @@ NSS_CRYPTO_DIR:=v2.0
 else
 NSS_CRYPTO_DIR:=v1.0
 endif
-
-define KernelPackage/qca-nss-crypto
-	SECTION:=kernel
-	CATEGORY:=Kernel modules
-	SUBMENU:=Cryptographic API modules
-	DEPENDS:=@(TARGET_qualcommax||TARGET_ipq806x) \
-		  +kmod-qca-nss-drv \
-		  +@NSS_DRV_CRYPTO_ENABLE \
-		  +TARGET_qualcommax_ipq807x:nss-eip-firmware \
-		  +TARGET_qualcommax_ipq60xx:nss-eip-firmware
-	TITLE:=Kernel driver for NSS crypto driver
-	FILES:=$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/src/qca-nss-crypto.ko \
-	$(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/tool/qca-nss-crypto-tool.ko
-	AUTOLOAD:=$(call AutoProbe,qca-nss-crypto)
-endef
-
-define KernelPackage/qca-nss-crypto/Description
-This package contains a NSS crypto driver for QCA chipset
-endef
-
-define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include/qca-nss-crypto
-	$(CP) $(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/include/* $(1)/usr/include/qca-nss-crypto
-endef
 
 EXTRA_CFLAGS+= \
 	-DCONFIG_NSS_DEBUG_LEVEL=4 \
@@ -59,18 +57,34 @@ ifeq ($(CONFIG_TARGET_BOARD), "qualcommax")
 	SOC:=$(CONFIG_TARGET_SUBTARGET)
 endif
 
+MAKE_OPTS+= \
+	NSS_CRYPTO_DIR=$(NSS_CRYPTO_DIR) \
+	SoC=$(SOC) \
+
+define Build/InstallDev
+	$(INSTALL_DIR) $(1)/usr/include/qca-nss-crypto
+	$(CP) $(PKG_BUILD_DIR)/$(NSS_CRYPTO_DIR)/include/* $(1)/usr/include/qca-nss-crypto
+endef
+
 define Build/Compile
-	+$(MAKE) -C "$(LINUX_DIR)" \
-		CC="$(TARGET_CC)" \
-		CROSS_COMPILE="$(TARGET_CROSS)" \
-		ARCH="$(LINUX_KARCH)" \
+	+$(KERNEL_MAKE) \
 		M="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-		NSS_CRYPTO_DIR=$(NSS_CRYPTO_DIR) \
-		SoC=$(SOC) \
-		$(KERNEL_MAKE_FLAGS) \
+		$(strip $(MAKE_OPTS)) \
 		$(PKG_JOBS) \
 		modules
 endef
+
+else
+
+define Build/Compile
+	:
+endef
+
+define Build/Install
+	:
+endef
+
+endif
 
 $(eval $(call KernelPackage,qca-nss-crypto))

@@ -1,6 +1,6 @@
 --- a/nss_core.c
 +++ b/nss_core.c
-@@ -2233,12 +2233,16 @@ static void nss_core_handle_cause_nonque
+@@ -2215,12 +2215,16 @@ static void nss_core_handle_cause_nonque
  	 * of processor will prevent any excessive penalties.
  	 */
  	if (unlikely(nss_ctx->state == NSS_CORE_STATE_UNINITIALIZED)) {

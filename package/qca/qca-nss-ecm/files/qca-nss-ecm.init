@@ -29,9 +29,18 @@ sysctl_update() {
   value=${2//\//\\/}
   file=${3:-/etc/sysctl.d/qca-nss-ecm.conf}
 
-  sed -i -e '/^#\?\(\s*'"${name}"'\s*=\s*\).*/{s//\1'"${value}"'/;:a;n;ba;q}' \
-    -e '$a'"${name}"'='"${value}" "${file}"
-  sysctl -w ${name}=${value}
+  if [ -r "/proc/sys/${name//./\/}" ]; then
+    sed -i -e '/^#\?\(\s*'"${name}"'\s*=\s*\).*/{s//\1'"${value}"'/;:a;n;ba;q}' \
+      -e '$a'"${name}"'='"${value}" "${file}"
+    sysctl -w ${name}=${value}
+  else
+    # If the sysctl value is not available but it is found in the file, disable it to avoid
+    # sysctl throwing warnings
+    if grep -qE '^#?\s*'"${name}\s*?=" "${file}"; then
+      sed -i -e '/^#\?\(\s*'"${name}"'\s*=\s*\).*/{s//\#\1'"${value}"'/;:a;n;ba;q}' \
+        -e '$a'"#${name}"'='"${value}" "${file}"
+    fi
+  fi
 }
 
 get_front_end_mode() {
