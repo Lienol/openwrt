@@ -10,9 +10,8 @@ PKG_VERSION:=1.4.4
 PKG_LICENSE:=GPLv3
 PKG_LINCESE_FILES:=LICENSE
 PKF_MAINTAINER:=Siriling <siriling@qq.com>
-LUCI_DEPENDS:=+luci-compat \
-		+kmod-usb2 +kmod-usb3 \
-		+kmod-usb-net-sierrawireless +kmod-usb-ohci \
+LUCI_DEPENDS:=+bc +jq \
+		+kmod-usb-net-sierrawireless \
 		+kmod-usb-serial-option +kmod-usb-serial +kmod-usb-serial-qualcomm \
 		+kmod-usb-net +kmod-usb-acm \
 		+kmod-usb-wdm +kmod-usb-net-qmi-wwan \
@@ -20,12 +19,11 @@ LUCI_DEPENDS:=+luci-compat \
 		+kmod-usb-net-cdc-mbim \
 		+kmod-usb-net-rndis \
 		+kmod-usb-net-cdc-ncm +kmod-usb-net-huawei-cdc-ncm \
-		+usbutils \
-		+modemmanager \
-		+luci-proto-modemmanager \
-		+sms-tool \
-		+bc +jq \
-		+luci-app-sms-tool +sendat +fibocom-dial +quectel-cm +luci-proto-qmi
+		+usbutils +sendat \
+		+modemmanager +luci-proto-modemmanager +luci-proto-qmi \
+		+fibocom-dial +kmod-usb-net-qmi-wwan-fibocom \
+		+quectel-cm \
+		+kmod-usb-net-qmi-wwan-simcom
 
 define Package/luci-app-modem/conffiles
 /etc/config/modem
