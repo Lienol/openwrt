@@ -5,5 +5,4 @@ src-git telephony https://github.com/openwrt/telephony.git;openwrt-24.10
 src-git lienol https://github.com/Lienol/openwrt-package.git;main
 src-git other https://github.com/Lienol/openwrt-package.git;other
 src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main
-src-git Modem https://github.com/Siriling/5G-Modem-Support.git;main
 src-git OpenClash https://github.com/vernesong/OpenClash.git;master
