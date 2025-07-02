@@ -15,8 +15,7 @@ define Package/quectel-cm
   DEPENDS:= \
     +kmod-usb-net-cdc-mbim \
     +kmod-usb-net-qmi-wwan \
-	+!(TARGET_qualcommax_ipq807x||TARGET_qualcommax_ipq50xx):kmod-usb-net-qmi-wwan-quectel \
-	+(TARGET_qualcommax_ipq807x||TARGET_qualcommax_ipq50xx):kmod-usb-net-qmi-wwan-quectel-nss \
+	+kmod-usb-net-qmi-wwan-quectel \
     +kmod-usb-serial-option
 endef
 
