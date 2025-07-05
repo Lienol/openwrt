@@ -1,0 +1,16 @@
+<div class="cbi-section-create cbi-tblsection-create">
+        <% if self.invalid_cts then -%>
+            <div class="cbi-section-error"><%:Invalid%></div>
+        <%- end %>
+
+        <div>
+            <select type="text" class="cbi-section-create-name" id="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" data-type="uciname" data-optional="true" onchange="cbi_validate_named_section_add(this)"/>
+                <option value=""><%:Please Select%></option>
+                <% for uci_name, display_name in pairs(self.avalibale_name) do -%>
+                    <option value="<%=uci_name%>"><%=display_name%></option>
+                <% end -%>
+            </select>
+            
+        </div>
+        <input class="btn cbi-button cbi-button-add" type="submit" onclick="this.form.cbi_state='add-section'; return true" value="<%:Add%>" title="<%:Add%>" disabled="" />
+</div>

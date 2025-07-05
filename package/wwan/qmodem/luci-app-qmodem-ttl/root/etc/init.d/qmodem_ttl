@@ -1,0 +1,48 @@
+#!/bin/sh /etc/rc.common
+START=95
+STOP=13
+USE_PROCD=1
+
+. /usr/share/libubox/jshn.sh
+. /lib/functions.sh
+start_service()
+{
+    config_load 'qmodem_ttl'
+    config_get enable 'main' 'enable' '0'
+    if [ "$enable" == 0 ]; then
+        return
+    fi
+    set_if_ttl
+}
+
+set_if_ttl()
+{
+    config_get ttl 'main' 'ttl'
+    IPT="iptables"
+    IPT6="ip6tables"
+    logger -t modem_ttl "Ovrewirte TTL from br-lan to $ttl"
+    comment="modem_ttl"
+    touch /etc/firewall.d/qmodem_ttl
+    echo "$IPT -t mangle -A POSTROUTING -j TTL --ttl-set $ttl -m comment --comment $comment" >> /etc/firewall.d/qmodem_ttl
+    echo "$IPT6 -t mangle -A POSTROUTING -j HL --hl-set $ttl -m comment --comment $comment" >> /etc/firewall.d/qmodem_ttl
+    /etc/firewall.d/qmodem_ttl
+    /etc/init.d/firewall restart
+    [ -d /sys/kernel/debug/ecm/ ] && /etc/init.d/qca-nss-ecm stop # disable nss offload
+}
+
+stop_service(){
+    rm -f /etc/firewall.d/qmodem_ttl
+    [ -f /etc/init.d/qca-nss-ecm ] && /etc/init.d/qca-nss-ecm start # disable nss offload
+    /etc/init.d/firewall restart
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "qmodem_ttl"
+}
+
+reload_service()
+{
+    stop
+    start
+}

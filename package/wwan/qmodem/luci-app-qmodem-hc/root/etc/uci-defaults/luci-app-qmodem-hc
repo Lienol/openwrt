@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright (C) 2024 Tom <fjrcn@outlook.com>
+
+/etc/init.d/modeminit enable
+/etc/init.d/modem enable
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@qmodem[-1]
+	add ucitrack qmodem
+	set ucitrack.@qmodem[-1].init=qmodem_hc_sim
+
+	delete ucitrack.qmodem_hc_sim
+	add ucitrack qmodem_hc_sim
+	set ucitrack.@qmodem_hc_sim[-1].init=qmodem_hc_sim
+	commit ucitrack
+EOF
+
+rm -rf /tmp/luci-*cache
+exit 0
