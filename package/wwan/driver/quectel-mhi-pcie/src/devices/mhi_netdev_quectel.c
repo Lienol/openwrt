@@ -63,8 +63,8 @@ struct rmnet_nss_cb {
 	int (*nss_tx)(struct sk_buff *skb);
 };
 static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
-#if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018) || defined(CONFIG_PINCTRL_IPQ8074)
-//#ifdef CONFIG_RMNET_DATA //spf12.x have no macro defined, just for spf11.x
+#if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018)
+#ifdef CONFIG_RMNET_DATA
 #define CONFIG_QCA_NSS_DRV
 #define CONFIG_USE_RMNET_DATA_FOR_SKIP_MEMCPY
 /* define at qca/src/linux-4.4/drivers/net/ethernet/qualcomm/rmnet/rmnet_config.c */ //for spf11.x
@@ -72,9 +72,9 @@ static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
 /* set at qsdk/qca/src/data-kernel/drivers/rmnet-nss/rmnet_nss.c */
 /* need add DEPENDS:= kmod-rmnet-core in feeds/makefile */
 extern struct rmnet_nss_cb *rmnet_nss_callbacks __rcu __read_mostly;
-//#endif
 #endif
-
+#endif
+	
 
 int mhi_netdev_use_xfer_type_dma(unsigned chan)
 {
@@ -712,13 +712,20 @@ static struct sk_buff * add_mbim_hdr(struct sk_buff *skb, u8 mux_id) {
 static struct sk_buff * add_qhdr(struct sk_buff *skb, u8 mux_id) {
 	struct qmap_hdr *qhdr;
 	int pad = 0;
+	struct sk_buff *new_skb = NULL;
 
 	pad = skb->len%4;
 	if (pad) {
 		pad = 4 - pad;
 		if (skb_tailroom(skb) < pad) {
-			printk("skb_tailroom small!\n");
-			pad = 0;
+			new_skb = skb_copy_expand(skb, skb_headroom(skb) + sizeof(struct qmap_hdr),
+						  pad, GFP_ATOMIC);
+			if (!new_skb) {
+				printk("Failed to expand skb for padding\n");
+				return NULL;
+			}
+			dev_kfree_skb_any(skb);
+			skb = new_skb;
 		}
 		if (pad)
 			__skb_put(skb, pad);
@@ -736,14 +743,23 @@ static struct sk_buff * add_qhdr_v5(struct sk_buff *skb, u8 mux_id) {
 	struct rmnet_map_header *map_header;
 	struct rmnet_map_v5_csum_header *ul_header;
 	u32 padding, map_datalen;
+	struct sk_buff *new_skb = NULL;
 
 	map_datalen = skb->len;
 	padding = map_datalen%4;
 	if (padding) {
 		padding = 4 - padding;
 		if (skb_tailroom(skb) < padding) {
-			printk("skb_tailroom small!\n");
-			padding = 0;
+			new_skb = skb_copy_expand(skb, skb_headroom(skb) + 
+						 sizeof(struct rmnet_map_header) + 
+						 sizeof(struct rmnet_map_v5_csum_header),
+						 padding, GFP_ATOMIC);
+			if (!new_skb) {
+				printk("Failed to expand skb for padding\n");
+				return NULL;
+			}
+			dev_kfree_skb_any(skb);
+			skb = new_skb;
 		}
 		if (padding)
 			__skb_put(skb, padding);
@@ -1708,7 +1724,7 @@ static struct net_device * rmnet_vnd_register_device(struct mhi_netdev *pQmapDev
 
 out_free_newdev:
 	free_netdev(qmap_net);
-	return qmap_net;
+	return NULL;
 }
 
 static void  rmnet_vnd_unregister_device(struct net_device *qmap_net) {
@@ -2589,9 +2605,14 @@ static const struct net_device_ops mhi_netdev_ops_ip = {
 static void mhi_netdev_get_drvinfo (struct net_device *ndev, struct ethtool_drvinfo *info)
 {
 	//struct mhi_netdev *mhi_netdev = ndev_to_mhi(ndev);
-
-	strlcpy (info->driver, "pcie_mhi", sizeof info->driver);
-	strlcpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
+	/* strlcpy() is deprecated in kernel 6.8.0+, using strscpy instead */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,8,0))
+	strlcpy(info->driver, "pcie_mhi", sizeof(info->driver));
+	strlcpy(info->version, PCIE_MHI_DRIVER_VERSION, sizeof(info->version));
+#else
+	strscpy(info->driver, "pcie_mhi", sizeof(info->driver));
+	strscpy(info->version, PCIE_MHI_DRIVER_VERSION, sizeof(info->version));
+#endif
 }
 
 static const struct ethtool_ops mhi_netdev_ethtool_ops = {
@@ -3281,6 +3302,7 @@ static int mhi_netdev_probe(struct mhi_device *mhi_dev,
 		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x011a)
 		|| (mhi_dev->vendor == 0x1eac && mhi_dev->dev_id == 0x100b)
 		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0309)
+		|| (mhi_dev->vendor == 0x105b && mhi_dev->dev_id == 0xe0f5)
 	) {
 		mhi_netdev->qmap_version = 9;
 	}
