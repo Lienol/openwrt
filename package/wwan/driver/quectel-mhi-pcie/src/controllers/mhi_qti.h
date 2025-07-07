@@ -12,6 +12,7 @@
 #define MHI_SMMU_FORCE_COHERENT BIT(4)
 
 #define MHI_PCIE_VENDOR_ID (0x17cb)
+#define PCI_VENDOR_ID_FOXCONN (0x105b)
 #define MHI_PCIE_DEBUG_ID (0xffff)
 
 /* runtime suspend timer */

@@ -7,20 +7,33 @@ PKG_RELEASE:=1
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
-define KernelPackage/mhi-pcie
-  SUBMENU:=Network Devices
-  TITLE:=Kernel PCIe driver for MHI device
-  DEPENDS:=@PCI_SUPPORT
+define KernelPackage/pcie_mhi
+  SUBMENU:=WWAN Support
+  TITLE:=Kernel pcie driver for MHI device
   FILES:=$(PKG_BUILD_DIR)/pcie_mhi.ko
   AUTOLOAD:=$(call AutoLoad,90,pcie_mhi)
 endef
 
-define KernelPackage/mhi-pcie/description
+define KernelPackage/pcie_mhi/description
   Kernel module for register a custom pciemhi platform device.
 endef
 
-define Build/Compile
-	+$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" modules
+MAKE_OPTS:= \
+	ARCH="$(LINUX_KARCH)" \
+	CROSS_COMPILE="$(TARGET_CROSS)" \
+	CXXFLAGS="$(TARGET_CXXFLAGS)" \
+	M="$(PKG_BUILD_DIR)" \
+	$(EXTRA_KCONFIG)
+
+define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
 endef
 
-$(eval $(call KernelPackage,mhi-pcie))
+define Build/Compile
+	$(MAKE) -C "$(LINUX_DIR)" \
+		$(MAKE_OPTS) \
+		modules
+endef
+
+$(eval $(call KernelPackage,pcie_mhi))

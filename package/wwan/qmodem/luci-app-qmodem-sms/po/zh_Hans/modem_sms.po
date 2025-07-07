@@ -1,0 +1,66 @@
+#modem_sms.htm
+msgid "Sender"
+msgstr "发信人"
+
+msgid "Timestamp"
+msgstr "时间戳"
+
+msgid "Content"
+msgstr "内容"
+
+msgid "Send SMS"
+msgstr "发送短信"
+
+msgid "Send"
+msgstr "发送"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "SMS"
+msgstr "短信"
+
+msgid "Message Content"
+msgstr "短信内容"
+
+msgid "Phone Number"
+msgstr "电话号码"
+
+msgid "Send SMS Failed"
+msgstr "发送短信失败"
+
+msgid "Send SMS Success"
+msgstr "发送短信成功"
+
+msgid "SMS Storage"
+msgstr "短信存储"
+
+msgid "Set Storage"
+msgstr "设置存储"
+
+msgid "ETC Storage"
+msgstr "ETC存储"
+
+msgid "Writing Storage"
+msgstr "写入存储"
+
+msgid "Reading Storage"
+msgstr "读取存储"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "(U)SIM message storage"
+msgstr "(U)SIM短信存储"
+
+msgid "Mobile equipment message storage"
+msgstr "移动设备短信存储"
+
+msgid "Using"
+msgstr "使用中"
+
+msgid "(Used/Total)"
+msgstr "(已用/总可用)"
+
+msgid "Set"
+msgstr "设置"

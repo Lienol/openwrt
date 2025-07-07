@@ -1,0 +1,19 @@
+#!/bin/sh
+# Copyright (C) 2024 Tom <fjrcn@outlook.com>
+manual=$(uci -q get qmodem.main.block_auto_probe)
+[ "${manual}" -eq 1 ] && exit
+logger -t modem_hotplug "usb_event slot: ${DEVPATH} action: ${ACTION}"
+[ -z "${DEVNUM}" ] && exit
+
+
+slot=$(basename "${DEVPATH}")
+logger -t modem_hotplug "usb_event run slot: ${slot} action: ${ACTION}"
+case "${ACTION}" in
+    bind|\
+    add)
+        /usr/share/qmodem/modem_scan.sh add "${slot}" usb
+        ;;
+    remove)
+        /usr/share/qmodem/modem_scan.sh disable "${slot}" usb
+        ;;
+esac
