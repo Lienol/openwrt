@@ -644,7 +644,9 @@ static int mon_text_release(struct inode *inode, struct file *file)
 static const struct file_operations mon_fops_text_u = {
 	.owner =	THIS_MODULE,
 	.open =		mon_text_open,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0))
 	.llseek =	no_llseek,
+#endif
 	.read =		mon_text_read_u,
 	.release =	mon_text_release,
 };
@@ -2369,7 +2371,11 @@ void mhi_unprepare_after_power_down(struct mhi_controller *mhi_cntrl)
 }
 
 /* match dev to drv */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
+static int mhi_match(struct device *dev, const struct device_driver *drv)
+#else
 static int mhi_match(struct device *dev, struct device_driver *drv)
+#endif
 {
 	struct mhi_device *mhi_dev = to_mhi_device(dev);
 	struct mhi_driver *mhi_drv = to_mhi_driver(drv);

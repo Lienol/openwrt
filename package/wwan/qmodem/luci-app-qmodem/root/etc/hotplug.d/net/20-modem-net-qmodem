@@ -1,0 +1,25 @@
+#!/bin/sh
+# Copyright (C) 2024 Tom <fjrcn@outlook.com>
+manual=$(uci -q get qmodem.main.block_auto_probe)
+[ "${manual}" -eq 1 ] && exit
+logger -t modem_hotplug "net slot: ${DEVPATH} action: ${ACTION}"
+#网络设备名称不存在，退出
+[ -z "${INTERFACE}" ] && exit
+#网络设备路径不存在，退出
+[ -z "${DEVPATH}" ] && exit
+
+slot_path=$(readlink -f "/sys/${DEVPATH}/device")
+[ -z "${slot_path}" ] && exit
+slot_dir=$(dirname "${slot_path}")
+slot=$(basename "${slot_dir}")
+#设备路径不存在，退出
+
+[ -d "/sys/bus/usb/devices/${slot}" ] && slot_type="usb"
+[ -d "/sys/bus/pci/devices/${slot}" ] && slot_type="pcie"
+[ -z "${slot_type}" ] && exit
+logger -t modem_hotplug "net slot: ${slot} action: ${ACTION} slot_type: ${slot_type}"
+case "${ACTION}" in
+    add)
+        /usr/share/qmodem/modem_scan.sh add "${slot}" "${slot_type}"
+        ;;
+esac

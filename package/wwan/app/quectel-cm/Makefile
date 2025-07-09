@@ -22,6 +22,7 @@ endef
 define Package/quectel-cm/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/quectel-CM $(1)/usr/bin/quectel-cm
+	$(LN) quectel-cm $(1)/usr/bin/quectel-CM
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/quectel-{mbim,qmi}-proxy $(1)/usr/bin/
 
 	$(INSTALL_DIR) $(1)/lib/netifd/proto

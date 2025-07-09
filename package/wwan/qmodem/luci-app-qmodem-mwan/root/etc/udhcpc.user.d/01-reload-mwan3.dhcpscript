@@ -1,0 +1,3 @@
+[ "$1" == "bound" ] || exit 0
+iptables -t mangle -S mwan3_hook && exit 0
+[ "$(uci -q get mwan3.$INTERFACE)" == "interface" ] && mwan3 restart
