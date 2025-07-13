@@ -2,7 +2,7 @@
 . /usr/share/libubox/jshn.sh
 
 # 默认WIFI设置
-BASE_SSID='Openwrt'
+BASE_SSID='OpenWrt'
 BASE_WORD='12345678'
 BASE_POWER='auto'
 
@@ -40,7 +40,7 @@ configure_wifi() {
 	uci set wireless.radio${radio}.txpower=${BASE_POWER}
 	uci set wireless.radio${radio}.country='CN'
 	uci set wireless.radio${radio}.disabled='0'
-	uci set wireless.radio${radio}.mu_beamformer='1'
+#	uci set wireless.radio${radio}.mu_beamformer='1'
 
 	uci set wireless.default_radio${radio}.ssid=${ssid}
 	uci set wireless.default_radio${radio}.key=${BASE_WORD}
@@ -97,10 +97,10 @@ set_wifi_def_cfg() {
 		channel=149
 		[ "$htmode" = 'HE160' ] || [ "$htmode" = 'VHT160' ] && channel=44
 		if [ -z "$FIRST_5G" ]; then
-			[ "$RADIO_NUM" -gt 2 ] && ssid="${BASE_SSID}-5G_1" || ssid="${BASE_SSID}-5G"
+			[ "$RADIO_NUM" -gt 2 ] && ssid="${BASE_SSID}_5G-1" || ssid="${BASE_SSID}_5G"
 			FIRST_5G=1
 		else
-			ssid="${BASE_SSID}-5G_2"
+			ssid="${BASE_SSID}_5G-2"
 		fi
 		;;
 	*)
