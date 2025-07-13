@@ -1,0 +1,28 @@
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,24 @@
++# Define the build directories based on flags
++DIRS-y :=
++DIRS-$(BUILD_LIBNSS) += lib
++DIRS-$(BUILD_NSSINFO) += nssinfo
++DIRS-$(BUILD_NETFN) += netfn
++DIRS-$(BUILD_LIBPPE) += ppe/ppenl_lib
++DIRS-$(BUILD_PPECFG) += ppe/ppecfg
++
++# Main targets
++all: $(DIRS-y)
++	@echo "Build complete"
++
++# Pattern rule to build each directory
++$(DIRS-y):
++	$(MAKE) -C $@
++
++clean:
++	@for dir in $(DIRS-y); do \
++		if [ -d $$dir ]; then \
++			$(MAKE) -C $$dir clean; \
++		fi \
++	done
++
++.PHONY: all clean $(DIRS-y)
+\ No newline at end of file

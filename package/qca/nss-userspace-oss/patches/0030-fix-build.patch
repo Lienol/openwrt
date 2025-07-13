@@ -1,0 +1,281 @@
+diff --git a/lib/nss_nlmcast_api.c b/lib/nss_nlmcast_api.c
+index 7646440..11ec59b 100644
+--- a/lib/nss_nlmcast_api.c
++++ b/lib/nss_nlmcast_api.c
+@@ -94,7 +94,7 @@ int nss_nlmcast_sock_join_grp(struct nss_nlmcast_ctx *ctx, char *grp_name)
+ 
+ 	error = nss_nlsock_join_grp(&ctx->sock, grp_name);
+ 	if (error) {
+-		nss_nlsock_log_error("Unable to subscribe for mcast group, error(%d)\n", error);
++		/* nss_nlsock_log_error("Unable to subscribe for mcast group, error(%d)\n", error); */
+ 		return error;
+ 	}
+ 
+diff --git a/lib/nss_nlsock.c b/lib/nss_nlsock.c
+index 5b231e5..bde0670 100644
+--- a/lib/nss_nlsock.c
++++ b/lib/nss_nlsock.c
+@@ -221,15 +221,23 @@ int nss_nlsock_leave_grp(struct nss_nlsock_ctx *sock, char *grp_name)
+ {
+ 	int error;
+ 
+-	assert(sock->ref_cnt > 0);
++	/* Skip if socket is invalid */
++	if (!sock || !sock->nl_sk) {
++		return 0;
++	}
++
++	/* Safety check: Don't assert on ref_cnt */
++	if (sock->ref_cnt <= 0) {
++		return 0;
++	}
+ 
+ 	/*
+ 	 * Resolve the group
+ 	 */
+ 	sock->grp_id = genl_ctrl_resolve_grp(sock->nl_sk, sock->family_name, grp_name);
+ 	if (sock->grp_id < 0) {
+-		nss_nlsock_log_error("failed to resolve group(%s)\n", grp_name);
+-		return -EINVAL;
++		/* Don't report error, just return success since we can't leave a group that doesn't exist */
++		return 0;
+ 	}
+ 
+ 	/*
+@@ -259,7 +267,7 @@ int nss_nlsock_join_grp(struct nss_nlsock_ctx *sock, char *grp_name)
+ 	 */
+ 	sock->grp_id = genl_ctrl_resolve_grp(sock->nl_sk, sock->family_name, grp_name);
+ 	if (sock->grp_id < 0) {
+-		nss_nlsock_log_error("failed to resolve group(%s)\n", grp_name);
++		/* nss_nlsock_log_error("failed to resolve group(%s)\n", grp_name); */
+ 		return -EINVAL;
+ 	}
+ 
+--- a/nssinfo/src/nssinfo.c
++++ b/nssinfo/src/nssinfo.c
+@@ -20,12 +20,25 @@
+ #include <signal.h>
+ #include "nssinfo.h"
+ 
++/* Keyboard control definitions */
++#define KEY_QUIT        'q'
++// stop fucking using KEY_HELP as it conflicts with the help key in ncurses
++#define KEY_HELP_       'h'
++#define KEY_VERBOSE     'v'
++#define KEY_LIST_STATS  '?'
++
+ static pthread_t nssinfo_display_thread;	/* Display statistics thread */
+ static char buf[NSSINFO_STR_LEN];		/* Formatted stats buffer */
+ bool display_all_stats;				/* Display all stats per sub-system */
+ int invalid_input;				/* Identify invalid input */
+ FILE *output_file;				/* Output file pointer */
+ FILE *flow_file;				/* Flow file pointer */
++static volatile bool quit_requested = false;  /* Flag to indicate quit request */
++
++/* Forward declarations for new functions */
++static void nssinfo_display_help(void);
++static void nssinfo_list_available_stats(void);
++static void nssinfo_handle_keyboard_input(void);
+ 
+ /* Array of pointers to node stats */
+ struct node *nodes[NSS_MAX_CORES][NSS_MAX_NET_INTERFACES];
+@@ -350,6 +363,16 @@ static void *nssinfo_stats_display(void *arg)
+ 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+ 
+ 	for (;;) {
++		/* Check for keyboard input */
++		if (!output_file) {
++			nssinfo_handle_keyboard_input();
++
++			/* Check if quit was requested */
++			if (quit_requested) {
++				break;
++			}
++		}
++
+ 		nssinfo_stats_print("\t\t\t%s\n", mesg);
+ 
+ 		/*
+@@ -505,6 +528,8 @@ done:
+ 		invalid_input = 0;
+ 		sleep(arguments.rate);
+ 	}
++
++	return NULL;
+ }
+ 
+ /*
+@@ -607,11 +632,16 @@ static void nssinfo_notify_callback(int cmd, void *data)
+ 	if (cmd < NSS_NLCMN_SUBSYS_MAX && nssinfo_subsystem_array[cmd].is_inited) {
+ 		nssinfo_subsystem_array[cmd].notify(data);
+ 	} else {
+-		nssinfo_error("Unknown message type %d\n", cmd);
++		/* Silently ignore unknown message types */
++		if (arguments.verbose) {
++			nssinfo_warn("Ignoring unknown message type %d\n", cmd);
++		}
+ 	}
+ }
+ 
+ /*
++ * nssinfo_deinit()
++ *	Release all resources
+  */
+ static void nssinfo_deinit(struct nss_nlmcast_ctx *ctx)
+ {
+@@ -639,10 +669,11 @@ static void nssinfo_deinit(struct nss_nlmcast_ctx *ctx)
+ 
+ 	/*
+ 	 * Release resources used by each subsystem
++	 * Only deinitialize subsystems that were successfully initialized
+ 	 */
+ 	for (i = 0; i < NSS_NLCMN_SUBSYS_MAX; i++) {
+-		deinit = nssinfo_subsystem_array[i].deinit;
+-		if (deinit) {
++		if (nssinfo_subsystem_array[i].is_inited && nssinfo_subsystem_array[i].deinit) {
++			deinit = nssinfo_subsystem_array[i].deinit;
+ 			deinit(ctx);
+ 		}
+ 	}
+@@ -671,16 +702,25 @@ int nssinfo_init(void)
+ 
+ 	/*
+ 	 * Initialize all the subsystems and subscribe for mcast groups.
++	 * Don't exit on subsystem initialization failures - these are expected
++	 * if certain kernel modules aren't loaded.
+ 	 */
+ 	for (i = 0; i < NSS_NLCMN_SUBSYS_MAX; i++) {
+ 		init = nssinfo_subsystem_array[i].init;
+ 		if (init) {
+ 			error = init(&ctx);
+ 			if (error) {
+-				nssinfo_error("%s init failed, error(%d)\n", nssinfo_subsystem_array[i].subsystem_name, error);
++				 /* Mark as not initialized so we won't try to use it later */
++				nssinfo_subsystem_array[i].is_inited = 0;
++
++				/* Only log warnings in verbose mode */
++				if (arguments.verbose) {
++					nssinfo_warn("%s init failed, error(%d) - subsystem may not be available\n",
++						nssinfo_subsystem_array[i].subsystem_name, error);
++					}
++				}
+ 			}
+ 		}
+-	}
+ 
+ 	/*
+ 	 * Listen for MCAST events from kernel.
+@@ -700,7 +740,7 @@ int nssinfo_init(void)
+ 	}
+ 
+ 	/*
+-	 * Install CTRL-C handler
++	 * Install CTRL-C handler and other signal handlers
+ 	 */
+ 	struct sigaction new_action;
+ 	new_action.sa_handler = nssinfo_termination_handler;
+@@ -721,3 +761,91 @@ end:
+ 	nssinfo_deinit(&ctx);
+ 	return error;
+ }
++
++/*
++ * nssinfo_display_help()
++ *	Display help information for keyboard controls
++ */
++static void nssinfo_display_help(void)
++{
++	clear();
++	mvprintw(0, 0, "NSSINFO Keyboard Controls Help");
++	mvprintw(2, 0, "q - Quit the application");
++	mvprintw(3, 0, "h - Display this help screen");
++	mvprintw(4, 0, "v - Toggle verbose mode");
++	mvprintw(5, 0, "? - List available statistics");
++	mvprintw(7, 0, "Press any key to return to stats display...");
++	refresh();
++
++	/* Wait for key press before returning to stats display */
++	nodelay(stdscr, FALSE);
++	getch();
++	nodelay(stdscr, TRUE);
++	clear();
++}
++
++/*
++ * nssinfo_list_available_stats()
++ *	Display list of available statistics modules
++ */
++static void nssinfo_list_available_stats(void)
++{
++	int i, row = 0;
++
++	clear();
++	mvprintw(row++, 0, "Available Statistics Modules:");
++	row++;
++
++	for (i = 0; i < NSS_NLCMN_SUBSYS_MAX; i++) {
++		if (nssinfo_subsystem_array[i].is_inited) {
++			mvprintw(row++, 2, "- %s", nssinfo_subsystem_array[i].subsystem_name);
++		}
++	}
++
++	mvprintw(row + 2, 0, "Press any key to return to stats display...");
++	refresh();
++
++	/* Wait for key press before returning to stats display */
++	nodelay(stdscr, FALSE);
++	getch();
++	nodelay(stdscr, TRUE);
++	clear();
++}
++
++/*
++ * nssinfo_handle_keyboard_input()
++ *	Process keyboard input for interactive controls
++ */
++static void nssinfo_handle_keyboard_input(void)
++{
++	int ch = getch();
++
++	if (ch == ERR) {
++		/* No input available */
++		return;
++	}
++
++	switch (ch) {
++	case KEY_QUIT:
++		/* Set quit flag to exit application gracefully */
++		quit_requested = true;
++		raise(SIGINT); /* Signal to terminate */
++		break;
++
++	case KEY_HELP_:
++		nssinfo_display_help();
++		break;
++
++	case KEY_VERBOSE:
++		/* Toggle verbose mode */
++		arguments.verbose = !arguments.verbose;
++		break;
++
++	case KEY_LIST_STATS:
++		nssinfo_list_available_stats();
++		break;
++
++	default:
++		break;
++	}
++}
+diff --git a/nssinfo/src/nssinfo_lso_rx.c b/nssinfo/src/nssinfo_lso_rx.c
+index bbe7274..9f5bd6e 100644
+--- a/nssinfo/src/nssinfo_lso_rx.c
++++ b/nssinfo/src/nssinfo_lso_rx.c
+@@ -43,7 +43,7 @@ static void nssinfo_lso_rx_stats_display(int core, char *input)
+ 	lso_rx_node = nodes[core][NSS_LSO_RX_INTERFACE];
+ 	if (!lso_rx_node) {
+ 		pthread_mutex_unlock(&lso_rx_lock);
+-		nssinfo_error("%s is not running on the NPU\n", input);
++		/* nssinfo_error("%s is not running on the NPU\n", input); */
+ 		return;
+ 	}
+ 

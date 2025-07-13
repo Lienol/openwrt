@@ -1,0 +1,241 @@
+--- a/exports/nss_project.h
++++ b/exports/nss_project.h
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2018, 2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -38,6 +38,12 @@
+ #define NSS_PROJECT_IRQS_PER_MESSAGE 32
+ 
+ /**
++ *  Maximum possible value of priority after classification
++ *  at an ingress interface.
++ */
++#define NSS_PROJECT_PRI_MQ_MAP_MAX_SIZE 16
++
++/**
+  * nss_project_message_types
+  *	Project message types.
+  */
+@@ -46,6 +52,8 @@ enum nss_project_message_types {
+ 			/**< Message to enable or disable worker thread statistics. */
+ 	NSS_PROJECT_MSG_WT_STATS_NOTIFY,
+ 			/**< NSS to HLOS message containing worker thread statistics. */
++	NSS_PROJECT_MSG_SET_QUEUE_PRI_MAP_CFG,
++			/**< Message to configure priority to multi-queue mapping. */
+ 	NSS_PROJECT_MSG_MAX,
+ };
+ 
+@@ -60,6 +68,8 @@ enum nss_project_error_types {
+ 			/**< The firmware does not support worker thread statistics. */
+ 	NSS_PROJECT_ERROR_WT_STATS_REDUNDANT_ENABLE,
+ 			/**< The firmware received a redundant request to enable worker thread statistics. */
++	NSS_PROJECT_ERROR_MQ_NUMBER_INVALID,
++			/**< The firmware received an invalid multi-queue number. */
+ 	NSS_PROJECT_ERROR_MAX,
+ };
+ 
+@@ -111,6 +121,15 @@ struct nss_project_msg_wt_stats_notify {
+ };
+ 
+ /**
++ * nss_project_msg_pri_mq_map_cfg
++ * 	NSS priority to multi-queue mapping configuration.
++ */
++struct nss_project_msg_pri_mq_map_cfg {
++	uint8_t pri_mq_map[NSS_PROJECT_PRI_MQ_MAP_MAX_SIZE];
++				/**< Priority to multi-queue mapping array. */
++};
++
++/**
+  * nss_project_msg
+  *	General message structure for project messages.
+  */
+@@ -125,6 +144,8 @@ struct nss_project_msg {
+ 				/**< Enable or disable worker thread statistics. */
+ 		struct nss_project_msg_wt_stats_notify wt_stats_notify;
+ 				/**< One-way worker thread statistics message. */
++		struct nss_project_msg_pri_mq_map_cfg pri_mq_map_cfg;
++				/**< Configure priority to multi-queue message. */
+ 	} msg;			/**< Message payload. */
+ };
+ 
+@@ -170,6 +191,17 @@ void nss_project_unregister_sysctl(void)
+ void nss_project_register_handler(struct nss_ctx_instance *nss_ctx);
+ 
+ /**
++ * nss_project_pri_mq_map_configure
++ * 	Configures priority to multi-queue mapping.
++ *
++ * @param[in] nss_ctx		Pointer to the NSS context.
++ *
++ * @return
++ * Status of the configuration update operation.
++ */
++extern nss_tx_status_t nss_project_pri_mq_map_configure(struct nss_ctx_instance *nss_ctx);
++
++/**
+  * @}
+  */
+ 
+--- a/nss_core.c
++++ b/nss_core.c
+@@ -283,6 +283,17 @@ void nss_core_set_subsys_dp_type(struct
+ }
+ 
+ /*
++ * nss_core_is_mq_enabled()
++ *	Get multi-queue status.
++ *
++ * Returns 'true' if multi-queue is enabled otherwise returns 'false'.
++ */
++bool nss_core_is_mq_enabled(void)
++{
++	return pn_mq_en;
++}
++
++/*
+  * nss_core_register_subsys_dp()
+  *	Registers a netdevice and associated information at a given interface.
+  *
+@@ -1720,7 +1731,13 @@ static void nss_core_init_nss(struct nss
+ 	if (nss_ctx->id) {
+ 		ret = nss_n2h_update_queue_config_async(nss_ctx, pn_mq_en, pn_qlimits);
+ 		if (ret != NSS_TX_SUCCESS) {
+-			nss_warning("Failed to send pnode queue config to core 1\n");
++			nss_warning("%px: Failed to send pnode queue config to core 1\n", nss_ctx);
++			return;
++		}
++
++		ret = nss_project_pri_mq_map_configure(nss_ctx);
++		if (ret != NSS_TX_SUCCESS) {
++			nss_warning("%px: Failed to send pnode priority to multi-queue config to core 1\n", nss_ctx);
+ 		}
+ 		return;
+ 	}
+--- a/nss_core.h
++++ b/nss_core.h
+@@ -983,6 +983,7 @@ extern void nss_core_register_subsys_dp(
+ 					uint32_t features);
+ extern void nss_core_unregister_subsys_dp(struct nss_ctx_instance *nss_ctx, uint32_t if_num);
+ void nss_core_set_subsys_dp_type(struct nss_ctx_instance *nss_ctx, struct net_device *ndev, uint32_t if_num, uint32_t type);
++extern bool nss_core_is_mq_enabled(void);
+ 
+ static inline nss_if_rx_msg_callback_t nss_core_get_msg_handler(struct nss_ctx_instance *nss_ctx, uint32_t interface)
+ {
+--- a/nss_data_plane/nss_data_plane_common.c
++++ b/nss_data_plane/nss_data_plane_common.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2014-2016,2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2014-2016,2020-2021 The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -39,9 +39,16 @@ static void nss_data_plane_work_function
+ 	 */
+ 	ret = nss_n2h_update_queue_config_sync(nss_ctx, pn_mq_en, pn_qlimits);
+ 	if (ret != NSS_TX_SUCCESS) {
+-		nss_warning("Failed to send pnode queue config to core 0\n");
++		nss_warning("%px: Failed to send pnode queue config to core 0\n", nss_ctx);
++		goto data_plane_reg;
+ 	}
+ 
++	ret = nss_project_pri_mq_map_configure(nss_ctx);
++	if (ret != NSS_TX_SUCCESS) {
++		nss_warning("%px: Failed to send pnode priority to multi-queue config to core 0\n", nss_ctx);
++	}
++
++data_plane_reg:
+ 	nss_top->data_plane_ops->data_plane_register(nss_ctx);
+ }
+ 
+--- a/nss_project.c
++++ b/nss_project.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2018, 2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2018, 2020-2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2024 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -21,6 +24,9 @@
+ #include "nss_tx_rx_common.h"
+ 
+ static int nss_project_wt_stats_enable;
++static uint8_t nss_project_pri_mq_map[NSS_PROJECT_PRI_MQ_MAP_MAX_SIZE] = {0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
++module_param_array(nss_project_pri_mq_map, byte, NULL, 0);
++MODULE_PARM_DESC(nss_project_pri_mq_map, "Priority to multi-queue mapping");
+ 
+ /*
+  * nss_project_free_wt_stats()
+@@ -264,6 +270,57 @@ static int nss_project_wt_stats_handler(
+ }
+ 
+ /*
++ * nss_project_pri_mq_map_send_cfg()
++ *	Sends message to firmware to configure priority to multi-queue mapping.
++ */
++static nss_tx_status_t nss_project_pri_mq_map_send_cfg(struct nss_ctx_instance *nss_ctx)
++{
++	struct nss_project_msg *npm;
++	struct nss_cmn_msg *ncm;
++	nss_tx_status_t ret;
++
++	npm = kzalloc(sizeof(*npm), GFP_ATOMIC);
++	if (!npm) {
++		nss_warning("%px: Failed to allocate buffer for message\n", nss_ctx);
++		return NSS_TX_FAILURE;
++	}
++
++	/*
++	 * Populate the message
++	 */
++	ncm = &npm->cm;
++	nss_cmn_msg_init(ncm, NSS_PROJECT_INTERFACE,
++		NSS_PROJECT_MSG_SET_QUEUE_PRI_MAP_CFG,
++		sizeof(struct nss_project_msg_pri_mq_map_cfg),
++		NULL, NULL);
++	memcpy(npm->msg.pri_mq_map_cfg.pri_mq_map, nss_project_pri_mq_map,
++		sizeof(nss_project_pri_mq_map));
++	ret = nss_core_send_cmd(nss_ctx, npm, sizeof(*npm), NSS_NBUF_PAYLOAD_SIZE);
++	kfree(npm);
++	return ret;
++}
++
++/*
++ * nss_project_pri_mq_map_configure()
++ * 	API to configure priority to multi-queue mapping.
++ */
++nss_tx_status_t nss_project_pri_mq_map_configure(struct nss_ctx_instance *nss_ctx)
++{
++	/*
++	 * Check if multi-queue configuration is enabled.
++	 */
++	if (!nss_core_is_mq_enabled()) {
++		nss_warning("%px: Multi-queue is disabled. Please enable multi-queue before configuring mapping\n", nss_ctx);
++		return NSS_TX_FAILURE_NOT_SUPPORTED;
++	}
++
++	/*
++	 * Send configuration message to NSS.
++	 */
++	return nss_project_pri_mq_map_send_cfg(nss_ctx);
++}
++
++/*
+  * Tree of ctl_tables used to put the wt_stats proc node in the correct place in
+  * the file system. Allows the command $ echo 1 > proc/sys/dev/nss/project/wt_stats
+  * to enable worker thread statistics (echoing 0 into the same target will disable).

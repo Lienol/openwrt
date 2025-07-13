@@ -1,0 +1,40 @@
+--- a/lib/nss_nlsock.c
++++ b/lib/nss_nlsock.c
+@@ -379,7 +379,7 @@ int nss_nlsock_send(struct nss_nlsock_ct
+ 	 * In case firmware response is sent before nl_recvmsgs is invoked,
+ 	 * the response will be queued until the listener is available.
+ 	 */
+-	error = nl_send_sync(sock->nl_sk, msg);
++	error = nl_send_auto_complete(sock->nl_sk, msg);
+ 	if (error < 0) {
+ 		nss_nlsock_log_error("%d:failed to send (family:%s, error:%d)\n", pid, sock->family_name, error);
+ 		nss_nlsock_deref(sock);
+@@ -387,6 +387,17 @@ int nss_nlsock_send(struct nss_nlsock_ct
+ 		return error;
+ 	}
+ 
++	/*
++	 * Wait for ACK response from netlink
++	 */
++	/* error = nl_wait_for_ack(sock->nl_sk); */
++	/* if (error < 0) { */
++	/* 	nss_nlsock_log_error("%d:failed to get ACK (family:%s, error:%d)\n", pid, sock->family_name, error); */
++	/* 	nss_nlsock_deref(sock); */
++	/* 	sock->is_avail = true; */
++	/* 	return error; */
++	/* } */
++
+ 	if (has_resp) {
+ 		nl_recvmsgs(sock->nl_sk, sock->nl_cb);
+ 	}
+--- a/nssinfo/Makefile
++++ b/nssinfo/Makefile
+@@ -10,7 +10,7 @@ OBJECTS = $(SOURCES:$(SRCDIR)/src/%.c=$(
+ 
+ INCLUDE += -I../lib/include
+ EXTRA_CFLAGS = -Wall -Werror -UENABLE_DEBUG
+-LDFLAGS = -lnl-genl-3 -lnl-nss -lncurses -lglib-2.0
++LDFLAGS = -lnl-nss -lnl-tiny -lncurses
+ LDLIBS  = -L../lib/obj
+ 
+ all: release

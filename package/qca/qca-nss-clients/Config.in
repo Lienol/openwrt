@@ -1,0 +1,55 @@
+config NSS_NLCAPWAP_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_CAPWAP_ENABLE
+	help
+	  NSS Netlink CAPWAP support. This is automatically 
+	  selected when NSS CAPWAP driver is enabled.
+
+config NSS_NLDTLS_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_DTLS_ENABLE
+	help
+	  NSS Netlink DTLS support. This is automatically
+	  selected when NSS DTLS driver is enabled.
+
+config NSS_NLGRE_REDIR_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_GRE_REDIR_ENABLE
+	help
+	  NSS Netlink GRE Redirect support. This is automatically
+	  selected when NSS GRE Redirect driver is enabled.
+
+config NSS_NLIPSEC_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_IPSEC_ENABLE
+	help
+	  NSS Netlink IPsec support. This is automatically
+	  selected when NSS IPsec driver is enabled.
+
+config NSS_NLQRFS_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_QRFS_ENABLE
+	help
+	  NSS Netlink QRFS support. This is automatically
+	  selected when NSS QRFS driver is enabled.
+
+config NSS_NLUDP_ST_ENABLE
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_UDP_ST_ENABLE
+	help
+	  NSS Netlink UDP Speed Test support. This is automatically
+	  selected when NSS UDP Speed Test driver is enabled.
+
+config NSS_NLLSO_RX
+	bool
+	depends on PACKAGE_kmod-qca-nss-drv-netlink
+	default y if NSS_DRV_LSO_RX_ENABLE
+	help
+	  NSS Netlink IP LSO RX support. This is automatically
+	  selected when NSS IP LSO RX driver is enabled.

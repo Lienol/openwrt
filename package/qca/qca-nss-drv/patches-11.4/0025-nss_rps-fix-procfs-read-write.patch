@@ -156,7 +156,7 @@
  	*lenp = cp_bytes;
  	kfree(r_buf);
  	return 0;
-@@ -115,13 +115,11 @@ static int nss_dscp_map_print(struct ctl
+@@ -115,35 +115,32 @@ static int nss_dscp_map_print(struct ctl
   * nss_dscp_map_parse()
   *	Sysctl handler for dscp/pri mappings.
   */
@@ -166,12 +166,22 @@
  {
  	int count;
 -	size_t cp_bytes = 0;
- 	char w_buf[7];
+-	char w_buf[7];
 -	loff_t w_offset = 0;
++	char w_buf[8];
  	char *str;
  	char *tokens[NSS_DSCP_MAP_PARAM_FIELD_COUNT];
  	unsigned int dscp, priority, action;
-@@ -135,15 +133,14 @@ static int nss_dscp_map_parse(struct ctl
+ 	int ret;
+ 
+ 	/*
+-	 * Buffer length cannot be more than 7 and less than 6.
++	 * Buffer length cannot be more than 8 and less than 6.
+ 	 */
+-	if (*lenp < 6 || *lenp > 7) {
+-		nss_warning("Buffer is not correct. Invalid lenght: %d\n", (int)*lenp);
++	if (*lenp < 6 || *lenp > 8) {
++		nss_warning("Invalid length: %d\n", (int)*lenp);
  		return -EINVAL;
  	}
  

@@ -1,0 +1,1441 @@
+--- a/netlink/Makefile
++++ b/netlink/Makefile
+@@ -22,6 +22,7 @@ ccflags-y += -DCONFIG_NSS_NLLSO_RX=$(str
+ ccflags-y += -DCONFIG_NSS_NLMAP_T=$(strip $(if $(filter $(map-t), y), 1 , 0))
+ ccflags-y += -DCONFIG_NSS_NLPPPOE=$(strip $(if $(filter $(pppoe), y), 1 , 0))
+ ccflags-y += -DCONFIG_NSS_NLL2TPV2=$(strip $(if $(filter $(l2tp), y), 1 , 0))
++ccflags-y += -DCONFIG_NSS_NLQRFS=$(strip $(if $(filter $(CONFIG_NSS_NLQRFS), y), 1 , 0))
+ ccflags-y += -DCONFIG_NSS_NLPPTP=$(strip $(if $(filter $(pptp), y), 1 , 0))
+ ccflags-y += -DCONFIG_NSS_NLCAPWAP=${CAPWAP_ENABLED}
+ ccflags-y += -DCONFIG_NSS_NLIPSEC=${IPSEC_ENABLED}
+@@ -83,6 +84,10 @@ qca-nss-netlink-objs += nss_nludp_st.o
+ endif
+ endif
+ 
++ifneq (,$(filter $(CONFIG_NSS_NLQRFS), y))
++qca-nss-netlink-objs += nss_nlqrfs.o
++endif
++
+ ifneq (,$(filter $(capwapmgr), y))
+ qca-nss-netlink-objs += nss_nlcapwap.o
+ endif
+--- /dev/null
++++ b/netlink/include/nss_nlqrfs_if.h
+@@ -0,0 +1,59 @@
++/*
++ **************************************************************************
++ * Copyright (c) 2021, The Linux Foundation. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for
++ * any purpose with or without fee is hereby granted, provided that the
++ * above copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ **************************************************************************
++ */
++
++/*
++ * @file nss_nlqrfs_if.h
++ *	NSS Netlink qrfs headers
++ */
++#ifndef __NSS_NLQRFS_IF_H
++#define __NSS_NLQRFS_IF_H
++#include "nss_qrfs.h"
++
++/**
++ * QRFS Family
++ */
++#define NSS_NLQRFS_FAMILY "nss_nlqrfs"
++#define NSS_NLQRFS_MCAST_GRP "nss_nlqrfs_mc"
++
++/**
++ * struct nss_nlqrfs_rule
++ *	QRFS rule structure.
++ */
++struct nss_nlqrfs_rule {
++        struct nss_nlcmn cm;				/**< Common message header. */
++	char gmac_ifname[IFNAMSIZ];			/**< GMAC interface name. */
++	struct nss_qrfs_flow_rule_msg msg;		/**< QRFS Configure flow rule message. */
++};
++
++/**
++ * nss_nlqrfs_rule_init
++ *	NETLINK qrfs message init.
++ *
++ * @param[in] rule NSS Netlink QRFS rule.
++ * @param[in] type QRFS message type.
++ *
++ * @return
++ * None.
++ */
++static inline void nss_nlqrfs_rule_init(struct nss_nlqrfs_rule *rule, enum nss_qrfs_msg_types type)
++{
++	nss_nlcmn_set_ver(&rule->cm, NSS_NL_VER);
++	nss_nlcmn_init_cmd(&rule->cm, sizeof(struct nss_nlqrfs_rule), type);
++}
++
++#endif /* __NSS_NLQRFS_IF_H */
+--- a/netlink/nss_nl.c
++++ b/netlink/nss_nl.c
+@@ -77,6 +77,8 @@
+ #include "nss_nlpptp_if.h"
+ #include "nss_nludp_st.h"
+ #include "nss_nludp_st_if.h"
++#include "nss_nlqrfs.h"
++#include "nss_nlqrfs_if.h"
+ 
+ /*
+  * nss_nl.c
+@@ -294,7 +296,16 @@ static struct nss_nl_family family_handl
+ 		.entry = NSS_NLUDP_ST_INIT,		/* init */
+ 		.exit = NSS_NLUDP_ST_EXIT,		/* exit */
+ 		.valid = CONFIG_NSS_NLUDP_ST		/* 1 or 0 */
+-	}
++	},
++	{
++		/*
++		 * NSS_NLQRFS
++		 */
++		.name = NSS_NLQRFS_FAMILY,		/* qrfs */
++		.entry = NSS_NLQRFS_INIT,		/* init */
++		.exit = NSS_NLQRFS_EXIT,		/* exit */
++		.valid = CONFIG_NSS_NLQRFS		/* 1 or 0 */
++	},
+ };
+ 
+ #define NSS_NL_FAMILY_HANDLER_SZ ARRAY_SIZE(family_handlers)
+--- a/netlink/nss_nldtls.c
++++ b/netlink/nss_nldtls.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2015-2016,2018-2020 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2015-2016,2018-2021 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -446,7 +449,7 @@ static void nss_nldtls_data_callback(voi
+  * nss_nldtls_create_session()
+  *	Create a DTLS session through dtlsmgr driver API.
+  */
+-static struct net_device *nss_nldtls_create_session(struct nss_nldtls_rule *nl_rule, uint32_t flags)
++static struct net_device *nss_nldtls_create_session(struct nss_nldtls_rule *nl_rule)
+ {
+ 	struct nss_nldtls_tun_ctx *dtls_tun_data;
+ 	struct nss_dtlsmgr_config dcfg;
+@@ -463,7 +466,7 @@ static struct net_device *nss_nldtls_cre
+ 
+ 	memset(&dcfg, 0, sizeof(struct nss_dtlsmgr_config));
+ 	algo = nl_rule->msg.create.encap.cfg.crypto.algo;
+-	dcfg.flags = flags | (NSS_DTLSMGR_ENCAP_METADATA | NSS_DTLSMGR_HDR_CAPWAP);
++	dcfg.flags = nl_rule->msg.create.flags | NSS_DTLSMGR_ENCAP_METADATA;
+ 	if (algo == NSS_DTLSMGR_ALGO_AES_GCM)
+ 		dcfg.flags |= NSS_DTLSMGR_CIPHER_MODE_GCM;
+ 
+@@ -605,7 +608,11 @@ static int nss_nldtls_create_ipv4_rule_e
+ 	ipv4.dest_port = nl_rule->msg.create.encap.cfg.sport;
+ 	ipv4.dest_port_xlate = nl_rule->msg.create.encap.cfg.sport;
+ 
+-	ipv4.protocol = IPPROTO_UDP;
++	if (nl_rule->msg.create.flags & NSS_DTLSMGR_HDR_UDPLITE)
++		ipv4.protocol = IPPROTO_UDPLITE;
++	else
++		ipv4.protocol = IPPROTO_UDP;
++
+ 	ipv4.in_vlan_tag[0] = NSS_NLDTLS_VLAN_INVALID;
+ 	ipv4.out_vlan_tag[0] = NSS_NLDTLS_VLAN_INVALID;
+ 	ipv4.in_vlan_tag[1] = NSS_NLDTLS_VLAN_INVALID;
+@@ -613,6 +620,8 @@ static int nss_nldtls_create_ipv4_rule_e
+ 
+ 	memcpy(&ipv4.src_mac[0], &nl_rule->msg.create.gmac_ifmac[0], sizeof(ipv4.src_mac));
+ 
++	dev_put(ndev);
++
+ 	/*
+ 	 * Create an ipv4 rule entry
+ 	 */
+@@ -654,7 +663,11 @@ static int nss_nldtls_create_ipv6_rule_e
+ 	 */
+ 	memcpy(ipv6.src_ip, nl_rule->msg.create.encap.cfg.dip, sizeof(ipv6.src_ip));
+ 	memcpy(ipv6.dest_ip, nl_rule->msg.create.encap.cfg.sip, sizeof(ipv6.dest_ip));
+-	ipv6.protocol = IPPROTO_UDP;
++
++	if (nl_rule->msg.create.flags & NSS_DTLSMGR_HDR_UDPLITE)
++		ipv6.protocol = IPPROTO_UDPLITE;
++	else
++		ipv6.protocol = IPPROTO_UDP;
+ 
+ 	ipv6.in_vlan_tag[0] = NSS_NLDTLS_VLAN_INVALID;
+ 	ipv6.in_vlan_tag[1] = NSS_NLDTLS_VLAN_INVALID;
+@@ -663,6 +676,8 @@ static int nss_nldtls_create_ipv6_rule_e
+ 
+ 	memcpy(&ipv6.src_mac[0], &nl_rule->msg.create.gmac_ifmac[0], sizeof(ipv6.src_mac));
+ 
++	dev_put(ndev);
++
+ 	/*
+ 	 * Create an ipv6 rule entry
+ 	 */
+@@ -729,7 +744,7 @@ static int nss_nldtls_ops_create_tun(str
+ 	 * Create tunnel based on ip version
+ 	 */
+ 	if (nl_rule->msg.create.ip_version == NSS_NLDTLS_IP_VERS_4) {
+-		dtls_dev = nss_nldtls_create_session(nl_rule, NSS_NLDTLS_IPV4_SESSION);
++		dtls_dev = nss_nldtls_create_session(nl_rule);
+ 		if (!dtls_dev) {
+ 			nss_nl_error("%px: Unable to create dtls session for v4\n", skb);
+ 			return -EINVAL;
+@@ -748,7 +763,7 @@ static int nss_nldtls_ops_create_tun(str
+ 		atomic_inc(&gbl_ctx.num_tun);
+ 		nss_nl_info("%px: Successfully created ipv4 dtls tunnel\n", skb);
+ 	} else {
+-		dtls_dev = nss_nldtls_create_session(nl_rule, NSS_DTLSMGR_HDR_IPV6);
++		dtls_dev = nss_nldtls_create_session(nl_rule);
+ 		if (!dtls_dev) {
+ 			nss_nl_error("%px: Unable to create dtls session for v6\n", skb);
+ 			return -EINVAL;
+@@ -871,6 +886,7 @@ static int nss_nldtls_ops_update_config(
+ 	key_len = nl_rule->msg.update_config.config_update.crypto.cipher_key.len;
+ 	if (key_len > NSS_NLDTLS_CIPHER_KEY_MAX) {
+ 		nss_nl_error("Invalid cipher length: %u\n", key_len);
++		dev_put(dev);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -878,6 +894,7 @@ static int nss_nldtls_ops_update_config(
+ 	key_len = nl_rule->msg.update_config.config_update.crypto.auth_key.len;
+ 	if (key_len > NSS_NLDTLS_AUTH_KEY_MAX) {
+ 		nss_nl_error("Invalid authentication length: %u\n", key_len);
++		dev_put(dev);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -885,6 +902,7 @@ static int nss_nldtls_ops_update_config(
+ 	key_len = nl_rule->msg.update_config.config_update.crypto.nonce.len;
+ 	if (key_len > NSS_NLDTLS_NONCE_SIZE_MAX) {
+ 		nss_nl_error("Invalid nonce length: %u\n", key_len);
++		dev_put(dev);
+ 		return -EINVAL;
+ 	}
+ 
+--- a/netlink/nss_nlipsec.c
++++ b/netlink/nss_nlipsec.c
+@@ -1,9 +1,12 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2015-2016,2018-2021 The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -225,7 +228,7 @@ static void nss_nlipsec_process_event(vo
+ 	/*
+ 	 * Initialize the NETLINK common header
+ 	 */
+-	nss_nlipsec_rule_init(nl_rule, ev->type);
++	nss_nlipsec_rule_init(nl_rule, (enum nss_nlipsec_cmd)ev->type);
+ 
+ 	/*
+ 	 * Copy the contents of the sync message into the NETLINK message
+@@ -508,6 +511,8 @@ static struct nss_nlipsec_rule *nss_nlip
+ 		dev_put(*dev);
+ 		return NULL;
+ 	}
++
++	dev_put(*dev);
+ 	return nl_rule;
+ }
+ 
+--- /dev/null
++++ b/netlink/nss_nlqrfs.c
+@@ -0,0 +1,203 @@
++/*
++ **************************************************************************
++ * Copyright (c) 2021, The Linux Foundation. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for
++ * any purpose with or without fee is hereby granted, provided that the
++ * above copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ **************************************************************************
++ */
++
++/*
++ * nss_nlqrfs.c
++ *	NSS Netlink qrfs Handler
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/version.h>
++#include <linux/netlink.h>
++#include <linux/version.h>
++#include <linux/vmalloc.h>
++
++#include <net/genetlink.h>
++#include <net/sock.h>
++#include <net/arp.h>
++
++#include <nss_api_if.h>
++#include <nss_cmn.h>
++#include <nss_nl_if.h>
++#include "nss_nl.h"
++#include "nss_nlcmn_if.h"
++#include "nss_nlqrfs_if.h"
++#include <nss_qrfs.h>
++
++/*
++ * prototypes
++ */
++static int nss_nlqrfs_ops_add_rule(struct sk_buff *skb, struct genl_info *info);
++static int nss_nlqrfs_ops_del_rule(struct sk_buff *skb, struct genl_info *info);
++
++/*
++ * multicast group for sending message status & events
++ */
++static const struct genl_multicast_group nss_nlqrfs_mcgrp[] = {
++	{.name = NSS_NLQRFS_MCAST_GRP},
++};
++
++/*
++ * operation table called by the generic netlink layer based on the command
++ */
++static struct genl_ops nss_nlqrfs_ops[] = {
++	{.cmd = NSS_QRFS_MSG_FLOW_ADD, .doit = nss_nlqrfs_ops_add_rule,},
++	{.cmd = NSS_QRFS_MSG_FLOW_DELETE, .doit = nss_nlqrfs_ops_del_rule,},
++};
++
++/*
++ * qrfs family definition
++ */
++static struct genl_family nss_nlqrfs_family = {
++#if (LINUX_VERSION_CODE <= KERNEL_VERSION(4, 9, 0))
++	.id = GENL_ID_GENERATE,						/* Auto generate ID */
++#endif
++	.name = NSS_NLQRFS_FAMILY,					/* family name string */
++	.hdrsize = sizeof(struct nss_nlqrfs_rule),			/* NSS NETLINK qrfs rule */
++	.version = NSS_NL_VER,						/* Set it to NSS_NLQRFS version */
++	.maxattr = NSS_QRFS_MSG_MAX,					/* Maximum commands supported */
++	.netnsok = true,
++	.pre_doit = NULL,
++	.post_doit = NULL,
++	.ops = nss_nlqrfs_ops,
++	.n_ops = ARRAY_SIZE(nss_nlqrfs_ops),
++	.mcgrps = nss_nlqrfs_mcgrp,
++	.n_mcgrps = ARRAY_SIZE(nss_nlqrfs_mcgrp)
++};
++
++/*
++ * nss_nlqrfs_ops_cfg_rule
++ *	Handler for unconfiguring rules
++ */
++static int nss_nlqrfs_ops_cfg_rule(struct sk_buff *skb, struct genl_info *info, bool action)
++{
++	struct nss_nlqrfs_rule *nl_rule;
++	struct nss_qrfs_flow_rule_msg *nrm;
++	struct nss_nlcmn *nl_cm;
++	int ret = 0;
++
++	/*
++	 * Extract the message payload
++	 */
++	if (action) {
++		nl_cm = nss_nl_get_msg(&nss_nlqrfs_family, info, NSS_QRFS_MSG_FLOW_ADD);
++		nss_nl_info("add flow rule\n");
++	} else {
++		nl_cm = nss_nl_get_msg(&nss_nlqrfs_family, info, NSS_QRFS_MSG_FLOW_DELETE);
++		nss_nl_info("delete flow rule\n");
++	}
++
++	if (!nl_cm) {
++		nss_nl_error("%px: Unable to extract configure rule data\n", skb);
++		return -EINVAL;
++	}
++
++	/*
++	 * Message validation required before accepting the configuration
++	 */
++	nl_rule = container_of(nl_cm, struct nss_nlqrfs_rule, cm);
++	nrm = &nl_rule->msg;
++
++	if (nrm->ip_version == 4) {
++		nss_nl_trace("src_ip:%pl4h src_port:%u dst_ip:%pl4h dst_port:%u protocol:%u version:%u cpu:%u\n",
++				nrm->src_addr, nrm->src_port, nrm->dst_addr, nrm->dst_port, nrm->protocol,
++				nrm->ip_version, nrm->cpu);
++	} else if (nrm->ip_version == 6) {
++		nss_nl_trace("src_ip:%pl6 src_port:%u dst_ip:%pl6 dst_port:%u protocol:%u version:%u cpu:%u\n",
++				nrm->src_addr, nrm->src_port, nrm->dst_addr, nrm->dst_port, nrm->protocol,
++				nrm->ip_version, nrm->cpu);
++	} else {
++		nss_nl_trace("Unsupported IP version field\n");
++		return -EINVAL;
++	}
++
++	if (action) {
++		nss_qrfs_configure_flow_rule(nrm->dst_addr, nrm->src_addr, nrm->dst_port, nrm->src_port,
++				nrm->ip_version, nrm->protocol, nrm->cpu, NSS_QRFS_MSG_FLOW_ADD);
++	} else {
++		nss_qrfs_configure_flow_rule(nrm->dst_addr, nrm->src_addr, nrm->dst_port, nrm->src_port,
++				nrm->ip_version, nrm->protocol, nrm->cpu, NSS_QRFS_MSG_FLOW_DELETE);
++	}
++
++	nss_nl_trace("%s flow rule finished\n", action? "add" : "delete");
++
++	return ret;
++}
++
++/*
++ * nss_nlqrfs_ops_add_rule()
++ *	Handler for Adding rules
++ */
++static int nss_nlqrfs_ops_add_rule(struct sk_buff *skb, struct genl_info *info)
++{
++	return nss_nlqrfs_ops_cfg_rule(skb, info, true);
++}
++
++/*
++ * nss_nlqrfs_ops_del_rule()
++ *	Handler for deleting rules
++ */
++static int nss_nlqrfs_ops_del_rule(struct sk_buff *skb, struct genl_info *info)
++{
++	return nss_nlqrfs_ops_cfg_rule(skb, info, false);
++}
++
++/*
++ * nss_nlqrfs_exit()
++ *	handler exit
++ */
++bool nss_nlqrfs_exit(void)
++{
++	int error;
++
++	nss_nl_info_always("Exit NSS netlink qrfs handler\n");
++
++	/*
++	 * unregister the ops family
++	 */
++	error = genl_unregister_family(&nss_nlqrfs_family);
++	if (error) {
++		nss_nl_info_always("unable to unregister qrfs NETLINK family\n");
++		return false;
++	}
++
++	return true;
++}
++
++/*
++ * nss_nlqrfs_init()
++ *	handler init
++ */
++bool nss_nlqrfs_init(void)
++{
++	int error;
++
++	nss_nl_info_always("Init NSS netlink qrfs handler\n");
++
++	/*
++	 * register Netlink ops with the family
++	 */
++	error = genl_register_family(&nss_nlqrfs_family);
++	if (error) {
++		nss_nl_info_always("Error: unable to register qrfs family\n");
++		return false;
++	}
++
++	return true;
++}
+--- /dev/null
++++ b/netlink/nss_nlqrfs.h
+@@ -0,0 +1,37 @@
++/*
++ **************************************************************************
++ * Copyright (c) 2021, The Linux Foundation. All rights reserved.
++ *
++ * Permission to use, copy, modify, and/or distribute this software for
++ * any purpose with or without fee is hereby granted, provided that the
++ * above copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
++ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ **************************************************************************
++ */
++
++/*
++ * nss_nlqrfs.h
++ *	NSS Netlink qrfs API definitions
++ */
++#ifndef __NSS_NLQRFS_H
++#define __NSS_NLQRFS_H
++
++bool nss_nlqrfs_init(void);
++bool nss_nlqrfs_exit(void);
++
++#if defined(CONFIG_NSS_NLQRFS) && CONFIG_NSS_NLQRFS > 0
++#define NSS_NLQRFS_INIT nss_nlqrfs_init
++#define NSS_NLQRFS_EXIT nss_nlqrfs_exit
++#else
++#define NSS_NLQRFS_INIT 0
++#define NSS_NLQRFS_EXIT 0
++#endif /* !CONFIG_NSS_NLQRFS */
++
++#endif /* __NSS_NLQRFS_H */
+--- a/netlink/nss_nludp_st.c
++++ b/netlink/nss_nludp_st.c
+@@ -1,6 +1,7 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+@@ -31,6 +32,9 @@
+ #include <net/genetlink.h>
+ #include <net/sock.h>
+ #include <net/arp.h>
++#include <linux/if_vlan.h>
++#include <linux/if_pppox.h>
++#include <linux/netdevice.h>
+ 
+ #include <nss_api_if.h>
+ #include <nss_cmn.h>
+@@ -40,6 +44,8 @@
+ #include "nss_nludp_st_if.h"
+ #include "nss_nludp_st.h"
+ 
++#define NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED 0xFFF
++
+ /*
+  * prototypes
+  */
+@@ -196,7 +202,6 @@ static int nss_nludp_st_ops_start(struct
+ 	struct nss_ctx_instance *nss_ctx;
+ 	struct nss_udp_st_msg num;
+ 	struct sk_buff *resp;
+-	uint32_t pid;
+ 	nss_tx_status_t status;
+ 
+ 	/*
+@@ -208,7 +213,6 @@ static int nss_nludp_st_ops_start(struct
+ 		return -EINVAL;
+ 	}
+ 
+-	pid = nl_cm->pid;
+ 	/*
+ 	 * Message validation required before accepting the configuration
+ 	 */
+@@ -259,7 +263,6 @@ static int nss_nludp_st_ops_reset_stats(
+ 	struct nss_ctx_instance *nss_ctx;
+ 	struct nss_udp_st_msg num;
+ 	struct sk_buff *resp;
+-	uint32_t pid;
+ 	nss_tx_status_t status;
+ 
+ 	/*
+@@ -271,7 +274,6 @@ static int nss_nludp_st_ops_reset_stats(
+ 		return -EINVAL;
+ 	}
+ 
+-	pid = nl_cm->pid;
+ 	/*
+ 	 * Message validation required before accepting the configuration
+ 	 */
+@@ -320,7 +322,6 @@ static int nss_nludp_st_ops_tx_destroy(s
+ 	struct nss_ctx_instance *nss_ctx;
+ 	struct nss_udp_st_msg num;
+ 	struct sk_buff *resp;
+-	uint32_t pid;
+ 	nss_tx_status_t status;
+ 
+ 	/*
+@@ -332,7 +333,6 @@ static int nss_nludp_st_ops_tx_destroy(s
+ 		return -EINVAL;
+ 	}
+ 
+-	pid = nl_cm->pid;
+ 	/*
+ 	 * Message validation required before accepting the configuration
+ 	 */
+@@ -381,7 +381,6 @@ static int nss_nludp_st_ops_tx_create(st
+ 	struct nss_ctx_instance *nss_ctx;
+ 	struct nss_udp_st_msg num;
+ 	struct sk_buff *resp;
+-	uint32_t pid;
+ 	nss_tx_status_t status;
+ 
+ 	/*
+@@ -393,7 +392,6 @@ static int nss_nludp_st_ops_tx_create(st
+ 		return -EINVAL;
+ 	}
+ 
+-	pid = nl_cm->pid;
+ 	/*
+ 	 * Message validation required before accepting the configuration
+ 	 */
+@@ -571,6 +569,7 @@ static struct neighbour *nss_nludp_st_ge
+ 	rt = rt6_lookup(&init_net, &daddr, NULL, 0, NULL, 0);
+ #endif
+ 	if (!rt) {
++		nss_nl_warn("rt6 info lookup failed\n");
+ 		return NULL;
+ 	}
+ 
+@@ -587,21 +586,20 @@ static struct neighbour *nss_nludp_st_ge
+ 	}
+ 	dst_release(dst);
+ 
++	nss_nl_warn("dst neigh info lookup failed\n");
+ 	return NULL;
+ }
+ 
+ /*
+  * nss_nludp_st_get_addr_hton()
+- *	Convert the ipv6 address from host order to network order.
++ *	Convert the ipv6 address from NSS host order to Linux network order.
+  */
+ static inline void nss_nludp_st_get_addr_hton(uint32_t src[4], uint32_t dst[4])
+ {
+-	nss_nludp_st_swap_addr_ipv6(src, dst);
+-
+-	dst[0] = htonl(dst[0]);
+-	dst[1] = htonl(dst[1]);
+-	dst[2] = htonl(dst[2]);
+-	dst[3] = htonl(dst[3]);
++	dst[0] = htonl(src[0]);
++	dst[1] = htonl(src[1]);
++	dst[2] = htonl(src[2]);
++	dst[3] = htonl(src[3]);
+ }
+ 
+ /*
+@@ -731,6 +729,277 @@ static int nss_nludp_st_destroy_ipv4_rul
+ }
+ 
+ /*
++ * nss_nludp_st_vlan_next_dev_get_and_hold()
++ *	Gets and hold the next device of the VLAN.
++ *
++ * It should be a physical ethernet interface.
++ */
++static struct net_device *nss_nludp_st_vlan_next_dev_get_and_hold(struct net_device *dev)
++{
++	struct net_device *next_dev;
++
++	next_dev = vlan_dev_next_dev(dev);
++	if (!next_dev) {
++		nss_nl_warn("%px: VLAN device's (%s) next dev is NULL\n", dev, dev->name);
++		return NULL;
++	}
++
++	if (is_vlan_dev(next_dev) || next_dev->type != ARPHRD_ETHER) {
++		nss_nl_warn("%px: QinQ or non-ethernet VLAN master (%s) is not supported\n", dev, next_dev->name);
++		return NULL;
++	}
++	dev_hold(next_dev);
++	return next_dev;
++}
++
++/*
++ * nss_nludp_st_ipv4_rawip_iface_config()
++ *	Configure the WAN interface as RmNet for IPv4 protocol.
++ */
++static int nss_nludp_st_ipv4_rawip_iface_config(struct net_device *dev, struct nss_ipv4_rule_create_msg *nircm)
++{
++#ifdef NSS_NETLINK_UDP_ST_NO_RMNET_SUPPORT
++	nss_nl_warn("%px: RAWIP is disabled\n", dev);
++	return -EINVAL;
++#else
++	nircm->conn_rule.return_interface_num = nss_rmnet_rx_get_ifnum(dev);
++	memset(nircm->conn_rule.return_mac, 0, ETH_ALEN);
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++	nss_nl_info("%px: Speedtest RmNet WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++#endif
++}
++
++/*
++ * nss_nludp_st_ipv4_eth_iface_config()
++ *	Configure the WAN interface as Ethernet for IPv4 protocol.
++ */
++static int nss_nludp_st_ipv4_eth_iface_config(struct net_device *dev, struct nss_ipv4_rule_create_msg *nircm)
++{
++	if (nss_nludp_st_get_macaddr_ipv4(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
++		nss_nl_warn("%px: Error in updating the return MAC Address\n", dev);
++		return -EINVAL;
++	}
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(dev);
++	if (nircm->conn_rule.return_interface_num < 0) {
++		nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, dev->name);
++		return -EINVAL;
++	}
++	nss_nl_info("%px: Speedtest Ethernet WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++}
++
++/*
++ * nss_nludp_st_ipv4_set_vlan_tags()
++ *	Sets the VLAN tags for IPv4 protocol.
++ */
++static void nss_nludp_st_ipv4_set_vlan_tags(struct net_device *dev, struct nss_ipv4_rule_create_msg *nircm)
++{
++	/*
++	 * Get the primary VLAN info and set in the rule.
++	 */
++	uint16_t vlan_tag = vlan_dev_vlan_id(dev);
++	uint16_t vlan_tpid = ntohs(vlan_dev_vlan_proto(dev));
++
++	nircm->vlan_primary_rule.egress_vlan_tag = (vlan_tpid << 16) | vlan_tag;
++	nircm->vlan_primary_rule.ingress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++	nircm->vlan_secondary_rule.egress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++	nircm->vlan_secondary_rule.ingress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++}
++
++/*
++ * nss_nludp_st_ipv4_vlan_iface_config()
++ *	Configure the WAN interface as VLAN for IPv4 protocol.
++ */
++static int nss_nludp_st_ipv4_vlan_iface_config(struct net_device *dev, struct nss_ipv4_rule_create_msg *nircm)
++{
++	struct net_device *next_dev;
++	int ret;
++
++	next_dev = nss_nludp_st_vlan_next_dev_get_and_hold(dev);
++	if (!next_dev) {
++		nss_nl_warn("%px: Unable to get VLAN device's (%s) next dev\n", dev, dev->name);
++		return -ENODEV;
++	}
++
++	/*
++	 * Single VLAN, next_dev should be a physical device.
++	 * Copy the real device's number (eth0).
++	 */
++	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(next_dev);
++	if (nircm->conn_rule.return_interface_num < 0) {
++		nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, next_dev->name);
++		ret = -EINVAL;
++		goto fail;
++	}
++	dev_put(next_dev);
++
++	/*
++	 * Get the return IP address's MAC address.
++	 */
++	if (nss_nludp_st_get_macaddr_ipv4(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
++		nss_nl_warn("%px: Error in updating the return MAC Address\n", dev);
++		return -EINVAL;
++	}
++
++	/*
++	 * Get the primary VLAN info and set in the rule.
++	 */
++	nss_nludp_st_ipv4_set_vlan_tags(dev, nircm);
++	nircm->valid_flags |= NSS_IPV4_RULE_CREATE_VLAN_VALID;
++
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++
++	/*
++	 * Success. Fall through for release resources
++	 */
++	nss_nl_info("%px: Speedtest VLAN WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++fail:
++	dev_put(next_dev);
++	return ret;
++}
++
++#if defined(CONFIG_NSS_NLPPPOE) && CONFIG_NSS_NLPPPOE > 0
++/*
++ * nss_nludp_st_pppoe_get_chan_and_info()
++ *	Gets the PPPoE channel information.
++ */
++static inline bool nss_nludp_st_pppoe_get_chan_and_info(struct net_device *dev, struct ppp_channel **ppp_chan, struct pppoe_opt *info)
++{
++	int channel_count;
++	int channel_protocol;
++
++	channel_count = ppp_hold_channels(dev, ppp_chan, 1);
++	if (channel_count != 1) {
++		nss_nl_warn("%px: Unable to get the channel for device: %s\n", dev, dev->name);
++		return false;
++	}
++
++	channel_protocol = ppp_channel_get_protocol(ppp_chan[0]);
++	if (channel_protocol != PX_PROTO_OE) {
++		nss_nl_warn("%px: PPP channel protocol is not PPPoE for device: %s\n", dev, dev->name);
++		ppp_release_channels(ppp_chan, 1);
++		return false;
++	}
++
++	if (pppoe_channel_addressing_get(ppp_chan[0], info)) {
++		nss_nl_warn("%px: Unable to get the PPPoE session information for device: %s\n", dev, dev->name);
++		ppp_release_channels(ppp_chan, 1);
++		return false;
++	}
++
++	return true;
++}
++
++/*
++ * nss_nludp_st_ipv4_pppoe_iface_config()
++ *	Configure the WAN interface as PPPoE for IPv4 protocol.
++ */
++static int nss_nludp_st_ipv4_pppoe_iface_config(struct net_device *dev, struct nss_ipv4_rule_create_msg *nircm)
++{
++	struct pppoe_opt info;
++	struct ppp_channel *ppp_chan[1];
++	int ret = -EINVAL;
++
++	if (!nss_nludp_st_pppoe_get_chan_and_info(dev, ppp_chan, &info)) {
++		nss_nl_warn("%px: Unable to get PPPoE channel and info for device: %s\n", dev, dev->name);
++		return ret;
++	}
++
++	/*
++	 * Check if the next device is a VLAN (eth0-eth0.100-pppoe-wan
++	 */
++	if (is_vlan_dev(info.dev)) {
++		/*
++		 * Next device is a VLAN device (eth0.100).
++		 */
++		struct net_device *next_dev;
++
++		/*
++		 * Check if we have a single VLAN device.
++		 */
++		next_dev = nss_nludp_st_vlan_next_dev_get_and_hold(info.dev);
++		if (!next_dev) {
++			nss_nl_warn("%px: Unable to get PPPoE's VLAN device's (%s) next dev\n", dev, info.dev->name);
++			ret = -ENODEV;
++			goto fail;
++		}
++
++		/*
++		 * PPPoE + VLAN (eth0-eth0.100-pppoe-wan)
++		 * Copy the physical interface number (eth0)
++		 */
++		nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(next_dev);
++		if (nircm->conn_rule.return_interface_num < 0) {
++			nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, next_dev->name);
++			dev_put(next_dev);
++			goto fail;
++		}
++		dev_put(next_dev);
++
++		/*
++		 * Get the primary VLAN info and set in the rule.
++		 */
++		nss_nludp_st_ipv4_set_vlan_tags(info.dev, nircm);
++		nircm->valid_flags |= NSS_IPV4_RULE_CREATE_VLAN_VALID;
++	} else {
++		/*
++		 * PPPoE interface can be created on linux bridge, OVS bridge and LAG devices.
++		 * udp_st doesn't support these hierarchies.
++		 */
++		if ((info.dev->priv_flags & (IFF_EBRIDGE | IFF_OPENVSWITCH))
++				|| ((info.dev->flags & IFF_MASTER) && (info.dev->priv_flags & IFF_BONDING))) {
++			nss_nl_warn("%px: PPPoE over bridge and LAG interfaces are not supported, dev: %s info.dev: %s\n",
++					dev, dev->name, info.dev->name);
++			goto fail;
++		}
++
++		/*
++		 * PPPoE only (eth0-pppoe-wan)
++		 * Copy the physical interface number (eth0)
++		 */
++		nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(info.dev);
++		if (nircm->conn_rule.return_interface_num < 0) {
++			nss_nl_warn("%px: Unable to get the PPPoE's physical interface's (%s) NSS interface number\n",
++					dev, info.dev->name);
++			goto fail;
++		}
++	}
++
++	/*
++	 * For PPPoE connections, the other end's MAC address is PPPoE session's remote MAC address
++	 */
++	ether_addr_copy((uint8_t *)nircm->conn_rule.return_mac, info.pa.remote);
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, info.dev->dev_addr);
++
++	/*
++	 * Check if NSS has a valid dynamic interface number for PPPoE interface.
++	 * If there is not, NSS cannot handle PPPoE flows in fast path.
++	 */
++	nircm->pppoe_rule.return_if_num = nss_cmn_get_interface_number_by_dev(dev);
++	if (nircm->pppoe_rule.return_if_num < 0) {
++		nss_nl_warn("%px: Unable to get the PPPoE interfaces (%s) dynamic interface number\n", dev, dev->name);
++		goto fail;
++	}
++	nircm->pppoe_rule.return_if_exist = 1;
++	nircm->valid_flags |= NSS_IPV4_RULE_CREATE_PPPOE_VALID;
++
++	/*
++	 * Success. Fall through for release resources
++	 */
++	ret = 0;
++	nss_nl_info("%px: Speedtest PPPoE WAN interface %s is configured\n", dev, dev->name);
++fail:
++	dev_put(info.dev);
++	ppp_release_channels(ppp_chan, 1);
++	return ret;
++}
++#endif
++
++
++/*
+  * nss_nludp_st_create_ipv4_rule()
+  *	Create a nss entry to accelerate the given IPv4 connection
+  */
+@@ -742,7 +1011,9 @@ static int nss_nludp_st_create_ipv4_rule
+ 	struct net_device *net_dev;
+ 	struct nss_ipv4_nexthop *nexthop;
+ 	struct sk_buff *resp;
++	struct nss_ipv4_src_mac_rule *src_mac;
+ 	nss_tx_status_t status;
++	int ret = 0;
+ 
+ 	nss_ctx = nss_ipv4_get_mgr();
+ 	if (!nss_ctx) {
+@@ -801,8 +1072,6 @@ static int nss_nludp_st_create_ipv4_rule
+ 	 * Copy over the connection rules and set the CONN_VALID flag
+ 	 */
+ 	nircm->conn_rule.flow_interface_num = NSS_UDP_ST_INTERFACE;
+-	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(net_dev);
+-	memcpy(nircm->conn_rule.flow_mac, net_dev->dev_addr, 6);
+ 
+ 	/*
+ 	 * Set the MTU values of the flows.
+@@ -811,12 +1080,51 @@ static int nss_nludp_st_create_ipv4_rule
+ 	nircm->conn_rule.return_mtu = net_dev->mtu;
+ 
+ 	/*
+-	 * Update the return MAC address
+-	 */
+-	if (nss_nludp_st_get_macaddr_ipv4(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
+-		nss_nl_info("Error in Updating the Return MAC Address \n");
+-		dev_put(net_dev);
+-		return -EINVAL;
++	 * Supported WAN interface hierarchies:
++	 *
++	 * rmnet <-> DUT (5G interface)
++	 * eth0-eth0.100 <-> DUT  (single VLAN)
++	 * eth0-pppoe-wan <-> DUT ( PPPoE only)
++	 * eth0-eth0.100-pppoe-wan <-> DUT (PPPoE over VLAN)
++	 * eth0 <-> DUT (simple physical interface)
++	 */
++	switch (net_dev->type) {
++	case ARPHRD_RAWIP:
++		ret = nss_nludp_st_ipv4_rawip_iface_config(net_dev, nircm);
++		break;
++
++#if defined(CONFIG_NSS_NLPPPOE) && CONFIG_NSS_NLPPPOE > 0
++	case ARPHRD_PPP:
++		ret = nss_nludp_st_ipv4_pppoe_iface_config(net_dev, nircm);
++		break;
++#endif
++
++	case ARPHRD_ETHER:
++		/*
++		 * Bridge and LAG interfaces are not supported.
++		 */
++		if ((net_dev->priv_flags & (IFF_EBRIDGE | IFF_OPENVSWITCH))
++				|| ((net_dev->flags & IFF_MASTER) && (net_dev->priv_flags & IFF_BONDING))) {
++			nss_nl_warn("%px: Bridge and LAG interfaces are not supported, dev: %s\n", skb, net_dev->name);
++			ret = -EINVAL;
++			break;
++		}
++
++		if (is_vlan_dev(net_dev)) {
++			ret = nss_nludp_st_ipv4_vlan_iface_config(net_dev, nircm);
++		} else {
++			ret = nss_nludp_st_ipv4_eth_iface_config(net_dev, nircm);
++		}
++		break;
++	default:
++		nss_nl_warn("%px: unsupported speedtest interface: %s\n", skb, net_dev->name);
++		ret = -EINVAL;
++		break;
++	}
++
++
++	if (ret < 0) {
++		goto done;
+ 	}
+ 
+ 	nircm->valid_flags |= NSS_IPV4_RULE_CREATE_CONN_VALID;
+@@ -825,15 +1133,27 @@ static int nss_nludp_st_create_ipv4_rule
+ 	nexthop->flow_nexthop = nircm->conn_rule.flow_interface_num;
+ 	nexthop->return_nexthop = nircm->conn_rule.return_interface_num;
+ 
+-	nss_nl_info("flow_nexthop:%d return_nexthop:%d\n", nexthop->flow_nexthop, nexthop->return_nexthop);
++	nss_nl_info("%px: flow_nexthop:%d return_nexthop:%d\n", skb, nexthop->flow_nexthop, nexthop->return_nexthop);
++
++	/*
++	 * We want acceleration engine to choose the source MAC address which we
++	 * have given to it instead of using the underlying physical interface's MAC address.
++	 */
++	src_mac = &nircm->src_mac_rule;
++
++	memcpy(src_mac->flow_src_mac, nircm->conn_rule.return_mac, ETH_ALEN);
++	memcpy(src_mac->return_src_mac, nircm->conn_rule.flow_mac, ETH_ALEN);
++
++	nircm->valid_flags |= NSS_IPV4_RULE_CREATE_SRC_MAC_VALID;
++	src_mac->mac_valid_flags |= (NSS_IPV4_SRC_MAC_FLOW_VALID | NSS_IPV4_SRC_MAC_RETURN_VALID);
+ 
+ 	status = nss_ipv4_tx(nss_ctx, &nim);
+ 	if (status != NSS_TX_SUCCESS) {
+-		nss_nl_info("%px: Create IPv4 message failed %d\n", nss_ctx, status);
++		nss_nl_info("%px: Create IPv4 message failed %d\n", skb, status);
+ 	}
+-
++done:
+ 	dev_put(net_dev);
+-	return 0;
++	return ret;
+ }
+ 
+ /*
+@@ -868,7 +1188,7 @@ static int nss_nludp_st_destroy_ipv6_rul
+ 	}
+ 
+ 	memset(&nim, 0, sizeof(struct nss_ipv6_msg));
+-        nss_ipv6_msg_init(&nim,
++	nss_ipv6_msg_init(&nim,
+ 			NSS_IPV6_RX_INTERFACE,
+ 			NSS_IPV6_TX_DESTROY_RULE_MSG,
+ 			sizeof(struct nss_ipv6_rule_destroy_msg),
+@@ -896,6 +1216,221 @@ static int nss_nludp_st_destroy_ipv6_rul
+ }
+ 
+ /*
++ * nss_nludp_st_ipv6_rawip_iface_config()
++ *	Configure the WAN interface as RmNet for IPv6 protocol.
++ */
++static int nss_nludp_st_ipv6_rawip_iface_config(struct net_device *dev, struct nss_ipv6_rule_create_msg *nircm)
++{
++#ifdef NSS_NETLINK_UDP_ST_NO_RMNET_SUPPORT
++	nss_nl_warn("%px: RAWIP is disabled\n", dev);
++	return -EINVAL;
++#else
++	nircm->conn_rule.return_interface_num = nss_rmnet_rx_get_ifnum(dev);
++	memset(nircm->conn_rule.return_mac, 0, ETH_ALEN);
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++	nss_nl_info("%px: Speedtest RmNet WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++#endif
++}
++
++/*
++ * nss_nludp_st_ipv6_eth_iface_config()
++ *	Configure the WAN interface as Ethernet for IPv6 protocol.
++ */
++static int nss_nludp_st_ipv6_eth_iface_config(struct net_device *dev, struct nss_ipv6_rule_create_msg *nircm)
++{
++	if (nss_nludp_st_get_macaddr_ipv6(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
++		nss_nl_warn("%px: Error in updating the return MAC Address\n", dev);
++		return -EINVAL;
++	}
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(dev);
++	if (nircm->conn_rule.return_interface_num < 0) {
++		nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, dev->name);
++		return -EINVAL;
++	}
++	nss_nl_info("%px: Speedtest Ethernet WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++}
++
++/*
++ * nss_nludp_st_ipv6_set_vlan_tags()
++ *	Sets the VLAN tags for IPv6 protocol.
++ */
++static void nss_nludp_st_ipv6_set_vlan_tags(struct net_device *dev, struct nss_ipv6_rule_create_msg *nircm)
++{
++	/*
++	 * Get the primary VLAN info and set in the rule.
++	 */
++	uint16_t vlan_tag = vlan_dev_vlan_id(dev);
++	uint16_t vlan_tpid = ntohs(vlan_dev_vlan_proto(dev));
++
++	nircm->vlan_primary_rule.egress_vlan_tag = (vlan_tpid << 16) | vlan_tag;
++	nircm->vlan_primary_rule.ingress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++	nircm->vlan_secondary_rule.egress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++	nircm->vlan_secondary_rule.ingress_vlan_tag = NSS_NLUDP_ST_VLAN_ID_NOT_CONFIGURED;
++}
++
++/*
++ * nss_nludp_st_ipv6_vlan_iface_config()
++ *	Configure the WAN interface as VLAN for IPv6 protocol.
++ */
++static int nss_nludp_st_ipv6_vlan_iface_config(struct net_device *dev, struct nss_ipv6_rule_create_msg *nircm)
++{
++	struct net_device *next_dev;
++	int ret;
++
++	next_dev = nss_nludp_st_vlan_next_dev_get_and_hold(dev);
++	if (!next_dev) {
++		nss_nl_warn("%px: Unable to get VLAN device's (%s) next dev\n", dev, dev->name);
++		return -ENODEV;
++	}
++
++	/*
++	 * Single VLAN, next_dev should be a physical device.
++	 * Copy the real device's number (eth0).
++	 */
++	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(next_dev);
++	if (nircm->conn_rule.return_interface_num < 0) {
++		nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, next_dev->name);
++		ret = -EINVAL;
++		goto fail;
++	}
++	dev_put(next_dev);
++
++	/*
++	 * Get the return IP address's MAC address.
++	 */
++	if (nss_nludp_st_get_macaddr_ipv6(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
++		nss_nl_warn("%px: Error in updating the return MAC Address\n", dev);
++		return -EINVAL;
++	}
++
++	/*
++	 * Get the primary VLAN info and set in the rule.
++	 */
++	nss_nludp_st_ipv6_set_vlan_tags(dev, nircm);
++	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_VLAN_VALID;
++
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, dev->dev_addr);
++
++	/*
++	 * Success. Fall through for release resources
++	 */
++	nss_nl_info("%px: Speedtest VLAN WAN interface %s is configured\n", dev, dev->name);
++	return 0;
++fail:
++	dev_put(next_dev);
++	return ret;
++}
++
++#if defined(CONFIG_NSS_NLPPPOE) && CONFIG_NSS_NLPPPOE > 0
++/*
++ * nss_nludp_st_ipv6_pppoe_iface_config()
++ *	Configure the WAN interface as PPPoE for IPv6 protocol.
++ */
++static int nss_nludp_st_ipv6_pppoe_iface_config(struct net_device *dev, struct nss_ipv6_rule_create_msg *nircm)
++{
++	struct pppoe_opt info;
++	struct ppp_channel *ppp_chan[1];
++	int ret = -EINVAL;
++
++	if (!nss_nludp_st_pppoe_get_chan_and_info(dev, ppp_chan, &info)) {
++		nss_nl_warn("%px: Unable to get PPPoE channel and info for device: %s\n", dev, dev->name);
++		return ret;
++	}
++
++	/*
++	 * Check if the next device is a VLAN (eth0-eth0.100-pppoe-wan
++	 */
++	if (is_vlan_dev(info.dev)) {
++		/*
++		 * Next device is a VLAN device (eth0.100).
++		 */
++		struct net_device *next_dev;
++
++		/*
++		 * Check if we have a single VLAN device.
++		 */
++		next_dev = nss_nludp_st_vlan_next_dev_get_and_hold(info.dev);
++		if (!next_dev) {
++			nss_nl_warn("%px: Unable to get PPPoE's VLAN device's (%s) next dev\n", dev, info.dev->name);
++			ret = -ENODEV;
++			goto fail;
++		}
++
++		/*
++		 * PPPoE + VLAN (eth0-eth0.100-pppoe-wan)
++		 * Copy the physical interface number (eth0)
++		 */
++		nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(next_dev);
++		if (nircm->conn_rule.return_interface_num < 0) {
++			nss_nl_warn("%px: Unable to get the NSS interface number of %s\n", dev, next_dev->name);
++			dev_put(next_dev);
++			goto fail;
++		}
++		dev_put(next_dev);
++
++		/*
++		 * Get the primary VLAN info and set in the rule.
++		 */
++		nss_nludp_st_ipv6_set_vlan_tags(info.dev, nircm);
++		nircm->valid_flags |= NSS_IPV4_RULE_CREATE_VLAN_VALID;
++	} else {
++		/*
++		 * PPPoE interface can be created on linux bridge, OVS bridge and LAG devices.
++		 * udp_st doesn't support these hierarchies.
++		 */
++		if ((info.dev->priv_flags & (IFF_EBRIDGE | IFF_OPENVSWITCH))
++				|| ((info.dev->flags & IFF_MASTER) && (info.dev->priv_flags & IFF_BONDING))) {
++			nss_nl_warn("%px: PPPoE over bridge and LAG interfaces are not supported, dev: %s info.dev: %s\n",
++					dev, dev->name, info.dev->name);
++			goto fail;
++		}
++
++		/*
++		 * PPPoE only (eth0-pppoe-wan)
++		 * Copy the physical interface number (eth0)
++		 */
++		nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(info.dev);
++		if (nircm->conn_rule.return_interface_num < 0) {
++			nss_nl_warn("%px: Unable to get the PPPoE's physical interface's (%s) NSS interface number\n",
++					dev, info.dev->name);
++			goto fail;
++		}
++	}
++
++	/*
++	 * For PPPoE connections, the other end's MAC address is PPPoE session's remote MAC address
++	 */
++	ether_addr_copy((uint8_t *)nircm->conn_rule.return_mac, info.pa.remote);
++	ether_addr_copy((uint8_t *)nircm->conn_rule.flow_mac, info.dev->dev_addr);
++
++	/*
++	 * Check if NSS has a valid dynamic interface number for PPPoE interface.
++	 * If there is not, NSS cannot handle PPPoE flows in fast path.
++	 */
++	nircm->pppoe_rule.return_if_num = nss_cmn_get_interface_number_by_dev(dev);
++	if (nircm->pppoe_rule.return_if_num < 0) {
++		nss_nl_warn("%px: Unable to get the PPPoE interfaces (%s) dynamic interface number\n", dev, dev->name);
++		goto fail;
++	}
++	nircm->pppoe_rule.return_if_exist = 1;
++	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_PPPOE_VALID;
++
++	/*
++	 * Success. Fall through for release resources
++	 */
++	ret = 0;
++	nss_nl_info("%px: Speedtest PPPoE WAN interface %s is configured\n", dev, dev->name);
++fail:
++	dev_put(info.dev);
++	ppp_release_channels(ppp_chan, 1);
++	return ret;
++}
++#endif
++
++/*
+  * nss_nludp_st_create_ipv6_rule()
+  *	Create a nss entry to accelerate the given IPV6 connection
+  */
+@@ -907,7 +1442,9 @@ static int nss_nludp_st_create_ipv6_rule
+ 	struct net_device *net_dev;
+ 	struct nss_ipv6_nexthop *nexthop;
+ 	struct sk_buff *resp;
++	struct nss_ipv6_src_mac_rule *src_mac;
+ 	nss_tx_status_t status;
++	int ret = 0;
+ 
+ 	nss_ctx = nss_ipv6_get_mgr();
+ 	if (!nss_ctx) {
+@@ -962,16 +1499,59 @@ static int nss_nludp_st_create_ipv6_rule
+ 	 * Copy over the connection rules and set CONN_VALID flag
+ 	 */
+ 	nircm->conn_rule.flow_interface_num = NSS_UDP_ST_INTERFACE;
+-	nircm->conn_rule.return_interface_num = nss_cmn_get_interface_number_by_dev(net_dev);
+-	memcpy(nircm->conn_rule.flow_mac, net_dev->dev_addr, 6);
+ 
+ 	/*
+-	 * Update the return MAC address
++	 * Set the MTU values of the flows.
+ 	 */
+-	if (nss_nludp_st_get_macaddr_ipv6(nircm->tuple.return_ip, (uint8_t *)&nircm->conn_rule.return_mac)) {
+-		nss_nl_info("Error in Updating the Return MAC Address \n");
+-		dev_put(net_dev);
+-		return -EINVAL;
++	nircm->conn_rule.flow_mtu = NSS_NLUDP_ST_MAX_MTU;
++	nircm->conn_rule.return_mtu = net_dev->mtu;
++
++	/*
++	 * Supported WAN interface hierarchies:
++	 *
++	 * rmnet <-> DUT (5G interface)
++	 * eth0-eth0.100 <-> DUT  (single VLAN)
++	 * eth0-pppoe-wan <-> DUT ( PPPoE only)
++	 * eth0-eth0.100-pppoe-wan <-> DUT (PPPoE over VLAN)
++	 * eth0 <-> DUT (simple physical interface)
++	 */
++	switch (net_dev->type) {
++	case ARPHRD_RAWIP:
++		ret = nss_nludp_st_ipv6_rawip_iface_config(net_dev, nircm);
++		break;
++
++#if defined(CONFIG_NSS_NLPPPOE) && CONFIG_NSS_NLPPPOE > 0
++	case ARPHRD_PPP:
++		ret = nss_nludp_st_ipv6_pppoe_iface_config(net_dev, nircm);
++		break;
++#endif
++
++	case ARPHRD_ETHER:
++		/*
++		 * Bridge and LAG interfaces are not supported.
++		 */
++		if ((net_dev->priv_flags & (IFF_EBRIDGE | IFF_OPENVSWITCH))
++				|| ((net_dev->flags & IFF_MASTER) && (net_dev->priv_flags & IFF_BONDING))) {
++			nss_nl_warn("%px: Bridge and LAG interfaces are not supported, dev: %s\n", skb, net_dev->name);
++			ret = -EINVAL;
++			break;
++		}
++
++		if (is_vlan_dev(net_dev)) {
++			ret = nss_nludp_st_ipv6_vlan_iface_config(net_dev, nircm);
++		} else {
++			ret = nss_nludp_st_ipv6_eth_iface_config(net_dev, nircm);
++		}
++		break;
++
++	default:
++		nss_nl_warn("%px: unsupported speedtest interface: %s\n", skb, net_dev->name);
++		ret = -EINVAL;
++		break;
++	}
++
++	if (ret < 0) {
++		goto done;
+ 	}
+ 
+ 	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_CONN_VALID;
+@@ -982,14 +1562,25 @@ static int nss_nludp_st_create_ipv6_rule
+ 
+ 	nss_nl_info("flow_nexthop:%d return_nexthop:%d\n", nexthop->flow_nexthop, nexthop->return_nexthop);
+ 
++	/*
++	 * We want acceleration engine to choose the source MAC address which we
++	 * have given to it instead of using the underlying physical interface's MAC address.
++	 */
++	src_mac = &nircm->src_mac_rule;
++
++	memcpy(src_mac->flow_src_mac, nircm->conn_rule.return_mac, ETH_ALEN);
++	memcpy(src_mac->return_src_mac, nircm->conn_rule.flow_mac, ETH_ALEN);
++
++	nircm->valid_flags |= NSS_IPV6_RULE_CREATE_SRC_MAC_VALID;
++	src_mac->mac_valid_flags |= (NSS_IPV6_SRC_MAC_FLOW_VALID | NSS_IPV6_SRC_MAC_RETURN_VALID);
++
+ 	status = nss_ipv6_tx(nss_ctx, &nim);
+ 	if (status != NSS_TX_SUCCESS) {
+ 		nss_nl_info("%px: Create IPv6 message failed %d\n", nss_ctx, status);
+-		return -EPERM;
+ 	}
+-
++done:
+ 	dev_put(net_dev);
+-	return 0;
++	return ret;
+ }
+ 
+ /*
+@@ -1089,6 +1680,7 @@ static int nss_nludp_st_ops_uncfg_rule(s
+ {
+ 	struct nss_nludp_st_rule *nl_rule;
+ 	struct nss_nlcmn *nl_cm;
++	struct nss_udp_st_cfg *uncfg;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -1104,6 +1696,15 @@ static int nss_nludp_st_ops_uncfg_rule(s
+ 	 * Message validation required before accepting the configuration
+ 	 */
+ 	nl_rule = container_of(nl_cm, struct nss_nludp_st_rule, cm);
++	uncfg = &nl_rule->num.msg.uncfg;
++
++	/*
++	 * Convert the ipv6 address to NSS foramt.
++	 */
++	if (uncfg->ip_version == NSS_UDP_ST_FLAG_IPV6) {
++		nss_nludp_st_swap_addr_ipv6(uncfg->src_ip.ip.ipv6, uncfg->src_ip.ip.ipv6);
++		nss_nludp_st_swap_addr_ipv6(uncfg->dest_ip.ip.ipv6, uncfg->dest_ip.ip.ipv6);
++	}
+ 
+ 	/*
+ 	 * Unconfigure udp_st only for the transmit node.
+@@ -1118,13 +1719,13 @@ static int nss_nludp_st_ops_uncfg_rule(s
+ 	/*
+ 	 * Destroy rule based on ip version
+ 	 */
+-	if (nl_rule->num.msg.uncfg.ip_version == NSS_UDP_ST_FLAG_IPV4) {
++	if (uncfg->ip_version == NSS_UDP_ST_FLAG_IPV4) {
+ 		ret = nss_nludp_st_destroy_ipv4_rule(skb, nl_rule);
+-	} else if (nl_rule->num.msg.uncfg.ip_version == NSS_UDP_ST_FLAG_IPV6) {
++	} else if (uncfg->ip_version == NSS_UDP_ST_FLAG_IPV6) {
+ 		ret = nss_nludp_st_destroy_ipv6_rule(skb, nl_rule);
+ 	} else {
+ 		goto fail;
+-        }
++	}
+ 
+ 	if (ret < 0) {
+ 		nss_nl_error("%px: Unable to delete a rule entry for ipv%d.\n", skb, nl_rule->num.msg.uncfg.ip_version);
+@@ -1150,6 +1751,7 @@ static int nss_nludp_st_ops_cfg_rule(str
+ {
+ 	struct nss_nludp_st_rule *nl_rule;
+ 	struct nss_nlcmn *nl_cm;
++	struct nss_udp_st_cfg *cfg;
+ 	int ret = 0;
+ 
+ 	/*
+@@ -1165,6 +1767,15 @@ static int nss_nludp_st_ops_cfg_rule(str
+ 	 * Message validation required before accepting the configuration
+ 	 */
+ 	nl_rule = container_of(nl_cm, struct nss_nludp_st_rule, cm);
++	cfg = &nl_rule->num.msg.cfg;
++
++	/*
++	 * Convert the ipv6 address to NSS foramt.
++	 */
++	if (cfg->ip_version == NSS_UDP_ST_FLAG_IPV6) {
++		nss_nludp_st_swap_addr_ipv6(cfg->src_ip.ip.ipv6, cfg->src_ip.ip.ipv6);
++		nss_nludp_st_swap_addr_ipv6(cfg->dest_ip.ip.ipv6, cfg->dest_ip.ip.ipv6);
++	}
+ 
+ 	/*
+ 	 * Configures udp_st only for the transmit node.
+@@ -1179,9 +1790,9 @@ static int nss_nludp_st_ops_cfg_rule(str
+ 	/*
+ 	 * Create rule based on ip version
+ 	 */
+-	if (nl_rule->num.msg.cfg.ip_version == NSS_UDP_ST_FLAG_IPV4) {
++	if (cfg->ip_version == NSS_UDP_ST_FLAG_IPV4) {
+ 		ret = nss_nludp_st_create_ipv4_rule(skb, nl_rule);
+-	} else if (nl_rule->num.msg.cfg.ip_version == NSS_UDP_ST_FLAG_IPV6) {
++	} else if (cfg->ip_version == NSS_UDP_ST_FLAG_IPV6) {
+ 		ret = nss_nludp_st_create_ipv6_rule(skb, nl_rule);
+ 	} else {
+ 		goto fail;

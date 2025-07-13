@@ -39,7 +39,7 @@
  static int max_ipv4_conn = NSS_DEFAULT_NUM_CONN;
 --- a/Makefile
 +++ b/Makefile
-@@ -630,6 +632,8 @@ qca-nss-drv-objs += \
+@@ -630,6 +630,8 @@ qca-nss-drv-objs += \
  ccflags-y += -DNSS_FREQ_SCALE_SUPPORT=1
  endif
  

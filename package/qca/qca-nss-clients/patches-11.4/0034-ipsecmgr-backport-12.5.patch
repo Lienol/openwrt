@@ -1,0 +1,540 @@
+--- a/ipsecmgr/v2.0/plugins/klips/nss_ipsec_klips.c
++++ b/ipsecmgr/v2.0/plugins/klips/nss_ipsec_klips.c
+@@ -142,7 +142,6 @@ static int nss_ipsec_klips_offload_esp(s
+ static struct net_protocol esp_protocol = {
+ 	.handler = nss_ipsec_klips_offload_esp,
+ 	.no_policy = 1,
+-	.netns_ok  = 1,
+ };
+ 
+ /*
+@@ -300,7 +299,7 @@ static struct nss_ipsec_klips_tun *nss_i
+ 	 * Read/write lock needs to taken by the caller since sa
+ 	 * table is looked up here
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	if (!klips_dev) {
+ 		return NULL;
+@@ -383,7 +382,7 @@ static struct nss_ipsec_klips_tun *nss_i
+ 	 * Read/write lock needs to be taken by the caller since tunnel
+ 	 * table is looked up here
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	for (i = 0, tun = tunnel_map.tbl; i < tunnel_map.max; i++, tun++) {
+ 		if (!tun->klips_dev) {
+@@ -434,7 +433,7 @@ static struct nss_ipsec_klips_sa *nss_ip
+ 	 * Read/write lock needs to taken by the caller since sa
+ 	 * table is looked up here
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	list_for_each_entry_safe(sa, tmp, head, list) {
+ 		if (sa->sid == crypto_idx)
+@@ -458,7 +457,7 @@ static void nss_ipsec_klips_sa_flush(str
+ 	 * Read/write lock needs to taken by the caller since sa
+ 	 * table is modified here
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	list_for_each_entry_safe(sa, tmp, head, list) {
+ 		list_del_init(&sa->list);
+@@ -1220,7 +1219,7 @@ static void nss_ipsec_klips_register_nat
+ 	/*
+ 	 * write lock is needed as we are modifying tunnel entry.
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	sock_hold(sk);
+ 	tun->sk_encap_rcv = udp_sk(sk)->encap_rcv;
+@@ -1237,7 +1236,7 @@ static void nss_ipsec_klips_unregister_n
+ 	/*
+ 	 * write lock is needed as we are modifying tunnel entry.
+ 	 */
+-	BUG_ON(write_can_lock(&tunnel_map.lock));
++	lockdep_assert_held_write(&tunnel_map.lock);
+ 
+ 	xchg(&udp_sk(tun->sk)->encap_rcv, tun->sk_encap_rcv);
+ 	sock_put(tun->sk);
+--- a/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm.c
++++ b/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm.c
+@@ -1,5 +1,6 @@
+ /* Copyright (c) 2021, The Linux Foundation. All rights reserved.
+  *
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+  * copyright notice and this permission notice appear in all copies.
+@@ -254,7 +255,7 @@ static void nss_ipsec_xfrm_flush_flow_by
+ 
+ 	for (count = NSS_IPSEC_XFRM_FLOW_DB_MAX; count--; db_head++) {
+ 		list_for_each_entry_safe(flow, tmp, db_head, list_entry) {
+-			if (flow->sa == sa) {
++			if (READ_ONCE(flow->sa) == sa) {
+ 				list_del_init(&flow->list_entry);
+ 				list_add(&flow->list_entry, &free_head);
+ 			}
+@@ -1222,6 +1223,7 @@ drop:
+ 	return -EINVAL;
+ }
+ 
++#if (LINUX_VERSION_CODE <= KERNEL_VERSION(5, 4, 0))
+ /*
+  * nss_ipsec_xfrm_v4_output_finish()
+  *	This is called for non-offloaded transformations after the NF_POST routing hooks
+@@ -1243,9 +1245,8 @@ static int nss_ipsec_xfrm_v4_output_fini
+  */
+ static int nss_ipsec_xfrm_v4_extract_input(struct xfrm_state *x, struct sk_buff *skb)
+ {
+-	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+-
+ 	nss_ipsec_xfrm_trace("%px: Redirect to native xfrm stack\n", skb);
++	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 	return drv->xsa.v4->extract_input(x, skb);
+ }
+ 
+@@ -1257,11 +1258,12 @@ static int nss_ipsec_xfrm_v4_extract_inp
+  */
+ static int nss_ipsec_xfrm_v4_extract_output(struct xfrm_state *x, struct sk_buff *skb)
+ {
+-	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 
+ 	nss_ipsec_xfrm_trace("%px: Redirect to native xfrm stack\n", skb);
++	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 	return drv->xsa.v4->extract_output(x, skb);
+ }
++#endif
+ 
+ /*
+  * nss_ipsec_xfrm_v4_transport_finish()
+@@ -1360,14 +1362,14 @@ fallback:
+  * nss_ipsec_xfrm_esp_init_state()
+  * 	Initialize IPsec xfrm state of type ESP.
+  */
+-static int nss_ipsec_xfrm_esp_init_state(struct xfrm_state *x)
++static int nss_ipsec_xfrm_esp_init_state(struct xfrm_state *x, struct netlink_ext_ack *extac)
+ {
+ 	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 	struct nss_ipsec_xfrm_tunnel *tun = NULL;
+ 	struct nss_ipsec_xfrm_sa *sa = NULL;
+ 	xfrm_address_t remote = {0};
+ 	xfrm_address_t local = {0};
+-	struct net_device *local_dev;
++	struct net_device *local_dev = NULL;
+ 	bool new_tun = 0;
+ 	size_t ip_addr_len;
+ 
+@@ -1375,7 +1377,7 @@ static int nss_ipsec_xfrm_esp_init_state
+ 		local_dev = ip_dev_find(&init_net, x->id.daddr.a4);
+ 		ip_addr_len = sizeof(local.a4);
+ 	} else {
+-		local_dev = ipv6_dev_find(&init_net, &x->id.daddr.in6, 1);
++		local_dev = ipv6_dev_find(&init_net, &x->id.daddr.in6, local_dev);
+ 		ip_addr_len = sizeof(local.a6);
+ 	}
+ 
+@@ -1716,6 +1718,7 @@ drop:
+ 	return -EINVAL;
+ }
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ /*
+  * nss_ipsec_xfrm_v6_output_finish()
+  *	This is called for non-offloaded transformations after the NF_POST routing hooks
+@@ -1737,9 +1740,9 @@ static int nss_ipsec_xfrm_v6_output_fini
+  */
+ static int nss_ipsec_xfrm_v6_extract_input(struct xfrm_state *x, struct sk_buff *skb)
+ {
+-	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 
+ 	nss_ipsec_xfrm_trace("%px: Redirect to native xfrm stack\n", skb);
++	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 	return drv->xsa.v6->extract_input(x, skb);
+ }
+ 
+@@ -1751,11 +1754,11 @@ static int nss_ipsec_xfrm_v6_extract_inp
+  */
+ static int nss_ipsec_xfrm_v6_extract_output(struct xfrm_state *x, struct sk_buff *skb)
+ {
+-	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+-
+ 	nss_ipsec_xfrm_trace("%px: Redirect to native xfrm stack\n", skb);
++	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 	return drv->xsa.v6->extract_output(x, skb);
+ }
++#endif
+ 
+ /*
+  * nss_ipsec_xfrm_v6_transport_finish()
+@@ -1783,22 +1786,25 @@ void nss_ipsec_xfrm_v6_local_error(struc
+ 	return drv->xsa.v6->local_error(skb, mtu);
+ }
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ /*
+  * nss_ipsec_xfrm_v6_esp_hdr_offset()
+  * 	Invoked by stack for IPv6 transport mode in encap.
+  * 	Redirect to the native version.
+  */
+-static  int nss_ipsec_xfrm_v6_esp_hdr_offset(struct xfrm_state *x, struct sk_buff *skb, u8 **prevhdr)
++static int nss_ipsec_xfrm_v6_esp_hdr_offset(struct xfrm_state *x, struct sk_buff *skb, u8 **prevhdr)
+ {
+-	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
+ 
+ 	nss_ipsec_xfrm_trace("%px: Redirect to native esp6 stack\n", skb);
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
+-	return drv->xsa.v6->type_map[IPPROTO_ESP]->hdr_offset(x, skb, prevhdr);
+-#else
+-	return drv->xsa.v6->type_esp->hdr_offset(x, skb, prevhdr);
+-#endif
++
++	struct nss_ipsec_xfrm_drv *drv = &g_ipsec_xfrm;
++	#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
++		return drv->xsa.v6->type_map[IPPROTO_ESP]->hdr_offset(x, skb, prevhdr);
++	#else
++		return drv->xsa.v6->type_esp->hdr_offset(x, skb, prevhdr);
++	#endif
+ }
++#endif
+ 
+ /*
+  * nss_ipsec_xfrm_esp6_rcv()
+@@ -1949,7 +1955,6 @@ static void nss_ipsec_xfrm_state_delete(
+ 		nss_ipsec_xfrm_del_tun(drv, tun);
+ 	}
+ 
+-	return;
+ }
+ 
+ /*
+@@ -2018,9 +2023,11 @@ static struct xfrm_state_afinfo xfrm_v4_
+ 	.init_temprop = nss_ipsec_xfrm_v4_init_param,
+ #endif
+ 	.output = nss_ipsec_xfrm_v4_output,
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ 	.output_finish = nss_ipsec_xfrm_v4_output_finish,
+ 	.extract_input = nss_ipsec_xfrm_v4_extract_input,
+ 	.extract_output = nss_ipsec_xfrm_v4_extract_output,
++#endif
+ 	.transport_finish = nss_ipsec_xfrm_v4_transport_finish,
+ 	.local_error = nss_ipsec_xfrm_v4_local_error,
+ };
+@@ -2065,7 +2072,6 @@ struct xfrm_mode xfrm_v6_mode_map[XFRM_M
+  * IPv4 xfrm_type ESP object.
+  */
+ static const struct xfrm_type xfrm_v4_type = {
+-	.description = "NSS ESP4",
+ 	.owner = THIS_MODULE,
+ 	.proto = IPPROTO_ESP,
+ 	.flags = XFRM_TYPE_REPLAY_PROT,
+@@ -2101,9 +2107,11 @@ static struct xfrm_state_afinfo xfrm_v6_
+ 	.state_sort = nss_ipsec_xfrm_v6_sort_state,
+ #endif
+ 	.output = nss_ipsec_xfrm_v6_output,
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ 	.output_finish = nss_ipsec_xfrm_v6_output_finish,
+ 	.extract_input = nss_ipsec_xfrm_v6_extract_input,
+ 	.extract_output = nss_ipsec_xfrm_v6_extract_output,
++#endif
+ 	.transport_finish = nss_ipsec_xfrm_v6_transport_finish,
+ 	.local_error = nss_ipsec_xfrm_v6_local_error,
+ };
+@@ -2112,7 +2120,6 @@ static struct xfrm_state_afinfo xfrm_v6_
+  * IPv6 xfrm_type ESP object.
+  */
+ static const struct xfrm_type xfrm_v6_type = {
+-	.description = "NSS ESP6",
+ 	.owner = THIS_MODULE,
+ 	.proto = IPPROTO_ESP,
+ 	.flags = XFRM_TYPE_REPLAY_PROT,
+@@ -2121,7 +2128,9 @@ static const struct xfrm_type xfrm_v6_ty
+ 	.get_mtu = nss_ipsec_xfrm_esp_get_mtu,
+ 	.input = nss_ipsec_xfrm_esp_input,
+ 	.output = nss_ipsec_xfrm_esp_output,
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ 	.hdr_offset = nss_ipsec_xfrm_v6_esp_hdr_offset,
++#endif
+ };
+ 
+ /*
+@@ -2207,7 +2216,6 @@ static void nss_ipsec_xfrm_restore_afinf
+ 	}
+ 
+ 	xfrm_unregister_type(base, family);
+-
+ 	xfrm_state_update_afinfo(family, afinfo);
+ }
+ 
+@@ -2292,14 +2300,10 @@ static void nss_ipsec_xfrm_override_afin
+  */
+ int __init nss_ipsec_xfrm_init_module(void)
+ {
+-
+ 	rwlock_init(&g_ipsec_xfrm.lock);
+-
+ 	nss_ipsec_xfrm_init_tun_db(&g_ipsec_xfrm);
+ 	nss_ipsec_xfrm_init_flow_db(&g_ipsec_xfrm);
+-
+ 	init_completion(&g_ipsec_xfrm.complete);
+-
+ 	net_get_random_once(&g_ipsec_xfrm.hash_nonce, sizeof(g_ipsec_xfrm.hash_nonce));
+ 
+ 	/*
+@@ -2327,7 +2331,6 @@ int __init nss_ipsec_xfrm_init_module(vo
+ 	nss_ipsec_xfrm_override_afinfo(&g_ipsec_xfrm, AF_INET6);
+ 
+ 	ecm_interface_ipsec_register_callbacks(&xfrm_ecm_ipsec_cb);
+-	ecm_notifier_register_connection_notify(&xfrm_ecm_notifier);
+ 
+ #if defined(NSS_L2TPV2_ENABLED)
+ 	l2tpmgr_register_ipsecmgr_callback_by_ipaddr(&xfrm_l2tp);
+@@ -2336,6 +2339,7 @@ int __init nss_ipsec_xfrm_init_module(vo
+ 	/*
+ 	 * Register for xfrm events
+ 	 */
++	ecm_notifier_register_connection_notify(&xfrm_ecm_notifier);
+ 	xfrm_register_km(&nss_ipsec_xfrm_mgr);
+ 
+ 	/*
+@@ -2346,6 +2350,7 @@ int __init nss_ipsec_xfrm_init_module(vo
+ 	return 0;
+ 
+ unreg_v4_handler:
++	xfrm4_protocol_deregister(&xfrm4_proto, IPPROTO_ESP);
+ 	xfrm6_protocol_deregister(&xfrm6_proto, IPPROTO_ESP);
+ 	return -EAGAIN;
+ }
+--- a/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_sa.c
++++ b/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_sa.c
+@@ -55,13 +55,15 @@ struct nss_ipsec_xfrm_algo {
+ static struct nss_ipsec_xfrm_algo xfrm_algo[] = {
+ 	{.cipher_name = "cbc(aes)", .auth_name = "hmac(sha1)", .algo = NSS_IPSECMGR_ALGO_AES_CBC_SHA1_HMAC},
+ 	{.cipher_name = "cbc(des3_ede)", .auth_name = "hmac(sha1)", .algo = NSS_IPSECMGR_ALGO_3DES_CBC_SHA1_HMAC},
++#ifndef NSS_IPSEC_XFRM_IPQ50XX
+ 	{.cipher_name  = "cbc(aes)", .auth_name = "hmac(md5)", .algo = NSS_IPSECMGR_ALGO_AES_CBC_MD5_HMAC},
+ 	{.cipher_name = "cbc(des3_ede)", .auth_name = "hmac(md5)", .algo = NSS_IPSECMGR_ALGO_3DES_CBC_MD5_HMAC},
+ 	{.cipher_name = "rfc4106(gcm(aes))", .auth_name = "rfc4106(gcm(aes))", .algo = NSS_IPSECMGR_ALGO_AES_GCM_GMAC_RFC4106},
+ 	{.cipher_name = "ecb(cipher_null)", .auth_name = "hmac(sha1)", .algo = NSS_IPSECMGR_ALGO_NULL_CIPHER_SHA1_HMAC},
++	{.cipher_name = "ecb(cipher_null)", .auth_name = "hmac(sha256)", .algo = NSS_IPSECMGR_ALGO_NULL_CIPHER_SHA256_HMAC},
++#endif
+ 	{.cipher_name = "cbc(aes)", .auth_name = "hmac(sha256)", .algo = NSS_IPSECMGR_ALGO_AES_CBC_SHA256_HMAC},
+ 	{.cipher_name = "cbc(des3_ede)", .auth_name = "hmac(sha256)", .algo = NSS_IPSECMGR_ALGO_3DES_CBC_SHA256_HMAC},
+-	{.cipher_name = "ecb(cipher_null)", .auth_name = "hmac(sha256)", .algo = NSS_IPSECMGR_ALGO_NULL_CIPHER_SHA256_HMAC},
+ };
+ 
+ /*
+@@ -181,7 +183,7 @@ static bool nss_ipsec_xfrm_sa_init_crypt
+  */
+ static void nss_ipsec_xfrm_sa_init_tuple(struct nss_ipsec_xfrm_sa *sa, struct xfrm_state *x)
+ {
+-	struct net_device *local_dev;
++	struct net_device *local_dev = NULL;
+ 
+ 	sa->type = NSS_IPSECMGR_SA_TYPE_ENCAP;
+ 	sa->tuple.spi_index = ntohl(x->id.spi);
+@@ -215,7 +217,7 @@ static void nss_ipsec_xfrm_sa_init_tuple
+ 		sa->tuple.dest_ip[2] = ntohl(x->id.daddr.a6[2]);
+ 		sa->tuple.dest_ip[3] = ntohl(x->id.daddr.a6[3]);
+ 
+-		local_dev = ipv6_dev_find(&init_net, (struct in6_addr *)x->id.daddr.a6, 1);
++		local_dev = ipv6_dev_find(&init_net, (struct in6_addr *)x->id.daddr.a6, local_dev);
+ 	}
+ 
+ 	/*
+--- a/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_tunnel.c
++++ b/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_tunnel.c
+@@ -130,7 +130,6 @@ err:
+ drop:
+ 	atomic64_inc(&drv->stats.inner_drop);
+ 	dev_kfree_skb_any(skb);
+-	return;
+ }
+ 
+ /*
+@@ -194,7 +193,6 @@ static void nss_ipsec_xfrm_tunnel_rx_out
+ drop:
+ 	dev_kfree_skb_any(skb);
+ 	atomic64_inc(&drv->stats.outer_drop);
+-	return;
+ }
+ 
+ /*
+--- a/ipsecmgr/v2.0/nss_ipsecmgr.c
++++ b/ipsecmgr/v2.0/nss_ipsecmgr.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -278,11 +278,11 @@ static int __init nss_ipsecmgr_init(void
+ 	 */
+ 	nss_ipsecmgr_configure(&ipsecmgr_drv->cfg_work.work);
+ 
+-	write_lock(&ipsecmgr_drv->lock);
++	write_lock_bh(&ipsecmgr_drv->lock);
+ 	list_add(&tun->list, &ipsecmgr_drv->tun_db);
+ 
+ 	ipsecmgr_drv->max_mtu = dev->mtu;
+-	write_unlock(&ipsecmgr_drv->lock);
++	write_unlock_bh(&ipsecmgr_drv->lock);
+ 
+ 	nss_ipsecmgr_info("NSS IPsec manager loaded: %s\n", NSS_CLIENT_BUILD_ID);
+ 	return 0;
+--- a/ipsecmgr/v2.0/nss_ipsecmgr_flow.c
++++ b/ipsecmgr/v2.0/nss_ipsecmgr_flow.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -149,10 +149,10 @@ static bool nss_ipsecmgr_flow_update_db(
+ 
+ 	hash_idx = nss_ipsecmgr_flow_tuple2hash(&flow->state.tuple, NSS_IPSECMGR_FLOW_MAX);
+ 
+-	write_lock(&ipsecmgr_drv->lock);
++	write_lock_bh(&ipsecmgr_drv->lock);
+ 	sa = nss_ipsecmgr_sa_find(ipsecmgr_drv->sa_db, sa_tuple);
+ 	if (!sa) {
+-		write_unlock(&ipsecmgr_drv->lock);
++		write_unlock_bh(&ipsecmgr_drv->lock);
+ 		nss_ipsecmgr_trace("%px: failed to find SA during flow update", flow);
+ 		return false;
+ 	}
+@@ -163,7 +163,7 @@ static bool nss_ipsecmgr_flow_update_db(
+ 	 */
+ 	nss_ipsecmgr_ref_add(&flow->ref, &sa->ref);
+ 	list_add(&flow->list, &ipsecmgr_drv->flow_db[hash_idx]);
+-	write_unlock(&ipsecmgr_drv->lock);
++	write_unlock_bh(&ipsecmgr_drv->lock);
+ 	return true;
+ }
+ 
+--- a/ipsecmgr/v2.0/nss_ipsecmgr_tunnel.c
++++ b/ipsecmgr/v2.0/nss_ipsecmgr_tunnel.c
+@@ -1,6 +1,6 @@
+ /*
+  **************************************************************************
+- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+@@ -273,7 +273,7 @@ static void nss_ipsecmgr_tunnel_mtu_upda
+ 	uint16_t max_mtu = 0;
+ 	bool update_mtu = false;
+ 
+-	write_lock(&ipsecmgr_drv->lock);
++	write_lock_bh(&ipsecmgr_drv->lock);
+ 	list_for_each_entry(tun, head, list) {
+ 		if (tun->dev->mtu > max_mtu)
+ 			max_mtu = tun->dev->mtu;
+@@ -284,7 +284,7 @@ static void nss_ipsecmgr_tunnel_mtu_upda
+ 		update_mtu = true;
+ 	}
+ 
+-	write_unlock(&ipsecmgr_drv->lock);
++	write_unlock_bh(&ipsecmgr_drv->lock);
+ 
+ #ifdef NSS_IPSECMGR_PPE_SUPPORT
+ 	/*
+@@ -627,9 +627,9 @@ struct net_device *nss_ipsecmgr_tunnel_a
+ #endif
+ 	}
+ 
+-	write_lock(&ipsecmgr_drv->lock);
++	write_lock_bh(&ipsecmgr_drv->lock);
+ 	list_add(&tun->list, &ipsecmgr_drv->tun_db);
+-	write_unlock(&ipsecmgr_drv->lock);
++	write_unlock_bh(&ipsecmgr_drv->lock);
+ 
+ 	nss_ipsecmgr_tunnel_mtu(dev, skb_dev ? skb_dev->mtu : dev->mtu);
+ 
+--- a/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_flow.c
++++ b/ipsecmgr/v2.0/plugins/xfrm/nss_ipsec_xfrm_flow.c
+@@ -1,4 +1,5 @@
+ /* Copyright (c) 2021, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
+  *
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -50,9 +51,9 @@ static void nss_ipsec_xfrm_flow_final(st
+ 	/*
+ 	 * Release reference to the parent SA.
+ 	 */
+-	if (flow->sa) {
+-		nss_ipsec_xfrm_sa_deref(flow->sa);
+-		flow->sa = NULL;
++	if (READ_ONCE(flow->sa)) {
++		nss_ipsec_xfrm_sa_deref(READ_ONCE(flow->sa));
++		WRITE_ONCE(flow->sa, NULL);
+ 	}
+ 
+ 	if (flow->pol) {
+@@ -194,7 +195,7 @@ struct nss_ipsec_xfrm_flow *nss_ipsec_xf
+  */
+ bool nss_ipsec_xfrm_flow_update(struct nss_ipsec_xfrm_flow *flow, struct nss_ipsec_xfrm_sa *sa)
+ {
+-	struct nss_ipsec_xfrm_sa *flow_sa = flow->sa;
++	struct nss_ipsec_xfrm_sa *flow_sa = READ_ONCE(flow->sa);
+ 	enum nss_ipsecmgr_status status;
+ 
+ 	/*
+@@ -213,12 +214,14 @@ bool nss_ipsec_xfrm_flow_update(struct n
+ 		return true;
+ 	}
+ 
++	if (cmpxchg(&flow->sa, flow_sa, sa) != flow_sa) {
++		nss_ipsec_xfrm_info("%p: Flow migrated to newer SA by other CPU\n", flow);
++		return false;
++	}
+ 
+-	nss_ipsec_xfrm_info("%p: Flow migrated from SA %p to SA %p\n", flow, flow_sa, sa);
+-
+-	xchg(&flow->sa, nss_ipsec_xfrm_sa_ref(sa));
++	nss_ipsec_xfrm_sa_ref(sa);
+ 	nss_ipsec_xfrm_sa_deref(flow_sa);
+-
++	nss_ipsec_xfrm_info("%p: Flow migrated from SA %p to SA %p\n", flow, flow_sa, sa);
+ 	return true;
+ }
+ 
+@@ -236,7 +239,7 @@ void nss_ipsec_xfrm_flow_dealloc(struct
+ 
+ 	atomic64_inc(&drv->stats.flow_dealloced);
+ 
+-	sa = flow->sa;
++	sa = READ_ONCE(flow->sa);
+ 	BUG_ON(!sa);
+ 
+ 	tun = sa->tun;
+@@ -282,7 +285,7 @@ struct nss_ipsec_xfrm_flow *nss_ipsec_xf
+ 				flow->tuple.sport, flow->tuple.dport);
+ 	}
+ 
+-	flow->sa = nss_ipsec_xfrm_sa_ref(sa);
++	WRITE_ONCE(flow->sa, nss_ipsec_xfrm_sa_ref(sa));
+ 
+ 	status = nss_ipsecmgr_flow_add(sa->tun->dev, &flow->tuple, &sa->tuple);
+ 	if ((status != NSS_IPSECMGR_DUPLICATE_FLOW) && (status != NSS_IPSECMGR_OK)) {
+--- a/ipsecmgr/v2.0/plugins/xfrm/Makefile
++++ b/ipsecmgr/v2.0/plugins/xfrm/Makefile
+@@ -14,3 +14,7 @@ ccflags-y += -I$(obj)/
+ ccflags-y += -DNSS_IPSEC_XFRM_DEBUG_LEVEL=3
+ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
+ ccflags-y += -Wall -Werror
++
++ifeq ($(SoC),$(filter $(SoC),ipq50xx ipq50xx_64))
++ccflags-y += -DNSS_IPSEC_XFRM_IPQ50XX
++endif

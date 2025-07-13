@@ -1,0 +1,377 @@
+From fa3a58742c4721221cb9a5ab11c65b6d60b77477 Mon Sep 17 00:00:00 2001
+From: Aniruddha Bhat Anemajalu <quic_aanemaja@quicinc.com>
+Date: Tue, 11 Jan 2022 11:22:08 -0800
+Subject: [PATCH] [qca-nss-clients] Check for qdisc before deleting the class
+
+Do not allow deleting the class before deleting the underlying Qdisc.
+
+Change-Id: I40f611cb1a5342ed58b4b1abcf1254d8a981a760
+Signed-off-by: Aniruddha Bhat Anemajalu <quic_aanemaja@quicinc.com>
+---
+ nss_qdisc/nss_bf.c  | 14 ++++++++++----
+ nss_qdisc/nss_htb.c | 11 ++++++++---
+ nss_qdisc/nss_wrr.c | 14 ++++++++++----
+ 3 files changed, 28 insertions(+), 11 deletions(-)
+
+--- a/nss_qdisc/nss_bf.c
++++ b/nss_qdisc/nss_bf.c
+@@ -1,9 +1,13 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2017, 2019-2020, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -309,11 +313,14 @@ static int nss_bf_delete_class(struct Qd
+ 	struct nss_qdisc *nq_child = (struct nss_qdisc *)qdisc_priv(cl->qdisc);
+ 
+ 	/*
+-	 * Since all classes are leaf nodes in our case, we dont have to make
+-	 * that check.
++	 * If the class is the root class or has qdiscs attached, we do not
++	 * support deleting it.
+ 	 */
+-	if (cl == &q->root)
++	if ((cl == &q->root) || (cl->qdisc != &noop_qdisc)) {
++		nss_qdisc_warning("Cannot delete bf class %x as it is the root "
++				  "class or has child qdisc attached\n", cl->nq.qos_tag);
+ 		return -EBUSY;
++	}
+ 
+ 	/*
+ 	 * The message to NSS should be sent to the parent of this class
+@@ -327,7 +334,6 @@ static int nss_bf_delete_class(struct Qd
+ 	}
+ 
+ 	sch_tree_lock(sch);
+-	qdisc_reset(cl->qdisc);
+ 	qdisc_class_hash_remove(&q->clhash, &cl->cl_common);
+ 	refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+ 	sch_tree_unlock(sch);
+--- a/nss_qdisc/nss_htb.c
++++ b/nss_qdisc/nss_htb.c
+@@ -1,9 +1,13 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2017, 2019-2021, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -534,10 +538,12 @@ static int nss_htb_delete_class(struct Q
+ 	int refcnt;
+ 
+ 	/*
+-	 * If the class still has child nodes, then we do not
++	 * If the class still has child nodes or qdiscs, then we do not
+ 	 * support deleting it.
+ 	 */
+-	if (cl->children) {
++	if ((cl->children) || (cl->qdisc != &noop_qdisc)) {
++		nss_qdisc_warning("Cannot delete htb class %x with child nodes "
++				  "or qdisc attached\n", cl->nq.qos_tag);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -568,7 +574,6 @@ static int nss_htb_delete_class(struct Q
+ 	}
+ 
+ 	sch_tree_lock(sch);
+-	qdisc_reset(cl->qdisc);
+ 	qdisc_class_hash_remove(&q->clhash, &cl->sch_common);
+ 
+ 	/*
+--- a/nss_qdisc/nss_wrr.c
++++ b/nss_qdisc/nss_wrr.c
+@@ -1,9 +1,13 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2014-2017, 2019-2021, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022, Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * Permission to use, copy, modify, and/or distribute this software for
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
++ *
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+@@ -418,11 +422,14 @@ static int nss_wrr_delete_class(struct Q
+ 	int refcnt;
+ 
+ 	/*
+-	 * Since all classes are leaf nodes in our case, we dont have to make
+-	 * that check.
++	 * If the class is a root class or has a child qdisc attached
++	 * we do not support deleting it.
+ 	 */
+-	if (cl == &q->root)
++	if ((cl == &q->root) || (cl->qdisc != &noop_qdisc)) {
++		nss_qdisc_warning("Cannot delete wrr class %x as it is the "
++				  "root class or has a child qdisc attached\n", cl->nq.qos_tag);
+ 		return -EBUSY;
++	}
+ 
+ 	/*
+ 	 * The message to NSS should be sent to the parent of this class
+@@ -436,7 +443,6 @@ static int nss_wrr_delete_class(struct Q
+ 	}
+ 
+ 	sch_tree_lock(sch);
+-	qdisc_reset(cl->qdisc);
+ 	qdisc_class_hash_remove(&q->clhash, &cl->cl_common);
+ 
+ 	refcnt = nss_qdisc_atomic_sub_return(&cl->nq);
+--- a/nss_qdisc/nss_ppe.c
++++ b/nss_qdisc/nss_ppe.c
+@@ -1,7 +1,11 @@
+ /*
+  **************************************************************************
+  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
++ *
++ * Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  * Permission to use, copy, modify, and/or distribute this software for
++ * Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
++ *
+  * any purpose with or without fee is hereby granted, provided that the
+  * above copyright notice and this permission notice appear in all copies.
+  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+@@ -28,12 +32,9 @@
+ /*
+  * Max Resources per port
+  *
+- * Currently, we are using only one multicast queue.
+  * In case of Loopback port, the resources are reserved
+  * for qdisc functionality.
+  */
+-#define NSS_PPE_MCAST_QUEUE_MAX		1
+-
+ #define NSS_PPE_LOOPBACK_L0_SP_MAX		1
+ #define NSS_PPE_LOOPBACK_L0_CDRR_MAX		16
+ #define NSS_PPE_LOOPBACK_L0_EDRR_MAX		16
+@@ -126,7 +127,7 @@ static struct nss_ppe_res *nss_ppe_res_e
+ 
+ 	spin_lock_bh(&ppe_port->lock);
+ 	for (i = max; i > 0; i--) {
+-		res = kzalloc(sizeof(struct nss_ppe_res), GFP_KERNEL);
++		res = kzalloc(sizeof(struct nss_ppe_res), GFP_ATOMIC);
+ 		if (!res) {
+ 			nss_qdisc_error("Free queue list allocation failed for port %u\n", port);
+ 			goto fail;
+@@ -275,9 +276,10 @@ int nss_ppe_port_res_alloc(void)
+ 		ppe_qdisc_port[i].base[NSS_PPE_UCAST_QUEUE] = cfg.ucastq_start;
+ 
+ 		/*
+-		 * Even though we reserve more mcast queues in the device tree, we only use 1 in qdiscs.
++		 * Even though we reserve more mcast queues in the device tree, we only use 1 in qdiscs
++		 * for the default queue.
+ 		 */
+-		ppe_qdisc_port[i].max[NSS_PPE_MCAST_QUEUE] = NSS_PPE_MCAST_QUEUE_MAX;
++		ppe_qdisc_port[i].max[NSS_PPE_MCAST_QUEUE] = cfg.mcastq_num;
+ 		ppe_qdisc_port[i].base[NSS_PPE_MCAST_QUEUE] = cfg.mcastq_start;
+ 
+ 		ppe_qdisc_port[i].max[NSS_PPE_L0_CDRR] = cfg.l0cdrr_num;
+@@ -576,6 +578,36 @@ static void nss_ppe_all_queue_enable(uin
+ }
+ 
+ /*
++ * nss_ppe_assigned_queue_enable()
++ *	Enables all level L0 queues corresponding to a port in SSDK.
++ */
++static void nss_ppe_assigned_queue_enable(uint32_t port_num)
++{
++	uint32_t qid = nss_ppe_base_get(port_num, NSS_PPE_UCAST_QUEUE);
++	uint32_t mcast_qid = nss_ppe_base_get(port_num, NSS_PPE_MCAST_QUEUE);
++	struct nss_ppe_res *res;
++	struct nss_ppe_port *ppe_port = &ppe_qdisc_port[port_num];
++
++	spin_lock_bh(&ppe_port->lock);
++	res = ppe_port->res_used[NSS_PPE_UCAST_QUEUE];
++	while (res) {
++		fal_qm_enqueue_ctrl_set(0, qid + res->offset, 1);
++		fal_scheduler_dequeue_ctrl_set(0, qid + res->offset, 1);
++		res = res->next;
++	}
++
++	res = ppe_port->res_used[NSS_PPE_MCAST_QUEUE];
++	while (res) {
++		fal_qm_enqueue_ctrl_set(0, mcast_qid + res->offset, 1);
++		fal_scheduler_dequeue_ctrl_set(0, mcast_qid + res->offset, 1);
++		res = res->next;
++	}
++
++	spin_unlock_bh(&ppe_port->lock);
++	nss_qdisc_info("Enable SSDK level0 queue scheduler successful\n");
++}
++
++/*
+  * nss_ppe_l1_queue_scheduler_configure()
+  *	Configures Level 1 queue scheduler in SSDK.
+  */
+@@ -585,11 +617,6 @@ static int nss_ppe_l1_queue_scheduler_co
+ 	uint32_t port_num = nss_ppe_port_num_get(nq);
+ 	struct nss_ppe_qdisc *npq = &nq->npq;
+ 
+-	if (npq->scheduler.drr_weight >= NSS_PPE_DRR_WEIGHT_MAX) {
+-		nss_qdisc_warning("DRR weight:%d should be less than 1024\n", npq->scheduler.drr_weight);
+-		return -EINVAL;
+-	}
+-
+ 	/*
+ 	 * Disable all queues and set Level 1 SSDK configuration
+ 	 * We need to disable and flush the queues before
+@@ -597,6 +624,15 @@ static int nss_ppe_l1_queue_scheduler_co
+ 	 */
+ 	nss_ppe_all_queue_disable(port_num);
+ 
++	if (npq->scheduler.drr_weight >= NSS_PPE_DRR_WEIGHT_MAX) {
++		/*
++		 * Currently assigned queues are enabled back by
++		 * caller
++		 */
++		nss_qdisc_warning("DRR weight:%d should be less than 1024\n", npq->scheduler.drr_weight);
++		return -EINVAL;
++	}
++
+ 	memset(&l1cfg, 0, sizeof(l1cfg));
+ 	l1cfg.sp_id = port_num;
+ 
+@@ -614,11 +650,10 @@ static int nss_ppe_l1_queue_scheduler_co
+ 			port_num, npq->l0spid, l1cfg.c_drr_id, l1cfg.c_pri, l1cfg.c_drr_wt, l1cfg.e_drr_id, l1cfg.e_pri, l1cfg.e_drr_wt, l1cfg.sp_id);
+ 	if (fal_queue_scheduler_set(0, npq->l0spid, NSS_PPE_FLOW_LEVEL - 1, port_num, &l1cfg) != 0) {
+ 		nss_qdisc_error("SSDK level1 queue scheduler configuration failed\n");
+-		nss_ppe_all_queue_enable(port_num);
+ 		return -EINVAL;
+ 	}
+ 
+-	nss_ppe_all_queue_enable(port_num);
++	nss_ppe_assigned_queue_enable(port_num);
+ 
+ 	nss_qdisc_info("SSDK level1 queue scheduler configuration successful\n");
+ 	return 0;
+@@ -672,6 +707,7 @@ static int nss_ppe_l1_queue_scheduler_se
+ 	if (nss_ppe_l1_queue_scheduler_configure(nq) != 0) {
+ 		nss_qdisc_error("SSDK level1 queue scheduler configuration failed\n");
+ 		nss_ppe_l1_res_free(nq);
++		nss_ppe_assigned_queue_enable(nss_ppe_port_num_get(nq));
+ 		return -EINVAL;
+ 	}
+ 
+@@ -758,11 +794,13 @@ static int nss_ppe_l0_queue_scheduler_de
+ 			port_num, npq->q.ucast_qid, l0cfg.c_drr_id, l0cfg.c_pri, l0cfg.c_drr_wt, l0cfg.e_drr_id, l0cfg.e_pri, l0cfg.e_drr_wt, l0cfg.sp_id);
+ 	if (fal_queue_scheduler_set(0, npq->q.ucast_qid, NSS_PPE_QUEUE_LEVEL - 1, port_num, &l0cfg) != 0) {
+ 		nss_qdisc_error("SSDK level0 queue scheduler configuration failed\n");
+-		nss_ppe_all_queue_enable(port_num);
++		nss_ppe_assigned_queue_enable(port_num);
+ 		return -EINVAL;
+ 	}
+ 
+-	nss_ppe_all_queue_enable(port_num);
++	/*
++	 * Assinged queues are enabled after the current resource is freed.
++	 */
+ 
+ 	nss_qdisc_info("SSDK level0 queue scheduler configuration successful\n");
+ 	return 0;
+@@ -781,9 +819,11 @@ static int nss_ppe_l0_queue_scheduler_re
+ 
+ 	if (nss_ppe_l0_res_free(nq) != 0) {
+ 		nss_qdisc_error("Level0 scheduler resources de-allocation failed\n");
++		nss_ppe_assigned_queue_enable(nss_ppe_port_num_get(nq));
+ 		return -EINVAL;
+ 	}
+ 
++	nss_ppe_assigned_queue_enable(nss_ppe_port_num_get(nq));
+ 	nss_qdisc_info("SSDK level0 queue scheduler configuration successful\n");
+ 	return 0;
+ }
+@@ -871,11 +911,6 @@ static int nss_ppe_l0_queue_scheduler_co
+ 	uint32_t port_num = nss_ppe_port_num_get(nq);
+ 	struct nss_ppe_qdisc *npq = &nq->npq;
+ 
+-	if (npq->scheduler.drr_weight >= NSS_PPE_DRR_WEIGHT_MAX) {
+-		nss_qdisc_warning("DRR weight:%d should be less than 1024\n", npq->scheduler.drr_weight);
+-		return -EINVAL;
+-	}
+-
+ 	/*
+ 	 * Disable all queues and set Level 0 SSDK configuration
+ 	 * We need to disable and flush the queues before
+@@ -883,6 +918,15 @@ static int nss_ppe_l0_queue_scheduler_co
+ 	 */
+ 	nss_ppe_all_queue_disable(port_num);
+ 
++	if (npq->scheduler.drr_weight >= NSS_PPE_DRR_WEIGHT_MAX) {
++		/*
++		 * Currently assigned queues are enabled back by
++		 * caller
++		 */
++		nss_qdisc_warning("DRR weight:%d should be less than 1024\n", npq->scheduler.drr_weight);
++		return -EINVAL;
++	}
++
+ 	memset(&l0cfg, 0, sizeof(l0cfg));
+ 	l0cfg.sp_id = npq->l0spid;
+ 	l0cfg.c_drr_wt = npq->scheduler.drr_weight ? npq->scheduler.drr_weight : 1;
+@@ -899,7 +943,6 @@ static int nss_ppe_l0_queue_scheduler_co
+ 			port_num, npq->q.ucast_qid, l0cfg.c_drr_id, l0cfg.c_pri, l0cfg.c_drr_wt, l0cfg.e_drr_id, l0cfg.e_pri, l0cfg.e_drr_wt, l0cfg.sp_id);
+ 	if (fal_queue_scheduler_set(0, npq->q.ucast_qid, NSS_PPE_QUEUE_LEVEL - 1, port_num, &l0cfg) != 0) {
+ 		nss_qdisc_error("SSDK level0 queue scheduler configuration failed\n");
+-		nss_ppe_all_queue_enable(port_num);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -917,12 +960,11 @@ static int nss_ppe_l0_queue_scheduler_co
+ 				port_num, npq->q.mcast_qid, l0cfg.c_drr_id, l0cfg.c_pri, l0cfg.c_drr_wt, l0cfg.e_drr_id, l0cfg.e_pri, l0cfg.e_drr_wt, l0cfg.sp_id);
+ 		if (fal_queue_scheduler_set(0, npq->q.mcast_qid, NSS_PPE_QUEUE_LEVEL - 1, port_num, &l0cfg) != 0) {
+ 			nss_qdisc_error("SSDK level0 multicast queue scheduler configuration failed\n");
+-			nss_ppe_all_queue_enable(port_num);
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+-	nss_ppe_all_queue_enable(port_num);
++	nss_ppe_assigned_queue_enable(port_num);
+ 
+ 	nss_qdisc_info("SSDK level0 queue scheduler configuration successful\n");
+ 	return 0;
+@@ -955,6 +997,7 @@ static int nss_ppe_l0_queue_scheduler_se
+ 	if (nss_ppe_l0_queue_scheduler_configure(nq) != 0) {
+ 		nss_qdisc_error("SSDK level0 queue scheduler configuration failed\n");
+ 		nss_ppe_l0_res_free(nq);
++		nss_ppe_assigned_queue_enable(nss_ppe_port_num_get(nq));
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1381,7 +1424,7 @@ static int nss_ppe_default_conf_set(uint
+ 	 */
+ 	if (fal_port_scheduler_cfg_reset(0, port_num) != 0) {
+ 		nss_qdisc_error("SSDK reset default queue configuration failed\n");
+-		nss_ppe_all_queue_enable(port_num);
++		nss_ppe_assigned_queue_enable(port_num);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1960,7 +2003,7 @@ void nss_ppe_all_queue_enable_hybrid(str
+ 		|| (nq->type == NSS_SHAPER_NODE_TYPE_BF)
+ 		|| (nq->type == NSS_SHAPER_NODE_TYPE_WRED)) {
+ 		uint32_t port_num = nss_ppe_port_num_get(nq);
+-		nss_ppe_all_queue_enable(port_num);
++		nss_ppe_assigned_queue_enable(port_num);
+ 		nss_qdisc_info("Queues in hybrid mode enabled successfully for Qdisc %px (type %d)\n", nq, nq->type);
+ 	}
+ }

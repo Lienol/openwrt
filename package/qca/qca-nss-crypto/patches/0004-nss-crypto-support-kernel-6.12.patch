@@ -45,7 +45,7 @@
  static struct platform_driver nss_crypto_device = {
  	.probe		= nss_crypto_device_probe,
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
-+	.remove_new	= nss_crypto_device_remove,
++	.remove_new		= nss_crypto_device_remove,
 +#else
  	.remove		= nss_crypto_device_remove,
 +#endif
@@ -74,7 +74,7 @@
  static struct platform_driver nss_crypto_drv = {
  	.probe		= nss_crypto_probe,
 +#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
-+	.remove_new	= nss_crypto_remove,
++	.remove_new		= nss_crypto_remove,
 +#else
  	.remove		= nss_crypto_remove,
 +#endif
@@ -396,3 +396,34 @@
  {
  	/*
  	 * Reset EIP blocks and check if reset is complete
+--- a/v1.0/src/nss_crypto_dtsi.c
++++ b/v1.0/src/nss_crypto_dtsi.c
+@@ -346,7 +346,7 @@ static int nss_crypto_probe(struct platf
+  * nss_crypto_remove()
+  *	remove the crypto engine and deregister everything
+  */
+-static int nss_crypto_remove(struct platform_device *pdev)
++static void nss_crypto_remove(struct platform_device *pdev)
+ {
+ 	struct nss_crypto_ctrl_eng *e_ctrl;
+ 	struct nss_crypto_ctrl *ctrl;
+@@ -361,7 +361,6 @@ static int nss_crypto_remove(struct plat
+ 		kfree(ctrl->clocks);
+ 	}
+ 
+-	return 0;
+ };
+ 
+ static struct of_device_id nss_crypto_dt_ids[] = {
+@@ -375,7 +374,11 @@ MODULE_DEVICE_TABLE(of, nss_crypto_dt_id
+  */
+ static struct platform_driver nss_crypto_drv = {
+ 	.probe  	= nss_crypto_probe,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
++	.remove_new 	= nss_crypto_remove,
++#else
+ 	.remove 	= nss_crypto_remove,
++#endif
+ 	.driver 	= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "nss-crypto",

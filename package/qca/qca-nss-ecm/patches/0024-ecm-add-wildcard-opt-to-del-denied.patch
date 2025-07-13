@@ -1,0 +1,145 @@
+--- a/frontends/ecm_front_end_common.c
++++ b/frontends/ecm_front_end_common.c
+@@ -966,10 +966,12 @@ static void ecm_front_end_denied_ports_r
+ 	}
+ 
+ 	/*
+-	 * Add new line character at the end.
++	 * Add new line character at the end only if we have content
+ 	 */
+-	len = scnprintf(read_buf + bytes, 4, "\n");
+-	bytes += len;
++	if (bytes > 0) {
++		len = scnprintf(read_buf + bytes, 4, "\n");
++		bytes += len;
++	}
+ 
+ 	bytes = memory_read_from_buffer(buffer, *lenp, ppos, read_buf, bytes);
+ 	*lenp = bytes;
+@@ -1000,7 +1002,6 @@ static inline bool ecm_front_end_is_port
+  */
+ static int ecm_front_end_denied_ports_handler(int write, void *buffer, size_t *lenp, loff_t *ppos, struct hlist_head *denied_ports, bool is_udp)
+ {
+-
+ 	char *buf;
+ 	char *pfree;
+ 	char *token;
+@@ -1075,36 +1076,58 @@ static int ecm_front_end_denied_ports_ha
+ 			}
+ 		}
+ 	} else if (!strncmp(token, "del", 3)) {
+-		while (buf) {
+-			token = strsep(&buf, " ");
+-			if (kstrtol(token, 10, &val)) {
+-				DEBUG_ERROR("%s is not a number\n", token);
+-				kfree(pfree);
+-				return -EINVAL;
+-			}
+-			if (sscanf(token, "%d", &port)) {
+-				struct hlist_node *pnode, *temp;
+-				uint32_t hash;
++		token = strsep(&buf, " ");
+ 
+-				if (port < 0 || port > 65535) {
+-					DEBUG_ERROR("port %d is not between (0-65535)\n", port);
++		/* Simple check for wildcard - handles both with and without newline */
++		if (token && token[0] == '*') {
++			int i;
++			struct hlist_node *pnode, *temp;
++
++			/* Loop through all hash buckets and delete all entries */
++			for (i = 0; i < ECM_FRONT_END_DENIED_PORTS_HTABLE_SIZE; i++) {
++				hlist_for_each_safe(pnode, temp, &denied_ports[i]) {
++					struct ecm_denied_port_node *p = hlist_entry(pnode, struct ecm_denied_port_node, hnode);
++					hlist_del(&p->hnode);
++					vfree(p);
++					if (is_udp) {
++						atomic_dec(&ecm_udp_denied_port_count);
++					} else {
++						atomic_dec(&ecm_tcp_denied_port_count);
++					}
++				}
++			}
++		} else {
++			while (token) {
++				if (kstrtol(token, 10, &val)) {
++					DEBUG_ERROR("%s is not a number\n", token);
+ 					kfree(pfree);
+ 					return -EINVAL;
+ 				}
++				if (sscanf(token, "%d", &port)) {
++					struct hlist_node *pnode, *temp;
++					uint32_t hash;
++
++					if (port < 0 || port > 65535) {
++						DEBUG_ERROR("port %d is not between (0-65535)\n", port);
++						kfree(pfree);
++						return -EINVAL;
++					}
+ 
+-				hash = hash_32(port, ECM_FRONT_END_DENIED_PORTS_HTABLE_SIZE);
+-				hlist_for_each_safe(pnode, temp, &denied_ports[hash]) {
+-					struct ecm_denied_port_node *p = hlist_entry(pnode, struct ecm_denied_port_node, hnode);
+-					if (p->port == port) {
+-						hlist_del(&p->hnode);
+-						vfree(p);
+-						if (is_udp) {
+-							atomic_dec(&ecm_udp_denied_port_count);
+-						} else {
+-							atomic_dec(&ecm_tcp_denied_port_count);
++					hash = hash_32(port, ECM_FRONT_END_DENIED_PORTS_HTABLE_SIZE);
++					hlist_for_each_safe(pnode, temp, &denied_ports[hash]) {
++						struct ecm_denied_port_node *p = hlist_entry(pnode, struct ecm_denied_port_node, hnode);
++						if (p->port == port) {
++							hlist_del(&p->hnode);
++							vfree(p);
++							if (is_udp) {
++								atomic_dec(&ecm_udp_denied_port_count);
++							} else {
++								atomic_dec(&ecm_tcp_denied_port_count);
++							}
+ 						}
+ 					}
+ 				}
++				token = strsep(&buf, " ");
+ 			}
+ 		}
+ 	} else {
+@@ -1133,6 +1156,9 @@ int ecm_front_end_udp_denied_ports_handl
+ 	 *	Delete ports from the list:
+ 	 *	echo del 67 > /proc/sys/net/ecm/udp_denied_ports
+ 	 *
++	 *	Delete all ports from the list:
++	 *	echo del * > /proc/sys/net/ecm/udp_denied_ports
++	 *
+ 	 *	Dump the list to the console:
+ 	 *	cat /proc/sys/net/ecm/udp_denied_ports
+ 	 */
+@@ -1157,6 +1183,9 @@ int ecm_front_end_tcp_denied_ports_handl
+ 	 *	Delete ports from the list:
+ 	 *	echo del 67 > /proc/sys/net/ecm/tcp_denied_ports
+ 	 *
++	 *	Delete all ports from the list:
++	 *	echo del * > /proc/sys/net/ecm/tcp_denied_ports
++	 *
+ 	 *	Dump the list to the console:
+ 	 *	cat /proc/sys/net/ecm/tcp_denied_ports
+ 	 */
+@@ -1200,7 +1229,7 @@ static struct ctl_table ecm_front_end_sy
+  * ecm_front_end_common_sysctl_register()
+  *	Function to register sysctl node during front end init
+  */
+-void ecm_front_end_common_sysctl_register()
++void ecm_front_end_common_sysctl_register(void)
+ {
+ 	/*
+ 	 * Register sysctl table.
+@@ -1217,7 +1246,7 @@ void ecm_front_end_common_sysctl_registe
+  * ecm_front_end_common_sysctl_unregister()
+  *	Function to unregister sysctl node during front end exit
+  */
+-void ecm_front_end_common_sysctl_unregister()
++void ecm_front_end_common_sysctl_unregister(void)
+ {
+ 	/*
+ 	 * Unregister sysctl table.
