@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-
+# shellcheck disable=3043,2034,2166
 ###########################################################################
 # Copyright (c) 2019, The Linux Foundation. All rights reserved.
 # Permission to use, copy, modify, and/or distribute this software for
@@ -14,56 +14,91 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ###########################################################################
 
-ecm_disable() {
-	if [ ! -d /sys/module/ecm ]; then
-	   return
-	fi
+# START=26
+USE_PROCD=1
 
-	echo 1 > /sys/kernel/debug/ecm/front_end_ipv4_stop
-	echo 1 > /sys/kernel/debug/ecm/front_end_ipv6_stop
-	echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
-	sleep 2
+ecm_disable() {
+  if [ ! -d /sys/module/ecm ]; then
+    return
+  fi
+
+  echo 1 > /sys/kernel/debug/ecm/front_end_ipv4_stop
+  echo 1 > /sys/kernel/debug/ecm/front_end_ipv6_stop
+  echo 1 > /sys/kernel/debug/ecm/ecm_db/defunct_all
 }
 
 ecm_enable() {
-	if [ ! -d /sys/module/ecm ]; then
-	   return
-	fi
+  if [ ! -d /sys/module/ecm ]; then
+    return
+  fi
 
-	echo 0 > /sys/kernel/debug/ecm/ecm_db/defunct_all
-	echo 0 > /sys/kernel/debug/ecm/front_end_ipv4_stop
-	echo 0 > /sys/kernel/debug/ecm/front_end_ipv6_stop
+  echo 0 > /sys/kernel/debug/ecm/ecm_db/defunct_all
+  echo 0 > /sys/kernel/debug/ecm/front_end_ipv4_stop
+  echo 0 > /sys/kernel/debug/ecm/front_end_ipv6_stop
 }
 
-restart() {
-	ecm_disable
-
-	/etc/init.d/openvpn stop
-	rmmod qca-nss-ovpn-link
-	rmmod qca-nss-ovpn-mgr
-
-	insmod qca-nss-ovpn-mgr
-	insmod qca-nss-ovpn-link
-
-	if [ "$?" -gt 0 ]; then
-		echo "Failed to load plugin. Please start ecm if not done already"
-		ecm_enable
-		return
-	fi
-
-	ecm_enable
+check_enabled() {
+  local enabled
+  total_enabled=${total_enabled:-0}
+  config_get_bool enabled "$1" enabled 0
+  [ "$enabled" = "1" ] && total_enabled=$((total_enabled + 1))
 }
 
-start() {
-	restart
+mod_action() {
+  local action="$1"
+
+  if [ "$action" != "load" -a "$action" != "unload" ]; then
+    echo "Invalid action: $action, must be load or unload"
+    return
+  fi
+
+  shift
+  local modules="$*"
+
+  [ -z "$modules" ] && {
+    echo "No modules specified"
+    return
+  }
+
+  for i in $modules; do
+    [ -n "$i" ] && {
+      if [ "$action" = "unload" ]; then
+        grep -q -w "$i" /proc/modules && {
+          rmmod "$i" || echo "Failed to unload $i"
+        }
+      else
+        modprobe "$i" 2> /dev/null || {
+          echo "Failed to load $i"
+          return
+        }
+      fi
+    }
+  done
 }
 
-stop() {
-	ecm_disable
+start_service() {
+  config_load openvpn
+  config_foreach check_enabled openvpn
 
-	/etc/init.d/openvpn stop
-	rmmod qca-nss-ovpn-link
-	rmmod qca-nss-ovpn-mgr
+  [ "$total_enabled" = "0" ] && return
 
-	ecm_enable
+  ecm_disable
+
+  /etc/init.d/openvpn stop 2> /dev/null
+
+  mod_action unload qca_nss_ovpn_link qca_nss_ovpn_mgr
+  mod_action load qca_nss_ovpn_link qca_nss_ovpn_mgr ovpn_dco_v2
+
+  ecm_enable
+
+  /etc/init.d/openvpn start 2> /dev/null
+}
+
+stop_service() {
+  ecm_disable
+
+  /etc/init.d/openvpn stop 2> /dev/null
+  mod_action unload qca_nss_ovpn_link qca_nss_ovpn_mgr
+
+  ecm_enable
 }

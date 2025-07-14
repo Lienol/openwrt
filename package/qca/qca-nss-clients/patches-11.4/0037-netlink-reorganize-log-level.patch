@@ -1,0 +1,1102 @@
+--- a/netlink/Makefile
++++ b/netlink/Makefile
+@@ -5,7 +5,7 @@ DTLS_ENABLED := $(strip $(if $(filter $(
+ ccflags-y := -Wall -Werror
+ ccflags-y += -I$(obj)/include
+ ccflags-y += -I$(obj)/../exports
+-ccflags-y += -DNSS_NL_DEBUG_LEVEL=4
++ccflags-y += -DNSS_NL_DEBUG_LEVEL=2
+ ccflags-y += -DNSS_CLIENT_BUILD_ID="$(BUILD_ID)"
+ 
+ ccflags-y += -DCONFIG_NSS_NLIPV4=1
+--- a/netlink/nss_nl.c
++++ b/netlink/nss_nl.c
+@@ -527,12 +527,12 @@ static int __init nss_nl_init(void)
+ 		 * Check if the family exists
+ 		 */
+ 		if (!family->valid || !family->entry) {
+-			nss_nl_info_always("skipping family:%s\n", family->name);
+-			nss_nl_info_always("valid = %d, entry = %d\n", family->valid, !!family->entry);
++			nss_nl_info("skipping family:%s\n", family->name);
++			nss_nl_info("valid = %d, entry = %d\n", family->valid, !!family->entry);
+ 			continue;
+ 		}
+ 
+-		nss_nl_info_always("attaching family:%s\n", family->name);
++		nss_nl_info("attaching family:%s\n", family->name);
+ 
+ 		family->entry();
+ 	}
+@@ -557,7 +557,7 @@ static void __exit nss_nl_exit(void)
+ 		return;
+ 	}
+ #endif
+-	nss_nl_info_always("NSS Netlink manager unloaded\n");
++	nss_nl_info("NSS Netlink manager unloaded\n");
+ 
+ 	/*
+ 	 * initialize the handler families
+@@ -569,12 +569,12 @@ static void __exit nss_nl_exit(void)
+ 		 * Check if the family exists
+ 		 */
+ 		if (!family->valid || !family->exit) {
+-			nss_nl_info_always("skipping family:%s\n", family->name);
+-			nss_nl_info_always("valid = %d, exit = %d\n", family->valid, !!family->exit);
++			nss_nl_info("skipping family:%s\n", family->name);
++			nss_nl_info("valid = %d, exit = %d\n", family->valid, !!family->exit);
+ 			continue;
+ 		}
+ 
+-		nss_nl_info_always("detaching family:%s\n", family->name);
++		nss_nl_info("detaching family:%s\n", family->name);
+ 
+ 		family->exit();
+ 	}
+--- a/netlink/nss_nlc2c_rx.c
++++ b/netlink/nss_nlc2c_rx.c
+@@ -126,14 +126,14 @@ bool nss_nlc2c_rx_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink c2c_rx handler\n");
++	nss_nl_info("Init NSS netlink c2c_rx handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlc2c_rx_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register c2c_rx family\n");
++		nss_nl_error("Error: unable to register c2c_rx family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nlc2c_rx_init(void)
+ 	 */
+ 	ret = nss_c2c_rx_stats_register_notifier(&nss_c2c_rx_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		genl_unregister_family(&nss_nlc2c_rx_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nlc2c_rx_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink c2c_rx handler\n");
++	nss_nl_info("Exit NSS netlink c2c_rx handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for c2c_rx
+@@ -170,7 +170,7 @@ bool nss_nlc2c_rx_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlc2c_rx_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister c2c_rx NETLINK family\n");
++		nss_nl_error("unable to unregister c2c_rx NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlc2c_tx.c
++++ b/netlink/nss_nlc2c_tx.c
+@@ -126,14 +126,14 @@ bool nss_nlc2c_tx_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink c2c_tx handler\n");
++	nss_nl_info("Init NSS netlink c2c_tx handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlc2c_tx_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register c2c_tx family\n");
++		nss_nl_error("Error: unable to register c2c_tx family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nlc2c_tx_init(void)
+ 	 */
+ 	ret = nss_c2c_tx_stats_register_notifier(&nss_c2c_tx_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		genl_unregister_family(&nss_nlc2c_tx_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nlc2c_tx_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink c2c_tx handler\n");
++	nss_nl_info("Exit NSS netlink c2c_tx handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for c2c_tx
+@@ -170,7 +170,7 @@ bool nss_nlc2c_tx_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlc2c_tx_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister c2c_tx NETLINK family\n");
++		nss_nl_error("unable to unregister c2c_tx NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlcapwap.c
++++ b/netlink/nss_nlcapwap.c
+@@ -1495,7 +1495,7 @@ bool nss_nlcapwap_init(void)
+ {
+ 	int err;
+ 
+-	nss_nl_info_always("Init NSS netlink capwap handler\n");
++	nss_nl_info("Init NSS netlink capwap handler\n");
+ 
+ 	/*
+ 	 * Initialize atomic variable
+@@ -1507,7 +1507,7 @@ bool nss_nlcapwap_init(void)
+ 	 */
+ 	global_ctx.capwap_dev = nss_capwapmgr_get_netdev();
+ 	if (!global_ctx.capwap_dev) {
+-		nss_nl_info_always("Failed to find the CAPWAP device\n");
++		nss_nl_error("Failed to find the CAPWAP device\n");
+ 	}
+ 
+ 	/*
+@@ -1515,12 +1515,12 @@ bool nss_nlcapwap_init(void)
+ 	 */
+ 	global_ctx.dentry = debugfs_create_dir("nlcapwap", NULL);
+ 	if (!global_ctx.dentry) {
+-		nss_nl_info_always("Cannot create nlcapwap directory\n");
++		nss_nl_error("Cannot create nlcapwap directory\n");
+ 		return false;
+ 	}
+ 
+ 	if (!debugfs_create_file("stats", 0400, global_ctx.dentry, NULL, &nss_nlcapwap_stats_ops)) {
+-		nss_nl_info_always("Cannot create nlcapwap dentry file\n");
++		nss_nl_error("Cannot create nlcapwap dentry file\n");
+ 		return false;
+ 	}
+ 
+@@ -1529,7 +1529,7 @@ bool nss_nlcapwap_init(void)
+ 	 */
+ 	err = genl_register_family(&nss_nlcapwap_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to register capwap family\n", err);
++		nss_nl_error("Error: %d unable to register capwap family\n", err);
+ 		goto free;
+ 	}
+ 
+@@ -1538,7 +1538,7 @@ bool nss_nlcapwap_init(void)
+ 	 */
+ 	err = nss_capwap_stats_register_notifier(&nss_capwap_stats_notifier_nb);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to register capwap stats notifier\n", err);
++		nss_nl_error("Error: %d unable to register capwap stats notifier\n", err);
+ 		goto free_family;
+ 	}
+ 
+@@ -1579,14 +1579,14 @@ bool nss_nlcapwap_exit(void)
+ 	int err;
+ 	int i;
+ 
+-	nss_nl_info_always("Exit NSS netlink capwap handler\n");
++	nss_nl_info("Exit NSS netlink capwap handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family so that we don't receive any new requests
+ 	 */
+ 	err = genl_unregister_family(&nss_nlcapwap_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to unregister capwap NETLINK family\n", err);
++		nss_nl_error("Error: %d unable to unregister capwap NETLINK family\n", err);
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nldtls.c
++++ b/netlink/nss_nldtls.c
+@@ -1159,14 +1159,14 @@ bool nss_nldtls_init(void)
+ {
+ 	int err;
+ 
+-	nss_nl_info_always("Init NSS netlink dtls handler\n");
++	nss_nl_info("Init NSS netlink dtls handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	err = genl_register_family(&nss_nldtls_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to register gre_redir family\n", err);
++		nss_nl_error("Error: %d unable to register gre_redir family\n", err);
+ 		genl_unregister_family(&nss_nldtls_family);
+ 		return false;
+ 	}
+@@ -1176,12 +1176,12 @@ bool nss_nldtls_init(void)
+ 	 */
+ 	gbl_ctx.dentry = debugfs_create_dir("nldtls", NULL);
+ 	if (!gbl_ctx.dentry) {
+-		nss_nl_info_always("Cannot create nldtls directory\n");
++		nss_nl_error("Cannot create nldtls directory\n");
+ 		goto free_family;
+ 	}
+ 
+ 	if (!debugfs_create_file("stats", 0400, gbl_ctx.dentry, NULL, &nss_nldtls_stats_ops)) {
+-		nss_nl_info_always("Cannot create nldtls dentry file\n");
++		nss_nl_error("Cannot create nldtls dentry file\n");
+ 		goto free_debugfs;
+ 	}
+ 
+@@ -1205,7 +1205,7 @@ bool nss_nldtls_exit(void)
+ 	struct net_device *dev;
+ 	int err;
+ 
+-	nss_nl_info_always("Exit NSS netlink dtls handler\n");
++	nss_nl_info("Exit NSS netlink dtls handler\n");
+ 
+ 	/*
+ 	 * Destroy all active tunnel before exiting
+@@ -1218,14 +1218,14 @@ bool nss_nldtls_exit(void)
+ 		}
+ 	}
+ 
+-	nss_nl_info_always("All active tunnels destroyed\n");
++	nss_nl_info("All active tunnels destroyed\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	err = genl_unregister_family(&nss_nldtls_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to unregister dtls NETLINK family\n", err);
++		nss_nl_error("Error: %d unable to unregister dtls NETLINK family\n", err);
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nldynamic_interface.c
++++ b/netlink/nss_nldynamic_interface.c
+@@ -126,14 +126,14 @@ bool nss_nldynamic_interface_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink dynamic_interface handler\n");
++	nss_nl_info("Init NSS netlink dynamic_interface handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nldynamic_interface_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register dynamic_interface family\n");
++		nss_nl_error("Error: unable to register dynamic_interface family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nldynamic_interface_init(void)
+ 	 */
+ 	ret = nss_dynamic_interface_stats_register_notifier(&nss_dynamic_interface_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		genl_unregister_family(&nss_nldynamic_interface_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nldynamic_interface_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink dynamic_interface handler\n");
++	nss_nl_info("Exit NSS netlink dynamic_interface handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for dynamic interface
+@@ -170,7 +170,7 @@ bool nss_nldynamic_interface_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nldynamic_interface_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister dynamic_interface NETLINK family\n");
++		nss_nl_error("unable to unregister dynamic_interface NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nledma.c
++++ b/netlink/nss_nledma.c
+@@ -131,14 +131,14 @@ bool nss_nledma_init(void)
+ {
+ 	int error, ret;
+ 
+-	nss_nl_info_always("Init NSS netlink Edma handler\n");
++	nss_nl_info("Init NSS netlink Edma handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nledma_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register Edma family\n");
++		nss_nl_error("Error: unable to register Edma family\n");
+ 		return false;
+ 	}
+ 
+@@ -147,7 +147,7 @@ bool nss_nledma_init(void)
+ 	 */
+ 	ret = nss_edma_stats_register_notifier(&nss_edma_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nledma_family);
+ 		return false;
+ 	}
+@@ -163,7 +163,7 @@ bool nss_nledma_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink Edma handler\n");
++	nss_nl_info("Exit NSS netlink Edma handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for edma
+@@ -175,7 +175,7 @@ bool nss_nledma_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nledma_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister Edma NETLINK family\n");
++		nss_nl_error("unable to unregister Edma NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlethrx.c
++++ b/netlink/nss_nlethrx.c
+@@ -126,14 +126,14 @@ bool nss_nlethrx_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink eth_rx handler\n");
++	nss_nl_info("Init NSS netlink eth_rx handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlethrx_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register eth_rx family\n");
++		nss_nl_error("Error: unable to register eth_rx family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nlethrx_init(void)
+ 	 */
+ 	ret = nss_eth_rx_stats_register_notifier(&nss_eth_rx_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		genl_unregister_family(&nss_nlethrx_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nlethrx_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink eth_rx handler\n");
++	nss_nl_info("Exit NSS netlink eth_rx handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for ethrx
+@@ -170,7 +170,7 @@ bool nss_nlethrx_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlethrx_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister eth_rx NETLINK family\n");
++		nss_nl_error("unable to unregister eth_rx NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlgre_redir_family.c
++++ b/netlink/nss_nlgre_redir_family.c
+@@ -34,14 +34,14 @@
+ bool nss_nlgre_redir_family_init(void)
+ {
+ 	int err;
+-	nss_nl_info_always("Init NSS netlink gre_redir handler\n");
++	nss_nl_info("Init NSS netlink gre_redir handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	err = genl_register_family(&nss_nlgre_redir_cmd_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to register gre_redir family\n", err);
++		nss_nl_error("Error: %d unable to register gre_redir family\n", err);
+ 		return false;
+ 	}
+ 
+@@ -55,14 +55,14 @@ bool nss_nlgre_redir_family_init(void)
+ bool nss_nlgre_redir_family_exit(void)
+ {
+ 	int err;
+-	nss_nl_info_always("Exit NSS netlink gre_redir handler\n");
++	nss_nl_info("Exit NSS netlink gre_redir handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	err = genl_unregister_family(&nss_nlgre_redir_cmd_family);
+ 	if (err) {
+-		nss_nl_info_always("Error: %d unable to unregister gre_redir NETLINK family\n", err);
++		nss_nl_error("Error: %d unable to unregister gre_redir NETLINK family\n", err);
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlipsec.c
++++ b/netlink/nss_nlipsec.c
+@@ -707,7 +707,7 @@ bool nss_nlipsec_init(void)
+ 	int error;
+ 	int i;
+ 
+-	nss_nl_info_always("Init NSS netlink IPsec handler\n");
++	nss_nl_info("Init NSS netlink IPsec handler\n");
+ 
+ 	/*
+ 	 * Initialize reference table
+@@ -723,7 +723,7 @@ bool nss_nlipsec_init(void)
+ 	 */
+ 	error = genl_register_family(&nss_nlipsec_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("Error: unable to register IPsec family\n");
++		nss_nl_error("Error: unable to register IPsec family\n");
+ 		return false;
+ 	}
+ 
+@@ -738,14 +738,14 @@ bool nss_nlipsec_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink IPsec handler\n");
++	nss_nl_info("Exit NSS netlink IPsec handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	error = genl_unregister_family(&nss_nlipsec_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("Unregister IPsec NETLINK family failed\n");
++		nss_nl_error("Unregister IPsec NETLINK family failed\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlipv4.c
++++ b/netlink/nss_nlipv4.c
+@@ -966,14 +966,14 @@ bool nss_nlipv4_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink IPv4 handler\n");
++	nss_nl_info("Init NSS netlink IPv4 handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlipv4_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("Error: unable to register IPv4 family\n");
++		nss_nl_error("Error: unable to register IPv4 family\n");
+ 		return false;
+ 	}
+ 
+@@ -982,7 +982,7 @@ bool nss_nlipv4_init(void)
+ 	 */
+ 	gbl_ctx.nss = nss_ipv4_get_mgr();
+ 	if (!gbl_ctx.nss) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		goto unreg_family;
+ 	}
+ 
+@@ -991,7 +991,7 @@ bool nss_nlipv4_init(void)
+ 	 */
+ 	ret = nss_ipv4_stats_register_notifier(&nss_ipv4_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		goto unreg_family;
+ 	}
+ 
+@@ -1014,14 +1014,14 @@ bool nss_nlipv4_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink IPv4 handler\n");
++	nss_nl_info("Exit NSS netlink IPv4 handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	error = genl_unregister_family(&nss_nlipv4_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("unable to unregister IPv4 NETLINK family\n");
++		nss_nl_error("unable to unregister IPv4 NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlipv4_reasm.c
++++ b/netlink/nss_nlipv4_reasm.c
+@@ -126,14 +126,14 @@ bool nss_nlipv4_reasm_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink ipv4_reasm handler\n");
++	nss_nl_info("Init NSS netlink ipv4_reasm handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlipv4_reasm_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register ipv4_reasm family\n");
++		nss_nl_error("Error: unable to register ipv4_reasm family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nlipv4_reasm_init(void)
+ 	 */
+ 	ret = nss_ipv4_reasm_stats_register_notifier(&nss_ipv4_reasm_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		genl_unregister_family(&nss_nlipv4_reasm_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nlipv4_reasm_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink ipv4_reasm handler\n");
++	nss_nl_info("Exit NSS netlink ipv4_reasm handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for ipv4_reasm
+@@ -170,7 +170,7 @@ bool nss_nlipv4_reasm_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlipv4_reasm_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister ipv4_reasm NETLINK family\n");
++		nss_nl_error("unable to unregister ipv4_reasm NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlipv6.c
++++ b/netlink/nss_nlipv6.c
+@@ -967,14 +967,14 @@ bool nss_nlipv6_init(void)
+ {
+ 	int error, ret;
+ 
+-	nss_nl_info_always("Init NSS netlink IPV6 handler\n");
++	nss_nl_info("Init NSS netlink IPV6 handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlipv6_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("Error: unable to register IPV6 family\n");
++		nss_nl_error("Error: unable to register IPV6 family\n");
+ 		return false;
+ 	}
+ 
+@@ -983,7 +983,7 @@ bool nss_nlipv6_init(void)
+ 	 */
+ 	gbl_ctx.nss = nss_ipv6_get_mgr();
+ 	if (!gbl_ctx.nss) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		goto unreg_family;
+ 	}
+ 
+@@ -992,7 +992,7 @@ bool nss_nlipv6_init(void)
+ 	 */
+ 	ret = nss_ipv6_stats_register_notifier(&nss_ipv6_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context \n");
++		nss_nl_error("Error: retreiving the NSS Context \n");
+ 		goto unreg_family;
+ 	}
+ 
+@@ -1015,7 +1015,7 @@ bool nss_nlipv6_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink IPV6 handler\n");
++	nss_nl_info("Exit NSS netlink IPV6 handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for ipv6
+@@ -1027,7 +1027,7 @@ bool nss_nlipv6_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlipv6_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("unable to unregister IPV6 NETLINK family\n");
++		nss_nl_error("unable to unregister IPV6 NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlipv6_reasm.c
++++ b/netlink/nss_nlipv6_reasm.c
+@@ -126,14 +126,14 @@ bool nss_nlipv6_reasm_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink ipv6_reasm handler\n");
++	nss_nl_info("Init NSS netlink ipv6_reasm handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlipv6_reasm_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register ipv6_reasm family\n");
++		nss_nl_error("Error: unable to register ipv6_reasm family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nlipv6_reasm_init(void)
+ 	 */
+ 	ret = nss_ipv6_reasm_stats_register_notifier(&nss_ipv6_reasm_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nlipv6_reasm_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nlipv6_reasm_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink ipv6_reasm handler\n");
++	nss_nl_info("Exit NSS netlink ipv6_reasm handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for ipv6_reasm
+@@ -170,7 +170,7 @@ bool nss_nlipv6_reasm_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlipv6_reasm_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister ipv6_reasm NETLINK family\n");
++		nss_nl_error("unable to unregister ipv6_reasm NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nll2tpv2.c
++++ b/netlink/nss_nll2tpv2.c
+@@ -127,14 +127,14 @@ bool nss_nll2tpv2_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink l2tpv2 handler\n");
++	nss_nl_info("Init NSS netlink l2tpv2 handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nll2tpv2_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register l2tpv2 family\n");
++		nss_nl_error("Error: unable to register l2tpv2 family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nll2tpv2_init(void)
+ 	 */
+ 	ret = nss_l2tpv2_stats_register_notifier(&nss_l2tpv2_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nll2tpv2_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nll2tpv2_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink l2tpv2 handler\n");
++	nss_nl_info("Exit NSS netlink l2tpv2 handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for l2tpv2
+@@ -171,7 +171,7 @@ bool nss_nll2tpv2_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nll2tpv2_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister l2tpv2 NETLINK family\n");
++		nss_nl_error("unable to unregister l2tpv2 NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nllso_rx.c
++++ b/netlink/nss_nllso_rx.c
+@@ -127,14 +127,14 @@ bool nss_nllso_rx_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink lso_rx handler\n");
++	nss_nl_info("Init NSS netlink lso_rx handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nllso_rx_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register lso_rx family\n");
++		nss_nl_error("Error: unable to register lso_rx family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nllso_rx_init(void)
+ 	 */
+ 	ret = nss_lso_rx_stats_register_notifier(&nss_lso_rx_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nllso_rx_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nllso_rx_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink lso_rx handler\n");
++	nss_nl_info("Exit NSS netlink lso_rx handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for lso_rx
+@@ -171,7 +171,7 @@ bool nss_nllso_rx_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nllso_rx_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister lso_rx NETLINK family\n");
++		nss_nl_error("unable to unregister lso_rx NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlmap_t.c
++++ b/netlink/nss_nlmap_t.c
+@@ -127,14 +127,14 @@ bool nss_nlmap_t_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink map_t handler\n");
++	nss_nl_info("Init NSS netlink map_t handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlmap_t_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register map_t family\n");
++		nss_nl_error("Error: unable to register map_t family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nlmap_t_init(void)
+ 	 */
+ 	ret = nss_map_t_stats_register_notifier(&nss_map_t_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nlmap_t_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nlmap_t_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink map_t handler\n");
++	nss_nl_info("Exit NSS netlink map_t handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for map_t
+@@ -171,7 +171,7 @@ bool nss_nlmap_t_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlmap_t_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister map_t NETLINK family\n");
++		nss_nl_error("unable to unregister map_t NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nln2h.c
++++ b/netlink/nss_nln2h.c
+@@ -126,14 +126,14 @@ bool nss_nln2h_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink n2h handler\n");
++	nss_nl_info("Init NSS netlink n2h handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nln2h_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register n2h family\n");
++		nss_nl_error("Error: unable to register n2h family\n");
+ 		return false;
+ 	}
+ 
+@@ -142,7 +142,7 @@ bool nss_nln2h_init(void)
+ 	 */
+ 	ret = nss_n2h_stats_register_notifier(&nss_n2h_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nln2h_family);
+ 		return false;
+ 	}
+@@ -158,7 +158,7 @@ bool nss_nln2h_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink n2h handler\n");
++	nss_nl_info("Exit NSS netlink n2h handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for n2h
+@@ -170,7 +170,7 @@ bool nss_nln2h_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nln2h_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister n2h NETLINK family\n");
++		nss_nl_error("unable to unregister n2h NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nloam.c
++++ b/netlink/nss_nloam.c
+@@ -348,7 +348,7 @@ bool nss_nloam_init(void)
+ 	 */
+ 	error = genl_register_family(&nss_nloam_family);
+ 	if (error != 0) {
+-		nss_nl_info_always("unable to register OAM family\n");
++		nss_nl_error("unable to register OAM family\n");
+ 		return false;
+ 	}
+ 
+@@ -375,7 +375,7 @@ unreg_ops:
+  */
+ bool nss_nloam_exit(void)
+ {
+-	nss_nl_info_always("Uninitiallizing the NSS netlink oam handler\n");
++	nss_nl_info("Disabling NSS netlink oam handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for oam
+--- a/netlink/nss_nlpppoe.c
++++ b/netlink/nss_nlpppoe.c
+@@ -127,14 +127,14 @@ bool nss_nlpppoe_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink pppoe handler\n");
++	nss_nl_info("Init NSS netlink pppoe handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlpppoe_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register pppoe family\n");
++		nss_nl_error("Error: unable to register pppoe family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nlpppoe_init(void)
+ 	 */
+ 	ret = nss_pppoe_stats_register_notifier(&nss_pppoe_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nlpppoe_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nlpppoe_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink pppoe handler\n");
++	nss_nl_info("Exit NSS netlink pppoe handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for pppoe
+@@ -171,7 +171,7 @@ bool nss_nlpppoe_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlpppoe_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister pppoe NETLINK family\n");
++		nss_nl_error("unable to unregister pppoe NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlpptp.c
++++ b/netlink/nss_nlpptp.c
+@@ -127,14 +127,14 @@ bool nss_nlpptp_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink pptp handler\n");
++	nss_nl_info("Init NSS netlink pptp handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlpptp_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register pptp family\n");
++		nss_nl_error("Error: unable to register pptp family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nlpptp_init(void)
+ 	 */
+ 	ret = nss_pptp_stats_register_notifier(&nss_pptp_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nlpptp_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nlpptp_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink pptp handler\n");
++	nss_nl_info("Exit NSS netlink pptp handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for pptp
+@@ -171,7 +171,7 @@ bool nss_nlpptp_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlpptp_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister pptp NETLINK family\n");
++		nss_nl_error("unable to unregister pptp NETLINK family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlqrfs.c
++++ b/netlink/nss_nlqrfs.c
+@@ -166,14 +166,14 @@ bool nss_nlqrfs_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink qrfs handler\n");
++	nss_nl_info("Exit NSS netlink qrfs handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	error = genl_unregister_family(&nss_nlqrfs_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister qrfs NETLINK family\n");
++		nss_nl_error("unable to unregister qrfs NETLINK family\n");
+ 		return false;
+ 	}
+ 
+@@ -188,14 +188,14 @@ bool nss_nlqrfs_init(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Init NSS netlink qrfs handler\n");
++	nss_nl_info("Init NSS netlink qrfs handler\n");
+ 
+ 	/*
+ 	 * register Netlink ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlqrfs_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register qrfs family\n");
++		nss_nl_error("Error: unable to register qrfs family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nludp_st.c
++++ b/netlink/nss_nludp_st.c
+@@ -1822,14 +1822,14 @@ bool nss_nludp_st_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink udp_st handler\n");
++	nss_nl_info("Exit NSS netlink udp_st handler\n");
+ 
+ 	/*
+ 	 * unregister the ops family
+ 	 */
+ 	error = genl_unregister_family(&nss_nludp_st_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister udp_st NETLINK family\n");
++		nss_nl_error("unable to unregister udp_st NETLINK family\n");
+ 		return false;
+ 	}
+ 
+@@ -1844,14 +1844,14 @@ bool nss_nludp_st_init(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Init NSS netlink udp_st handler\n");
++	nss_nl_info("Init NSS netlink udp_st handler\n");
+ 
+ 	/*
+ 	 * register Netlink ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nludp_st_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register udp_st family\n");
++		nss_nl_error("Error: unable to register udp_st family\n");
+ 		return false;
+ 	}
+ 
+--- a/netlink/nss_nlwifili.c
++++ b/netlink/nss_nlwifili.c
+@@ -127,14 +127,14 @@ bool nss_nlwifili_init(void)
+ {
+ 	int error,ret;
+ 
+-	nss_nl_info_always("Init NSS netlink wifili handler\n");
++	nss_nl_info("Init NSS netlink wifili handler\n");
+ 
+ 	/*
+ 	 * register NETLINK ops with the family
+ 	 */
+ 	error = genl_register_family(&nss_nlwifili_family);
+ 	if (error) {
+-		nss_nl_info_always("Error: unable to register wifili family\n");
++		nss_nl_error("Error: unable to register wifili family\n");
+ 		return false;
+ 	}
+ 
+@@ -143,7 +143,7 @@ bool nss_nlwifili_init(void)
+ 	 */
+ 	ret = nss_wifili_stats_register_notifier(&nss_wifili_stats_notifier_nb);
+ 	if (ret) {
+-		nss_nl_info_always("Error: retreiving the NSS Context\n");
++		nss_nl_error("Error: retreiving the NSS Context\n");
+ 		genl_unregister_family(&nss_nlwifili_family);
+ 		return false;
+ 	}
+@@ -159,7 +159,7 @@ bool nss_nlwifili_exit(void)
+ {
+ 	int error;
+ 
+-	nss_nl_info_always("Exit NSS netlink wifili handler\n");
++	nss_nl_info("Exit NSS netlink wifili handler\n");
+ 
+ 	/*
+ 	 * Unregister the device callback handler for wifili
+@@ -171,7 +171,7 @@ bool nss_nlwifili_exit(void)
+ 	 */
+ 	error = genl_unregister_family(&nss_nlwifili_family);
+ 	if (error) {
+-		nss_nl_info_always("unable to unregister wifili NETLINK family\n");
++		nss_nl_error("unable to unregister wifili NETLINK family\n");
+ 		return false;
+ 	}
+ 

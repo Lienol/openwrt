@@ -1,6 +1,6 @@
 --- /dev/null
 +++ b/Makefile
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,28 @@
 +# Define the build directories based on flags
 +DIRS-y :=
 +DIRS-$(BUILD_LIBNSS) += lib
@@ -16,6 +16,10 @@
 +# Pattern rule to build each directory
 +$(DIRS-y):
 +	$(MAKE) -C $@
++
++nssinfo: lib
++
++ppe/ppecfg: ppe/ppenl_lib
 +
 +clean:
 +	@for dir in $(DIRS-y); do \

@@ -95,7 +95,6 @@ endif
 
 define Build/libnl-nss/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR)/usr/include/libnl-nss
-	$(CP) $(PKG_BUILD_DIR)/lib/obj/libnl-nss.so $(STAGING_DIR)/usr/lib
 	$(CP) $(PKG_BUILD_DIR)/lib/include/* $(STAGING_DIR)/usr/include/libnl-nss
 endef
 

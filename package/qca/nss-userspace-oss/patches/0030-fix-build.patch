@@ -1,8 +1,6 @@
-diff --git a/lib/nss_nlmcast_api.c b/lib/nss_nlmcast_api.c
-index 7646440..11ec59b 100644
 --- a/lib/nss_nlmcast_api.c
 +++ b/lib/nss_nlmcast_api.c
-@@ -94,7 +94,7 @@ int nss_nlmcast_sock_join_grp(struct nss_nlmcast_ctx *ctx, char *grp_name)
+@@ -94,7 +94,7 @@ int nss_nlmcast_sock_join_grp(struct nss
  
  	error = nss_nlsock_join_grp(&ctx->sock, grp_name);
  	if (error) {
@@ -11,11 +9,9 @@ index 7646440..11ec59b 100644
  		return error;
  	}
  
-diff --git a/lib/nss_nlsock.c b/lib/nss_nlsock.c
-index 5b231e5..bde0670 100644
 --- a/lib/nss_nlsock.c
 +++ b/lib/nss_nlsock.c
-@@ -221,15 +221,23 @@ int nss_nlsock_leave_grp(struct nss_nlsock_ctx *sock, char *grp_name)
+@@ -221,15 +221,23 @@ int nss_nlsock_leave_grp(struct nss_nlso
  {
  	int error;
  
@@ -42,7 +38,7 @@ index 5b231e5..bde0670 100644
  	}
  
  	/*
-@@ -259,7 +267,7 @@ int nss_nlsock_join_grp(struct nss_nlsock_ctx *sock, char *grp_name)
+@@ -259,7 +267,7 @@ int nss_nlsock_join_grp(struct nss_nlsoc
  	 */
  	sock->grp_id = genl_ctrl_resolve_grp(sock->nl_sk, sock->family_name, grp_name);
  	if (sock->grp_id < 0) {
@@ -79,7 +75,7 @@ index 5b231e5..bde0670 100644
  
  /* Array of pointers to node stats */
  struct node *nodes[NSS_MAX_CORES][NSS_MAX_NET_INTERFACES];
-@@ -350,6 +363,16 @@ static void *nssinfo_stats_display(void *arg)
+@@ -350,6 +363,16 @@ static void *nssinfo_stats_display(void
  	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
  
  	for (;;) {
@@ -105,7 +101,7 @@ index 5b231e5..bde0670 100644
  }
  
  /*
-@@ -607,11 +632,16 @@ static void nssinfo_notify_callback(int cmd, void *data)
+@@ -607,11 +632,16 @@ static void nssinfo_notify_callback(int
  	if (cmd < NSS_NLCMN_SUBSYS_MAX && nssinfo_subsystem_array[cmd].is_inited) {
  		nssinfo_subsystem_array[cmd].notify(data);
  	} else {
@@ -123,7 +119,7 @@ index 5b231e5..bde0670 100644
   */
  static void nssinfo_deinit(struct nss_nlmcast_ctx *ctx)
  {
-@@ -639,10 +669,11 @@ static void nssinfo_deinit(struct nss_nlmcast_ctx *ctx)
+@@ -639,10 +669,11 @@ static void nssinfo_deinit(struct nss_nl
  
  	/*
  	 * Release resources used by each subsystem
@@ -266,11 +262,9 @@ index 5b231e5..bde0670 100644
 +		break;
 +	}
 +}
-diff --git a/nssinfo/src/nssinfo_lso_rx.c b/nssinfo/src/nssinfo_lso_rx.c
-index bbe7274..9f5bd6e 100644
 --- a/nssinfo/src/nssinfo_lso_rx.c
 +++ b/nssinfo/src/nssinfo_lso_rx.c
-@@ -43,7 +43,7 @@ static void nssinfo_lso_rx_stats_display(int core, char *input)
+@@ -43,7 +43,7 @@ static void nssinfo_lso_rx_stats_display
  	lso_rx_node = nodes[core][NSS_LSO_RX_INTERFACE];
  	if (!lso_rx_node) {
  		pthread_mutex_unlock(&lso_rx_lock);
@@ -279,3 +273,31 @@ index bbe7274..9f5bd6e 100644
  		return;
  	}
  
+--- a/nssinfo/Makefile
++++ b/nssinfo/Makefile
+@@ -10,8 +10,8 @@ OBJECTS = $(SOURCES:$(SRCDIR)/src/%.c=$(
+ 
+ INCLUDE += -I../lib/include
+ EXTRA_CFLAGS = -Wall -Werror -UENABLE_DEBUG
+-LDFLAGS = -lnl-nss -lnl-tiny -lncurses
+-LDLIBS  = -L../lib/obj
++LDFLAGS = -lnl-tiny -lncurses
++LDLIBS  = -L../lib/obj -Wl,-rpath,\$$ORIGIN/../lib:\$$ORIGIN/../../lib/obj -lnl-nss
+ 
+ all: release
+ 
+@@ -20,12 +20,12 @@ release: $(BINARY)
+ $(OBJPATH)/%.o: $(SRCPATH)/%.c $(HEADERS)
+ 	$(MKDIR)
+ 	@echo [CC] $@
+-	@$(CC) -c $(CFLAGS) $(EXTRA_CFLAGS) $(INCLUDE) -o $@ $<
++	$(CC) -c $(CFLAGS) $(EXTRA_CFLAGS) $(INCLUDE) -o $@ $<
+ 
+ $(BINARY): $(OBJECTS)
+ 	@echo $(BINARY)
+ 	@echo [LD] $@
+-	@$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
++	$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+ clean:
+ 	@echo [Clean]
+ 	@rm -f $(OBJECTS)

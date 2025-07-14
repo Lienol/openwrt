@@ -1,0 +1,215 @@
+--- a/include/shell/shell_config.h
++++ b/include/shell/shell_config.h
+@@ -71,7 +71,7 @@ extern "C" {
+         char *sub_memo;
+         char *sub_usage;
+         int   sub_api;
+-        sw_error_t (*sub_func) ();
++        sw_error_t (*sub_func) (a_ulong_t *);
+     };
+     struct cmd_des_t
+     {
+--- a/include/shell/shell_io.h
++++ b/include/shell/shell_io.h
+@@ -29,8 +29,8 @@
+ typedef struct
+ {
+     sw_data_type_e data_type;
+-    sw_error_t(*param_check) ();
+-    void (*show_func) ();
++    void *param_check;
++    void *show_func;
+ } sw_data_type_t;
+ 
+ void  set_talk_mode(int mode);
+@@ -42,7 +42,7 @@ sw_data_type_t * cmd_data_type_find(sw_d
+ void  cmd_strtol(char *str, a_uint32_t * arg_val);
+ 
+ sw_error_t __cmd_data_check_complex(char *info, char *defval, char *usage,
+-				sw_error_t(*chk_func)(), void *arg_val,
++				void *chk_func, void *arg_val,
+ 				a_uint32_t size);
+ 
+ sw_error_t cmd_data_check_portid(char *cmdstr, fal_port_t * val, a_uint32_t size);
+--- a/src/shell/shell.c
++++ b/src/shell/shell.c
+@@ -125,44 +125,41 @@ cmd_api_func(sw_api_func_t *fp, a_uint32
+ {
+     a_ulong_t *p = &args[2];
+     sw_error_t rv;
+-    sw_error_t(*func) ();
+-
+-    func = fp->func;
+ 
+     switch (nr_param)
+     {
+         case 0:
+-            rv = (func) ();
++            rv = ((sw_error_t (*)(void))fp->func)();
+             break;
+         case 1:
+-            rv = (func) (p[0]);
++            rv = ((sw_error_t (*)(a_ulong_t))fp->func)(p[0]);
+             break;
+         case 2:
+-            rv = (func) (p[0], p[1]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t))fp->func)(p[0], p[1]);
+             break;
+         case 3:
+-            rv = (func) (p[0], p[1], p[2]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2]);
+             break;
+         case 4:
+-            rv = (func) (p[0], p[1], p[2], p[3]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3]);
+             break;
+         case 5:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4]);
+             break;
+         case 6:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4], p[5]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4], p[5]);
+             break;
+         case 7:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4], p[5], p[6]);
+             break;
+         case 8:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+             break;
+         case 9:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8]);
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8]);
+             break;
+         case 10:
+-            rv = (func) (p[0], p[1], p[2], p[3], p[4], p[5],
++            rv = ((sw_error_t (*)(a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t, a_ulong_t))fp->func)(p[0], p[1], p[2], p[3], p[4], p[5],
+                          p[6], p[7], p[8], p[9]);
+             break;
+         default:
+@@ -206,7 +203,7 @@ cmd_api_output(sw_api_param_t *pp, a_uin
+ 
+                 if (data_type->show_func)
+                 {
+-                    data_type->show_func(pptmp->param_name, pbuf, pptmp->data_size);
++                    ((void (*)(a_uint8_t *, void *, a_uint32_t))data_type->show_func)(pptmp->param_name, pbuf, pptmp->data_size);
+                 }
+                 else
+                 {
+@@ -297,11 +294,11 @@ cmd_parse_api(char **cmd_str, a_ulong_t
+             {
+                 if(!(pptmp->param_type & SW_PARAM_PTR) && sizeof(a_ulong_t) != sizeof(a_uint32_t)) {
+                     a_uint32_t tmp = 0;
+-                    if (data_type->param_check(tmp_str, &tmp, pptmp->data_size) != SW_OK)
++                    if (((sw_error_t (*)(char *, void *, a_uint32_t))data_type->param_check)(tmp_str, &tmp, pptmp->data_size) != SW_OK)
+                         return SW_BAD_PARAM;
+                     *(a_ulong_t *)pentry = tmp;
+                 } else {
+-                    if (data_type->param_check(tmp_str, pentry, pptmp->data_size) != SW_OK)
++                    if (((sw_error_t (*)(char *, void *, a_uint32_t))data_type->param_check)(tmp_str, pentry, pptmp->data_size) != SW_OK)
+                         return SW_BAD_PARAM;
+                 }
+ 
+--- a/src/shell/shell_io.c
++++ b/src/shell/shell_io.c
+@@ -989,7 +989,7 @@ sw_error_t __cmd_data_check_quit_help(ch
+ }
+ 
+ sw_error_t __cmd_data_check_complex(char *info, char *defval, char *usage,
+-				sw_error_t(*chk_func)(), void *arg_val,
++				void *chk_func, void *arg_val,
+ 				a_uint32_t size)
+ {
+     sw_error_t ret;
+@@ -1003,7 +1003,7 @@ sw_error_t __cmd_data_check_complex(char
+         if (ret == SW_ABORTED)
+             return ret;
+         else if (ret == SW_OK) {
+-            ret = chk_func(cmd, arg_val, size);
++            ret = ((sw_error_t (*)(char *, void *, a_uint32_t))chk_func)(cmd, arg_val, size);
+             if (ret)
+                 dprintf("%s", usage);
+         }
+@@ -14655,7 +14655,7 @@ cmd_data_check_egress_shaper(char *cmd_s
+ {
+     char *cmd;
+     sw_error_t rv;
+-    a_bool_t bool = A_FALSE;
++    a_bool_t bool_val = A_FALSE;
+     fal_egress_shaper_t entry;
+ 
+     aos_mem_zero(&entry, sizeof (fal_egress_shaper_t));
+@@ -14677,7 +14677,7 @@ cmd_data_check_egress_shaper(char *cmd_s
+         }
+         else
+         {
+-            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool,
++            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool_val,
+                                         sizeof (a_bool_t));
+             if (SW_OK != rv)
+                 dprintf("usage: <yes/no/y/n>\n");
+@@ -14685,7 +14685,7 @@ cmd_data_check_egress_shaper(char *cmd_s
+     }
+     while (talk_mode && (SW_OK != rv));
+ 
+-    if (A_TRUE == bool)
++    if (A_TRUE == bool_val)
+     {
+         entry.meter_unit = FAL_BYTE_BASED;
+     }
+@@ -14865,7 +14865,7 @@ cmd_data_check_acl_policer(char *cmd_str
+ {
+     char *cmd;
+     sw_error_t rv;
+-    a_bool_t bool = A_FALSE;
++    a_bool_t bool_val = A_FALSE;
+     fal_acl_policer_t entry;
+ 
+     aos_mem_zero(&entry, sizeof (fal_acl_policer_t));
+@@ -14912,7 +14912,7 @@ cmd_data_check_acl_policer(char *cmd_str
+         }
+         else
+         {
+-            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool,
++            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool_val,
+                                         sizeof (a_bool_t));
+             if (SW_OK != rv)
+                 dprintf("usage: <yes/no/y/n>\n");
+@@ -14920,7 +14920,7 @@ cmd_data_check_acl_policer(char *cmd_str
+     }
+     while (talk_mode && (SW_OK != rv));
+ 
+-    if (A_TRUE == bool)
++    if (A_TRUE == bool_val)
+     {
+         entry.meter_unit = FAL_BYTE_BASED;
+     }
+@@ -15205,7 +15205,7 @@ cmd_data_check_port_policer(char *cmd_st
+ {
+     char *cmd;
+     sw_error_t rv;
+-    a_bool_t bool = A_FALSE;
++    a_bool_t bool_val = A_FALSE;
+     fal_port_policer_t entry;
+ 
+     aos_mem_zero(&entry, sizeof (fal_port_policer_t));
+@@ -15252,7 +15252,7 @@ cmd_data_check_port_policer(char *cmd_st
+         }
+         else
+         {
+-            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool,
++            rv = cmd_data_check_confirm(cmd, A_TRUE, &bool_val,
+                                         sizeof (a_bool_t));
+             if (SW_OK != rv)
+                 dprintf("usage: <yes/no/y/n>\n");
+@@ -15260,7 +15260,7 @@ cmd_data_check_port_policer(char *cmd_st
+     }
+     while (talk_mode && (SW_OK != rv));
+ 
+-    if (A_TRUE == bool)
++    if (A_TRUE == bool_val)
+     {
+         entry.meter_unit = FAL_BYTE_BASED;
+     }

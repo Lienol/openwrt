@@ -54,7 +54,7 @@
      if (SW_OK == rv)
 --- a/src/shell/shell_io.c
 +++ b/src/shell/shell_io.c
-@@ -11835,15 +11835,7 @@ static void
+@@ -11863,15 +11863,7 @@ static void
  _cmd_collect_shell_cfg(ssdk_cfg_t *shell_cfg)
  {
      memset(shell_cfg, 0, sizeof(ssdk_cfg_t));
@@ -70,7 +70,7 @@
  
  #ifdef VERSION
      aos_mem_copy(shell_cfg->build_ver, VERSION, sizeof(VERSION));
-@@ -11910,7 +11902,7 @@ _cmd_collect_shell_cfg(ssdk_cfg_t *shell
+@@ -11938,7 +11930,7 @@ _cmd_collect_shell_cfg(ssdk_cfg_t *shell
  static void
  _cmd_data_print_cfg(ssdk_cfg_t *entry)
  {
@@ -79,7 +79,7 @@
  
      dprintf("[build verison]:%-10s [build date]:%s\n", entry->build_ver, entry->build_date);
      dprintf("[chip type]:%-14s [arch]:%-12s [os]:%s\n", entry->chip_type, entry->cpu_type, entry->os_info);
-@@ -11921,10 +11913,8 @@ _cmd_data_print_cfg(ssdk_cfg_t *entry)
+@@ -11949,10 +11941,8 @@ _cmd_data_print_cfg(ssdk_cfg_t *entry)
              cmd_cpu_mode(init->cpu_mode), cmd_access_mode(init->reg_mode),
              init->nl_prot);
  /*qca808x_end*/

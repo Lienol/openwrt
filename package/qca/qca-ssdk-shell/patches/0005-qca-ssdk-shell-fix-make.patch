@@ -1,0 +1,46 @@
+--- a/config
++++ b/config
+@@ -84,7 +84,7 @@ endif
+   #CPU_CFLAG=-Wstrict-prototypes -Wundef -fomit-frame-pointer -G 0 -mno-abicalls -Wno-trigraphs -fno-strict-aliasing -fno-common -ffreestanding -O2 -fno-pic -pipe -mabi=32 -march=r4600 -Wa,-32 -Wa,-march=r4600 -Wa,--trap -DMODULE -mlong-calls -DEXPORT_SYMTAB
+ 
+ 
+-KERNEL_MODE=FLASE
++KERNEL_MODE=TRUE
+ #compatiable with OpenWRT
+ ifeq ($(SWITCH_SSDK_MODE),user)
+ KERNEL_MODE=FLASE
+--- a/make/config.mk
++++ b/make/config.mk
+@@ -73,7 +73,7 @@ OPT_FLAG=
+ LD_FLAG=
+ 
+ SHELLOBJ=ssdk_sh
+-US_MOD=libssdk_us
++US_MOD=ssdk_us
+ KS_MOD=ssdk_ks
+ 
+ ifeq (TRUE, $(KERNEL_MODE))
+--- a/Makefile
++++ b/Makefile
+@@ -22,9 +22,9 @@ kslib_o:
+ 	$(foreach i, $(SUB_LIB), $(MAKE) MODULE_TYPE=KSLIB -C src/$i all || exit 1;)
+ 
+ uslib:uslib_o
+-	$(AR) -r $(BIN_DIR)/$(US_MOD)_$(RUNMODE).a $(wildcard $(BLD_DIR)/USLIB/*.o)
+-	$(CC) -fPIC -shared -o $(BIN_DIR)/$(US_MOD).so $(wildcard $(BLD_DIR)/USLIB/*.o)
+-	$(STRIP) $(BIN_DIR)/$(US_MOD).so
++	$(AR) -r $(BIN_DIR)/lib$(US_MOD)_$(RUNMODE).a $(wildcard $(BLD_DIR)/USLIB/*.o)
++	$(CC) -fPIC -shared -o $(BIN_DIR)/lib$(US_MOD)_$(RUNMODE).so $(wildcard $(BLD_DIR)/USLIB/*.o)
++	$(STRIP) $(BIN_DIR)/lib$(US_MOD)_$(RUNMODE).so
+ 
+ uslib_o:
+ 	$(foreach i, $(SUB_LIB), $(MAKE) MODULE_TYPE=USLIB -C src/$i all || exit 1;)
+--- a/src/shell/Makefile
++++ b/src/shell/Makefile
+@@ -21,4 +21,5 @@ else
+ endif
+ 
+ lib:
+-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(OBJ_FILE) $(BIN_DIR)/$(US_MOD)_$(RUNMODE).a -o $(DST_DIR)/$(SHELLOBJ) $(PT_LIB)
++	# $(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(OBJ_FILE) -L$(BIN_DIR) -l$(US_MOD)_$(RUNMODE) -Wl,-rpath,/usr/lib -o $(DST_DIR)/$(SHELLOBJ) $(PT_LIB)
++	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(OBJ_FILE) -L$(BIN_DIR) -l:lib$(US_MOD)_$(RUNMODE).a -o $(DST_DIR)/$(SHELLOBJ) $(PT_LIB)
