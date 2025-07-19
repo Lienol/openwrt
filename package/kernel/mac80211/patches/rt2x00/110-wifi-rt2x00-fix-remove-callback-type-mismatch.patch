@@ -1,17 +1,17 @@
---- a/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
-+++ b/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
-@@ -273,7 +273,7 @@ static struct platform_driver rt2800soc_
- 		.of_match_table	= rt2880_wmac_match,
- 	},
- 	.probe		= rt2800soc_probe,
--	.remove		= rt2x00soc_remove,
-+	.remove_new	= rt2x00soc_remove,
- 	.suspend	= rt2x00soc_suspend,
- 	.resume		= rt2x00soc_resume,
- };
+From: Felix Fietkau <nbd@nbd.name>
+Date: Sun, 6 Jul 2025 11:15:13 +0200
+Subject: [PATCH] wifi: rt2x00: fix remove callback type mismatch
+
+The function is used as remove callback for a platform driver.
+It was missed during the conversion from int to void
+
+Fixes: 0edb555a65d1 ("platform: Make platform_driver::remove() return void")
+Signed-off-by: Felix Fietkau <nbd@nbd.name>
+---
+
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00soc.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00soc.c
-@@ -124,7 +124,7 @@ exit_free_device:
+@@ -108,7 +108,7 @@ exit_free_device:
  }
  EXPORT_SYMBOL_GPL(rt2x00soc_probe);
  
@@ -20,7 +20,7 @@
  {
  	struct ieee80211_hw *hw = platform_get_drvdata(pdev);
  	struct rt2x00_dev *rt2x00dev = hw->priv;
-@@ -135,8 +135,6 @@ int rt2x00soc_remove(struct platform_dev
+@@ -119,8 +119,6 @@ int rt2x00soc_remove(struct platform_dev
  	rt2x00lib_remove_dev(rt2x00dev);
  	rt2x00soc_free_reg(rt2x00dev);
  	ieee80211_free_hw(hw);

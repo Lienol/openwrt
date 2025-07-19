@@ -1,0 +1,11 @@
+--- a/drivers/net/wireless/ath/ath11k/debugfs.c
++++ b/drivers/net/wireless/ath/ath11k/debugfs.c
+@@ -179,7 +179,7 @@ static int ath11k_debugfs_fw_stats_reque
+ 	 * received 'update stats' event, we keep a 3 seconds timeout in case,
+ 	 * fw_stats_done is not marked yet
+ 	 */
+-	timeout = jiffies + secs_to_jiffies(3);
++	timeout = jiffies + msecs_to_jiffies(3 * 1000);
+ 
+ 	ath11k_debugfs_fw_stats_reset(ar);
+ 
