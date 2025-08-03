@@ -52,7 +52,7 @@
  	dev->needs_free_netdev = true;
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -4693,6 +4693,15 @@ void dev_uc_flush(struct net_device *dev
+@@ -4728,6 +4728,15 @@ void dev_uc_flush(struct net_device *dev
  void dev_uc_init(struct net_device *dev);
  
  /**
@@ -68,7 +68,7 @@
   *  __dev_uc_sync - Synchonize device's unicast list
   *  @dev:  device to sync
   *  @sync: function to call if address should be added
-@@ -5219,6 +5228,11 @@ static inline bool netif_is_failover_sla
+@@ -5272,6 +5281,11 @@ static inline bool netif_is_failover_sla
  	return dev->priv_flags & IFF_FAILOVER_SLAVE;
  }
  
@@ -341,7 +341,7 @@
  
  struct Qdisc *qdisc_lookup_rcu(struct net_device *dev, u32 handle)
  {
-@@ -2390,4 +2391,26 @@ static int __init pktsched_init(void)
+@@ -2405,4 +2406,26 @@ static int __init pktsched_init(void)
  	return 0;
  }
  
@@ -370,7 +370,7 @@
  subsys_initcall(pktsched_init);
 --- a/net/sched/sch_generic.c
 +++ b/net/sched/sch_generic.c
-@@ -1074,6 +1074,7 @@ static void __qdisc_destroy(struct Qdisc
+@@ -1083,6 +1083,7 @@ static void __qdisc_destroy(struct Qdisc
  
  	call_rcu(&qdisc->rcu, qdisc_free_cb);
  }
@@ -431,7 +431,7 @@
  /* Reset all TX qdiscs greater than index of a device.  */
  static inline void qdisc_reset_all_tx_gt(struct net_device *dev, unsigned int i)
  {
-@@ -1324,4 +1361,9 @@ static inline void qdisc_synchronize(con
+@@ -1338,4 +1375,9 @@ static inline void qdisc_synchronize(con
  		msleep(1);
  }
  
@@ -443,7 +443,7 @@
  #endif
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -762,6 +762,7 @@ typedef unsigned char *sk_buff_data_t;
+@@ -767,6 +767,7 @@ enum skb_tstamp_type {
   *	@offload_fwd_mark: Packet was L2-forwarded in hardware
   *	@offload_l3_fwd_mark: Packet was L3-forwarded in hardware
   *	@tc_skip_classify: do not classify packet. set by IFB device
@@ -451,7 +451,7 @@
   *	@tc_at_ingress: used within tc_classify to distinguish in/egress
   *	@redirected: packet was redirected by packet classifier
   *	@from_ingress: packet was redirected from the ingress path
-@@ -940,6 +941,9 @@ struct sk_buff {
+@@ -943,6 +944,9 @@ struct sk_buff {
  	__u8			tc_at_ingress:1;	/* See TC_AT_INGRESS_MASK */
  	__u8			tc_skip_classify:1;
  #endif

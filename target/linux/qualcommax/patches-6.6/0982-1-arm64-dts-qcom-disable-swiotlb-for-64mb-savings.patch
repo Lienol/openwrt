@@ -1,6 +1,6 @@
 --- a/arch/arm64/boot/dts/qcom/ipq6010-wax214.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq6010-wax214.dts
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -11,7 +11,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq6018-fap650.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq6018-fap650.dts
-@@ -30,7 +30,7 @@
+@@ -31,7 +31,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -22,7 +22,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8070-cax1800.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8070-cax1800.dts
-@@ -27,7 +27,7 @@
+@@ -28,7 +28,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -33,7 +33,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8070-rm2-6.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8070-rm2-6.dts
-@@ -33,7 +33,7 @@
+@@ -34,7 +34,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -44,7 +44,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8071-ax3600.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq8071-ax3600.dtsi
-@@ -20,7 +20,7 @@
+@@ -21,7 +21,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -55,7 +55,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8071-eap102.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8071-eap102.dts
-@@ -30,7 +30,7 @@
+@@ -31,7 +31,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -66,7 +66,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8071-mf269.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8071-mf269.dts
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -77,7 +77,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-aw1000.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-aw1000.dts
-@@ -35,7 +35,7 @@
+@@ -36,7 +36,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -88,7 +88,7 @@
  	gpio-export {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-ax880.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-ax880.dts
-@@ -30,7 +30,7 @@
+@@ -31,7 +31,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -99,7 +99,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-ax9000.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-ax9000.dts
-@@ -26,7 +26,7 @@
+@@ -27,7 +27,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -110,7 +110,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-dl-wrx36.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-dl-wrx36.dts
-@@ -32,7 +32,7 @@
+@@ -33,7 +33,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -121,7 +121,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-mx5300.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-mx5300.dts
-@@ -33,7 +33,7 @@
+@@ -34,7 +34,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -132,7 +132,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-mx8500.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-mx8500.dts
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -143,7 +143,7 @@
  	gpio_export {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-wax218.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-wax218.dts
-@@ -27,7 +27,7 @@
+@@ -28,7 +28,7 @@
  		 * Netgear's U-Boot adds "ubi.mtd=rootfs root=mtd:ubi_rootfs"
  		 * That fails to create a UBI block device, so add it here.
  		*/
@@ -154,7 +154,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-wax620.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-wax620.dts
-@@ -30,7 +30,7 @@
+@@ -31,7 +31,7 @@
  		 * Netgear's U-Boot adds "ubi.mtd=rootfs root=mtd:ubi_rootfs"
  		 * That fails to create a UBI block device, so add it here.
  		*/
@@ -165,7 +165,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-wpq873.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-wpq873.dts
-@@ -31,7 +31,7 @@
+@@ -32,7 +32,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -176,7 +176,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8072-zbt-z800ax.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8072-zbt-z800ax.dts
-@@ -33,7 +33,7 @@
+@@ -34,7 +34,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -187,7 +187,7 @@
  	gpio-export {
 --- a/arch/arm64/boot/dts/qcom/ipq8074-rax120v2.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8074-rax120v2.dts
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -198,7 +198,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8074-sxk80.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq8074-sxk80.dtsi
-@@ -26,7 +26,7 @@
+@@ -27,7 +27,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -209,7 +209,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8074-wax630.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8074-wax630.dts
-@@ -29,7 +29,7 @@
+@@ -30,7 +30,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";
@@ -220,7 +220,7 @@
  	keys {
 --- a/arch/arm64/boot/dts/qcom/ipq8074-wxr-5950ax12.dts
 +++ b/arch/arm64/boot/dts/qcom/ipq8074-wxr-5950ax12.dts
-@@ -25,7 +25,7 @@
+@@ -26,7 +26,7 @@
  
  	chosen {
  		stdout-path = "serial0:115200n8";

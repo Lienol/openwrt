@@ -81,7 +81,7 @@
  		     __be16 vlan_proto, u16 vlan_id)
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -2933,6 +2933,10 @@ enum netdev_cmd {
+@@ -2939,6 +2939,10 @@ enum netdev_cmd {
  	NETDEV_OFFLOAD_XSTATS_REPORT_USED,
  	NETDEV_OFFLOAD_XSTATS_REPORT_DELTA,
  	NETDEV_XDP_FEAT_CHANGE,
@@ -142,7 +142,7 @@
  #endif
 --- a/include/net/route.h
 +++ b/include/net/route.h
-@@ -237,6 +237,11 @@ struct rtable *rt_dst_alloc(struct net_d
+@@ -238,6 +238,11 @@ struct rtable *rt_dst_alloc(struct net_d
  			    unsigned int flags, u16 type, bool noxfrm);
  struct rtable *rt_dst_clone(struct net_device *dev, struct rtable *rt);
  
@@ -156,7 +156,7 @@
  void fib_del_ifaddr(struct in_ifaddr *, struct in_ifaddr *);
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -2267,4 +2267,6 @@ void br_do_suppress_nd(struct sk_buff *s
+@@ -2278,4 +2278,6 @@ void br_do_suppress_nd(struct sk_buff *s
  		       u16 vid, struct net_bridge_port *p, struct nd_msg *msg);
  struct nd_msg *br_is_nd_neigh_msg(struct sk_buff *skb, struct nd_msg *m);
  bool br_is_neigh_suppress_enabled(const struct net_bridge_port *p, u16 vid);
@@ -590,7 +590,7 @@
  }
 --- a/net/ipv4/fib_trie.c
 +++ b/net/ipv4/fib_trie.c
-@@ -1211,6 +1211,9 @@ static bool fib_valid_key_len(u32 key, u
+@@ -1195,6 +1195,9 @@ static int fib_insert_alias(struct trie
  static void fib_remove_alias(struct trie *t, struct key_vector *tp,
  			     struct key_vector *l, struct fib_alias *old);
  
@@ -600,7 +600,7 @@
  /* Caller must hold RTNL. */
  int fib_table_insert(struct net *net, struct fib_table *tb,
  		     struct fib_config *cfg, struct netlink_ext_ack *extack)
-@@ -1404,6 +1407,9 @@ int fib_table_insert(struct net *net, st
+@@ -1385,6 +1388,9 @@ int fib_table_insert(struct net *net, st
  	rtmsg_fib(RTM_NEWROUTE, htonl(key), new_fa, plen, new_fa->tb_id,
  		  &cfg->fc_nlinfo, nlflags);
  succeeded:
@@ -610,7 +610,7 @@
  	return 0;
  
  out_remove_new_fa:
-@@ -1776,6 +1782,9 @@ int fib_table_delete(struct net *net, st
+@@ -1754,6 +1760,9 @@ int fib_table_delete(struct net *net, st
  	if (fa_to_delete->fa_state & FA_S_ACCESSED)
  		rt_cache_flush(cfg->fc_nlinfo.nl_net);
  
@@ -620,7 +620,7 @@
  	fib_release_info(fa_to_delete->fa_info);
  	alias_free_mem_rcu(fa_to_delete);
  	return 0;
-@@ -2408,6 +2417,20 @@ void __init fib_trie_init(void)
+@@ -2386,6 +2395,20 @@ void __init fib_trie_init(void)
  					   0, SLAB_PANIC | SLAB_ACCOUNT, NULL);
  }
  
@@ -643,7 +643,7 @@
  	struct fib_table *tb;
 --- a/net/ipv6/ndisc.c
 +++ b/net/ipv6/ndisc.c
-@@ -668,6 +668,7 @@ void ndisc_send_ns(struct net_device *de
+@@ -670,6 +670,7 @@ void ndisc_send_ns(struct net_device *de
  	if (skb)
  		ndisc_send_skb(skb, daddr, saddr);
  }
@@ -663,7 +663,7 @@
  static inline const void *choose_neigh_daddr(const struct in6_addr *p,
  					     struct sk_buff *skb,
  					     const void *daddr)
-@@ -3868,6 +3871,10 @@ int ip6_route_add(struct fib6_config *cf
+@@ -3910,6 +3913,10 @@ int ip6_route_add(struct fib6_config *cf
  		return PTR_ERR(rt);
  
  	err = __ip6_ins_rt(rt, &cfg->fc_nlinfo, extack);
@@ -674,7 +674,7 @@
  	fib6_info_release(rt);
  
  	return err;
-@@ -3889,6 +3896,9 @@ static int __ip6_del_rt(struct fib6_info
+@@ -3931,6 +3938,9 @@ static int __ip6_del_rt(struct fib6_info
  	err = fib6_del(rt, info);
  	spin_unlock_bh(&table->tb6_lock);
  
@@ -684,7 +684,7 @@
  out:
  	fib6_info_release(rt);
  	return err;
-@@ -6336,6 +6346,20 @@ static int ip6_route_dev_notify(struct n
+@@ -6393,6 +6403,20 @@ static int ip6_route_dev_notify(struct n
  	return NOTIFY_OK;
  }
  
@@ -707,7 +707,7 @@
   */
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -1699,6 +1699,7 @@ const char *netdev_cmd_to_name(enum netd
+@@ -1730,6 +1730,7 @@ const char *netdev_cmd_to_name(enum netd
  	N(PRE_CHANGEADDR) N(OFFLOAD_XSTATS_ENABLE) N(OFFLOAD_XSTATS_DISABLE)
  	N(OFFLOAD_XSTATS_REPORT_USED) N(OFFLOAD_XSTATS_REPORT_DELTA)
  	N(XDP_FEAT_CHANGE)
@@ -785,7 +785,7 @@
  #endif /* _UAPI_LINUX_IN_H */
 --- a/net/netfilter/nf_conntrack_ecache.c
 +++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -266,7 +266,6 @@ void nf_conntrack_register_notifier(stru
+@@ -349,7 +349,6 @@ int nf_conntrack_register_notifier(struc
  	mutex_lock(&nf_ct_ecache_mutex);
  	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
  					   lockdep_is_held(&nf_ct_ecache_mutex));
@@ -793,7 +793,6 @@
  	if (notify != NULL) {
  		ret = -EBUSY;
  		goto out_unlock;
- 	}
 --- a/include/net/netns/conntrack.h
 +++ b/include/net/netns/conntrack.h
 @@ -26,6 +26,7 @@ struct nf_tcp_net {
@@ -851,7 +850,7 @@
  	NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST,
  	NF_SYSCTL_CT_PROTO_TCP_MAX_RETRANS,
  	NF_SYSCTL_CT_PROTO_TIMEOUT_UDP,
-@@ -834,6 +835,14 @@ static struct ctl_table nf_ct_sysctl_tab
+@@ -838,6 +839,14 @@ static struct ctl_table nf_ct_sysctl_tab
  		.extra1 	= SYSCTL_ZERO,
  		.extra2 	= SYSCTL_ONE,
  	},
@@ -866,7 +865,7 @@
  	[NF_SYSCTL_CT_PROTO_TCP_IGNORE_INVALID_RST] = {
  		.procname	= "nf_conntrack_tcp_ignore_invalid_rst",
  		.maxlen		= sizeof(u8),
-@@ -1035,6 +1044,7 @@ static void nf_conntrack_standalone_init
+@@ -1041,6 +1050,7 @@ static void nf_conntrack_standalone_init
  
  	XASSIGN(LOOSE, &tn->tcp_loose);
  	XASSIGN(LIBERAL, &tn->tcp_be_liberal);

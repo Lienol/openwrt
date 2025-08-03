@@ -302,7 +302,7 @@
  
  		data = page_frag_alloc(&nc->page, len, gfp_mask);
  		pfmemalloc = nc->page.pfmemalloc;
-@@ -1120,7 +1189,7 @@ static void skb_free_head(struct sk_buff
+@@ -1108,7 +1177,7 @@ static void skb_free_head(struct sk_buff
  	}
  }
  
@@ -311,7 +311,7 @@
  {
  	struct skb_shared_info *shinfo = skb_shinfo(skb);
  	int i;
-@@ -1160,7 +1229,7 @@ exit:
+@@ -1148,7 +1217,7 @@ exit:
  /*
   *	Free an skbuff by memory without cleaning the state.
   */
@@ -320,7 +320,7 @@
  {
  	struct sk_buff_fclones *fclones;
  
-@@ -1439,7 +1508,6 @@ void skb_tx_error(struct sk_buff *skb)
+@@ -1427,7 +1496,6 @@ void skb_tx_error(struct sk_buff *skb)
  }
  EXPORT_SYMBOL(skb_tx_error);
  
@@ -328,7 +328,7 @@
  /**
   *	consume_skb - free an skbuff
   *	@skb: buffer to free
-@@ -1448,13 +1516,48 @@ EXPORT_SYMBOL(skb_tx_error);
+@@ -1436,13 +1504,48 @@ EXPORT_SYMBOL(skb_tx_error);
   *	Functions identically to kfree_skb, but kfree_skb assumes that the frame
   *	is being dropped after a failure and notes that
   */
@@ -378,7 +378,7 @@
  }
  EXPORT_SYMBOL(consume_skb);
  #endif
-@@ -2292,6 +2395,8 @@ int pskb_expand_head(struct sk_buff *skb
+@@ -2280,6 +2383,8 @@ int pskb_expand_head(struct sk_buff *skb
  
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
@@ -387,7 +387,7 @@
  
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
-@@ -5122,6 +5227,14 @@ static void skb_extensions_init(void) {}
+@@ -5110,6 +5215,14 @@ static void skb_extensions_init(void) {}
  
  void __init skb_init(void)
  {
@@ -402,7 +402,7 @@
  	net_hotdata.skbuff_cache = kmem_cache_create_usercopy("skbuff_head_cache",
  					      sizeof(struct sk_buff),
  					      0,
-@@ -5147,6 +5260,7 @@ void __init skb_init(void)
+@@ -5135,6 +5248,7 @@ void __init skb_init(void)
  						SKB_SMALL_HEAD_HEADROOM,
  						NULL);
  	skb_extensions_init();
@@ -410,7 +410,7 @@
  }
  
  static int
-@@ -6681,6 +6795,8 @@ static int pskb_carve_inside_header(stru
+@@ -6666,6 +6780,8 @@ static int pskb_carve_inside_header(stru
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
@@ -419,7 +419,7 @@
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
  		return -ENOMEM;
-@@ -6797,6 +6913,8 @@ static int pskb_carve_inside_nonlinear(s
+@@ -6782,6 +6898,8 @@ static int pskb_carve_inside_nonlinear(s
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  

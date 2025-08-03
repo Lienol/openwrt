@@ -319,7 +319,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  			compatible = "cache";
  			cache-level = <2>;
  			cache-unified;
-@@ -845,10 +845,10 @@
+@@ -847,10 +847,10 @@
  			cooling-maps {
  				map0 {
  					trip = <&cpu0_alert>;
@@ -334,7 +334,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  				};
  			};
  		};
-@@ -875,10 +875,10 @@
+@@ -877,10 +877,10 @@
  			cooling-maps {
  				map0 {
  					trip = <&cpu1_alert>;
@@ -349,7 +349,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  				};
  			};
  		};
-@@ -905,10 +905,10 @@
+@@ -907,10 +907,10 @@
  			cooling-maps {
  				map0 {
  					trip = <&cpu2_alert>;
@@ -364,7 +364,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  				};
  			};
  		};
-@@ -935,10 +935,10 @@
+@@ -937,10 +937,10 @@
  			cooling-maps {
  				map0 {
  					trip = <&cpu3_alert>;
