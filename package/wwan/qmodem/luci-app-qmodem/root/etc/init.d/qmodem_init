@@ -36,6 +36,16 @@ start_service() {
     fi
 }
 
+boot() {
+	local delay=$(uci -q get qmodem.main.start_delay || echo 0)
+	if [ "$delay" -gt 0 ]; then
+   logger "Delay QModem Boot init scan for $delay S"
+	 sleep $delay
+	 /usr/share/qmodem/modem_scan.sh scan >/dev/null 2>&1 &
+	fi
+	start
+}
+
 _try_vendor_preset_usb()
 {
     config_foreach _try_usb_device modem-device
@@ -83,8 +93,8 @@ _scan_usb()
 _scan_pcie()
 {
     procd_open_instance "scan_pcie"
-    #delay 3 second ,scan all pcie device
-    procd_set_param command  "ash" "/usr/share/qmodem/modem_scan.sh" "scan" "3" "pcie"
+    #delay 15 second ,scan all pcie device
+    procd_set_param command  "ash" "/usr/share/qmodem/modem_scan.sh" "scan" "15" "pcie"
     procd_close_instance
 }
 

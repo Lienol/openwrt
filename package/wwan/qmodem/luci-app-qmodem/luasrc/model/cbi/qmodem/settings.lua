@@ -5,6 +5,10 @@ m.title = translate("QModem Setting")
 
 this_page = d.build_url("admin", "modem", "qmodem", "settings")
 s = m:section(NamedSection, "main", "main", translate("Modem Probe setting"))
+
+at_tool = s:option(Flag, "at_tool", translate("Alternative AT Tools"))
+at_tool.description = translate("If enabled, using alternative AT Tools")
+
 block_auto_probe = s:option(Flag, "block_auto_probe", translate("Block Auto Probe/Remove"))
 block_auto_probe.description = translate("If enabled, the modem auto scan will be blocked.")
 

@@ -32,6 +32,23 @@
                     "rndis"
                 ]
             },
+            "em05-cn": {
+                "manufacturer_id": "2c7c",
+                "manufacturer": "quectel",
+                "platform": "lte",
+                "data_interface": "usb",
+                "define_connect": "1",
+                "wcdma_band": "1/2/4/5/6/8/19",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/18/19/20/25/26/28/66/71/38/39/40/41/66/71",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "qmi",
+                    "ecm",
+                    "mbim",
+                    "rndis"
+                ]
+            },
             "ep06": {
                 "manufacturer_id": "2c7c",
                 "manufacturer": "quectel",

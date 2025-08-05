@@ -221,7 +221,27 @@ set_network_prefer_nr()
     esac
 
     #设置模组
-    at_command="AT+GTACT=$network_prefer_num,6,3"
+    case "$network_prefer_num" in
+        "1")
+            at_command="AT+GTACT=$network_prefer_num"
+        ;;
+        "2")
+            at_command="AT+GTACT=$network_prefer_num"
+        ;;
+        "4")
+            at_command="AT+GTACT=$network_prefer_num"
+        ;;        
+        "14")
+            at_command="AT+GTACT=$network_prefer_num"
+        ;;
+        "17")
+            at_command="AT+GTACT=$network_prefer_num"
+        ;;        
+        "20")
+            at_command="AT+GTACT=$network_prefer_num,6,3"
+        ;;        
+        *) network_prefer_num="10" ;;
+    esac
     res=$(at $at_port "$at_command")
     json_select_object "result"
     json_add_string "status" "$res"
@@ -607,7 +627,7 @@ get_lockband(){
 #锁频信息
 get_lockband_nr()
 {
-    m_debug "Fibocom get lockband info"
+    m_debug "Fibocom get lockband info nr"
     get_lockband_config_command="AT+GTACT?"
     get_available_band_command="AT+GTACT=?"
     get_lockband_config_res=$(at $at_port $get_lockband_config_command)
@@ -711,7 +731,7 @@ get_lockband_nr()
 #锁频信息
 get_lockband_lte()
 {
-    m_debug "Fibocom get lockband info"
+    m_debug "Fibocom get lockband info lte"
     get_lockband_config_command="AT+GTACT?"
     get_available_band_command="AT+GTACT=?"
     get_lockband_config_res=$(at $at_port $get_lockband_config_command |grep GTACT: | sed 's/\r//g')
@@ -829,7 +849,8 @@ set_lockband_nr()
     get_lockband_config_command="AT+GTACT?"
     get_lockband_config_res=$(at $at_port $get_lockband_config_command)
     network_prefer_config=$(echo $get_lockband_config_res |cut -d : -f 2| awk -F"," '{print $1}' |tr -d ' ')
-    local lock_band="$network_prefer_config,6,3,$lock_band"
+    lock_band=$(echo "$config" | jq -r '.lock_band')
+    local lock_band="$network_prefer_config,,,$lock_band"
     local set_lockband_command="AT+GTACT=$lock_band"
     res=$(at $at_port $set_lockband_command)
 }

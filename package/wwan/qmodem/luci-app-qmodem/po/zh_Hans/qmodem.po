@@ -420,7 +420,7 @@ msgid "Mobile Country Code"
 msgstr "移动国家代码（MCC）"
 
 msgid "Mobile Network Code"
-msgstr "移动网络代码（MMC）"
+msgstr "移动网络代码（MNC）"
 
 msgid "Duplex Mode"
 msgstr "双工模式"

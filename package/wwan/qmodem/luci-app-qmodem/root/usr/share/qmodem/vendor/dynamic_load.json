@@ -8,5 +8,6 @@
     "huawei" : "huawei.sh",
     "foxconn" : "foxconn.sh",
     "neoway" : "neoway.sh",
-    "telit" : "telit.sh"
+    "telit" : "telit.sh",
+    "nk" : "nk.sh"
 }

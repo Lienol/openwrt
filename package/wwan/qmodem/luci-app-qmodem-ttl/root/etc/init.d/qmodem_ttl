@@ -27,12 +27,18 @@ set_if_ttl()
     echo "$IPT6 -t mangle -A POSTROUTING -j HL --hl-set $ttl -m comment --comment $comment" >> /etc/firewall.d/qmodem_ttl
     /etc/firewall.d/qmodem_ttl
     /etc/init.d/firewall restart
-    [ -d /sys/kernel/debug/ecm/ ] && /etc/init.d/qca-nss-ecm stop # disable nss offload
+    [ -d /sys/kernel/debug/ecm/ ] && /etc/init.d/qca-nss-ecm stop
+    [ -d /sys/module/shortcut_fe_cm ] && rmmod shortcut_fe_cm
+    [ -d /sys/module/fast_classifier ] && rmmod fast_classifier
 }
 
 stop_service(){
+    local kernel_version=$(uname -r)
     rm -f /etc/firewall.d/qmodem_ttl
-    [ -f /etc/init.d/qca-nss-ecm ] && /etc/init.d/qca-nss-ecm start # disable nss offload
+    [ -f /etc/init.d/qca-nss-ecm ] && /etc/init.d/qca-nss-ecm start
+    [ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && modprobe shortcut-fe-cm
+    [ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && modprobe fast-classifier
+}
     /etc/init.d/firewall restart
 }
 

@@ -859,16 +859,20 @@ at_dial()
             esac
             ;;
     esac
-    m_debug "dialing vendor:$manufacturer;platform:$platform; $cgdcont_command ; $at_command"
     at "${at_port}" "${cgdcont_command}"
-    fastat "$at_port" "$at_command"
-    [ -n "$delay" ] && sleep "$delay"
     if [ "$driver" = "mtk_pcie" ];then
-        fastat "$at_port" "AT+CGACT=0,3"
+	m_debug "dialing vendor:$manufacturer;platform:$platform;$driver;$apn "
         mbim_port=$(echo "$at_port" | sed 's/at/mbim/g')
-        umbim -d $mbim_port disconnect
+	rf_status=$(umbim -d  $mbim_port radio|sed -n 's/.*swradiostate: *//p')
+	if [ "$rf_status" = "off" ]; then
+    		umbim -d  $mbim_port radio on
+	fi
+	umbim -d $mbim_port disconnect
         sleep 1
-        umbim -d $mbim_port connect 0
+        umbim -d $mbim_port connect 0 --apn $apn
+    else
+	m_debug "dialing vendor:$manufacturer;platform:$platform; $cgdcont_command ; $at_command"
+	fastat "$at_port" "$at_command"
     fi
 }
 

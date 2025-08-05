@@ -117,6 +117,12 @@ apn:value("A1.net", translate("A1 (AT)"))
 apn:value("drei.at", translate("Drei (AT)"))
 apn:value("internet.t-mobile.at", translate("Magenta (AT)"))
 
+-- Philippines (PH)
+apn:value("http.globe.com.ph", translate("Globe Prepaid (PH)"))
+apn:value("internet.globe.com.ph", translate("Globe Postpaid (PH)"))
+apn:value("internet", translate("Smart Communications (PH)"))
+apn:value("internet.dito.ph", translate("Dito Telecomunity (PH)"))
+
 auth = s:taboption("advanced", ListValue, "auth", translate("Authentication Type"))
 auth.default = "none"
 auth.rmempty = false
@@ -166,6 +172,12 @@ apn:value("internet.eplus.de", translate("E-Plus (DE)"))
 apn:value("A1.net", translate("A1 (AT)"))
 apn:value("drei.at", translate("Drei (AT)"))
 apn:value("internet.t-mobile.at", translate("Magenta (AT)"))
+
+-- Philippines (PH)
+apn:value("http.globe.com.ph", translate("Globe Prepaid (PH)"))
+apn:value("internet.globe.com.ph", translate("Globe Postpaid (PH)"))
+apn:value("internet", translate("Smart Communications (PH)"))
+apn:value("internet.dito.ph", translate("Dito Telecomunity (PH)"))
 
 
 metric = s:taboption("advanced", Value, "metric", translate("Metric"))

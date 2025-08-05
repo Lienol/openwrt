@@ -421,7 +421,7 @@ msgid "Mobile Country Code"
 msgstr "移动国家代码（MCC）"
 
 msgid "Mobile Network Code"
-msgstr "移动网络代码（MMC）"
+msgstr "移动网络代码（MNC）"
 
 msgid "Duplex Mode"
 msgstr "双工模式"
@@ -860,3 +860,9 @@ msgstr "V4/V6 存活检测"
 
 msgid "Only for AT dial modem."
 msgstr "只适用于AT拨号模组。"
+
+msgid "Alternative AT Tools"
+msgstr "使用替代的AT工具"
+
+msgid "If enabled, using alternative AT Tools"
+msgstr "如果启用了，会使用另外替代的AT工具查询模块信息"

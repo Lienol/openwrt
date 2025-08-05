@@ -316,7 +316,7 @@ validate_at_port()
         [ ! -e "$dev_path" ] && continue
         res=$(fastat $dev_path "ATI")
         [ -z "$res" ] && continue
-        !(echo "$res" | grep -qE 'OK') && continue
+        !(echo "$res" | grep -qE 'OK|ATI') && continue
         valid_at_port="$at_port"
         [ -z "$valid_at_ports" ] && valid_at_ports="$valid_at_port" || valid_at_ports="$valid_at_ports $valid_at_port"
     done
