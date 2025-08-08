@@ -1,9 +1,12 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
+# Include unified version
+include ../version.mk
+
 PKG_NAME:= quectel-CM-5G-M
-PKG_RELEASE:=6
-PKG_VERSION:=1.6
+PKG_RELEASE:=$(QMODEM_RELEASE)
+PKG_VERSION:=$(QMODEM_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 

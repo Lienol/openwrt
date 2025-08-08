@@ -151,8 +151,8 @@ get_driver()
 
 get_dns()
 {
-    [ -z "$define_connect" ] && {
-        define_connect="1"
+    [ -z "$pdp_index" ] && {
+        pdp_index="1"
     }
 
     local public_dns1_ipv4="223.5.5.5"
@@ -161,7 +161,7 @@ get_dns()
     local public_dns2_ipv6="2402:4e00::"
 
     #获取DNS地址
-    at_command="AT+GTDNS=${define_connect}"
+    at_command="AT+GTDNS=${pdp_index}"
     local response=$(at ${at_port} ${at_command} | grep "+GTDNS: ")
 
     local ipv4_dns1=$(echo "${response}" | awk -F'"' '{print $2}' | awk -F',' '{print $1}')

@@ -1,9 +1,12 @@
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
+# Include unified version
+include ../version.mk
+
 PKG_NAME:= tom_modem
-PKG_RELEASE:=1
-PKG_VERSION:=1.0.2
+PKG_RELEASE:=$(QMODEM_RELEASE)
+PKG_VERSION:=$(QMODEM_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 

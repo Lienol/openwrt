@@ -320,7 +320,7 @@ network_info()
     at_command="AT+CSQ"
     response=$(at ${at_port} ${at_command} | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
 
-    at_command="AT^DSAMBR=${define_connect:-1}"
+    at_command="AT^DSAMBR=${pdp_index:-1}"
     response=$(at $at_port $at_command | grep "\^DSAMBR:" | awk -F': ' '{print $2}')
     
     ambr_ul_tmp="0"
@@ -389,7 +389,7 @@ cell_info()
 {
     m_debug  "Meig cell info"
 
-    at_command="AT^CELLINFO=${define_connect:-1}"
+    at_command="AT^CELLINFO=${pdp_index:-1}"
     response=$(at $at_port $at_command | grep "\^CELLINFO:" | sed 's/\^CELLINFO://')
     
     local rat=""

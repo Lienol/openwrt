@@ -108,7 +108,9 @@ update_config()
     config_get at_port $modem_config at_port
     config_get manufacturer $modem_config manufacturer
     config_get platform $modem_config platform
-    config_get define_connect $modem_config define_connect
+    config_get pdp_index $modem_config pdp_index
+    config_get suggest_pdp_index $modem_config suggest_pdp_index
+    [ -z "$pdp_index" ] && pdp_index=$suggest_pdp_index
     config_get ra_master $modem_config ra_master
     config_get extend_prefix $modem_config extend_prefix
     config_get en_bridge $modem_config en_bridge
@@ -212,54 +214,10 @@ check_dial_prepare()
 check_ip()
 {
     case $manufacturer in
-            "quectel")
-                case $platform in
-                    "qualcomm")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "unisoc")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "lte")
-                        if [ "$define_connect" = "3" ];then
-                            check_ip_command="AT+CGPADDR=3"
-                        else
-                            check_ip_command="AT+CGPADDR=1"
-                        fi
-                        ;;
-                    
-                esac
-                ;;
-            "fibocom")
-                case $platform in
-                    "qualcomm")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "unisoc")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "lte")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "mediatek")
-                        check_ip_command="AT+CGPADDR=3"
-                        ;;
-                esac
-                ;;
             "simcom")
                 case $platform in
                     "qualcomm")
                         check_ip_command="AT+CGPADDR=6"
-                        ;;
-                esac
-                ;;
-            "meig")
-                case $platform in
-                    "qualcomm")
-                        check_ip_command="AT+CGPADDR=1"
-                        ;;
-                    "unisoc")
-                        check_ip_command="AT+CGPADDR=1"
                         ;;
                 esac
                 ;;
@@ -271,7 +229,7 @@ check_ip()
                 esac
                 ;;
             *)
-                check_ip_command="AT+CGPADDR=1"
+                check_ip_command="AT+CGPADDR=$pdp_index"
                 ;;
         esac
 
@@ -578,7 +536,6 @@ flush_ip_cb()
     
 }
 
-
 dial(){
     update_config
     m_debug "modem_path=$modem_path,driver=$driver,interface=$interface_name,at_port=$at_port,using_sim_slot:$sim_slot,dns_list:$dns_list"
@@ -624,25 +581,24 @@ wwan_hang()
     m_debug "wwan_hang"
 }
 
-
 ecm_hang()
 {
     case "$manufacturer" in
         "quectel")
-            at_command="AT+QNETDEVCTL=1,2,1"
+            at_command="AT+QNETDEVCTL=$pdp_index,2,1"
             ;;
         "fibocom")
             case "$platform" in
                 "mediatek")
-                    at_command="AT+CGACT=0,3"
+                    at_command="AT+CGACT=0,$pdp_index"
                     ;;
                 *)
-                    at_command="AT+GTRNDIS=0,1"
+                    at_command="AT+GTRNDIS=0,$pdp_index"
                     ;;
             esac
             ;;
         "meig")
-            at_command='AT$QCRMCALL=0,0,1,2,1'
+            at_command='AT$QCRMCALL=0,0,3,2,'$pdp_index
             ;;
         "huawei")
             at_command="AT^NDISDUP=0,0"
@@ -696,6 +652,7 @@ mhi_dial()
 {
     qmi_dial
 }
+
 qmi_dial()
 {
     cmd_line="quectel-CM"
@@ -709,6 +666,18 @@ qmi_dial()
 
     if [ "$network_bridge" = "1" ]; then
         cmd_line="$cmd_line -b"
+    fi
+    if [ -n "$pdp_index" ]; then
+        cmd_line="$cmd_line -n $pdp_index"
+    fi
+    if [ "$manufacturer" = "telit" ];then
+        test_apn="cbnet"
+        [ "$apn" = "cbnet" ] && test_apn="auto"
+        $cmd_line -s $test_apn &
+        telit_cmd_pid=$!
+        sleep 1
+        kill $telit_cmd_pid 2>/dev/null
+        wait $telit_cmd_pid 2>/dev/null
     fi
     if [ -n "$apn" ]; then
         cmd_line="$cmd_line -s $apn"
@@ -766,62 +735,35 @@ at_dial()
     case $manufacturer in
         "quectel")
             case $platform in
-                "qualcomm")
-                    at_command="AT+QNETDEVCTL=1,3,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    ;;
-                "unisoc")
-                    at_command="AT+QNETDEVCTL=1,3,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    ;;
                 "hisilicon")
                     at_command="AT+QNETDEVCTL=1,1,1"
                     cgdcont_command=""
                     ;;
-                "lte")
-                    if [ "$define_connect" = "3" ];then
-                        at_command="AT+QNETDEVCTL=3,3,1"
-                        cgdcont_command="AT+CGDCONT=3,\"$pdp_type\",\"$apn\""
-                    else
-                        at_command="AT+QNETDEVCTL=1,3,1"
-                        cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    fi
-                    ;;
                 *)
-                    at_command="AT+QNETDEVCTL=1,3,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
+                    at_command="AT+QNETDEVCTL=$pdp_index,3,1"
+                    cgdcont_command="AT+CGDCONT=$pdp_index1,\"$pdp_type\",\"$apn\""
                     ;;
             esac
             ;;
         "fibocom")
             case $platform in
-                "qualcomm")
-                    at_command="AT+GTRNDIS=1,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    ;;
-                "unisoc")
-                    at_command="AT+GTRNDIS=1,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    ;;
-                "lte")
-                    at_command="AT+GTRNDIS=1,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
-                    ;;
                 "mediatek")
                     delay=3
-                    if [ "$apn" = "auto" ];then
-                        apn="cbnet"
-                    fi
-                    at_command="AT+CGACT=1,3"
-                    cgdcont_command="AT+CGDCONT=3,\"$pdp_type\",\"$apn\""
+                    [ "$apn" = "auto" ] && apn="cbnet"
+                    at_command="AT+CGACT=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\",\"$apn\""
+                    ;;
+                "lte")
+                    at_command="AT+GTRNDIS=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\",\"$apn\""
                     ;;
             esac
             ;;
         "huawei")
             case $platform in
                 "hisilicon")
-                    at_command="AT^NDISDUP=1,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\""
+                    at_command="AT^NDISDUP=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\""
                     ;;
             esac
             ;;
@@ -837,7 +779,7 @@ at_dial()
         "meig")
             case $platform in
                 "qualcomm")
-                    at_command='AT$QCRMCALL=1,0,1,2,1'
+                    at_command='AT$QCRMCALL=1,0,3,2,'$pdp_index
                     cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
                     ;;
             esac
@@ -853,8 +795,8 @@ at_dial()
         "telit")
             case $platform in
                 "qualcomm")
-                    at_command="AT#ICMAUTOCONN=1,1"
-                    cgdcont_command="AT+CGDCONT=1,\"$pdp_type\",\"$apn\""
+                    at_command="AT#ICMAUTOCONN=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\",\"$apn\""
                     ;;
             esac
             ;;
@@ -896,12 +838,12 @@ ip_change_fm350()
         [ -z "$ipv4_dns2" ] && ipv4_dns2="$public_dns2_ipv4"
         # m_debug "umbim config: ipv4=$ipv4_config, gateway=$gateway, netmask=$netmask, dns1=$ipv4_dns1, dns2=$ipv4_dns2"
     else
-        at_command="AT+CGPADDR=3"
+        at_command="AT+CGPADDR=$pdp_index"
         response=$(at ${at_port} ${at_command})
         ipv4_config=$(echo "$response" | grep "+CGPADDR:" | grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+"' | head -1 | tr -d '"')
         gateway="${ipv4_config%.*}.1"
 
-        response=$(at ${at_port} "AT+GTDNS=3")
+        response=$(at ${at_port} "AT+GTDNS=$pdp_index")
         ipv4_dns=$(echo "$response" | grep "+GTDNS:" | head -1)
         ipv4_dns1=$(echo "$ipv4_dns" | grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+"' | head -1 | tr -d '"')
         ipv4_dns2=$(echo "$ipv4_dns" | grep -o '"[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+"' | tail -1 | tr -d '"')

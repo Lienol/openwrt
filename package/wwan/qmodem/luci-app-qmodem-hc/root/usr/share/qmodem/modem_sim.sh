@@ -97,10 +97,10 @@ at_sim_monitor() {
 
 at_dial_monitor() {
     ttydev=$1
-    define_connect=$2
-    #检查拨号状况,有v4或v6地址则返回1
-    at_cmd="AT+CGPADDR=1"
-    [ "$define_connect" == "3" ] && at_cmd="AT+CGPADDR=3"
+    pdp_index=$2
+#检查dial状态，有dial则返回1
+    [ -z "$pdp_index" ] && pdp_index=1
+    at_cmd="AT+CGPADDR=$pdp_index"
     expect="+CGPADDR:"
     result=$(at $ttydev $at_cmd | grep "$expect")
     debug_log $result
@@ -127,12 +127,12 @@ precheck()
     # is empty or is disabled
     config_get at_port $modem_config at_port
     config_get enable_dial $modem_config enable_dial 0
-    config_get define_connect $modem_config define_connect 1
+    config_get pdp_index $modem_config pdp_index 1
     config_get global_en main enable_dial 0
     debug_log "state:$state"
     debug_log "at_port:$at_port"
     debug_log "enable_dial:$enable_dial"
-    debug_log "define_connect:$define_connect"
+    debug_log "pdp_index:$pdp_index"
     debug_log "global_en:$global_en"
     [ -z "$state" ] || [ "$state" == "disabled" ] && return 1
     [ "$global_en" == "0" ] && return 1
@@ -156,8 +156,8 @@ main_loop()
              ping_monitor
              ping_result=$?
         fi
-        if [ -n "$at_port" ] && [ -n "$define_connect" ];then
-             at_dial_monitor $at_port $define_connect
+        if [ -n "$at_port" ] && [ -n "$pdp_index" ];then
+             at_dial_monitor $at_port $pdp_index
              dial_result=$?
         fi
         if [ -n "$at_port" ]; then

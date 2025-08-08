@@ -364,7 +364,7 @@ match_config()
     modem_name=$name
     manufacturer=$(echo $modem_config | jq -r ".manufacturer")
     platform=$(echo $modem_config | jq -r ".platform")
-    define_connect=$(echo $modem_config | jq -r ".define_connect")
+    suggest_pdp_index=$(echo $modem_config | jq -r ".pdp_index")
     modes=$(echo $modem_config | jq -r ".modes[]")
     wcdma_available_band=$(echo $modem_config | jq -r ".wcdma_band")
     lte_available_band=$(echo $modem_config | jq -r ".lte_band")
@@ -482,7 +482,7 @@ set qmodem.$section_name.name=$modem_name
 set qmodem.$section_name.network=$net_devices
 set qmodem.$section_name.manufacturer=$manufacturer
 set qmodem.$section_name.platform=$platform
-set qmodem.$section_name.define_connect=$define_connect
+set qmodem.$section_name.suggest_pdp_index=$pdp_index
 EOF
 
     [ -n "$wcdma_available_band" ] && uci set qmodem.$section_name.wcdma_band=$wcdma_available_band
@@ -544,8 +544,6 @@ disable()
     uci set qmodem.$section_name.state="disabled"
     uci commit qmodem
 }
-
-
 
 case $action in
     "add")

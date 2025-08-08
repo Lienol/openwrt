@@ -26,8 +26,13 @@ alias.rmempty = true
 at_port = s:taboption("general",Value, "at_port", translate("AT Port"))
 sms_at_port = s:taboption("general",Value, "sms_at_port", translate("SMS AT Port"))
 sms_at_port.rmempty = true
+override_at_port = s:taboption("general", Value, "override_at_port", translate("Override AT Port"))
+override_at_port.rmempty = true
 valid_at_ports = uci:get("qmodem",arg[1],"valid_at_ports")
 avalible_ports = uci:get("qmodem",arg[1],"ports")
+
+
+
 
 dns_list = s:taboption("general", DynamicList, "dns_list", translate("DNS"))
 dns_list.description = translate("If the DNS server is not set, it will use the DNS server leased by the operator.")
@@ -52,6 +57,7 @@ for i1,v1 in ipairs(avalible_ports) do
     end
 	at_port:value(v1,msg)
     sms_at_port:value(v1,msg)
+    override_at_port:value(v1,msg)
 end
 
 at_port.placeholder = translate("Not null")

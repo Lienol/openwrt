@@ -3,10 +3,13 @@
 
 include $(TOPDIR)/rules.mk
 
+# Include unified version
+include ../version.mk
+
 PKG_NAME:=luci-app-qmodem-mwan
 LUCI_TITLE:=Luci qwrt modem mwan support
 LUCI_PKGARCH:=all
-PKG_VERSION:=2.7.0
+PKG_VERSION:=$(QMODEM_VERSION)
 PKG_LICENSE:=GPLv3
 PKG_LINCESE_FILES:=LICENSE
 PKG_MAINTAINER:=Tom <fjrcn@outlook.com>

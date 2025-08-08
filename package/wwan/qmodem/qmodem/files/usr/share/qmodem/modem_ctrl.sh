@@ -3,15 +3,18 @@ source /usr/share/libubox/jshn.sh
 method=$1
 config_section=$2
 at_port=$(uci get qmodem.$config_section.at_port)
+override_at_port=$(uci get qmodem.$config_section.override_at_port)
+[ -n "$override_at_port" ] && at_port=$override_at_port
 uci -q get qmodem.$config_section.sms_at_port >/dev/null && sms_at_port=$(uci get qmodem.$config_section.sms_at_port)
 vendor=$(uci get qmodem.$config_section.manufacturer)
 platform=$(uci get qmodem.$config_section.platform)
-define_connect=$(uci get qmodem.$config_section.define_connect)
+pdp_index=$(uci get qmodem.$config_section.pdp_index)
+[ -z "$pdp_index" ] && pdp_index=$(uci get qmodem.$config_section.suggest_pdp_index)
 modem_path=$(uci get qmodem.$config_section.path)
 modem_slot=$(basename $modem_path)
 
-[ -z "$define_connect" ] && {
-    define_connect="1"
+[ -z "$pdp_index" ] && {
+    pdp_index="1"
 }
 
 #please update dynamic_load.json to add new vendor
@@ -86,7 +89,10 @@ get_at_cfg(){
         json_add_string "" "$port"
     done
     json_close_array
-    json_add_string using_port $(uci get qmodem.$config_section.at_port)
+    override_at_port=$(uci get qmodem.$config_section.override_at_port)
+    at_port=$(uci get qmodem.$config_section.at_port)
+    [ -n "$override_at_port" ] && at_port=$override_at_port
+    json_add_string using_port "$at_port"
     json_add_array cmds
     
     # Determine language and select appropriate AT commands file

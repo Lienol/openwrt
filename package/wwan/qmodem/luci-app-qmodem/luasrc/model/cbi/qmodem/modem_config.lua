@@ -79,8 +79,8 @@ connect_check.description = translate("Only for AT dial modem.")
 connect_check.default = "0"
 
 -- PDP Context Index
-define_connect = s:option(Value, "define_connect", translate("PDP Context Index"))
-define_connect.default = "1"
+pdp_index = s:option(Value, "pdp_index", translate("PDP Context Index"))
+pdp_index.default = "1"
 
 -- Manufacturer (Loaded from modem_cfg.lua)
 manufacturer = s:option(ListValue, "manufacturer", translate("Manufacturer"))

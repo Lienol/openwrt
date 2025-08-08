@@ -856,3 +856,15 @@ msgstr "V4/V6 存活检测"
 
 msgid "Only for AT dial modem."
 msgstr "只适用于AT拨号模组。"
+
+msgid "Alternative AT Tools"
+msgstr "使用替代的AT工具"
+
+msgid "If enabled, using alternative AT Tools"
+msgstr "如果启用了，会使用另外替代的AT工具查询模块信息"
+
+msgid "Delay Start"
+msgstr "开机时延时启动(扫描)"
+
+msgid "Units:seconds"
+msgstr "单位：秒"

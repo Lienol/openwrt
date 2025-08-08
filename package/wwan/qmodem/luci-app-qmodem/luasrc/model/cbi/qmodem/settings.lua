@@ -9,6 +9,11 @@ s = m:section(NamedSection, "main", "main", translate("Modem Probe setting"))
 at_tool = s:option(Flag, "at_tool", translate("Alternative AT Tools"))
 at_tool.description = translate("If enabled, using alternative AT Tools")
 
+start_delay = s:option(Value, "start_delay", translate("Delay Start"))
+start_delay.description = translate("Units:seconds")
+start_delay.datatype = "and(uinteger,min(0),max(99))"
+start_delay.default = "0"
+
 block_auto_probe = s:option(Flag, "block_auto_probe", translate("Block Auto Probe/Remove"))
 block_auto_probe.description = translate("If enabled, the modem auto scan will be blocked.")
 

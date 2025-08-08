@@ -1544,17 +1544,60 @@ cell_info()
         case $rat in
             "NR5G-SA")
                 network_mode="NR5G-SA Mode"
+                at_command="AT+QCAINFO"
+                ca_response=$(at $at_port $at_command)
+                ca_scc_info=$(echo "$ca_response" | grep "+QCAINFO:" | grep "SCC")
+
+                if [ -n "$ca_scc_info" ]; then
+                    network_mode="NR5G-SA CA Mode"
+                    ca_scc_arfcn=""
+                    scc_nr_dl_bandwidth=""
+                    ca_scc_band_num=""
+                    ca_scc_pci=""
+
+                    while IFS= read -r scc_line; do
+                        [ -z "$scc_line" ] && continue
+                        # +QCAINFO: "SCC",627264,12,"NR5G BAND 78",1,293,0,-,-
+                        arfcn=$(echo "$scc_line" | awk -F',' '{print $2}')
+                        bandwidth=$(get_bandwidth "NR" $(echo "$scc_line" | awk -F',' '{print $3}'))
+                        band_info=$(echo "$scc_line" | awk -F',' '{print $4}' | sed 's/"//g')
+                        band=$(echo "$band_info" | awk -F'BAND ' '{print $2}')
+                        pci=$(echo "$scc_line" | awk -F',' '{print $6}')
+                        if [ -n "$arfcn" ] && [ "$arfcn" != "-" ]; then
+                            [ -n "$ca_scc_arfcn" ] && ca_scc_arfcn="$ca_scc_arfcn / "
+                            ca_scc_arfcn="$ca_scc_arfcn$arfcn"
+                        fi
+                        if [ -n "$bandwidth" ] && [ "$bandwidth" != "-" ]; then
+                            [ -n "$scc_nr_dl_bandwidth" ] && scc_nr_dl_bandwidth="$scc_nr_dl_bandwidth / "
+                            scc_nr_dl_bandwidth="$scc_nr_dl_bandwidth$bandwidth"
+                        fi
+                        if [ -n "$band" ] && [ "$band" != "-" ]; then
+                            [ -n "$ca_scc_band_num" ] && ca_scc_band_num="$ca_scc_band_num / "
+                            ca_scc_band_num="$ca_scc_band_num$band"
+                        fi
+                        if [ -n "$pci" ] && [ "$pci" != "-" ]; then
+                            [ -n "$ca_scc_pci" ] && ca_scc_pci="$ca_scc_pci / "
+                            ca_scc_pci="$ca_scc_pci$pci"
+                        fi
+                    done <<EOF
+$(echo "$ca_scc_info")
+EOF
+                fi
                 nr_duplex_mode=$(echo "$response" | awk -F',' '{print $4}' | sed 's/"//g')
                 nr_mcc=$(echo "$response" | awk -F',' '{print $5}')
                 nr_mnc=$(echo "$response" | awk -F',' '{print $6}')
                 nr_cell_id=$(echo "$response" | awk -F',' '{print $7}')
                 nr_physical_cell_id=$(echo "$response" | awk -F',' '{print $8}')
+                [ -n "$ca_scc_pci" ] && nr_physical_cell_id="$nr_physical_cell_id / $ca_scc_pci"
                 nr_tac=$(echo "$response" | awk -F',' '{print $9}')
                 nr_arfcn=$(echo "$response" | awk -F',' '{print $10}')
+                [ -n "$ca_scc_arfcn" ] && nr_arfcn="$nr_arfcn / $ca_scc_arfcn"
                 nr_band_num=$(echo "$response" | awk -F',' '{print $11}')
                 nr_band=$(get_band "NR" $nr_band_num)
+                [ -n "$ca_scc_band_num" ] && nr_band="$nr_band / $ca_scc_band_num"
                 nr_dl_bandwidth_num=$(echo "$response" | awk -F',' '{print $12}')
                 nr_dl_bandwidth=$(get_bandwidth "NR" $nr_dl_bandwidth_num)
+                [ -n "$scc_nr_dl_bandwidth" ] && nr_dl_bandwidth="$nr_dl_bandwidth / $scc_nr_dl_bandwidth"
                 nr_rsrp=$(echo "$response" | awk -F',' '{print $13}')
                 nr_rsrq=$(echo "$response" | awk -F',' '{print $14}')
                 nr_sinr=$(echo "$response" | awk -F',' '{print $15}')
@@ -1610,7 +1653,7 @@ cell_info()
     class="Cell Information"
     add_plain_info_entry "network_mode" "$network_mode" "Network Mode"
     case $network_mode in
-    "NR5G-SA Mode")
+    "NR5G-SA Mode"|"NR5G-SA CA Mode")
         add_plain_info_entry "MMC" "$nr_mcc" "Mobile Country Code"
         add_plain_info_entry "MNC" "$nr_mnc" "Mobile Network Code"
         add_plain_info_entry "Duplex Mode" "$nr_duplex_mode" "Duplex Mode"
