@@ -49,23 +49,9 @@ extern FDS_T s_fds;
     } \
 } while(0)
 
-#define get_sms_index(line) \
-    ({ \
-        const char *index_str = (line) + 7; \
-        const char *first_comma = strchr(index_str, ','); \
-        int sms_index = -1; \
-        if (first_comma) { \
-            char temp[(size_t)(first_comma - index_str) + 1]; \
-            memcpy(temp, index_str, first_comma - index_str); \
-            temp[(size_t)(first_comma - index_str)] = '\0'; \
-            sms_index = atoi(temp); \
-        } \
-        sms_index; \
-    })
-
 #define user_msg(fmt, args...) (fprintf(stdout, fmt , ##args))
 
-
+int get_sms_index(char *cmgl_line);
 
 int match_option(char *option_name);
 

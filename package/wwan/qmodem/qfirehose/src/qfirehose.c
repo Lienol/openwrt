@@ -715,7 +715,6 @@ int main(int argc, char *argv[])
     }
 
     if (!g_is2mdn_path) firehose_mbn = find_firehose_mbn(&firehose_dir, MAX_PATH);
-    dbg_time("%s %s\n", __func__, firehose_mbn);
     if (!firehose_mbn)
     {
         update_transfer_bytes(-1);
@@ -727,6 +726,7 @@ int main(int argc, char *argv[])
         safe_free(firehose_mbn);
         error_return();
     }
+    dbg_time("%s %s\n", __func__, firehose_mbn);
 
     if (module_port_name[0] && !strncmp(module_port_name, "/dev/mhi", strlen("/dev/mhi")))
     {

@@ -11,7 +11,7 @@ at()
   if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
    sms_tool_q -d $at_port at "$atcmd"
   else
-   tom_modem -d $at_port -o a -c "$atcmd" $options
+   tom_modem $use_ubus_flag  -d $at_port -o a -c "$atcmd" $options
   fi
 }
 

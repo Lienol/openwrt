@@ -10,12 +10,15 @@ vendor=$(uci get qmodem.$config_section.manufacturer)
 platform=$(uci get qmodem.$config_section.platform)
 pdp_index=$(uci get qmodem.$config_section.pdp_index)
 [ -z "$pdp_index" ] && pdp_index=$(uci get qmodem.$config_section.suggest_pdp_index)
+use_ubus=$(uci get qmodem.$config_section.use_ubus)
 modem_path=$(uci get qmodem.$config_section.path)
 modem_slot=$(basename $modem_path)
 
 [ -z "$pdp_index" ] && {
     pdp_index="1"
 }
+
+[ $use_ubus -eq 1 ] && use_ubus_flag="-u"
 
 #please update dynamic_load.json to add new vendor
 vendor_script_prefix="/usr/share/qmodem/vendor"
@@ -58,7 +61,7 @@ get_sms(){
     if [ ! -f $cache_file ] || [ $(($current_time - $file_time)) -gt $cache_timeout ]; then
         touch $cache_file
         #sms_tool_q -d $at_port -j recv > $cache_file
-        tom_modem -d $at_port -o r > $cache_file
+        tom_modem $use_ubus_flag  -d $at_port -o r > $cache_file
         echo $(cat $cache_file ; json_dump) | jq -s 'add'
     else
         echo $(cat $cache_file ; json_dump) | jq -s 'add'
@@ -151,11 +154,11 @@ case $method in
         index=$3
         [ -n "$sms_at_port" ] && at_port=$sms_at_port
         for i in $index; do
-            tom_modem -d $at_port -o d -i $i
+            tom_modem $use_ubus_flag  -d $at_port -o d -i $i
             touch /tmp/cache_sms_$2
             if [ "$?" == 0 ]; then
                 json_add_string status "1"
-                json_add_string "index$i" "tom_modem -d $at_port -o d -i $i"
+                json_add_string "index$i" "tom_modem $use_ubus_flag  -d $at_port -o d -i $i"
             else
                 json_add_string status "0"
             fi
@@ -239,11 +242,11 @@ case $method in
     "send_raw_pdu")
         cmd=$3
         [ -n "$sms_at_port" ] && at_port=$sms_at_port
-        res=$(tom_modem -d $at_port -o s -p "$cmd")
+        res=$(tom_modem $use_ubus_flag  -d $at_port -o s -p "$cmd")
         json_select result
         if [ "$?" == 0 ]; then
             json_add_string status "1"
-            json_add_string cmd "tom_modem -d $at_port -o s -p \"$cmd\""
+            json_add_string cmd "tom_modem $use_ubus_flag  -d $at_port -o s -p \"$cmd\""
             json_add_string "res" "$res"
         else
             json_add_string status "0"

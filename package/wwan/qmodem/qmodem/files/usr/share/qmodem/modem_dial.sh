@@ -95,6 +95,35 @@ unlock_sim()
 
 }
 
+get_platform_suggest_pdp_index()
+{
+    case $manufacturer in
+    quectel)
+        case $platform in
+            lte)
+                echo 3
+                ;;
+            *)
+                echo 1
+                ;;
+        esac
+    ;;
+    fibocom)
+        case $platform in
+            mediatek)
+                echo 3
+                ;;
+            *)
+                echo 1
+                ;;
+        esac
+    ;;
+    *)
+        echo 1
+        ;;
+    esac
+}
+
 update_config()
 {
     config_load qmodem
@@ -110,6 +139,7 @@ update_config()
     config_get platform $modem_config platform
     config_get pdp_index $modem_config pdp_index
     config_get suggest_pdp_index $modem_config suggest_pdp_index
+    [ -z "$suggest_pdp_index"] && suggest_pdp_index=$(get_platform_suggest_pdp_index)
     [ -z "$pdp_index" ] && pdp_index=$suggest_pdp_index
     config_get ra_master $modem_config ra_master
     config_get extend_prefix $modem_config extend_prefix

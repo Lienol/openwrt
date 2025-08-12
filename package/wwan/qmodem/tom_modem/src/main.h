@@ -10,33 +10,22 @@
 #include <sys/select.h>
 #include <errno.h>
 #include "operations.h"
-#include "ttydevice.h"
+#include "transport.h"
 #include "modem_types.h"
 #include "utils.h"
 
 #define DEFAULT_TIMEOUT 3
-// 
 
 extern PROFILE_T s_profile;   // global profile     
 
-
-extern  int at(PROFILE_T *profile,FDS_T *fds);
-
-extern int binary_at(PROFILE_T *profile,FDS_T *fds);
-
-extern  int sms_read(PROFILE_T *profile,FDS_T *fds);
-
-extern  int sms_send(PROFILE_T *profile,FDS_T *fds);
-
-extern  int sms_delete(PROFILE_T *profile,FDS_T *fds);
+// Operation dispatcher
+extern int run_op(PROFILE_T *profile, void *transport);
 
 extern void dump_profile();
 
 extern int match_option(char *option_name);
 
 extern int match_operation(char *operation_name);
-
-extern int open_tty_device(PROFILE_T *profile,FDS_T *fds);
 
 extern int usage(char* name);
 

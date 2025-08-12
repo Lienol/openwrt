@@ -60,6 +60,9 @@ for i1,v1 in ipairs(avalible_ports) do
     override_at_port:value(v1,msg)
 end
 
+use_ubus = s:taboption("general",Flag, "use_ubus",translate("Use Ubus"))
+use_ubus.default = "0"
+
 at_port.placeholder = translate("Not null")
 at_port.rmempty = false
 
@@ -184,7 +187,6 @@ apn:value("http.globe.com.ph", translate("Globe Prepaid (PH)"))
 apn:value("internet.globe.com.ph", translate("Globe Postpaid (PH)"))
 apn:value("internet", translate("Smart Communications (PH)"))
 apn:value("internet.dito.ph", translate("Dito Telecomunity (PH)"))
-
 
 metric = s:taboption("advanced", Value, "metric", translate("Metric"))
 metric.description = translate("The metric value is used to determine the priority of the route. The smaller the value, the higher the priority. Cannot duplicate.")

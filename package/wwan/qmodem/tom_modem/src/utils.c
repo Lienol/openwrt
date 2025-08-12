@@ -206,6 +206,8 @@ int match_option(char *option_name)
             return SMS_INDEX;
         case GREEDY_READ_S:
             return GREEDY_READ;
+        case USE_UBUS_S:
+            return USE_UBUS;
         default:
             return -1;
         }
@@ -264,6 +266,10 @@ int match_option(char *option_name)
         else if (strcmp(long_option, GREEDY_READ_L) == 0)
         {
             return GREEDY_READ;
+        }
+        else if (strcmp(long_option, USE_UBUS_L) == 0)
+        {
+            return USE_UBUS;
         }
         else
         {
@@ -339,6 +345,8 @@ void escape_json(char *input, char *output)
     char *q = output;
     while (*p)
     {
+        unsigned char c = (unsigned char)*p;
+        
         if (*p == '"')
         {
             *q++ = '\\';
@@ -379,6 +387,15 @@ void escape_json(char *input, char *output)
             *q++ = '\\';
             *q++ = 't';
         }
+        else if (c < 0x20)  // Control characters (U+0000 through U+001F)
+        {
+            *q++ = '\\';
+            *q++ = 'u';
+            *q++ = '0';
+            *q++ = '0';
+            *q++ = (c >> 4) < 10 ? '0' + (c >> 4) : 'a' + (c >> 4) - 10;
+            *q++ = (c & 0x0F) < 10 ? '0' + (c & 0x0F) : 'a' + (c & 0x0F) - 10;
+        }
         else
         {
             *q++ = *p;
@@ -403,6 +420,9 @@ int usage(char* name)
     err_msg("  -p, --sms_pdu <sms pdu>  SMS PDU");
     err_msg("  -i, --sms_index <sms index>  SMS index");
     err_msg("  -g, --greedy_read Default: off, Greedy read mode, if set, each round it get new data from tty device, it will reset the timeout");
+#ifdef ENABLE_UBUS_DAEMON
+    err_msg("  -u, --use_ubus Default: off, Use UBUS AT daemon instead of direct serial access");
+#endif
     #ifdef USE_SEMAPHORE
     err_msg("  -C, --cleanup Semaphore cleanup");
     #endif
@@ -435,6 +455,35 @@ int str_to_hex(char *str, char *hex)
     return SUCCESS;
 }
 
+int get_sms_index(char *cmgl_line)
+{
+    // Parse +CMGL: line to extract SMS index
+    // Format: +CMGL: <index>,<stat>,<alpha>,<length>
+    char *start_pos = strchr(cmgl_line, ':');
+    if (start_pos == NULL) {
+        return -1;
+    }
+    
+    start_pos++; // Skip ':'
+    while (*start_pos == ' ') start_pos++; // Skip spaces
+    
+    char *end_pos = strchr(start_pos, ',');
+    if (end_pos == NULL) {
+        return -1;
+    }
+    
+    char index_str[16];
+    int len = end_pos - start_pos;
+    if (len >= sizeof(index_str)) {
+        return -1;
+    }
+    
+    strncpy(index_str, start_pos, len);
+    index_str[len] = '\0';
+    
+    return atoi(index_str);
+}
+
 void dump_profile()
 {
     dbg_msg("AT command: %s", s_profile.at_cmd);
@@ -450,6 +499,7 @@ void dump_profile()
     dbg_msg("SMS PDU: %s", s_profile.sms_pdu);
     dbg_msg("SMS index: %d", s_profile.sms_index);
     dbg_msg("Greedy read: %d", s_profile.greedy_read);
+    dbg_msg("Transport type: %s", s_profile.transport == TRANSPORT_UBUS ? "UBUS" : "TTY");
 }
 int display_sms_in_json(SMS_T **sms,int num)
 {
