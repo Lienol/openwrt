@@ -529,10 +529,6 @@
 	};
 };
 
-&tsens {
-	status = "okay";
-};
-
 &pcie0_phy {
 	status = "okay";
 };
