@@ -1,11 +1,11 @@
---- a/drivers/net/wireless/ath/ath11k/debugfs.c
-+++ b/drivers/net/wireless/ath/ath11k/debugfs.c
-@@ -179,7 +179,7 @@ static int ath11k_debugfs_fw_stats_reque
- 	 * received 'update stats' event, we keep a 3 seconds timeout in case,
- 	 * fw_stats_done is not marked yet
- 	 */
--	timeout = jiffies + secs_to_jiffies(3);
-+	timeout = jiffies + msecs_to_jiffies(3 * 1000);
+--- a/net/wireless/scan.c
++++ b/net/wireless/scan.c
+@@ -1365,7 +1365,7 @@ void cfg80211_bss_age(struct cfg80211_re
+                       unsigned long age_secs)
+ {
+ 	struct cfg80211_internal_bss *bss;
+-	unsigned long age_jiffies = secs_to_jiffies(age_secs);
++	unsigned long age_jiffies = msecs_to_jiffies(age_secs * 1000);
  
- 	ath11k_debugfs_fw_stats_reset(ar);
- 
+ 	spin_lock_bh(&rdev->bss_lock);
+ 	list_for_each_entry(bss, &rdev->bss_list, list)

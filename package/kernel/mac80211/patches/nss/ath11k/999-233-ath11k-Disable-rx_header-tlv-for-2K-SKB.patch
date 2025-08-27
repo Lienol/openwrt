@@ -12,7 +12,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
 
 --- a/drivers/net/wireless/ath/ath11k/debugfs.c
 +++ b/drivers/net/wireless/ath/ath11k/debugfs.c
-@@ -669,6 +669,7 @@ static ssize_t ath11k_write_extd_rx_stat
+@@ -547,6 +547,7 @@ static ssize_t ath11k_write_extd_rx_stat
  	}
  
  	ar->debug.rx_filter = tlv_filter.rx_filter;
@@ -20,7 +20,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  
  	for (i = 0; i < ab->hw_params.num_rxdma_per_pdev; i++) {
  		ring_id = ar->dp.rx_mon_status_refill_ring[i].refill_buf_ring.ring_id;
-@@ -1229,6 +1230,7 @@ static ssize_t ath11k_write_pktlog_filte
+@@ -1107,6 +1108,7 @@ static ssize_t ath11k_write_pktlog_filte
  	}
  
  	/* Clear rx filter set for monitor mode and rx status */
@@ -227,7 +227,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
 +
  static void ath11k_dp_service_mon_ring(struct timer_list *t)
  {
- 	struct ath11k_base *ab = from_timer(ab, t, mon_reap_timer);
+ 	struct ath11k_base *ab = timer_container_of(ab, t, mon_reap_timer);
 @@ -2380,6 +2415,49 @@ int ath11k_dp_rx_crypto_icv_len(struct a
  	return 0;
  }
@@ -933,7 +933,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  extern const struct ath11k_hw_ops ipq8074_ops;
 --- a/drivers/net/wireless/ath/ath11k/mac.c
 +++ b/drivers/net/wireless/ath/ath11k/mac.c
-@@ -6531,6 +6531,7 @@ static int ath11k_mac_config_mon_status_
+@@ -6592,6 +6592,7 @@ static int ath11k_mac_config_mon_status_
  			tlv_filter.rx_filter = ath11k_debugfs_rx_filter(ar);
  	}
  

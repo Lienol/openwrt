@@ -136,8 +136,8 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  ATH11K_TRACING=
 --- a/drivers/net/wireless/ath/ath11k/core.h
 +++ b/drivers/net/wireless/ath/ath11k/core.h
-@@ -939,6 +939,11 @@ struct ath11k_msi_config {
- 	u16 hw_rev;
+@@ -949,6 +949,11 @@ enum ath11k_pm_policy {
+ 	ATH11K_PM_WOW,
  };
  
 +struct ath11k_num_vdevs_peers {
@@ -148,9 +148,9 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  /* Master structure to hold the hw data which may be used in core module */
  struct ath11k_base {
  	enum ath11k_hw_rev hw_rev;
-@@ -1096,6 +1101,8 @@ struct ath11k_base {
- 		DECLARE_BITMAP(fw_features, ATH11K_FW_FEATURE_COUNT);
- 	} fw;
+@@ -1112,6 +1117,8 @@ struct ath11k_base {
+ 
+ 	struct completion restart_completed;
  
 +	atomic_t num_max_allowed;
 +
@@ -331,9 +331,9 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  		.support_dual_stations = true,
  		.pdev_suspend = false,
  	},
-@@ -977,6 +984,21 @@ static struct ath11k_hw_params ath11k_hw
- 	},
- };
+@@ -2657,6 +2664,21 @@ static int ath11k_core_pm_notify(struct
+ 	return NOTIFY_OK;
+ }
  
 +static const struct ath11k_num_vdevs_peers ath11k_vdevs_peers[] = {
 +	{
@@ -350,6 +350,6 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
 +	},
 +};
 +
- static inline struct ath11k_pdev *ath11k_core_get_single_pdev(struct ath11k_base *ab)
+ static int ath11k_core_pm_notifier_register(struct ath11k_base *ab)
  {
- 	WARN_ON(!ab->hw_params.single_pdev_only);
+ 	ab->pm_nb.notifier_call = ath11k_core_pm_notify;
