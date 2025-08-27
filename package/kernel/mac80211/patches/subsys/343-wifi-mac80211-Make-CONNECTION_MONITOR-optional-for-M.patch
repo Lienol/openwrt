@@ -13,7 +13,7 @@ Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
 
 --- a/net/mac80211/main.c
 +++ b/net/mac80211/main.c
-@@ -1174,9 +1174,6 @@ int ieee80211_register_hw(struct ieee802
+@@ -1179,9 +1179,6 @@ int ieee80211_register_hw(struct ieee802
  		if (WARN_ON(!ieee80211_hw_check(hw, MFP_CAPABLE)))
  			return -EINVAL;
  

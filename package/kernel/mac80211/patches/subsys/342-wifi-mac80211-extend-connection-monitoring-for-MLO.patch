@@ -25,7 +25,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -3831,9 +3831,6 @@ static void ieee80211_mgd_probe_ap_send(
+@@ -4300,9 +4300,6 @@ static void ieee80211_mgd_probe_ap_send(
  
  	lockdep_assert_wiphy(sdata->local->hw.wiphy);
  
@@ -35,7 +35,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	/*
  	 * Try sending broadcast probe requests for the last three
  	 * probe requests after the first ones failed since some
-@@ -3879,9 +3876,6 @@ static void ieee80211_mgd_probe_ap(struc
+@@ -4348,9 +4345,6 @@ static void ieee80211_mgd_probe_ap(struc
  
  	lockdep_assert_wiphy(sdata->local->hw.wiphy);
  
@@ -45,22 +45,22 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	if (!ieee80211_sdata_running(sdata))
  		return;
  
-@@ -7921,36 +7915,73 @@ static void ieee80211_sta_bcn_mon_timer(
+@@ -8440,36 +8434,70 @@ static void ieee80211_sta_bcn_mon_timer(
  			 &sdata->u.mgd.beacon_connection_loss_work);
  }
  
 +static unsigned long
 +ieee80211_latest_active_link_conn_timeout(struct ieee80211_sub_if_data *sdata)
 +{
-+	unsigned long latest_timeout = 0;
++	unsigned long latest_timeout;
 +	unsigned int link_id;
 +	struct sta_info *sta;
 +
-+	rcu_read_lock();
++	guard(rcu)();
 +
 +	sta = sta_info_get(sdata, sdata->vif.cfg.ap_addr);
 +	if (!sta)
-+		goto out;
++		return 0;
 +
 +	for (link_id = 0; link_id < ARRAY_SIZE(sta->link);
 +	     link_id++) {
@@ -90,16 +90,13 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 +			latest_timeout = timeout;
 +	}
 +
-+out:
-+	rcu_read_unlock();
-+
 +	return latest_timeout;
 +}
 +
  static void ieee80211_sta_conn_mon_timer(struct timer_list *t)
  {
  	struct ieee80211_sub_if_data *sdata =
- 		from_timer(sdata, t, u.mgd.conn_mon_timer);
+ 		timer_container_of(sdata, t, u.mgd.conn_mon_timer);
  	struct ieee80211_if_managed *ifmgd = &sdata->u.mgd;
  	struct ieee80211_local *local = sdata->local;
 -	struct sta_info *sta;
@@ -107,17 +104,17 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 +	unsigned long latest_timeout;
  
 -	if (WARN_ON(ieee80211_vif_is_mld(&sdata->vif)))
-+	if (ieee80211_is_csa_in_progress(sdata))
- 		return;
- 
+-		return;
+-
 -	if (sdata->vif.bss_conf.csa_active &&
 -	    !sdata->deflink.u.mgd.csa.waiting_bcn)
 -		return;
 -
 -	sta = sta_info_get(sdata, sdata->vif.cfg.ap_addr);
 -	if (!sta)
--		return;
--
++	if (ieee80211_is_csa_in_progress(sdata))
+ 		return;
+ 
 -	timeout = sta->deflink.status_stats.last_ack;
 -	if (time_before(sta->deflink.status_stats.last_ack, sta->deflink.rx_stats.last_rx))
 -		timeout = sta->deflink.rx_stats.last_rx;
@@ -125,14 +122,12 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
 +	latest_timeout = ieee80211_latest_active_link_conn_timeout(sdata);
  
 -	/* If timeout is after now, then update timer to fire at
--	 * the later date, but do not actually probe at this time.
--	 */
--	if (time_is_after_jiffies(timeout)) {
--		mod_timer(&ifmgd->conn_mon_timer, round_jiffies_up(timeout));
 +	/*
 +	 * If latest timeout is after now, then update timer to fire at
-+ 	 * the later date, but do not actually probe at this time.
-+ 	 */
+ 	 * the later date, but do not actually probe at this time.
+ 	 */
+-	if (time_is_after_jiffies(timeout)) {
+-		mod_timer(&ifmgd->conn_mon_timer, round_jiffies_up(timeout));
 +	if (latest_timeout) {
 +		mod_timer(&ifmgd->conn_mon_timer,
 +			  round_jiffies_up(latest_timeout));
