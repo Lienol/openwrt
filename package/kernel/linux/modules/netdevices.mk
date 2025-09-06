@@ -728,6 +728,84 @@ endef
 
 $(eval $(call KernelPackage,dsa-qca8k))
 
+
+define KernelPackage/dsa-realtek
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek common module RTL83xx DSA switch family
+  DEPENDS:=+kmod-dsa +kmod-phy-realtek +kmod-regmap-core @!TARGET_x86 @!TARGET_bcm47xx @!TARGET_uml
+  KCONFIG:= \
+	CONFIG_NET_DSA_REALTEK \
+	CONFIG_NET_DSA_REALTEK_MDIO=y \
+	CONFIG_NET_DSA_REALTEK_SMI=y
+  FILES:= $(LINUX_DIR)/drivers/net/dsa/realtek/realtek_dsa.ko
+endef
+
+define KernelPackage/dsa-realtek/description
+  Common kernel module for Realtek RTL83xx DSA switch family
+endef
+
+$(eval $(call KernelPackage,dsa-realtek))
+
+
+define KernelPackage/dsa-rtl8366rb
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8366RB switch DSA support
+  DEPENDS:=+kmod-dsa-realtek @!TARGET_x86 @!TARGET_bcm47xx @!TARGET_uml
+  KCONFIG:= \
+	CONFIG_NET_DSA_REALTEK_RTL8366RB \
+	CONFIG_NET_DSA_REALTEK_RTL8366RB_LEDS=y \
+	CONFIG_NET_DSA_TAG_RTL4_A
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/dsa/realtek/rtl8366.ko \
+	$(LINUX_DIR)/net/dsa/tag_rtl4_a.ko
+  AUTOLOAD:=$(call AutoLoad,42,rtl8366,1)
+endef
+
+define KernelPackage/dsa-rtl8366rb/description
+  DSA based kernel modules for the Realtek RTL8366RB switch family
+endef
+
+$(eval $(call KernelPackage,dsa-rtl8366rb))
+
+
+define KernelPackage/dsa-rtl8365mb
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8365MB switch DSA support
+  DEPENDS:=+kmod-dsa-realtek @!TARGET_x86 @!TARGET_bcm47xx @!TARGET_uml
+  KCONFIG:= \
+	CONFIG_NET_DSA_REALTEK_RTL8365MB \
+	CONFIG_NET_DSA_TAG_RTL8_4
+  FILES:= \
+	$(LINUX_DIR)/drivers/net/dsa/realtek/rtl8365mb.ko \
+	$(LINUX_DIR)/net/dsa/tag_rtl8_4.ko
+  AUTOLOAD:=$(call AutoLoad,42,rtl8365mb,1)
+endef
+
+define KernelPackage/dsa-rtl8365mb/description
+  DSA based kernel modules for the Realtek RTL8365MB switch family
+endef
+
+$(eval $(call KernelPackage,dsa-rtl8365mb))
+
+
+define KernelPackage/dsa-ks8995
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Micrel/Kendin KS8995 Ethernet DSA Switch
+  DEPENDS:=@!LINUX_6_6 +kmod-dsa +kmod-dsa-notag
+  FILES:= $(LINUX_DIR)/drivers/net/dsa/ks8995.ko
+  KCONFIG:= CONFIG_NET_DSA_KS8995 \
+	CONFIG_SPI=y \
+	CONFIG_SPI_MASTER=y
+  AUTOLOAD:=$(call AutoLoad,42,ks8995)
+endef
+
+define KernelPackage/dsa-ks8995/description
+  Kernel module for Micrel/Kendin KS8995 DSA switch
+endef
+
+$(eval $(call KernelPackage,dsa-ks8995))
+
+
 define KernelPackage/swconfig
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=switch configuration API
@@ -1579,6 +1657,7 @@ $(eval $(call KernelPackage,vmxnet3))
 define KernelPackage/spi-ks8995
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Micrel/Kendin KS8995 Ethernet switch control
+  DEPENDS:=@LINUX_6_6
   FILES:=$(LINUX_DIR)/drivers/net/phy/spi_ks8995.ko
   KCONFIG:=CONFIG_MICREL_KS8995MA \
 	CONFIG_SPI=y \
