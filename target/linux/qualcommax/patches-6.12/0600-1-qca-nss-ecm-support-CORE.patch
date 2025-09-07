@@ -201,7 +201,7 @@
  void fib_del_ifaddr(struct in_ifaddr *, struct in_ifaddr *);
 --- a/net/bridge/br_private.h
 +++ b/net/bridge/br_private.h
-@@ -2302,4 +2302,6 @@ void br_do_suppress_nd(struct sk_buff *s
+@@ -2304,4 +2304,6 @@ void br_do_suppress_nd(struct sk_buff *s
  		       u16 vid, struct net_bridge_port *p, struct nd_msg *msg);
  struct nd_msg *br_is_nd_neigh_msg(struct sk_buff *skb, struct nd_msg *m);
  bool br_is_neigh_suppress_enabled(const struct net_bridge_port *p, u16 vid);
@@ -760,6 +760,15 @@
  	}
  #undef N
  	return "UNKNOWN_NETDEV_EVENT";
+@@ -12065,7 +12066,7 @@ static void __init net_dev_struct_check(
+ #ifdef CONFIG_NET_XGRESS
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_tx, tcx_egress);
+ #endif
+-	CACHELINE_ASSERT_GROUP_SIZE(struct net_device, net_device_read_tx, 160);
++	CACHELINE_ASSERT_GROUP_SIZE(struct net_device, net_device_read_tx, 168);
+ 
+ 	/* TXRX read-mostly hotpath */
+ 	CACHELINE_ASSERT_GROUP_MEMBER(struct net_device, net_device_read_txrx, lstats);
 --- a/net/ipv6/addrconf.c
 +++ b/net/ipv6/addrconf.c
 @@ -993,6 +993,7 @@ void inet6_ifa_finish_destroy(struct ine
