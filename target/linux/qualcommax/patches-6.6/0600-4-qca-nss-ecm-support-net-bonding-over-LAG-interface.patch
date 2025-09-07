@@ -1,6 +1,6 @@
 --- a/drivers/net/bonding/bond_3ad.c
 +++ b/drivers/net/bonding/bond_3ad.c
-@@ -116,6 +116,40 @@ static void ad_marker_response_received(
+@@ -119,6 +119,40 @@ static void ad_marker_response_received(
  					struct port *port);
  static void ad_update_actor_keys(struct port *port, bool reset);
  
@@ -41,7 +41,7 @@
  
  /* ================= api to bonding and kernel code ================== */
  
-@@ -1073,7 +1107,31 @@ static void ad_mux_machine(struct port *
+@@ -1163,7 +1197,31 @@ static void ad_mux_machine(struct port *
  			ad_disable_collecting_distributing(port,
  							   update_slave_arr);
  			port->ntt = true;
@@ -73,7 +73,7 @@
  		case AD_MUX_COLLECTING_DISTRIBUTING:
  			port->actor_oper_port_state |= LACP_STATE_COLLECTING;
  			port->actor_oper_port_state |= LACP_STATE_DISTRIBUTING;
-@@ -1917,6 +1975,7 @@ static void ad_enable_collecting_distrib
+@@ -2066,6 +2124,7 @@ static void ad_enable_collecting_distrib
  					      bool *update_slave_arr)
  {
  	if (port->aggregator->is_active) {
@@ -81,7 +81,7 @@
  		slave_dbg(port->slave->bond->dev, port->slave->dev,
  			  "Enabling port %d (LAG %d)\n",
  			  port->actor_port_number,
-@@ -1924,6 +1983,16 @@ static void ad_enable_collecting_distrib
+@@ -2073,6 +2132,16 @@ static void ad_enable_collecting_distrib
  		__enable_port(port);
  		/* Slave array needs update */
  		*update_slave_arr = true;
@@ -98,7 +98,7 @@
  	}
  }
  
-@@ -2683,6 +2752,104 @@ int bond_3ad_get_active_agg_info(struct
+@@ -2832,6 +2901,104 @@ int bond_3ad_get_active_agg_info(struct
  	return ret;
  }
  
@@ -614,10 +614,10 @@
  		return bond_xmit_broadcast(skb, dev);
 --- a/include/net/bond_3ad.h
 +++ b/include/net/bond_3ad.h
-@@ -302,8 +302,15 @@ int bond_3ad_lacpdu_recv(const struct sk
- 			 struct slave *slave);
+@@ -305,6 +305,13 @@ int bond_3ad_lacpdu_recv(const struct sk
  int bond_3ad_set_carrier(struct bonding *bond);
  void bond_3ad_update_lacp_rate(struct bonding *bond);
+ void bond_3ad_update_lacp_active(struct bonding *bond);
 +/* QCA NSS ECM bonding support */
 +struct net_device *bond_3ad_get_tx_dev(struct sk_buff *skb, uint8_t *src_mac,
 +				       uint8_t *dst_mac, void *src,
@@ -625,12 +625,9 @@
 +				       struct net_device *bond_dev,
 +				       __be16 *layer4hdr);
 +/* QCA NSS ECM bonding support */
-+
  void bond_3ad_update_ad_actor_settings(struct bonding *bond);
  int bond_3ad_stats_fill(struct sk_buff *skb, struct bond_3ad_stats *stats);
  size_t bond_3ad_stats_size(void);
- #endif /* _NET_BOND_3AD_H */
--
 --- a/include/net/bonding.h
 +++ b/include/net/bonding.h
 @@ -90,6 +90,8 @@
@@ -642,7 +639,7 @@
  #ifdef CONFIG_NET_POLL_CONTROLLER
  extern atomic_t netpoll_block_tx;
  
-@@ -653,6 +655,7 @@ struct bond_net {
+@@ -676,6 +678,7 @@ struct bond_net {
  
  int bond_rcv_validate(const struct sk_buff *skb, struct bonding *bond, struct slave *slave);
  netdev_tx_t bond_dev_queue_xmit(struct bonding *bond, struct sk_buff *skb, struct net_device *slave_dev);
@@ -650,7 +647,7 @@
  int bond_create(struct net *net, const char *name);
  int bond_create_sysfs(struct bond_net *net);
  void bond_destroy_sysfs(struct bond_net *net);
-@@ -684,6 +687,13 @@ struct bond_vlan_tag *bond_verify_device
+@@ -707,6 +710,13 @@ struct bond_vlan_tag *bond_verify_device
  					      int level);
  int bond_update_slave_arr(struct bonding *bond, struct slave *skipslave);
  void bond_slave_arr_work_rearm(struct bonding *bond, unsigned long delay);
@@ -664,7 +661,7 @@
  void bond_work_init_all(struct bonding *bond);
  
  #ifdef CONFIG_PROC_FS
-@@ -788,4 +798,18 @@ static inline netdev_tx_t bond_tx_drop(s
+@@ -811,4 +821,18 @@ static inline netdev_tx_t bond_tx_drop(s
  	return NET_XMIT_DROP;
  }
  

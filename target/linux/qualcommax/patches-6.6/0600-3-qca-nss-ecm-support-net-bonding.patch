@@ -20,7 +20,7 @@
  	free_percpu(bond->rr_tx_counter);
  }
  
-@@ -6490,6 +6496,13 @@ int bond_create(struct net *net, const c
+@@ -6491,6 +6497,13 @@ int bond_create(struct net *net, const c
  
  	bond_work_init_all(bond);
  
@@ -36,7 +36,7 @@
  	return res;
 --- a/include/net/bonding.h
 +++ b/include/net/bonding.h
-@@ -261,6 +261,7 @@ struct bonding {
+@@ -263,6 +263,7 @@ struct bonding {
  	struct mutex ipsec_lock;
  #endif /* CONFIG_XFRM_OFFLOAD */
  	struct bpf_prog *xdp_prog;

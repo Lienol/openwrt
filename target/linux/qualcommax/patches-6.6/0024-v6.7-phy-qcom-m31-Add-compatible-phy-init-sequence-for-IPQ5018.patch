@@ -15,7 +15,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
 
 --- a/drivers/phy/qualcomm/phy-qcom-m31.c
 +++ b/drivers/phy/qualcomm/phy-qcom-m31.c
-@@ -82,6 +82,50 @@ struct m31_priv_data {
+@@ -84,6 +84,50 @@ struct m31_priv_data {
  	unsigned int			nregs;
  };
  
@@ -66,7 +66,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
  static struct m31_phy_regs m31_ipq5332_regs[] = {
  	{
  		USB_PHY_CFG0,
-@@ -267,6 +311,12 @@ static int m31usb_phy_probe(struct platf
+@@ -273,6 +317,12 @@ static int m31usb_phy_probe(struct platf
  	return PTR_ERR_OR_ZERO(phy_provider);
  }
  
@@ -79,7 +79,7 @@ Signed-off-by: Vinod Koul <vkoul@kernel.org>
  static const struct m31_priv_data m31_ipq5332_data = {
  	.ulpi_mode = false,
  	.regs = m31_ipq5332_regs,
-@@ -274,6 +324,7 @@ static const struct m31_priv_data m31_ip
+@@ -280,6 +330,7 @@ static const struct m31_priv_data m31_ip
  };
  
  static const struct of_device_id m31usb_phy_id_table[] = {
