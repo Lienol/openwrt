@@ -80,6 +80,7 @@ platform_do_upgrade() {
 	h3c,magic-nx30-pro|\
 	jcg,q30-pro|\
 	jdcloud,re-cp-03|\
+	jdcloud,re-cp-03-mod|\
 	mediatek,mt7981-rfb|\
 	mediatek,mt7988a-rfb|\
 	mercusys,mr90x-v1-ubi|\
@@ -307,6 +308,7 @@ platform_copy_config() {
 	huasifei,wh3000|\
 	huasifei,wh3000-pro|\
 	jdcloud,re-cp-03|\
+	jdcloud,re-cp-03-mod|\
 	nradio,c8-668gl|\
 	smartrg,sdg-8612|\
 	smartrg,sdg-8614|\

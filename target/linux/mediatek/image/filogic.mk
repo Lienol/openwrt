@@ -1287,6 +1287,17 @@ define Device/jcg_q30-pro
 endef
 TARGET_DEVICES += jcg_q30-pro
 
+define Device/jdcloud_re-cp-03-mod
+  DEVICE_VENDOR := JDCloud
+  DEVICE_MODEL := RE-CP-03 (U-Boot mod)
+  DEVICE_DTS := mt7986a-jdcloud-re-cp-03-mod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware \
+	e2fsprogs f2fsck mkf2fs
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += jdcloud_re-cp-03-mod
+
 define Device/jdcloud_re-cp-03
   DEVICE_VENDOR := JDCloud
   DEVICE_MODEL := RE-CP-03
