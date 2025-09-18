@@ -54,7 +54,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  obj-$(CONFIG_NET_DSA_MT7530_MDIO) += mt7530-mdio.o
 --- a/drivers/net/phy/Kconfig
 +++ b/drivers/net/phy/Kconfig
-@@ -443,7 +443,3 @@ config XILINX_GMII2RGMII
+@@ -431,7 +431,3 @@ config XILINX_GMII2RGMII
  	  Ethernet physical media devices and the Gigabit Ethernet controller.
  
  endif # PHYLIB
@@ -64,7 +64,7 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 -	depends on SPI
 --- a/drivers/net/phy/Makefile
 +++ b/drivers/net/phy/Makefile
-@@ -77,7 +77,6 @@ obj-$(CONFIG_MARVELL_88X2222_PHY)	+= mar
+@@ -76,7 +76,6 @@ obj-$(CONFIG_MARVELL_88X2222_PHY)	+= mar
  obj-$(CONFIG_MAXLINEAR_GPHY)	+= mxl-gpy.o
  obj-y				+= mediatek/
  obj-$(CONFIG_MESON_GXL_PHY)	+= meson-gxl.o
