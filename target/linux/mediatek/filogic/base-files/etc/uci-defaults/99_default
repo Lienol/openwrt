@@ -1,0 +1,9 @@
+uci -q set firewall.@defaults[0].fullcone=1
+uci -q set firewall.@defaults[0].flow_offloading=1
+uci -q set firewall.@defaults[0].flow_offloading_hw=1
+uci -q commit firewall
+
+uci -q set turboacc.config.hw_wed=1
+uci -q commit turboacc
+
+exit 0
