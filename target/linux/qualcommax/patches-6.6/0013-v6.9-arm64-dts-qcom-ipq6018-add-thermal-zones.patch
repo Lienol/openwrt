@@ -23,39 +23,39 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  
  / {
  	#address-cells = <2>;
-@@ -42,6 +43,7 @@
- 			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
+@@ -43,6 +44,7 @@
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
+ 			cpu-supply = <&ipq6018_s2>;
 +			#cooling-cells = <2>;
  		};
  
  		CPU1: cpu@1 {
-@@ -53,6 +55,7 @@
- 			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
+@@ -55,6 +57,7 @@
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
+ 			cpu-supply = <&ipq6018_s2>;
 +			#cooling-cells = <2>;
  		};
  
  		CPU2: cpu@2 {
-@@ -64,6 +67,7 @@
- 			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
+@@ -67,6 +70,7 @@
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
+ 			cpu-supply = <&ipq6018_s2>;
 +			#cooling-cells = <2>;
  		};
  
  		CPU3: cpu@3 {
-@@ -75,6 +79,7 @@
- 			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
+@@ -79,6 +83,7 @@
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
+ 			cpu-supply = <&ipq6018_s2>;
 +			#cooling-cells = <2>;
  		};
  
  		L2_0: l2-cache {
-@@ -909,6 +914,122 @@
+@@ -890,6 +895,122 @@
  		};
  	};
  

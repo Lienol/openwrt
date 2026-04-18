@@ -40,19 +40,19 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
 +
 +#include "ipq6018.dtsi"
 +
-+&CPU0 {
++&cpu0 {
 +	cpu-supply = <&ipq6018_s2>;
 +};
 +
-+&CPU1 {
++&cpu1 {
 +	cpu-supply = <&ipq6018_s2>;
 +};
 +
-+&CPU2 {
++&cpu2 {
 +	cpu-supply = <&ipq6018_s2>;
 +};
 +
-+&CPU3 {
++&cpu3 {
 +	cpu-supply = <&ipq6018_s2>;
 +};
 +
@@ -69,39 +69,39 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
 +};
 --- a/arch/arm64/boot/dts/qcom/ipq6018.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq6018.dtsi
-@@ -42,7 +42,6 @@
+@@ -43,7 +43,6 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
 -			cpu-supply = <&ipq6018_s2>;
+ 			#cooling-cells = <2>;
  		};
  
- 		CPU1: cpu@1 {
-@@ -54,7 +53,6 @@
+@@ -56,7 +55,6 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
 -			cpu-supply = <&ipq6018_s2>;
+ 			#cooling-cells = <2>;
  		};
  
- 		CPU2: cpu@2 {
-@@ -66,7 +64,6 @@
+@@ -69,7 +67,6 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
 -			cpu-supply = <&ipq6018_s2>;
+ 			#cooling-cells = <2>;
  		};
  
- 		CPU3: cpu@3 {
-@@ -78,7 +75,6 @@
+@@ -82,7 +79,6 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
 -			cpu-supply = <&ipq6018_s2>;
+ 			#cooling-cells = <2>;
  		};
  
- 		L2_0: l2-cache {
-@@ -179,16 +175,6 @@
+@@ -184,16 +180,6 @@
  			rpm_requests: rpm-requests {
  				compatible = "qcom,rpm-ipq6018";
  				qcom,glink-channels = "rpm_requests";

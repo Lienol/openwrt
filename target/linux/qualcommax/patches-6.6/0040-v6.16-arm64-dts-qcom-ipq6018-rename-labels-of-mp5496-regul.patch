@@ -19,22 +19,22 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
 @@ -7,26 +7,26 @@
  #include "ipq6018.dtsi"
  
- &CPU0 {
+ &cpu0 {
 -	cpu-supply = <&ipq6018_s2>;
 +	cpu-supply = <&mp5496_s2>;
  };
  
- &CPU1 {
+ &cpu1 {
 -	cpu-supply = <&ipq6018_s2>;
 +	cpu-supply = <&mp5496_s2>;
  };
  
- &CPU2 {
+ &cpu2 {
 -	cpu-supply = <&ipq6018_s2>;
 +	cpu-supply = <&mp5496_s2>;
  };
  
- &CPU3 {
+ &cpu3 {
 -	cpu-supply = <&ipq6018_s2>;
 +	cpu-supply = <&mp5496_s2>;
  };

@@ -45,7 +45,7 @@
  			#clock-cells = <1>;
  			#reset-cells = <1>;
  		};
-@@ -635,6 +655,20 @@
+@@ -612,6 +632,20 @@
  			status = "disabled";
  		};
  
@@ -66,7 +66,7 @@
  		blsp1_i2c2: i2c@78b6000 {
  			compatible = "qcom,i2c-qup-v2.2.1";
  			#address-cells = <1>;
-@@ -665,6 +699,21 @@
+@@ -642,6 +676,21 @@
  			status = "disabled";
  		};
  
@@ -88,7 +88,7 @@
  		qpic_bam: dma-controller@7984000 {
  			compatible = "qcom,bam-v1.7.0";
  			reg = <0x0 0x07984000 0x0 0x1a000>;
-@@ -969,8 +1018,26 @@
+@@ -946,8 +995,26 @@
  				      "wcss_reset",
  				      "wcss_q6_reset";
  

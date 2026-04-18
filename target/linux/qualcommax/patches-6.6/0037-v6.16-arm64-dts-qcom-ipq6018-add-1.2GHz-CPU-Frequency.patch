@@ -17,7 +17,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
 
 --- a/arch/arm64/boot/dts/qcom/ipq6018.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq6018.dtsi
-@@ -114,6 +114,13 @@
+@@ -119,6 +119,13 @@
  			clock-latency-ns = <200000>;
  		};
  
