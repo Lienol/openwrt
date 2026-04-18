@@ -4,9 +4,9 @@
 /dts-v1/;
 
 #include "ipq6018-512m.dtsi"
-#include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -14,7 +14,7 @@
 / {
 	model = "Yuncore FAP650";
 	compatible = "yuncore,fap650", "qcom,ipq6018";
-	
+
 	aliases {
 		ethernet0 = &dp5;
 		ethernet1 = &dp4;
@@ -168,14 +168,6 @@
 	};
 };
 
-&usb2 {
-	status = "okay";
-};
-
-&usb3 {
-	status = "okay";
-};
-
 &edma {
 	status = "okay";
 };
@@ -211,21 +203,17 @@
 	label = "wan";
 };
 
-&qpic_bam {
-	status = "okay";
-};
-
 &blsp1_spi1 {
 	status = "okay";
-	
+
 	flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
 		reg = <0>;
 		compatible = "jedec,spi-nor";
 		spi-max-frequency = <50000000>;
 
 		partitions {
+			#address-cells = <1>;
+			#size-cells = <1>;
 			compatible = "fixed-partitions";
 
 			partition@0 {
@@ -320,7 +308,7 @@
 		nand-ecc-strength = <4>;
 		nand-ecc-step-size = <512>;
 		nand-bus-width = <8>;
-	
+
 		partitions {
 			compatible = "fixed-partitions";
 			#address-cells = <1>;
@@ -342,25 +330,5 @@
 &wifi {
  	qcom,ath11k-calibration-variant = "Yuncore-FAP650";
 	qcom,ath11k-fw-memory-mode = <1>;
-	status = "okay";
-};
-
-&qusb_phy_0 {
-	status = "okay";
-};
-
-&qusb_phy_1 {
-	status = "okay";
-};
-
-&ssphy_0 {
-	status = "okay";
-};
-
-&usb3 {
-	status = "okay";
-};
-
-&usb2 {
 	status = "okay";
 };

@@ -3,9 +3,9 @@
 /dts-v1/;
 
 #include "ipq6018.dtsi"
-#include "ipq6018-cp-cpu.dtsi"
 #include "ipq6018-ess.dtsi"
 #include "ipq6018-nss.dtsi"
+#include "ipq6018-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/leds/common.h>
@@ -110,8 +110,6 @@
 	status = "okay";
 
 	flash@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
 		reg = <0>;
 		compatible = "jedec,spi-nor";
 		spi-max-frequency = <25000000>;
@@ -162,22 +160,25 @@
 			};
 
 			partition@360000 {
-				compatible = "nvmem-cells";
-				#address-cells = <1>;
-				#size-cells = <1>;
 				label = "0:ART";
 				reg = <0x00360000 0x00040000>;
 
-				macaddr_eth0: macaddr@0 {
-					reg = <0x0 0x6>;
-				};
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
 
-				macaddr_eth1: macaddr@6 {
-					reg = <0x6 0x6>;
-				};
+					macaddr_eth0: macaddr@0 {
+						reg = <0x0 0x6>;
+					};
 
-				macaddr_eth2: macaddr@c {
-					reg = <0xc 0x6>;
+					macaddr_eth1: macaddr@6 {
+						reg = <0x6 0x6>;
+					};
+
+					macaddr_eth2: macaddr@c {
+						reg = <0xc 0x6>;
+					};
 				};
 			};
 
@@ -268,12 +269,12 @@
 	};
 };
 
-&sdhc_1 {
+&sdhc {
 	pinctrl-0 = <&sd_pins>;
 	pinctrl-names = "default";
 	status = "okay";
 
-	vqmmc-supply = <&ipq6018_l2>;
+	bus-width = <4>;
 	cd-gpios = <&tlmm 62 GPIO_ACTIVE_LOW>;
 };
 
@@ -303,10 +304,6 @@
 	};
 };
 
-&qpic_bam {
-	status = "okay";
-};
-
 &qpic_nand {
 	status = "okay";
 
@@ -330,36 +327,12 @@
 	};
 };
 
-&pcie_phy {
-	status = "okay";
-};
-
 &pcie0 {
 	status = "okay";
-	perst-gpio = <&tlmm 60 GPIO_ACTIVE_LOW>;
+	perst-gpios = <&tlmm 60 GPIO_ACTIVE_LOW>;
 };
 
 &wifi {
 	status = "okay";
 	qcom,ath11k-calibration-variant = "8devices-Mango";
-};
-
-&qusb_phy_1 {
-	status = "okay";
-};
-
-&usb2 {
-	status = "okay";
-};
-
-&qusb_phy_0 {
-	status = "okay";
-};
-
-&ssphy_0 {
-	status = "okay";
-};
-
-&usb3 {
-	status = "okay";
 };
