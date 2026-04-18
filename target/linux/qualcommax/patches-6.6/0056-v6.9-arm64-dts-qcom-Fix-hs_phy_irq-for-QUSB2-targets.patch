@@ -49,7 +49,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  			resets = <&gcc GCC_USB1_BCR>;
  			status = "disabled";
  
-@@ -629,6 +635,13 @@
+@@ -648,6 +654,13 @@
  					       <133330000>,
  					       <24000000>;
  

@@ -13,8 +13,8 @@ Tested-by: Robert Marko <robimarko@gmail.com>
 
 --- a/arch/arm64/boot/dts/qcom/ipq6018.dtsi
 +++ b/arch/arm64/boot/dts/qcom/ipq6018.dtsi
-@@ -470,6 +470,29 @@
- 			};
+@@ -489,6 +489,29 @@
+ 			status = "disabled";
  		};
  
 +		sdhc_1: mmc@7804000 {

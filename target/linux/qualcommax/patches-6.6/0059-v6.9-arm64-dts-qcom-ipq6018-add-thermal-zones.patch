@@ -23,7 +23,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  
  / {
  	#address-cells = <2>;
-@@ -43,6 +44,7 @@
+@@ -42,6 +43,7 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
@@ -31,7 +31,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  		};
  
  		CPU1: cpu@1 {
-@@ -55,6 +57,7 @@
+@@ -53,6 +55,7 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
@@ -39,7 +39,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  		};
  
  		CPU2: cpu@2 {
-@@ -67,6 +70,7 @@
+@@ -64,6 +67,7 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
@@ -47,7 +47,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  		};
  
  		CPU3: cpu@3 {
-@@ -79,6 +83,7 @@
+@@ -75,6 +79,7 @@
  			clocks = <&apcs_glb APCS_ALIAS0_CORE_CLK>;
  			clock-names = "cpu";
  			operating-points-v2 = <&cpu_opp_table>;
@@ -55,7 +55,7 @@ Signed-off-by: Bjorn Andersson <andersson@kernel.org>
  		};
  
  		L2_0: l2-cache {
-@@ -890,6 +895,122 @@
+@@ -909,6 +914,122 @@
  		};
  	};
  
