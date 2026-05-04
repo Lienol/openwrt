@@ -65,7 +65,7 @@ Signed-off-by: Paolo Abeni <pabeni@redhat.com>
  };
  
  /* software-only entry type */
-@@ -394,7 +394,8 @@ int mtk_foe_entry_set_vlan(struct mtk_et
+@@ -395,7 +395,8 @@ int mtk_foe_entry_set_vlan(struct mtk_et
  int mtk_foe_entry_set_pppoe(struct mtk_eth *eth, struct mtk_foe_entry *entry,
  			    int sid);
  int mtk_foe_entry_set_wdma(struct mtk_eth *eth, struct mtk_foe_entry *entry,
