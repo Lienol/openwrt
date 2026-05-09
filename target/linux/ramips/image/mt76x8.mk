@@ -210,6 +210,17 @@ define Device/cudy_lt300-v3
 endef
 TARGET_DEVICES += cudy_lt300-v3
 
+define Device/cudy_lt400e-v1
+  IMAGE_SIZE := 7808k
+  DEVICE_VENDOR := Cudy
+  DEVICE_MODEL := LT400E
+  DEVICE_VARIANT := v1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-net-cdc-ether \
+  kmod-usb-serial-option
+  SUPPORTED_DEVICES += cudy,lt400e
+endef
+TARGET_DEVICES += cudy_lt400e-v1
+
 define Device/cudy_m1200-v1
   IMAGE_SIZE := 15872k
   DEVICE_VENDOR := Cudy
@@ -472,6 +483,17 @@ define Device/keenetic_kn-1221
 	check-size 14720k | zyimage -d 0x801221 -v "KN-1221"
 endef
 TARGET_DEVICES += keenetic_kn-1221
+
+define Device/keenetic_kn-1510
+  IMAGE_SIZE := 15488k
+  DEVICE_VENDOR := Keenetic
+  DEVICE_MODEL := KN-1510
+  DEVICE_PACKAGES := kmod-mt76x0e
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(sysupgrade_bin) | pad-to $$$$(BLOCKSIZE) | \
+	check-size | zyimage -d 0x801510 -v "KN-1510"
+endef
+TARGET_DEVICES += keenetic_kn-1510
 
 define Device/keenetic_kn-1613
   IMAGE_SIZE := 15073280
@@ -1052,6 +1074,22 @@ define Device/tplink_tl-mr6400-v5
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v5
+
+define Device/tplink_tl-mr6400-v7
+  $(Device/tplink-v2)
+  IMAGE_SIZE := 15872k
+  DEVICE_MODEL := TL-MR6400
+  DEVICE_VARIANT := v7
+  TPLINK_FLASHLAYOUT := 16Mmtk
+  TPLINK_HWID := 0x64000007
+  TPLINK_HWREV := 0x7
+  TPLINK_HWREVADD := 0x7
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport \
+	kmod-usb-serial-option kmod-usb-net-qmi-wwan uqmi
+  IMAGES := sysupgrade.bin tftp-recovery.bin
+  IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+endef
+TARGET_DEVICES += tplink_tl-mr6400-v7
 
 define Device/tplink_tl-wa801nd-v5
   $(Device/tplink-v2)
