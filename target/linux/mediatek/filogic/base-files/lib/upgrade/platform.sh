@@ -74,6 +74,41 @@ xiaomi_initial_setup()
 	esac
 }
 
+update_oem_ubi_volume() {
+	local oem_volume_name="$1"
+	local oem_volume_part="${2:-$CI_UBIPART}"
+	local oem_volume_size="$3"
+	local oem_volume_data="$4"
+	local oem_ubivol
+	local mtdnum
+	local ubidev
+
+	mtdnum=$(find_mtd_index "$oem_volume_part")
+	if [ ! "$mtdnum" ]; then
+		return
+	fi
+
+	ubidev=$(nand_find_ubi "$oem_volume_part")
+	if [ ! "$ubidev" ]; then
+		ubiattach --mtdn="$mtdnum"
+		ubidev=$(nand_find_ubi "$oem_volume_part")
+	fi
+	[ "$ubidev" ] || return
+
+	oem_ubivol=$(nand_find_volume "$ubidev" "$oem_volume_name")
+	[ "$oem_ubivol" ] || return
+
+	ubirmvol "/dev/$ubidev" -N "$oem_volume_name"
+
+	# return if no new size specified
+	[ "$oem_volume_size" ] || return
+	ubimkvol "/dev/$ubidev" -N "$oem_volume_name" -s "$oem_volume_size"
+
+	# return if no new data specified
+	[ "$oem_volume_data" ] || return
+	ubiupdatevol "/dev/$ubidev" -s "$oem_volume_size" "$oem_volume_data"
+}
+
 platform_do_upgrade() {
 	local board=$(board_name)
 
@@ -163,6 +198,14 @@ platform_do_upgrade() {
 		CI_KERNPART="linux"
 		nand_do_upgrade "$1"
 		;;
+	buffalo,wsr-3000ax4p|\
+	xiaomi,mi-router-ax3000t|\
+	xiaomi,mi-router-wr30u-stock|\
+	xiaomi,redmi-router-ax6000-stock)
+		CI_KERN_UBIPART="ubi_kernel"
+		CI_ROOT_UBIPART="ubi"
+		nand_do_upgrade "$1"
+		;;
 	buffalo,wsr-6000ax8|\
 	cudy,wr3000h-v1|\
 	cudy,wr3000p-v1|\
@@ -185,7 +228,9 @@ platform_do_upgrade() {
 		fw_setenv sw_tryactive 0
 		nand_do_upgrade "$1"
 		;;
-	elecom,wrc-x3000gs3)
+	elecom,wrc-x3000gs3|\
+	elecom,wrc-x6000gsd|\
+	elecom,wrc-x6000qs)
 		local bootnum="$(mstc_rw_bootnum)"
 		case "$bootnum" in
 		1|2)
@@ -258,13 +303,6 @@ platform_do_upgrade() {
 			nand_do_upgrade "$1"
 			;;
 		esac
-		;;
-	xiaomi,mi-router-ax3000t|\
-	xiaomi,mi-router-wr30u-stock|\
-	xiaomi,redmi-router-ax6000-stock)
-		CI_KERN_UBIPART=ubi_kernel
-		CI_ROOT_UBIPART=ubi
-		nand_do_upgrade "$1"
 		;;
 	*)
 		nand_do_upgrade "$1"
@@ -402,8 +440,20 @@ platform_pre_upgrade() {
 	asus,zenwifi-bt8)
 		asus_initial_setup
 		;;
+	buffalo,wsr-3000ax4p)
+		update_oem_ubi_volume "rootfs"      "ubi_kernel" "4"
+		update_oem_ubi_volume "rootfs_data" "ubi_kernel"
+		update_oem_ubi_volume "dpi"         "ubi"
+		;;
 	buffalo,wsr-6000ax8)
 		buffalo_initial_setup
+		;;
+	elecom,wrc-x6000gsd|\
+	elecom,wrc-x6000qs)
+		local delay=$(fw_printenv -n bootmenu_delay)
+
+		[ -z "$delay" ] || [ "$delay" -eq "0" ] && \
+			fw_setenv bootmenu_delay 3
 		;;
 	xiaomi,mi-router-ax3000t|\
 	xiaomi,mi-router-wr30u-stock|\
