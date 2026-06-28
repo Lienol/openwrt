@@ -32,7 +32,7 @@
  static void ifb_stats64(struct net_device *dev,
  			struct rtnl_link_stats64 *stats)
  {
-@@ -326,6 +351,7 @@ static void ifb_setup(struct net_device
+@@ -325,6 +350,7 @@ static void ifb_setup(struct net_device
  	dev->flags |= IFF_NOARP;
  	dev->flags &= ~IFF_MULTICAST;
  	dev->priv_flags &= ~IFF_TX_SKB_SHARING;
@@ -42,7 +42,7 @@
  	dev->needs_free_netdev = true;
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -4710,6 +4710,15 @@ void dev_uc_flush(struct net_device *dev
+@@ -4713,6 +4713,15 @@ void dev_uc_flush(struct net_device *dev
  void dev_uc_init(struct net_device *dev);
  
  /**
@@ -58,7 +58,7 @@
   *  __dev_uc_sync - Synchronize device's unicast list
   *  @dev:  device to sync
   *  @sync: function to call if address should be added
-@@ -5268,6 +5277,11 @@ static inline bool netif_is_failover_sla
+@@ -5271,6 +5280,11 @@ static inline bool netif_is_failover_sla
  	return dev->priv_flags & IFF_FAILOVER_SLAVE;
  }
  
@@ -441,7 +441,7 @@
   *	@tc_at_ingress: used within tc_classify to distinguish in/egress
   *	@redirected: packet was redirected by packet classifier
   *	@from_ingress: packet was redirected from the ingress path
-@@ -966,6 +967,9 @@ struct sk_buff {
+@@ -967,6 +968,9 @@ struct sk_buff {
  	__u8			tc_at_ingress:1;	/* See TC_AT_INGRESS_MASK */
  	__u8			tc_skip_classify:1;
  #endif

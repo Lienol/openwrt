@@ -51,7 +51,7 @@
  #endif /* !(__LINUX_IF_PPPOX_H) */
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -3750,6 +3750,28 @@ void ppp_update_stats(struct net_device
+@@ -3753,6 +3753,28 @@ void ppp_update_stats(struct net_device
  	ppp_recv_unlock(ppp);
  }
  

@@ -10,7 +10,7 @@
  	CPUHP_AP_ARM_CACHE_B15_RAC_DEAD,
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -1085,6 +1085,10 @@ struct sk_buff {
+@@ -1087,6 +1087,10 @@ struct sk_buff {
  	/* only usable after checking ->active_extensions != 0 */
  	struct skb_ext		*extensions;
  #endif
@@ -21,7 +21,7 @@
  };
  
  /* if you move pkt_type around you also must adapt those constants */
-@@ -1318,7 +1322,7 @@ static inline void kfree_skb_list(struct
+@@ -1320,7 +1324,7 @@ static inline void kfree_skb_list(struct
  	kfree_skb_list_reason(segs, SKB_DROP_REASON_NOT_SPECIFIED);
  }
  
@@ -30,7 +30,7 @@
  void consume_skb(struct sk_buff *skb);
  #else
  static inline void consume_skb(struct sk_buff *skb)
-@@ -1329,6 +1333,8 @@ static inline void consume_skb(struct sk
+@@ -1331,6 +1335,8 @@ static inline void consume_skb(struct sk
  
  void __consume_stateless_skb(struct sk_buff *skb);
  void  __kfree_skb(struct sk_buff *skb);
@@ -105,7 +105,7 @@
  obj-$(CONFIG_NET_DEVMEM) += devmem.o
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -6225,12 +6225,17 @@ static int process_backlog(struct napi_s
+@@ -6242,12 +6242,17 @@ static int process_backlog(struct napi_s
  
  	napi->weight = READ_ONCE(net_hotdata.dev_rx_weight);
  	while (again) {
@@ -302,7 +302,7 @@
  
  		data = page_frag_alloc(&nc->page, len, gfp_mask);
  		pfmemalloc = nc->page.pfmemalloc;
-@@ -1108,7 +1177,7 @@ static void skb_free_head(struct sk_buff
+@@ -1105,7 +1174,7 @@ static void skb_free_head(struct sk_buff
  	}
  }
  
@@ -311,7 +311,7 @@
  {
  	struct skb_shared_info *shinfo = skb_shinfo(skb);
  	int i;
-@@ -1148,7 +1217,7 @@ exit:
+@@ -1145,7 +1214,7 @@ exit:
  /*
   *	Free an skbuff by memory without cleaning the state.
   */
@@ -320,7 +320,7 @@
  {
  	struct sk_buff_fclones *fclones;
  
-@@ -1427,7 +1496,6 @@ void skb_tx_error(struct sk_buff *skb)
+@@ -1424,7 +1493,6 @@ void skb_tx_error(struct sk_buff *skb)
  }
  EXPORT_SYMBOL(skb_tx_error);
  
@@ -328,7 +328,7 @@
  /**
   *	consume_skb - free an skbuff
   *	@skb: buffer to free
-@@ -1436,13 +1504,48 @@ EXPORT_SYMBOL(skb_tx_error);
+@@ -1433,13 +1501,48 @@ EXPORT_SYMBOL(skb_tx_error);
   *	Functions identically to kfree_skb, but kfree_skb assumes that the frame
   *	is being dropped after a failure and notes that
   */
@@ -378,7 +378,7 @@
  }
  EXPORT_SYMBOL(consume_skb);
  #endif
-@@ -2280,6 +2383,8 @@ int pskb_expand_head(struct sk_buff *skb
+@@ -2278,6 +2381,8 @@ int pskb_expand_head(struct sk_buff *skb
  
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
@@ -387,7 +387,7 @@
  
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
-@@ -5112,6 +5217,14 @@ static void skb_extensions_init(void) {}
+@@ -5139,6 +5244,14 @@ static void skb_extensions_init(void) {}
  
  void __init skb_init(void)
  {
@@ -402,7 +402,7 @@
  	net_hotdata.skbuff_cache = kmem_cache_create_usercopy("skbuff_head_cache",
  					      sizeof(struct sk_buff),
  					      0,
-@@ -5137,6 +5250,7 @@ void __init skb_init(void)
+@@ -5164,6 +5277,7 @@ void __init skb_init(void)
  						SKB_SMALL_HEAD_HEADROOM,
  						NULL);
  	skb_extensions_init();
@@ -410,7 +410,7 @@
  }
  
  static int
-@@ -6668,6 +6782,8 @@ static int pskb_carve_inside_header(stru
+@@ -6697,6 +6811,8 @@ static int pskb_carve_inside_header(stru
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
@@ -419,7 +419,7 @@
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
  		return -ENOMEM;
-@@ -6784,6 +6900,8 @@ static int pskb_carve_inside_nonlinear(s
+@@ -6820,6 +6936,8 @@ static int pskb_carve_inside_nonlinear(s
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
