@@ -16,7 +16,7 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
 
 --- a/src/ap/beacon.c
 +++ b/src/ap/beacon.c
-@@ -1386,6 +1386,7 @@ static bool parse_ml_probe_req(const str
+@@ -1411,6 +1411,7 @@ static bool parse_ml_probe_req(const str
  	for_each_element_id(sub, 0, pos, len) {
  		const struct ieee80211_eht_per_sta_profile *sta;
  		u16 sta_control;
@@ -24,12 +24,12 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
  
  		if (*links == 0xffff)
  			*links = 0;
-@@ -1405,7 +1406,9 @@ static bool parse_ml_probe_req(const str
+@@ -1430,7 +1431,9 @@ static bool parse_ml_probe_req(const str
  		 * partial profile was requested.
  		 */
  		sta_control = le_to_host16(sta->sta_control);
--		*links |= BIT(sta_control & EHT_PER_STA_CTRL_LINK_ID_MSK);
-+		link_id = sta_control & EHT_PER_STA_CTRL_LINK_ID_MSK;
+-		*links |= BIT(sta_control & BASIC_MLE_STA_CTRL_LINK_ID_MASK);
++		link_id = sta_control & BASIC_MLE_STA_CTRL_LINK_ID_MASK;
 +		if (link_id < MAX_NUM_MLD_LINKS)
 +			*links |= BIT(link_id);
  	}

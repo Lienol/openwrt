@@ -14,7 +14,7 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
 
 --- a/src/ap/ieee802_11_eht.c
 +++ b/src/ap/ieee802_11_eht.c
-@@ -2157,6 +2157,8 @@ hostapd_parse_link_reconf_req_sta_profil
+@@ -2166,6 +2166,8 @@ hostapd_parse_link_reconf_req_sta_profil
  
  	link_id = sta_control & EHT_PER_STA_RECONF_CTRL_LINK_ID_MSK;
  	wpa_printf(MSG_DEBUG, "MLD: Per-STA profile for link=%u", link_id);
@@ -25,13 +25,25 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
  		sta_control & EHT_PER_STA_RECONF_CTRL_OP_UPDATE_TYPE_MSK;
 --- a/wpa_supplicant/bss.c
 +++ b/wpa_supplicant/bss.c
-@@ -2099,7 +2099,8 @@ u16 wpa_bss_parse_reconf_ml_element(stru
+@@ -2243,7 +2243,8 @@ u16 wpa_bss_parse_reconf_ml_element(stru
  			u8 link_id;
  
  			link_id = control & EHT_PER_STA_RECONF_CTRL_LINK_ID_MSK;
 -			removed_links |= BIT(link_id);
 +			if (link_id < MAX_NUM_MLD_LINKS)
 +				removed_links |= BIT(link_id);
+ 		}
+ 
+ 		pos += 2 + sub_elem_len;
+--- a/wpa_supplicant/wnm_sta.c
++++ b/wpa_supplicant/wnm_sta.c
+@@ -546,7 +546,8 @@ static void wnm_parse_neighbor_report_mu
+ 			control = le_to_host16(sta_prof->sta_control);
+ 
+ 			link_id = control & EHT_PER_STA_RECONF_CTRL_LINK_ID_MSK;
+-			rep->mld_links |= BIT(link_id);
++			if (link_id < MAX_NUM_MLD_LINKS)
++				rep->mld_links |= BIT(link_id);
  		}
  
  		pos += 2 + sub_elem_len;

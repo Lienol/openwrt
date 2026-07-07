@@ -18,7 +18,7 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
 
 --- a/wpa_supplicant/events.c
 +++ b/wpa_supplicant/events.c
-@@ -4002,7 +4002,12 @@ static unsigned int wpas_ml_parse_assoc(
+@@ -4318,7 +4318,12 @@ static unsigned int wpas_ml_parse_assoc(
  	pos = common_info->variable;
  
  	/* Store the information for the association link */
@@ -32,10 +32,10 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
  	pos++;
  
  	/* Skip the BSS Parameters Change Count */
-@@ -4155,6 +4160,10 @@ static unsigned int wpas_ml_parse_assoc(
+@@ -4474,6 +4479,10 @@ static unsigned int wpas_ml_parse_assoc(
  			   MAC2STR(pos + 1), nstr_bitmap_len);
  
- 		ml_info[i].link_id = ctrl & EHT_PER_STA_CTRL_LINK_ID_MSK;
+ 		ml_info[i].link_id = ctrl & BASIC_MLE_STA_CTRL_LINK_ID_MASK;
 +		if (ml_info[i].link_id >= MAX_NUM_MLD_LINKS) {
 +			wpa_printf(MSG_DEBUG, "MLD: Invalid Link ID value");
 +			goto out;

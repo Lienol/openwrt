@@ -21,7 +21,7 @@ Signed-off-by: Jouni Malinen <jouni.malinen@oss.qualcomm.com>
 
 --- a/wpa_supplicant/events.c
 +++ b/wpa_supplicant/events.c
-@@ -3990,6 +3990,13 @@ static unsigned int wpas_ml_parse_assoc(
+@@ -4306,6 +4306,13 @@ static unsigned int wpas_ml_parse_assoc(
  		goto out;
  	}
  

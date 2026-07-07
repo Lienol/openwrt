@@ -24,8 +24,8 @@ Signed-off-by: Amarnath Hullur Subramanyam <amarnathhs@google.com>
 
 --- a/wpa_supplicant/bss.c
 +++ b/wpa_supplicant/bss.c
-@@ -1888,6 +1888,11 @@ int wpa_bss_parse_basic_ml_element(struc
- 			  ETH_ALEN);
+@@ -2055,6 +2055,11 @@ void wpa_bss_parse_basic_ml_element(stru
+ 		goto out;
  
  	link_id = ml_basic_common_info->variable[0] & EHT_ML_LINK_ID_MSK;
 +	if (link_id >= MAX_NUM_MLD_LINKS) {
@@ -34,5 +34,5 @@ Signed-off-by: Amarnath Hullur Subramanyam <amarnathhs@google.com>
 +		goto out;
 +	}
  
- 	bss->mld_link_id = link_id;
- 	seen = bss->valid_links = BIT(link_id);
+ 	os_memcpy(bss->mld_addr, ml_basic_common_info->mld_addr, ETH_ALEN);
+ 
