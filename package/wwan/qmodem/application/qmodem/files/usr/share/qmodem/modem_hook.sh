@@ -29,6 +29,21 @@ _execute_ats(){
     m_debug "execute_ats_result $config_section: $res"
 }
 
+_execute_lockcell_boot_hook(){
+    local enabled lockcell_delay
+
+    [ "$init_type" = "post_init" ] || return 0
+
+    config_get enabled $config_section lockcell_boot_hook_enabled
+    qmodem_bool_enabled "$enabled" || return 0
+
+    config_get lockcell_delay $config_section lockcell_boot_hook_delay
+    [ -z "$lockcell_delay" ] && lockcell_delay="15"
+    sleep "$lockcell_delay"
+
+    config_list_foreach $config_section lockcell_boot_hook_at_cmds _execute_ats
+}
+
 . /usr/share/qmodem/modem_util.sh
 config_load ${config_name}
 
@@ -49,3 +64,4 @@ fi
 
 
 config_list_foreach $config_section ${cfg_prefix}_at_cmds   _execute_ats
+_execute_lockcell_boot_hook

@@ -1,0 +1,64 @@
+#!/bin/sh /etc/rc.common
+
+START=96
+STOP=10
+USE_PROCD=1
+
+. $IPKG_INSTROOT/lib/functions.sh
+
+MIN_INTERVAL=60
+DEFAULT_INTERVAL=300
+
+sanitize_interval()
+{
+    local interval="$1"
+
+    case "$interval" in
+        ''|*[!0-9]*)
+            interval="$DEFAULT_INTERVAL"
+            ;;
+    esac
+
+    [ "$interval" -lt "$MIN_INTERVAL" ] && interval="$MIN_INTERVAL"
+    echo "$interval"
+}
+
+start_modem_usage_stats_instance()
+{
+    local config_section="$1"
+    local state manufacturer interval vendor_key instance_name
+
+    config_get state "$config_section" state
+    [ "$state" = "disabled" ] && return 0
+
+    config_get manufacturer "$config_section" manufacturer
+    vendor_key=$(echo "$manufacturer" | tr 'A-Z' 'a-z')
+    [ "$vendor_key" = "quectel" ] || return 0
+
+    config_get interval "$config_section" usage_stats_nvram_interval "$global_usage_stats_nvram_interval"
+    interval=$(sanitize_interval "$interval")
+    instance_name="usage_stats_${config_section}"
+
+    procd_open_instance "$instance_name"
+    procd_set_param command /bin/sh /usr/share/qmodem/usage_stats.sh loop "$interval" "$config_section"
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_set_param respawn 3600 5 5
+    procd_close_instance
+}
+
+service_triggers()
+{
+    procd_add_reload_trigger "qmodem"
+}
+
+start_service()
+{
+    config_load qmodem
+    config_get usage_stats_nvram_save main usage_stats_nvram_save 0
+    [ "$usage_stats_nvram_save" = "1" ] || return 0
+
+    config_get global_usage_stats_nvram_interval main usage_stats_nvram_interval "$DEFAULT_INTERVAL"
+    global_usage_stats_nvram_interval=$(sanitize_interval "$global_usage_stats_nvram_interval")
+    config_foreach start_modem_usage_stats_instance modem-device
+}

@@ -12,6 +12,7 @@
 # MODEM_CFG / AT_PORT / NET_DEV / USE_UBUS_DAEMON
 
 . /usr/share/qmodem/modem_util.sh
+. /usr/share/qmodem/led_scripts/connectivity.sh
 . /lib/functions.sh
 LED_4G_POOR="red:4g"
 LED_4G_GOOD="blue:4g"
@@ -81,6 +82,11 @@ led_off_all() {
 	led_turn "${LED_5G_GOOD}" "0"
 }
 
+internet_led_off() {
+	led_turn "${LED_INTERNET_BLUE}" "0"
+	led_turn "${LED_INTERNET_RED}" "0"
+}
+
 sim_inserted() {
 
 	if at $AT_PORT "AT+CPIN?" | grep -q "CPIN: READY"; then
@@ -91,7 +97,7 @@ sim_inserted() {
 }
 
 internet_led() {
-	if wget-ssl --spider --quiet --tries=1 --timeout=3 www.baidu.com; then
+	if qmodem_connectivity_probe 3; then
 		led_turn "${LED_INTERNET_BLUE}" "1"
 		led_turn "${LED_INTERNET_RED}" "0"
 	else
@@ -196,6 +202,7 @@ main() {
 update_cfg
 if [ "$ON_OFF" = "off" ]; then
 	led_off_all
+	internet_led_off
 	exit 0
 fi
 while true; do

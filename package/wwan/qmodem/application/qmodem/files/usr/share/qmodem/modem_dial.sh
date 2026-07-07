@@ -32,13 +32,262 @@ get_led_by_slot()
     fi
 }
 
-get_associate_ethernet_by_path()
+get_slot_network_config()
 {
     local cfg="$1"
+    local slot
     config_get slot "$cfg" slot
-    config_get ethernet "$cfg" ethernet
     if [ "$modem_slot" = "$slot" ];then
         config_get ethernet_5g "$cfg" ethernet_5g
+        config_get slot_bridge_port "$cfg" bridge_port
+    fi
+}
+
+sanitize_bridge_id()
+{
+    local value="$1"
+    value=$(printf '%s' "$value" | tr -c 'A-Za-z0-9_-' '_')
+    value=$(printf '%s' "$value" | sed 's/^_\\+//; s/_\\+$//')
+    echo "$value"
+}
+
+make_bridge_device_name()
+{
+    local source="$1"
+    local sanitized
+
+    sanitized=$(sanitize_bridge_id "$source")
+    [ -z "$sanitized" ] && return 1
+    printf 'b%s\n' "$sanitized" | cut -c1-15
+}
+
+get_bridge_device_section()
+{
+    local safe_cfg
+    safe_cfg=$(sanitize_bridge_id "$modem_config")
+    [ -z "$safe_cfg" ] && safe_cfg="modem"
+    echo "qmodem_bridge_${safe_cfg}"
+}
+
+get_bridge_backup_section()
+{
+    local bridge_cfg="$1"
+    local safe_cfg
+    local safe_bridge
+
+    safe_cfg=$(sanitize_bridge_id "$modem_config")
+    safe_bridge=$(sanitize_bridge_id "$bridge_cfg")
+    [ -z "$safe_cfg" ] && safe_cfg="modem"
+    [ -z "$safe_bridge" ] && safe_bridge="bridge"
+    echo "qmodem_bridge_backup_${safe_cfg}_${safe_bridge}"
+}
+
+bridge_name_conflict_cb()
+{
+    local cfg="$1"
+    local name
+
+    [ "$cfg" = "$bridge_name_allow_section" ] && return
+    config_get name "$cfg" name
+    [ "$name" = "$bridge_name_candidate" ] && bridge_name_conflict=1
+}
+
+bridge_name_in_use()
+{
+    local candidate="$1"
+    local allow_section="$2"
+    local current_name
+
+    [ -z "$candidate" ] && return 0
+
+    bridge_name_candidate="$candidate"
+    bridge_name_allow_section="$allow_section"
+    bridge_name_conflict=0
+    config_load network
+    config_foreach bridge_name_conflict_cb device
+    current_name=$(uci -q get network.${allow_section}.name)
+    if [ -d "/sys/class/net/$candidate" ] && [ "$current_name" != "$candidate" ]; then
+        bridge_name_conflict=1
+    fi
+    [ "$bridge_name_conflict" = "1" ]
+}
+
+resolve_bridge_device_name()
+{
+    local bridge_section
+    local preferred_name
+    local fallback_name
+    local current_name
+    local seed
+    local suffix
+
+    bridge_section=$(get_bridge_device_section)
+    current_name=$(uci -q get network.${bridge_section}.name)
+    preferred_name=$(make_bridge_device_name "$alias")
+    fallback_name=$(make_bridge_device_name "$modem_config")
+
+    if [ -n "$preferred_name" ] && ! bridge_name_in_use "$preferred_name" "$bridge_section"; then
+        echo "$preferred_name"
+        return
+    fi
+
+    if [ -n "$fallback_name" ] && ! bridge_name_in_use "$fallback_name" "$bridge_section"; then
+        echo "$fallback_name"
+        return
+    fi
+
+    if [ -n "$current_name" ]; then
+        echo "$current_name"
+        return
+    fi
+
+    seed=$(sanitize_bridge_id "$modem_config")
+    [ -z "$seed" ] && seed="modem"
+    suffix=$(printf '%s' "$modem_config" | cksum | awk '{print $1}' | cut -c1-4)
+    printf 'b%s%s\n' "$(printf '%s' "$seed" | cut -c1-10)" "$suffix" | cut -c1-15
+}
+
+collect_bridge_ports()
+{
+    local port="$1"
+
+    [ -n "$bridge_ports" ] && bridge_ports="$bridge_ports $port" || bridge_ports="$port"
+    [ "$port" = "$bridge_scan_target_port" ] && bridge_port_found=1
+}
+
+save_bridge_port_backup()
+{
+    local source_section="$1"
+    local source_ports="$2"
+    local backup_section
+
+    backup_section=$(get_bridge_backup_section "$source_section")
+    [ -n "$(uci -q get qmodem.${backup_section})" ] && return
+
+    uci -q set qmodem.${backup_section}=bridge-port-backup
+    uci -q set qmodem.${backup_section}.modem_config="${modem_config}"
+    uci -q set qmodem.${backup_section}.device_section="${source_section}"
+    uci -q set qmodem.${backup_section}.bridge_port="${bridge_port}"
+    uci -q delete qmodem.${backup_section}.ports
+    for port in $source_ports; do
+        uci -q add_list qmodem.${backup_section}.ports="${port}"
+    done
+    bridge_qmodem_dirty=1
+    m_debug "backup bridge device $source_section ports: $source_ports"
+}
+
+remove_bridge_port_from_device()
+{
+    local cfg="$1"
+    local type
+
+    [ "$cfg" = "$bridge_device_section" ] && return
+    config_get type "$cfg" type
+    [ "$type" = "bridge" ] || return
+
+    bridge_ports=""
+    bridge_port_found=0
+    config_list_foreach "$cfg" ports collect_bridge_ports
+    [ "$bridge_port_found" = "1" ] || return
+
+    save_bridge_port_backup "$cfg" "$bridge_ports"
+    uci -q delete network.${cfg}.ports
+    for port in $bridge_ports; do
+        [ "$port" = "$bridge_scan_target_port" ] && continue
+        uci -q add_list network.${cfg}.ports="${port}"
+    done
+    bridge_network_dirty=1
+    m_debug "remove bridge port $bridge_scan_target_port from bridge device $cfg"
+}
+
+ensure_bridge_device()
+{
+    local wwan_port="$1"
+    local bridge_section
+    local desired_ports
+    local current_type
+    local current_name
+    local current_ports
+
+    bridge_section=$(get_bridge_device_section)
+    bridge_device_section="$bridge_section"
+    bridge_device_name=$(resolve_bridge_device_name)
+    current_type=$(uci -q get network.${bridge_section}.type)
+    current_name=$(uci -q get network.${bridge_section}.name)
+    current_ports=$(uci -q get network.${bridge_section}.ports)
+
+    desired_ports="$bridge_port"
+    [ -n "$wwan_port" ] && [ "$wwan_port" != "$bridge_port" ] && desired_ports="$desired_ports $wwan_port"
+
+    if [ "$(uci -q get network.${bridge_section})" != "device" ] || [ "$current_type" != "bridge" ] || [ "$current_name" != "$bridge_device_name" ] || [ "$current_ports" != "$desired_ports" ]; then
+        uci -q set network.${bridge_section}=device
+        uci -q set network.${bridge_section}.name="${bridge_device_name}"
+        uci -q set network.${bridge_section}.type='bridge'
+        uci -q delete network.${bridge_section}.ports
+        uci -q add_list network.${bridge_section}.ports="${bridge_port}"
+        [ -n "$wwan_port" ] && [ "$wwan_port" != "$bridge_port" ] && uci -q add_list network.${bridge_section}.ports="${wwan_port}"
+        bridge_network_dirty=1
+        m_debug "set dedicated bridge ${bridge_device_name} ports: ${desired_ports}"
+    fi
+}
+
+ensure_bridge_passthrough()
+{
+    local wwan_port="$1"
+
+    bridge_device_name=""
+    bridge_device_section=$(get_bridge_device_section)
+    bridge_scan_target_port="$bridge_port"
+
+    config_load network
+    config_foreach remove_bridge_port_from_device device
+    ensure_bridge_device "$wwan_port"
+}
+
+restore_bridge_backup_ports()
+{
+    local port="$1"
+
+    [ -n "$port" ] && uci -q add_list network.${restore_bridge_section}.ports="${port}"
+}
+
+restore_bridge_port_backup()
+{
+    local cfg="$1"
+    local bind_modem_config
+    local source_section
+
+    config_get bind_modem_config "$cfg" modem_config
+    [ "$bind_modem_config" = "$modem_config" ] || return
+
+    config_get source_section "$cfg" device_section
+    if [ -n "$source_section" ] && [ -n "$(uci -q get network.${source_section})" ]; then
+        uci -q delete network.${source_section}.ports
+        restore_bridge_section="$source_section"
+        config_list_foreach "$cfg" ports restore_bridge_backup_ports
+        bridge_network_dirty=1
+        m_debug "restore bridge device $source_section"
+    fi
+
+    uci -q delete qmodem.${cfg}
+    bridge_qmodem_dirty=1
+}
+
+cleanup_bridge_passthrough()
+{
+    local bridge_section
+
+    bridge_network_dirty=0
+    bridge_qmodem_dirty=0
+
+    config_load qmodem
+    config_foreach restore_bridge_port_backup bridge-port-backup
+
+    bridge_section=$(get_bridge_device_section)
+    if [ -n "$(uci -q get network.${bridge_section})" ]; then
+        uci -q delete network.${bridge_section}
+        bridge_network_dirty=1
+        m_debug "delete dedicated bridge section $bridge_section"
     fi
 }
 
@@ -61,7 +310,7 @@ set system.n${cfg_name}=led
 set system.n${cfg_name}.name=${modem_slot}_net_indicator
 set system.n${cfg_name}.sysfs=${net_led}
 set system.n${cfg_name}.trigger=netdev
-set system.n${cfg_name}.dev=${modem_netcard}
+set system.n${cfg_name}.dev=${value:-$modem_netcard}
 set system.n${cfg_name}.mode="link tx rx"
 commit system
 EOF
@@ -137,6 +386,7 @@ update_config()
     config_get at_port $modem_config at_port
     config_get manufacturer $modem_config manufacturer
     config_get platform $modem_config platform
+    config_get use_ubus $modem_config use_ubus
     config_get force_set_apn $modem_config force_set_apn
     config_get pdp_index $modem_config pdp_index
     [ -n "$pdp_index" ] && userset_pdp_index="1" || userset_pdp_index="0"
@@ -151,10 +401,18 @@ update_config()
     config_get huawei_dial_mode $modem_config huawei_dial_mode
     config_get donot_nat $modem_config donot_nat 0
     config_get global_dial main enable_dial
-    # config_get ethernet_5g u$modem_config ethernet 转往口获取命令更新，待测试
-    config_foreach get_associate_ethernet_by_path modem-slot
     modem_slot=$(basename $modem_path)
+    slot_bridge_port=""
+    ethernet_5g=""
+    bridge_port=""
+    bridge_enabled=0
+    # config_get ethernet_5g u$modem_config ethernet 转往口获取命令更新，待测试
+    config_foreach get_slot_network_config modem-slot
     config_get alias $modem_config alias
+    config_get device_bridge_port $modem_config bridge_port
+    bridge_port="$slot_bridge_port"
+    [ -n "$device_bridge_port" ] && bridge_port="$device_bridge_port"
+    [ "$en_bridge" = "1" ] && [ -n "$bridge_port" ] && bridge_enabled=1
     driver=$(get_driver)
     update_sim_slot
     case $sim_slot in
@@ -190,6 +448,11 @@ update_config()
     interface_name=$modem_config
     [ -n "$alias" ] && interface_name=$alias
     interface6_name=${interface_name}v6
+    if [ "$use_ubus" = "1" ]; then
+        use_ubus_flag="-u"
+    else
+        use_ubus_flag=""
+    fi
 }
 
 check_dial_prepare()
@@ -330,9 +593,12 @@ append_to_fw_zone()
 
 set_if()
 {
-    fw_reload_flag=0
+    firewall_reload_flag=0
     dhcp_reload_flag=0
     network_reload_flag=0
+    interface_update_flag=0
+    bridge_network_dirty=0
+    bridge_qmodem_dirty=0
     #check if exist
     proto="dhcp"
     protov6="dhcpv6"
@@ -358,6 +624,10 @@ set_if()
                 esac
             ;;
     esac
+    if [ "$bridge_enabled" = "1" ]; then
+        proto="none"
+        protov6="none"
+    fi
     case $pdp_type in
         "ip")
             env4="1"
@@ -372,10 +642,15 @@ set_if()
             env6="1"
             ;;
     esac
+    if [ "$bridge_enabled" = "1" ]; then
+        env4="1"
+        env6="0"
+    fi
     interface=$(uci -q get network.$interface_name)
     interfacev6=$(uci -q get network.$interface6_name)
+    num=$(uci show firewall | grep "name='wan'" | wc -l)
     if [ "$env4" -eq 1 ];then
-        if [ -z "$inetrface" ];then
+        if [ -z "$interface" ];then
             uci set network.${interface_name}=interface
             uci set network.${interface_name}.modem_config="${modem_config}"
             uci set network.${interface_name}.proto="${proto}"
@@ -390,7 +665,6 @@ set_if()
             else
                 uci del network.${interface_name}.peerdns
             fi
-            local num=$(uci show firewall | grep "name='wan'" | wc -l)
             local wwan_num=$(uci -q get firewall.@zone[$num].network | grep -w "${interface_name}" | wc -l)
             if [ "$wwan_num" = "0" ]; then
                 append_to_fw_zone $num ${interface_name}
@@ -408,8 +682,8 @@ set_if()
     fi
     if [ "$env6" -eq 1 ];then
         if [ -z "$interfacev6" ];then
-            uci set network.lan.ipv6='1'
-            uci set network.lan.ip6assign='64'
+            # uci set network.lan.ipv6='1' # user decide themself whether to enable IPv6 on LAN.
+            # uci set network.lan.ip6assign='64'
             uci set network.${interface6_name}='interface'
             uci set network.${interface6_name}.modem_config="${modem_config}"
             uci set network.${interface6_name}.proto="${protov6}"
@@ -461,12 +735,62 @@ set_if()
             m_debug "delete interface $interface6_name"
         fi
     fi
-    
-    if [ "$network_reload_flag" -eq 1 ];then
+
+
+    set_modem_netcard=$modem_netcard
+    if [ -z "$set_modem_netcard" ];then
+        m_debug "no netcard found"
+    fi
+    ethernet_check=$(handle_5gethernet)
+    if [ -n "$ethernet_check" ] && [ -n "/sys/class/net/$ethernet_5g" ] && [ -n "$ethernet_5g" ];then
+        set_modem_netcard=$ethernet_5g
+    fi
+    if [ "$bridge_enabled" = "1" ]; then
+        ensure_bridge_passthrough "$set_modem_netcard"
+        target_netcard="$bridge_device_name"
+    else
+        cleanup_bridge_passthrough
+        target_netcard="$set_modem_netcard"
+    fi
+    [ -z "$target_netcard" ] && target_netcard="$set_modem_netcard"
+
+    #set led
+    set_led "net" $modem_config $set_modem_netcard
+    origin_netcard=$(uci -q get network.$interface_name.ifname)
+    origin_device=$(uci -q get network.$interface_name.device)
+    origin_metric=$(uci -q get network.$interface_name.metric)
+    origin_proto=$(uci -q get network.$interface_name.proto)
+    if [ "$origin_netcard" == "$target_netcard" ] && [ "$origin_device" == "$target_netcard" ] && [ "$origin_metric" == "$metric" ] && [ "$origin_proto" == "$proto" ];then
+        m_debug "interface $interface_name already set to $target_netcard"
+    else
+        uci set network.${interface_name}.ifname="${target_netcard}"
+        uci set network.${interface_name}.device="${target_netcard}"
+        uci set network.${interface_name}.modem_config="${modem_config}"
+        if [ "$env4" -eq 1 ];then
+            uci set network.${interface_name}.proto="${proto}"
+            uci set network.${interface_name}.metric="${metric}"
+        fi
+        if [ "$env6" -eq 1 ];then
+            uci set network.${interface6_name}.proto="${protov6}"
+            uci set network.${interface6_name}.metric="${metric}"
+        fi
+        interface_update_flag=1
+        m_debug "set interface $interface_name to $target_netcard"
+    fi
+
+    if [ "$bridge_qmodem_dirty" -eq 1 ]; then
+        uci commit qmodem
+    fi
+    if [ "$network_reload_flag" -eq 1 ] || [ "$interface_update_flag" -eq 1 ] || [ "$bridge_network_dirty" -eq 1 ];then
         uci commit network
-        ifup ${interface_name}
-        ifup ${interface6_name}
-        m_debug "network reload"
+        if [ "$bridge_network_dirty" -eq 1 ]; then
+            /etc/init.d/network reload
+            m_debug "network reload"
+        else
+            ifup ${interface_name}
+            ifup ${interface6_name}
+            m_debug "network reload"
+        fi
     fi
     if [ "$firewall_reload_flag" -eq 1 ];then
         uci commit firewall
@@ -478,60 +802,29 @@ set_if()
         /etc/init.d/dhcp restart
         m_debug "dhcp reload"
     fi
-
-
-    set_modem_netcard=$modem_netcard
-    if [ -z "$set_modem_netcard" ];then
-        m_debug "no netcard found"
-    fi
-    ethernet_check=$(handle_5gethernet)
-    if [ -n "$ethernet_check" ] && [ -n "/sys/class/net/$ethernet_5g" ] && [ -n "$ethernet_5g" ];then
-        set_modem_netcard=$ethernet_5g
-    fi
-    #set led
-    set_led "net" $modem_config $set_modem_netcard
-    origin_netcard=$(uci -q get network.$interface_name.ifname)
-    origin_device=$(uci -q get network.$interface_name.device)
-    origin_metric=$(uci -q get network.$interface_name.metric)
-    origin_proto=$(uci -q get network.$interface_name.proto)
-    if [ "$origin_netcard" == "$set_modem_netcard" ] && [ "$origin_device" == "$set_modem_netcard" ] && [ "$origin_metric" == "$metric" ] && [ "$origin_proto" == "$proto" ];then
-        m_debug "interface $interface_name already set to $set_modem_netcard"
-    else
-        uci set network.${interface_name}.ifname="${set_modem_netcard}"
-        uci set network.${interface_name}.device="${set_modem_netcard}"
-        uci set network.${interface_name}.modem_config="${modem_config}"
-        if [ "$env4" -eq 1 ];then
-            uci set network.${interface_name}.proto="${proto}"
-            uci set network.${interface_name}.metric="${metric}"
-        fi
-        if [ "$env6" -eq 1 ];then
-            uci set network.${interface6_name}.proto="${protov6}"
-            uci set network.${interface6_name}.metric="${metric}"
-        fi
-        uci commit network
-        ifup ${interface_name}
-        m_debug "set interface $interface_name to $set_modem_netcard"
-    fi
 }
 
 flush_if()
 {
-    # uci delete network.${interface_name}
-    # uci delete network.${interface6_name}
-    # uci delete dhcp.${interface6_name}
-    # uci commit network
-    # uci commit dhcp
-    # set_led "net" $modem_config
-    # set_led "sim" $modem_config 0
-    # m_debug "delete interface $interface_name"
+    network_reload_needed=0
+    qmodem_reload_needed=0
+    ifdown ${interface_name} >/dev/null 2>&1
+    ifdown ${interface6_name} >/dev/null 2>&1
     config_load network
     remove_target="$modem_config"
     config_foreach flush_ip_cb "interface"
+    cleanup_bridge_passthrough
+    [ "$bridge_network_dirty" -eq 1 ] && network_reload_needed=1
+    [ "$bridge_qmodem_dirty" -eq 1 ] && qmodem_reload_needed=1
     set_led "net" $modem_config
     set_led "sim" $modem_config 0
     m_debug "delete interface $interface_name"
     uci commit network
     uci commit dhcp
+    [ "$qmodem_reload_needed" -eq 1 ] && uci commit qmodem
+    if [ "$network_reload_needed" -eq 1 ]; then
+        /etc/init.d/network reload
+    fi
 }
 
 flush_ip_cb()
@@ -541,13 +834,14 @@ flush_ip_cb()
     config_get bind_modem_config "$network_cfg" modem_config
     if [ "$remove_target" = "$bind_modem_config" ];then
         uci delete network.$network_cfg
+        network_reload_needed=1
     fi
     
 }
 
 dial(){
     update_config
-    m_debug "modem_path=$modem_path,driver=$driver,interface=$interface_name,at_port=$at_port,using_sim_slot:$sim_slot,dns_list:$dns_list"
+    m_debug "modem_path=$modem_path,driver=$driver,interface=$interface_name,at_port=$at_port,using_sim_slot:$sim_slot,dns_list:$dns_list,bridge_enabled:$bridge_enabled,bridge_port:$bridge_port"
     while [ "$dial_prepare" != 1 ] ; do
         sleep 5
         update_config
@@ -587,7 +881,11 @@ dial(){
 
 wwan_hang()
 {
-    m_debug "wwan_hang"
+    pid=$(cat "${MODEM_RUNDIR}/${modem_config}_dir/$modem_config.pid")
+    m_debug "wwan_hang, pid = $pid"
+    if [ -n $pid ]; then
+        kill $pid
+    fi
 }
 
 ecm_hang()
@@ -630,7 +928,7 @@ ecm_hang()
             at_command="ATI"
             ;;
     esac
-    fastat "${at_port}" "${at_command}"
+    at "${at_port}" "${at_command}"
     [ -n "$delay" ] && sleep "$delay"
 }
 
@@ -696,9 +994,6 @@ qmi_dial()
         *) cmd_line="$cmd_line -4 -6" ;;
     esac
 
-    if [ "$network_bridge" = "1" ]; then
-        cmd_line="$cmd_line -b"
-    fi
     if [ -n "$pdp_index" ] && [ "$userset_pdp_index" = "1" ]; then
         cmd_line="$cmd_line -n $pdp_index"
     fi
@@ -729,7 +1024,7 @@ qmi_dial()
     fi
         cmd_line="${cmd_line} -i ${qmi_if}"
     fi
-    if [ "$en_bridge" = "1" ];then
+    if [ "$bridge_enabled" = "1" ];then
         cmd_line="${cmd_line} -b"
     fi
     if [ "$do_not_add_dns" = "1" ];then
@@ -744,7 +1039,10 @@ qmi_dial()
     cmd_line="$cmd_line -f $log_file"
     while true; do
         m_debug "dialing: $cmd_line"
-        $cmd_line
+        $cmd_line &
+        echo "$!" > "${MODEM_RUNDIR}/${modem_config}_dir/$modem_config.pid"
+        m_debug "pid: $!"
+        wait
         m_debug "quectel-CM exited, retrying dial"
     done
 }
@@ -779,9 +1077,34 @@ at_dial()
             ;;
         "fibocom")
             case $platform in
+                "qualcomm")
+                    at_command="AT+GTRNDIS=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\""$apn_append
+                    if [ -n "$auth" ]; then
+                        case $auth in
+                            "pap")
+                                auth_num=1 ;;
+                            "chap")
+                                auth_num=2 ;;
+                            "auto"|"both"|"MsChapV2")
+                                auth_num=3 ;;
+                            *)
+                                auth_num=0 ;;
+                        esac
+                        if [ -n "$username" ] || [ -n "$password" ] && [ "$auth_num" != "0" ] ; then
+                            ppp_auth_command="AT+MGAUTH=$pdp_index,$auth_num,\"$username\",\"$password\""
+                        fi
+                    fi
+                    ;;
                 "mediatek")
-                    delay=3
-                    [ "$apn" = "auto" ] || [ -z "$apn" ] && apn="cbnet"
+                    # delay=3
+                    # [ "$apn" = "auto" ] || [ -z "$apn" ] && apn="cbnet"
+                    if [ "$pdp_index" = "3" ];then
+                        delay=3
+                        [ "$apn" = "auto" ] || [ -z "$apn" ] && apn="cbnet"
+                        m_debug "Due to a historical issue (https://github.com/FUjr/QModem/issues/179#issuecomment-3968653343), the fm350 pdp_index was incorrectly set to 3, which caused dialing to work but remain unstable. In version 2026.2.27, we have fixed this issue."
+                        m_debug "To avoid unexpectedly removing legacy configuration files, we applied additional handling to ensure consistent behavior with previous versions. However, if you see this message, please manually set the pdp_index to 0. We apologize for any inconvenience caused."
+                    fi
                     at_command="AT+CGACT=1,$pdp_index"
                     cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\",\"$apn\""
                     ;;
@@ -851,10 +1174,18 @@ at_dial()
             ;;
         "simcom")
             case $platform in
+                "asrmicro")                    
+                    at_command="AT+CGACT=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\""$apn_append
+                    ;;
                 "qualcomm")
                     local cnmp=$(at ${at_port} "AT+CNMP?" | grep "+CNMP:" | sed 's/+CNMP: //g' | sed 's/\r//g')
                     at_command="AT+CNMP=$cnmp;+CNWINFO=1"
                     cgdcont_command="AT+CGDCONT=1,\"$pdp_type\""$apn_append
+                    ;;
+                "lte")
+                    at_command="AT+CGACT=1,$pdp_index"
+                    cgdcont_command="AT+CGDCONT=$pdp_index,\"$pdp_type\""$apn_append
                     ;;
             esac
             ;;
@@ -891,7 +1222,7 @@ at_dial()
             esac
             ;;
     esac
-	m_debug "dialing: vendor:$manufacturer; platform:$platform; driver:$driver; apn:$apn; command:$at_command"
+	m_debug "dialing: vendor:$manufacturer; platform:$platform; driver:$driver; apn:$apn; command:$at_command pdp_index:$pdp_index"
     m_debug "dial_cmd: $at_command; cgdcont_cmd: $cgdcont_command; ppp_auth_cmd: $ppp_auth_command"
 	case $driver in
         "mtk_pcie")
@@ -1130,6 +1461,20 @@ handle_ip_change()
     esac
 }
 
+check_cfun(){
+    at_command="AT+CFUN?"
+    response=$(at ${at_port} "${at_command}")
+    cfun_status=$(echo "$response" | tr -d "\r" | grep "+CFUN:" | awk '{print $2}')
+    cfun_status=$(echo "$cfun_status" | cut -d',' -f1)
+    if [ "$cfun_status" = "1" ]; then
+        return 0
+    else
+        at_command="AT+CFUN=1"
+        response=$(at ${at_port} "${at_command}")
+        return 1
+    fi
+}
+
 check_logfile_line()
 {
     local line=$(wc -l $log_file | awk '{print $1}')
@@ -1143,6 +1488,17 @@ unexpected_response_count=0
 at_dial_monitor()
 {
     #check if support auto dial
+    check_cfun
+    if [ $? -ne 0 ]; then
+        m_debug "CFUN is not 1, try to set it to 1"
+        sleep 5
+        check_cfun
+        if [ $? -ne 0 ]; then
+            m_debug "Failed to set CFUN to 1, dailing may not work properly"
+        else
+            m_debug "Successfully set CFUN to 1"
+        fi
+    fi
     auto_dial_support=0
     at_auto_dial
     auto_dial_support=$?

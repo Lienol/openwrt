@@ -96,6 +96,24 @@
                 "include": [
                     "1.2"
                 ]
+            },
+            "1e0e:9011": {
+                "name": "simcom_a8200_serias",
+                "mode": "rndis",
+                "option_driver": 0,
+                "include": [
+                    "1.4",
+                    "1.5"
+                ]
+            },
+            "2c7c:0457": {
+                "name": "AG598E-EU",
+                "mode": "qmi",
+                "option_driver": 1,
+                "include": [
+                    "1.2",
+                    "1.7"
+                ]
             }
         }
     }

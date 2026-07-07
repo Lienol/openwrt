@@ -89,18 +89,18 @@ add_bar_info_entry()
 
 add_speed_entry()
 {
-    rate=$1
-    type=$2
+    type=$1
+    rate=$2
     if [ -z "$rate" ]; then
         return
     fi
     rate=`rate_convert $rate`
     case $type in
         "rx")
-            add_plain_info_entry "Rx Rate" "$rate" "Transmit Rate"
+            add_plain_info_entry "Rx Rate" "$rate" "Receive Rate"
             ;;
         "tx")
-            add_plain_info_entry "Tx Rate" "$rate" "Receive Rate"
+            add_plain_info_entry "Tx Rate" "$rate" "Transmit Rate"
             ;;
         *)
             return
@@ -120,6 +120,84 @@ add_avalible_band_entry()
     json_add_string  band_id "$band_id"
     json_add_string  band_name "$band_name"
     json_add_string "type" "avalible_band"
+    json_close_object
+}
+
+qmodem_band_clean_value()
+{
+    echo "$1" | tr -d '\r" ' | sed 's/^-$//'
+}
+
+qmodem_current_band_name()
+{
+    local rat="$1"
+    local band="$2"
+
+    [ -z "$band" ] && return
+
+    case "$rat" in
+        "NR"|"NR5G-SA"|"NR5G-NSA")
+            echo "NR n$band"
+            ;;
+        "LTE"|"CAT-M"|"CAT-NB"|"eMTC"|"NB-IoT")
+            echo "LTE B$band"
+            ;;
+        "WCDMA"|"UMTS")
+            echo "WCDMA Band $band"
+            ;;
+        *)
+            echo "$band"
+            ;;
+    esac
+}
+
+qmodem_add_current_band_cell()
+{
+    local role="$1"
+    local rat="$2"
+    local band="$(qmodem_band_clean_value "$3")"
+    local channel="$(qmodem_band_clean_value "$4")"
+    local channel_type="$5"
+    local pci="$(qmodem_band_clean_value "$6")"
+    local ul_bandwidth="$(qmodem_band_clean_value "$7")"
+    local dl_bandwidth="$(qmodem_band_clean_value "$8")"
+    local scs="$(qmodem_band_clean_value "$9")"
+    local band_name="$(qmodem_current_band_name "$rat" "$band")"
+
+    [ -z "$band" ] && [ -z "$channel" ] && [ -z "$pci" ] && return
+
+    json_add_object ""
+    json_add_string "role" "$role"
+    json_add_string "rat" "$rat"
+    json_add_string "band" "$band"
+    json_add_string "band_name" "$band_name"
+    json_add_string "channel" "$channel"
+    json_add_string "channel_type" "$channel_type"
+    json_add_string "pci" "$pci"
+    json_add_string "ul_bandwidth" "$ul_bandwidth"
+    json_add_string "dl_bandwidth" "$dl_bandwidth"
+    json_add_string "scs" "$scs"
+    json_close_object
+}
+
+get_current_band()
+{
+    json_add_object "current_band"
+    json_add_string "status" "unsupported"
+    json_add_string "vendor" "$_Vendor"
+    json_add_string "network_mode" ""
+    json_add_array "cells"
+    json_close_array
+    json_close_object
+}
+
+get_current_band_capabilities()
+{
+    json_add_object "current_band_capabilities"
+    json_add_boolean "supported" 0
+    json_add_string "vendor" "$_Vendor"
+    json_add_string "method" ""
+    json_add_string "schema" "current_band"
     json_close_object
 }
 
@@ -463,6 +541,7 @@ get_rat()
 		"2"|"4"|"5"|"6"|"9"|"10") rat="WCDMA" ;;
         "7") rat="LTE" ;;
         "11"|"12") rat="NR" ;;
+        "13") rat="LTE-NR" ;;
 	esac
     echo "${rat}"
 }
@@ -487,11 +566,24 @@ get_connect_status()
         at_cmd="AT+CGACT?"
         expect="+CGACT:"
         result=`at  $at_port $at_cmd | grep $expect|tr '\r' '\n'`
+        # for fm350 pdp_index 0, GGACT will return empty,so we need to add it manually
+        if [ -z "$result" ]; then
+            case $vendor in
+                "fibocom")
+                    case $platform in
+                        "mediatek")
+                            result="+CGACT: 0,1"
+                            ;;
+                    esac
+                    ;;
+                esac
+        fi
         
         for pdp_index in `echo  "$result" | tr -d "\r" | awk -F'[,:]' '$3 == 1 {print $2}'`; do
             at_cmd="AT+CGPADDR=%s"
             at_cmd=$(printf "$at_cmd" "$pdp_index")
             expect="+CGPADDR:"
+
             result=$(at  $at_port $at_cmd | grep $expect)
             if [ -n "$result" ];then
                 ipv6=$(echo $result | grep -oE "\b([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\b")
@@ -555,6 +647,9 @@ hard_reboot()
     source /lib/functions.sh
     config_load qmodem
     config_foreach get_gpio_by_slot modem-slot
+    if [ -z "$gpio" ] || [ -z "$gpio_up" ] || [ -z "$gpio_down" ]; then
+        config_foreach get_gpio_by_device modem-device
+    fi
     gpio="/sys/class/gpio/$gpio/value"
     [ ! -f "$gpio" ] || [ -z "$gpio_up" ] || [ -z "$gpio_down" ] && {
         soft_reboot
@@ -578,11 +673,25 @@ get_gpio_by_slot()
     fi
 }
 
+get_gpio_by_device()
+{
+    local cfg="$1"
+
+    [ "$config_section" = "$cfg" ] || return
+
+    config_get gpio "$cfg" gpio
+    config_get gpio_up "$cfg" gpio_up
+    config_get gpio_down "$cfg" gpio_down
+}
+
 get_reboot_caps()
 {
     source /lib/functions.sh
     config_load qmodem
     config_foreach get_gpio_by_slot modem-slot
+    if [ -z "$gpio" ] || [ -z "$gpio_up" ] || [ -z "$gpio_down" ]; then
+        config_foreach get_gpio_by_device modem-device
+    fi
     json_init
     json_add_object "reboot_caps"
     json_add_int "soft_reboot_caps" "1"
@@ -690,6 +799,24 @@ set_sms_storage()
 
 get_sim_switch_capabilities(){
     json_add_string "supportSwitch" "0"
+}
+
+get_usage_stats()
+{
+    json_add_boolean "available" 0
+    json_add_int "updated_at" 0
+    json_add_int "total_rx_bytes" 0
+    json_add_int "total_tx_bytes" 0
+}
+
+write_usage_stats()
+{
+    return 1
+}
+
+clear_usage_stats()
+{
+    json_add_boolean "result" 0
 }
 
 get_global_disabled_features()

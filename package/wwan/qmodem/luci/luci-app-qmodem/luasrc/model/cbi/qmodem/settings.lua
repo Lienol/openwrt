@@ -23,6 +23,46 @@ enable_pcie_scan.description = translate("Once enabled, the PCIe ports will be s
 enable_usb_scan = s:option(Flag, "enable_usb_scan",translate("Enable USB Scan"))
 enable_usb_scan.description = translate("Once enabled, the USB ports will be scanned on every boot.")
 
+scan_log_level = s:option(ListValue, "scan_log_level", translate("Scan Log Level"))
+scan_log_level:value("debug", "Debug")
+scan_log_level:value("info", "Info")
+scan_log_level:value("notice", "Notice")
+scan_log_level:value("warn", "Warning")
+scan_log_level:value("err", "Error")
+scan_log_level.default = "info"
+
+scan_workers = s:option(Value, "scan_workers", translate("Scan Workers"))
+scan_workers.datatype = "and(uinteger,min(1),max(16))"
+scan_workers.default = "4"
+
+at_probe_workers = s:option(Value, "at_probe_workers", translate("AT Probe Workers"))
+at_probe_workers.datatype = "and(uinteger,min(1),max(16))"
+at_probe_workers.default = "4"
+
+at_timeout_fast = s:option(Value, "at_timeout_fast", translate("Fast AT Timeout"))
+at_timeout_fast.description = translate("Units: seconds")
+at_timeout_fast.datatype = "and(uinteger,min(1),max(30))"
+at_timeout_fast.default = "2"
+
+at_timeout_model = s:option(Value, "at_timeout_model", translate("Model AT Timeout"))
+at_timeout_model.description = translate("Units: seconds")
+at_timeout_model.datatype = "and(uinteger,min(1),max(60))"
+at_timeout_model.default = "8"
+
+hotplug_add_delay = s:option(Value, "hotplug_add_delay", translate("Hotplug Add Delay"))
+hotplug_add_delay.description = translate("Units: seconds")
+hotplug_add_delay.datatype = "and(uinteger,min(0),max(60))"
+hotplug_add_delay.default = "8"
+
+add_retry_delay = s:option(Value, "add_retry_delay", translate("Add Retry Delay"))
+add_retry_delay.description = translate("Units: seconds")
+add_retry_delay.datatype = "and(uinteger,min(0),max(60))"
+add_retry_delay.default = "8"
+
+add_retry_max = s:option(Value, "add_retry_max", translate("Add Retry Max"))
+add_retry_max.datatype = "and(uinteger,min(0),max(20))"
+add_retry_max.default = "5"
+
 try_vendor_preset_usb = s:option(Flag,"try_preset_usb",translate("Try Preset USB Port"))
 try_vendor_preset_usb.description = translate("Attempt to use pre-configured USB settings from the cpe vendor.") 
 

@@ -5,6 +5,13 @@
 . /usr/share/libubox/jshn.sh
 . /usr/share/qmodem/generic.sh
 
+TRAFFIC_RESET_CRON_FILE="/etc/crontabs/root"
+TRAFFIC_RESET_DEFAULT_ENABLED=0
+TRAFFIC_RESET_DEFAULT_TYPE="monthly"
+TRAFFIC_RESET_DEFAULT_HOUR=0
+TRAFFIC_RESET_DEFAULT_DAY=1
+TRAFFIC_RESET_DEFAULT_MINUTE=0
+
 # Helper function for caching
 try_cache() {
     cache_timeout=$1
@@ -51,7 +58,7 @@ load_vendor_script() {
     local vendor_file="${vendor_script_prefix}/$(jq -r --arg vendor "$vendor" '.[$vendor]' "$dynamic_load_json" 2>/dev/null)"
     
     if [ -z "$vendor" ] || [ ! -f "$vendor_file" ]; then
-        . /usr/share/qmodem/vendor/generic.sh
+        . /usr/share/qmodem/generic.sh
     else
         . "$vendor_file"
     fi
@@ -65,6 +72,7 @@ get_modem_config() {
     [ -n "$override_at_port" ] && at_port=$override_at_port
     sms_at_port=$(uci -q get qmodem.$section.sms_at_port 2>/dev/null)
     vendor=$(uci get qmodem.$section.manufacturer 2>/dev/null)
+    manufacturer="$vendor"
     platform=$(uci get qmodem.$section.platform 2>/dev/null)
     pdp_index=$(uci get qmodem.$section.pdp_index 2>/dev/null)
     [ -z "$pdp_index" ] && pdp_index=$(uci get qmodem.$section.suggest_pdp_index 2>/dev/null)
@@ -163,6 +171,311 @@ get_at_cfg() {
     unset IFS
 }
 
+traffic_reset_fail()
+{
+    echo "$1" >&2
+    exit 1
+}
+
+traffic_reset_is_integer()
+{
+    case "$1" in
+        ''|*[!0-9]*)
+            return 1
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}
+
+traffic_reset_normalize_bool()
+{
+    case "$1" in
+        1|true|TRUE|True|yes|on)
+            echo "1"
+            ;;
+        *)
+            echo "0"
+            ;;
+    esac
+}
+
+traffic_reset_get_marker()
+{
+    printf "QMODEM_TRAFFIC_RESET_SECTION='%s'" "$1"
+}
+
+traffic_reset_get_line()
+{
+    local config_section="$1"
+    local marker
+
+    marker=$(traffic_reset_get_marker "$config_section")
+    [ -f "$TRAFFIC_RESET_CRON_FILE" ] || return 0
+    grep -F "$marker" "$TRAFFIC_RESET_CRON_FILE" | head -n 1
+}
+
+traffic_reset_remove_old_lines()
+{
+    local config_section="$1"
+    local marker tmp_file
+
+    marker=$(traffic_reset_get_marker "$config_section")
+    tmp_file=$(mktemp) || return 1
+
+    if [ -f "$TRAFFIC_RESET_CRON_FILE" ]; then
+        grep -Fv "$marker" "$TRAFFIC_RESET_CRON_FILE" > "$tmp_file" || true
+    fi
+
+    cat "$tmp_file" > "$TRAFFIC_RESET_CRON_FILE"
+    rm -f "$tmp_file"
+}
+
+traffic_reset_reload_cron()
+{
+    /etc/init.d/cron reload >/dev/null 2>&1 || /etc/init.d/cron restart >/dev/null 2>&1
+}
+
+traffic_reset_build_line()
+{
+    local config_section="$1"
+    local reset_type="$2"
+    local hour="$3"
+    local day="$4"
+    local minute="$TRAFFIC_RESET_DEFAULT_MINUTE"
+    local marker
+
+    marker=$(traffic_reset_get_marker "$config_section")
+
+    if [ "$reset_type" = "daily" ]; then
+        printf "%s %s * * * %s ubus call qmodem clear_stats '{\"config_section\":\"%s\"}' >/dev/null 2>&1" \
+            "$minute" "$hour" "$marker" "$config_section"
+    else
+        printf "%s %s %s * * %s ubus call qmodem clear_stats '{\"config_section\":\"%s\"}' >/dev/null 2>&1" \
+            "$minute" "$hour" "$day" "$marker" "$config_section"
+    fi
+}
+
+traffic_reset_dump_json()
+{
+    local enabled="$1"
+    local reset_type="$2"
+    local hour="$3"
+    local day="$4"
+    local minute="$5"
+    local line="$6"
+
+    if [ -n "$line" ]; then
+        jq -n \
+            --argjson enabled "$enabled" \
+            --arg reset_type "$reset_type" \
+            --argjson hour "$hour" \
+            --argjson day "$day" \
+            --argjson minute "$minute" \
+            --arg line "$line" \
+            '{
+                enabled: ($enabled == 1),
+                reset_type: $reset_type,
+                hour: $hour,
+                day: $day,
+                minute: $minute,
+                line: $line
+            }'
+    else
+        jq -n \
+            --argjson enabled "$enabled" \
+            --arg reset_type "$reset_type" \
+            --argjson hour "$hour" \
+            --argjson day "$day" \
+            --argjson minute "$minute" \
+            '{
+                enabled: ($enabled == 1),
+                reset_type: $reset_type,
+                hour: $hour,
+                day: $day,
+                minute: $minute,
+                line: null
+            }'
+    fi
+}
+
+traffic_reset_dump_set_json()
+{
+    local result="$1"
+    local config_section="$2"
+    local enabled="$3"
+    local reset_type="$4"
+    local hour="$5"
+    local day="$6"
+    local minute="$7"
+    local line="$8"
+
+    if [ -n "$line" ]; then
+        jq -n \
+            --argjson result "$result" \
+            --arg config_section "$config_section" \
+            --argjson enabled "$enabled" \
+            --arg reset_type "$reset_type" \
+            --argjson hour "$hour" \
+            --argjson day "$day" \
+            --argjson minute "$minute" \
+            --arg line "$line" \
+            '{
+                result: $result,
+                config_section: $config_section,
+                enabled: ($enabled == 1),
+                reset_type: $reset_type,
+                hour: $hour,
+                day: $day,
+                minute: $minute,
+                line: $line
+            }'
+    else
+        jq -n \
+            --argjson result "$result" \
+            --arg config_section "$config_section" \
+            --argjson enabled "$enabled" \
+            --arg reset_type "$reset_type" \
+            --argjson hour "$hour" \
+            --argjson day "$day" \
+            --argjson minute "$minute" \
+            '{
+                result: $result,
+                config_section: $config_section,
+                enabled: ($enabled == 1),
+                reset_type: $reset_type,
+                hour: $hour,
+                day: $day,
+                minute: $minute,
+                line: null
+            }'
+    fi
+}
+
+traffic_reset_get_schedule()
+{
+    local config_section="$1"
+    local enabled reset_type hour day line
+
+    enabled=$(traffic_reset_normalize_bool "$(uci -q get "qmodem.${config_section}.usage_reset_enabled")")
+    reset_type=$(uci -q get "qmodem.${config_section}.usage_reset_type")
+    hour=$(uci -q get "qmodem.${config_section}.usage_reset_hour")
+    day=$(uci -q get "qmodem.${config_section}.usage_reset_day")
+
+    [ -n "$reset_type" ] || reset_type="$TRAFFIC_RESET_DEFAULT_TYPE"
+    [ -n "$hour" ] || hour="$TRAFFIC_RESET_DEFAULT_HOUR"
+    [ -n "$day" ] || day="$TRAFFIC_RESET_DEFAULT_DAY"
+
+    if [ "$reset_type" != "daily" ] && [ "$reset_type" != "monthly" ]; then
+        reset_type="$TRAFFIC_RESET_DEFAULT_TYPE"
+    fi
+
+    if ! traffic_reset_is_integer "$hour" || [ "$hour" -lt 0 ] || [ "$hour" -gt 23 ]; then
+        hour="$TRAFFIC_RESET_DEFAULT_HOUR"
+    fi
+
+    if ! traffic_reset_is_integer "$day" || [ "$day" -lt 1 ] || [ "$day" -gt 31 ]; then
+        day="$TRAFFIC_RESET_DEFAULT_DAY"
+    fi
+
+    line=$(traffic_reset_get_line "$config_section")
+    traffic_reset_dump_json "$enabled" "$reset_type" "$hour" "$day" "$TRAFFIC_RESET_DEFAULT_MINUTE" "$line"
+}
+
+traffic_reset_set_schedule()
+{
+    local input_json="$1"
+    local config_section enabled reset_type hour day line cron_backup
+
+    config_section=$(echo "$input_json" | jsonfilter -e '@.config_section')
+    enabled=$(traffic_reset_normalize_bool "$(echo "$input_json" | jsonfilter -e '@.enabled')")
+    reset_type=$(echo "$input_json" | jsonfilter -e '@.reset_type')
+    hour=$(echo "$input_json" | jsonfilter -e '@.hour')
+    day=$(echo "$input_json" | jsonfilter -e '@.day')
+
+    [ -n "$config_section" ] || traffic_reset_fail "Missing config_section"
+
+    case "$reset_type" in
+        daily|monthly)
+            ;;
+        *)
+            traffic_reset_fail "Invalid reset_type: $reset_type"
+            ;;
+    esac
+
+    traffic_reset_is_integer "$hour" || traffic_reset_fail "Invalid hour: $hour"
+    [ "$hour" -ge 0 ] && [ "$hour" -le 23 ] || traffic_reset_fail "Hour out of range: $hour"
+
+    traffic_reset_is_integer "$day" || traffic_reset_fail "Invalid day: $day"
+    [ "$day" -ge 1 ] && [ "$day" -le 31 ] || traffic_reset_fail "Day out of range: $day"
+
+    cron_backup=$(mktemp) || traffic_reset_fail "Failed to allocate cron backup"
+    if [ -f "$TRAFFIC_RESET_CRON_FILE" ]; then
+        cat "$TRAFFIC_RESET_CRON_FILE" > "$cron_backup" || {
+            rm -f "$cron_backup"
+            traffic_reset_fail "Failed to back up traffic reset schedule"
+        }
+    fi
+
+    traffic_reset_remove_old_lines "$config_section" || {
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to remove old traffic reset schedule"
+    }
+
+    uci -q set "qmodem.${config_section}.usage_reset_enabled=$enabled" || {
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to update usage_reset_enabled"
+    }
+    uci -q set "qmodem.${config_section}.usage_reset_type=$reset_type" || {
+        uci -q revert qmodem
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to update usage_reset_type"
+    }
+    uci -q set "qmodem.${config_section}.usage_reset_hour=$hour" || {
+        uci -q revert qmodem
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to update usage_reset_hour"
+    }
+    uci -q set "qmodem.${config_section}.usage_reset_day=$day" || {
+        uci -q revert qmodem
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to update usage_reset_day"
+    }
+
+    if [ "$enabled" = "1" ]; then
+        line=$(traffic_reset_build_line "$config_section" "$reset_type" "$hour" "$day")
+        printf "%s\n" "$line" >> "$TRAFFIC_RESET_CRON_FILE" || {
+            uci -q revert qmodem
+            cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+            rm -f "$cron_backup"
+            traffic_reset_fail "Failed to write traffic reset schedule"
+        }
+    else
+        line=""
+    fi
+
+    uci commit qmodem || {
+        uci -q revert qmodem
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to commit qmodem config"
+    }
+    traffic_reset_reload_cron || {
+        cat "$cron_backup" > "$TRAFFIC_RESET_CRON_FILE" 2>/dev/null || true
+        rm -f "$cron_backup"
+        traffic_reset_fail "Failed to reload cron service"
+    }
+
+    rm -f "$cron_backup"
+
+    traffic_reset_dump_set_json "true" "$config_section" "$enabled" "$reset_type" "$hour" "$day" "$TRAFFIC_RESET_DEFAULT_MINUTE" "$line"
+}
+
 case "$1" in
     list)
         cat <<EOF
@@ -195,6 +508,12 @@ case "$1" in
         "config_section": "string",
         "index": "string"
     },
+    "clear_stats": {
+        "config_section": "string"
+    },
+    "save_stats": {
+        "config_section": "string"
+    },
     "do_reboot": {
         "config_section": "string",
         "params": "object"
@@ -203,6 +522,12 @@ case "$1" in
         "config_section": "string"
     },
     "get_copyright": {
+        "config_section": "string"
+    },
+    "get_current_band": {
+        "config_section": "string"
+    },
+    "get_current_band_capabilities": {
         "config_section": "string"
     },
     "get_disabled_features": {
@@ -227,6 +552,12 @@ case "$1" in
         "config_section": "string"
     },
     "get_reboot_caps": {
+        "config_section": "string"
+    },
+    "get_stats": {
+        "config_section": "string"
+    },
+    "get_traffic_reset_schedule": {
         "config_section": "string"
     },
     "get_sms": {
@@ -277,6 +608,13 @@ case "$1" in
         "config_section": "string",
         "storage": "string"
     },
+    "set_traffic_reset_schedule": {
+        "config_section": "string",
+        "enabled": "bool",
+        "reset_type": "string",
+        "hour": "int",
+        "day": "int"
+    },
     "sim_info": {
         "config_section": "string"
     },
@@ -316,8 +654,10 @@ EOF
 
         case "$2" in
             base_info|cell_info|info|network_info|sim_info|get_copyright|\
-            get_disabled_features|get_dns|get_imei|get_lockband|get_mode|\
-            get_neighborcell|get_network_prefer|get_reboot_caps|get_sms|\
+            get_current_band|get_current_band_capabilities|get_disabled_features|get_dns|get_imei|get_lockband|get_mode|\
+            get_neighborcell|get_network_prefer|get_reboot_caps|get_stats|save_stats|\
+            get_traffic_reset_schedule|\
+            get_sms|\
             get_at_cfg|clear_dial_log|dial_status|get_dial_log|get_connect_status|\
             remove_modem|\
             get_sim_switch_capabilities|get_sim_slot)
@@ -376,6 +716,16 @@ EOF
                         _copyright
                         json_dump
                         ;;
+                    get_current_band)
+                        json_init
+                        get_current_band
+                        json_dump
+                        ;;
+                    get_current_band_capabilities)
+                        json_init
+                        get_current_band_capabilities
+                        json_dump
+                        ;;
                     get_disabled_features)
                         json_init
                         json_add_array disabled_features
@@ -419,6 +769,25 @@ EOF
                         json_init
                         get_reboot_caps
                         json_dump
+                        ;;
+                    get_stats)
+                        json_init
+                        get_usage_stats
+                        json_dump
+                        ;;
+                    save_stats)
+                        json_init
+                        json_add_object result
+                        if write_usage_stats; then
+                            json_add_string status "1"
+                        else
+                            json_add_string status "0"
+                        fi
+                        json_close_object
+                        json_dump
+                        ;;
+                    get_traffic_reset_schedule)
+                        traffic_reset_get_schedule "$config_section"
                         ;;
                     get_sms)
                         get_sms 10 "/tmp/cache_sms_$config_section"
@@ -485,6 +854,12 @@ EOF
                 json_close_object
                 json_dump
                 rm -rf "/tmp/cache_sms_$config_section"
+                ;;
+
+            clear_stats)
+                json_init
+                clear_usage_stats
+                json_dump
                 ;;
                 
             do_reboot)
@@ -637,10 +1012,16 @@ EOF
                 json_dump
                 ;;
 
+            set_traffic_reset_schedule)
+                traffic_reset_set_schedule "$input"
+                ;;
+
             set_sim_slot)
                 slot=$(echo "$input" | jsonfilter -e '@.slot')
                 json_init
                 set_sim_slot "$slot"
+                /etc/init.d/qmodem_network redial "$config_section" >/dev/null 2>&1
+                json_add_string "redial" "$?"
                 json_dump
                 ;;
             
@@ -695,11 +1076,11 @@ EOF
             scan_pcie)
                 json_init
                 if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
-                    output=$(/usr/share/qmodem/modem_scan.sh scan 0 pcie 2>&1)
+                    output=$(/usr/share/qmodem/modem_scan.sh scan pcie 2>&1)
                     scan_result=$?
                     json_add_int "code" "$scan_result"
                     if [ "$scan_result" -eq 0 ]; then
-                        json_add_string "message" "PCIe scan completed successfully"
+                        json_add_string "message" "PCIe scan queued successfully"
                     else
                         json_add_string "message" "PCIe scan failed with exit code: $scan_result"
                         json_add_string "output" "$output"
@@ -714,11 +1095,11 @@ EOF
             scan_usb)
                 json_init
                 if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
-                    output=$(/usr/share/qmodem/modem_scan.sh scan 0 usb 2>&1)
+                    output=$(/usr/share/qmodem/modem_scan.sh scan usb 2>&1)
                     scan_result=$?
                     json_add_int "code" "$scan_result"
                     if [ "$scan_result" -eq 0 ]; then
-                        json_add_string "message" "USB scan completed successfully"
+                        json_add_string "message" "USB scan queued successfully"
                     else
                         json_add_string "message" "USB scan failed with exit code: $scan_result"
                         json_add_string "output" "$output"
@@ -733,11 +1114,11 @@ EOF
             scan_all)
                 json_init
                 if [ -x "/usr/share/qmodem/modem_scan.sh" ]; then
-                    output=$(/usr/share/qmodem/modem_scan.sh scan 2>&1)
+                    output=$(/usr/share/qmodem/modem_scan.sh scan all 2>&1)
                     scan_result=$?
                     json_add_int "code" "$scan_result"
                     if [ "$scan_result" -eq 0 ]; then
-                        json_add_string "message" "Full scan completed successfully"
+                        json_add_string "message" "Full scan queued successfully"
                     else
                         json_add_string "message" "Full scan failed with exit code: $scan_result"
                         json_add_string "output" "$output"

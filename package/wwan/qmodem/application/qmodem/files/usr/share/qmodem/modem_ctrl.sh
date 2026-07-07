@@ -143,6 +143,10 @@ case $method in
         cache_file="/tmp/cache_$1_$2"
         try_cache 10 $cache_file cell_info
         ;;
+    "clear_stats")
+        json_init
+        clear_usage_stats
+        ;;
     "clear_dial_log")
         json_select result
         log_file="/var/run/qmodem/${config_section}_dir/dial_log"
@@ -185,6 +189,12 @@ case $method in
     "get_copyright")
         _copyright
         ;;
+    "get_current_band")
+        get_current_band
+        ;;
+    "get_current_band_capabilities")
+        get_current_band_capabilities
+        ;;
     "get_disabled_features")
         json_add_array disabled_features
         vendor_get_disabled_features
@@ -213,6 +223,10 @@ case $method in
     "get_reboot_caps")
         get_reboot_caps
         exit
+        ;;
+    "get_stats")
+        json_init
+        get_usage_stats
         ;;
     "get_sms")
         get_sms 10 /tmp/cache_sms_$2

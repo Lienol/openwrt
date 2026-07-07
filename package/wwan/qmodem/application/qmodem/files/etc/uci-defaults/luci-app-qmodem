@@ -2,6 +2,7 @@
 # Copyright (C) 2024 Tom <fjrcn@outlook.com>
 
 /etc/init.d/qmodem_reboot enable
+/etc/init.d/qmodem_usage_stats enable
 
 uci -q batch <<-EOF >/dev/null
 	delete ucitrack.@qmodem[-1]

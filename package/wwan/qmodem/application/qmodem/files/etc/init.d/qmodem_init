@@ -3,10 +3,11 @@ START=80
 STOP=30
 USE_PROCD=1
 
-. /lib/functions.sh
+. $IPKG_INSTROOT/lib/functions.sh
 
 start_service() {
 	config_load qmodem
+    _start_scand
     config_foreach _mk_rundir modem-device
     config_get block_auto_probe main block_auto_probe 0
     config_get enable_pcie_scan main enable_pcie_scan 0
@@ -37,8 +38,7 @@ boot() {
     local delay=$(uci -q get qmodem.main.start_delay || echo 0)
     if [ "$delay" -gt 0 ]; then
         logger "Delay QModem Boot init scan for $delay S"
-        sleep $delay
-        /usr/share/qmodem/modem_scan.sh scan >/dev/null 2>&1 &
+        ( sleep "$delay"; /usr/share/qmodem/modem_scan.sh scan >/dev/null 2>&1 ) &
     fi
     start
 }
@@ -70,28 +70,34 @@ _try_usb_slot()
 _try_usb_device()
 {
     config_get data_interface $1 data_interface
-    [ "$data_interface" == "usb" ] && _try_device
+    [ "$data_interface" == "usb" ] && _try_device $1
 }
 
 _try_pcie_device()
 {
     config_get data_interface $1 data_interface
-    [ "$data_interface" == "pcie" ] && _try_device
+    [ "$data_interface" == "pcie" ] && _try_device $1
 }
 
 _scan_usb()
 {
-    procd_open_instance "scan_usb"
-    #delay 15 second ,scan all usb device
-    procd_set_param command  "ash" "/usr/share/qmodem/modem_scan.sh" "scan" "15" "usb"
-    procd_close_instance
+    ( sleep 15; /usr/bin/modem_scanc scan usb >/dev/null 2>&1 ) &
 }
 
 _scan_pcie()
 {
-    procd_open_instance "scan_pcie"
-    #delay 15 second ,scan all pcie device
-    procd_set_param command  "ash" "/usr/share/qmodem/modem_scan.sh" "scan" "15" "pcie"
+    ( sleep 15; /usr/bin/modem_scanc scan pcie >/dev/null 2>&1 ) &
+}
+
+_start_scand()
+{
+    config_get scan_log_level main scan_log_level info
+    procd_open_instance "scand"
+    procd_set_param command "/usr/bin/modem_scand"
+    procd_set_param respawn 3600 5 5
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_set_param env QMODEM_SCAN_LOG_LEVEL="$scan_log_level"
     procd_close_instance
 }
 
@@ -116,37 +122,32 @@ _try_slot()
 
     if [ -d "$path" ]; then
         logger -t modem_init "try modem $1"
-        procd_open_instance "try_$1"
-        procd_set_param command  "ash" "/usr/share/qmodem/modem_scan.sh" "add" "$slot" "$type"
-        procd_close_instance
+        ( sleep 1; /usr/share/qmodem/modem_scan.sh add "$slot" "$type" >/dev/null 2>&1 ) &
     else
-        /usr/share/qmodem/modem_scan.sh disable "$slot"
+        ( sleep 1; /usr/share/qmodem/modem_scan.sh disable "$slot" >/dev/null 2>&1 ) &
     fi
 }
 
 _try_device()
 {
     config_get path "$1" path
-    config_get type "$1" type
     config_get network "$1" network
-    case "$type" in
-        usb)
-            path="/sys/bus/usb/devices/${path}"
-            ;;
-        pcie)
-            path="/sys/bus/pci/devices/${path}"
-            ;;
-    esac
+    config_get data_interface "$1" data_interface
     if [ ! -d "$path" ]; then
-        /usr/share/qmodem/modem_scan.sh disable "$1"
+        ( sleep 1; /usr/share/qmodem/modem_scan.sh disable "$1" >/dev/null 2>&1 ) &
+        uci delete network.$1
+        uci delete network.${1}v6
+        uci commit network
+        /etc/init.d/network reload
         return
     fi
-    # if device_path not parent of netdevice_path,then disable device path an scan again
+    # if device_path is not parent of netdevice_path, disable device path and scan again
     netdevice_path=`readlink -f /sys/class/net/$network/device/`
     device_path=`readlink -f $path`
-    is_parent=`echo "$device_path" | grep -q "^$netdevice_path"`
-    if [ -z "$is_parent" ] || [ ! -d "$netdevice_path" ]; then
-        /usr/share/qmodem/modem_scan.sh disable "$1"
-        /usr/share/qmodem/modem_scan.sh add "$path" "$slot" 
+    echo "$netdevice_path" | grep -q "^$device_path"
+    is_parent=$?
+    if [ "$is_parent" -ne 0 ] || [ ! -d "$netdevice_path" ]; then
+        ( sleep 1; /usr/share/qmodem/modem_scan.sh disable "$1" >/dev/null 2>&1 ) &
+        ( sleep 1; /usr/share/qmodem/modem_scan.sh add "$(basename "$path")" "$data_interface" >/dev/null 2>&1 ) &
     fi
 }

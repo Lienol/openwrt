@@ -45,7 +45,7 @@ return baseclass.extend({
 					if (entry.value == null) {
 						continue
 					}
-					if ((entry.class == 'Base Information') ||(entry.class == '"SIM Information"')  || (entry.class == 'Cell Information' && entry.type == 'progress_bar')) {
+					if ((entry.class == 'Base Information') || (entry.class == 'SIM Information') || (entry.class == '"SIM Information"')  || (entry.class == 'Cell Information' && entry.type == 'progress_bar')) {
 					fields.push(extra_info ? '%s (%s)'.format(_(full_name), extra_info) : _(full_name));
 					fields.push(entry);
 					}

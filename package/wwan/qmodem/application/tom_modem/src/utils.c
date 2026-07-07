@@ -165,7 +165,7 @@ int dump_sms(SMS_T *sms)
     dbg_msg("SMS Index: %d", sms->sms_index);
     dbg_msg("SMS Text: %s", sms->sms_text);
     dbg_msg("SMS Sender: %s", sms->sender);
-    dbg_msg("SMS Timestamp: %ld", sms->timestamp);
+    dbg_msg("SMS Timestamp: %lld", (long long)sms->timestamp);
     dbg_msg("SMS Segment: %d/%d", sms->segment_number, sms->total_segments);
     return SUCCESS;
 }
@@ -524,11 +524,11 @@ int display_sms_in_json(SMS_T **sms,int num)
         char escaped_text[SMS_TEXT_SIZE];
         escape_json(sms[i]->sms_text, escaped_text);
         if (sms[i]->ref_number)
-            offset += sprintf(msg_json + offset, "{\"index\":%d,\"sender\":\"%s\",\"timestamp\":%ld,\"content\":\"%s\",\"reference\":%d,\"total\":%d,\"part\":%d},",
-                          sms[i]->sms_index, sms[i]->sender, sms[i]->timestamp, escaped_text, sms[i]->ref_number, sms[i]->total_segments, sms[i]->segment_number);
+            offset += sprintf(msg_json + offset, "{\"index\":%d,\"sender\":\"%s\",\"timestamp\":%lld,\"content\":\"%s\",\"reference\":%d,\"total\":%d,\"part\":%d},",
+                          sms[i]->sms_index, sms[i]->sender, (long long)sms[i]->timestamp, escaped_text, sms[i]->ref_number, sms[i]->total_segments, sms[i]->segment_number);
         else
-            offset += sprintf(msg_json + offset, "{\"index\":%d,\"sender\":\"%s\",\"timestamp\":%ld,\"content\":\"%s\"},",
-                          sms[i]->sms_index, sms[i]->sender, sms[i]->timestamp, escaped_text);
+            offset += sprintf(msg_json + offset, "{\"index\":%d,\"sender\":\"%s\",\"timestamp\":%lld,\"content\":\"%s\"},",
+                          sms[i]->sms_index, sms[i]->sender, (long long)sms[i]->timestamp, escaped_text);
     }
     
     //if not empty msg_json,remove the last ','

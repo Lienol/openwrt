@@ -94,13 +94,13 @@
 			switch (this.connect_state)
 			{
 				case 1:
-					this.modem_state_div.classList.add("alert-message","success");
+					this.modem_state_div.classList.add("alert-message","alert-message-imm","success");
 					break;
 				case 0:
-					this.modem_state_div.classList.add("alert-message","danger");
+					this.modem_state_div.classList.add("alert-message","alert-message-imm","danger");
 					break;
 				default:
-					this.modem_state_div.classList.add("alert-message","warning");
+					this.modem_state_div.classList.add("alert-message","alert-message-imm","warning");
 					break;
 			}
 			for (var entry of entrys)
@@ -347,5 +347,10 @@
 		width: 16rem;
 		float: left;
 		line-height: 125%;
+	}
+
+	.alert-message-imm {
+		position: unset !important;
+		transform: none !important;
 	}
 </style>

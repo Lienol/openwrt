@@ -11,7 +11,6 @@ PKG_VERSION:=$(QMODEM_VERSION)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-  PKGARCH:=all
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=QModem scripts
@@ -20,11 +19,12 @@ define Package/$(PKG_NAME)
 		+kmod-usb-serial +kmod-usb-serial-option +kmod-usb-serial-qualcomm \
 		+kmod-usb-net +kmod-usb-acm \
 		+kmod-usb-wdm \
-		+kmod-usb-net-cdc-ether \
+  		+kmod-usb-net-cdc-ether \
 		+kmod-usb-net-cdc-mbim \
 		+kmod-usb-net-rndis \
 		+kmod-usb-net-cdc-ncm +kmod-usb-net-huawei-cdc-ncm \
   		+ubus-at-daemon +tom_modem +terminfo +sms-tool_q \
+		+modem_scan \
 		+jq +bc\
 		+coreutils +coreutils-stat \
 		+usbutils \
@@ -34,11 +34,15 @@ define Package/$(PKG_NAME)
 		+PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan:kmod-usb-net-qmi-wwan-quectel \
 		+PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan:kmod-usb-net-qmi-wwan-fibocom \
 		+PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan:kmod-usb-net-qmi-wwan-simcom \
+		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-rmnet-nss \
+		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-qmi_wwan_q_nss \
 		+PACKAGE_luci-app-qmodem_VENDOR_MHI_PCIe_DRIVER:kmod-pcie_mhi \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-pci-generic \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-ctrl \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-mbim \
+		+PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER:kmod-rmnet-nss \
+		+PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER:kmod-pcie_mhi_nss \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_PCI_SUPPORT:pciutils \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_MTK_T7XX_SUPPORT:umbim \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_MTK_T7XX_SUPPORT:kmod-mtk-t7xx \

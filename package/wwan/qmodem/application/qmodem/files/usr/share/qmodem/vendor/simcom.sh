@@ -1,7 +1,7 @@
 #!/bin/sh
 # Copyright (C) 2025 sfwtw <sfwtw@qq.com>
 _Vendor="simcom"
-_Author="sfwtw"
+_Author="sfwtw,fujr"
 _Maintainer="sfwtw <sfwtw@qq.com>"
 source /usr/share/qmodem/generic.sh
 debug_subject="quectel_ctrl"
@@ -28,23 +28,35 @@ set_imei(){
 # $2:平台
 get_mode()
 {
-    at_command='AT+CUSBCFG?'
-    local mode_num=$(at ${at_port} ${at_command} | grep "USBID: " | sed 's/USBID: 0X1E0E,0X//g' | sed 's/\r//g')
-    local mode
-    pcie_cfg=$(at ${at_port} "AT+CPCIEMODE?")
-    pcie_mode=$(echo "$pcie_cfg"|grep +CPCIEMODE: |cut -d':' -f2|xargs)
-    if [ "$pcie_mode" = "EP" ] && [ "$mode_num" = "902B" ]; then
-        mode_num="9001"
-    json_add_int disable_mode_btn 1
-    fi
     case "$platform" in
         "qualcomm")
+            at_command='AT+CUSBCFG?'
+            local mode_num=$(at ${at_port} ${at_command} | grep "USBID: " | sed 's/USBID: 0X1E0E,0X//g' | sed 's/\r//g')
+            local mode
+            pcie_cfg=$(at ${at_port} "AT+CPCIEMODE?")
+            pcie_mode=$(echo "$pcie_cfg"|grep +CPCIEMODE: |cut -d':' -f2|xargs)
+            if [ "$pcie_mode" = "EP" ] && [ "$mode_num" = "902B" ]; then
+                mode_num="9001"
+            json_add_int disable_mode_btn 1
+            fi
             case "$mode_num" in
                 "9001") mode="qmi" ;;
                 "9011") mode="rndis" ;;
                 *) mode="${mode_num}" ;;
             esac
         ;;
+        "lte")
+            at_command='AT$MYCONFIG?'
+            config=$(at ${at_port} ${at_command} | grep "MYCONFIG: " | sed 's/\r//g')
+            param1=$(echo "$config" | cut -d',' -f2 | xargs)
+            param2=$(echo "$config" | cut -d',' -f3 | xargs)
+            case $param1 in
+                "0") mode="rndis" ;;
+                "1") mode="ecm" ;;
+                "2") mode="auto" ;;
+            esac
+            ;;
+
         *)
             mode="${mode_num}"
         ;;
@@ -73,19 +85,31 @@ set_mode()
                 "rndis") mode_num="9011" ;;
                 *) mode_num="0" ;;
             esac
+            #设置模组
+            at_command='AT+CUSBCFG=usbid,1e0e,'${mode_num}
+            res=$(at "${at_port}" "${at_command}")
+            json_select "result"
+            json_add_string "set_mode" "$res"
+            json_close_object
+        ;;
+        "lte")
+            case "$mode" in
+                "ecm") param1="1" ;;
+                "rndis") param1="0" ;;
+                "auto") param1="2" ;;
+                *) param1="0" ;;
+            esac
+            at_command='AT$MYCONFIG="USBNETMODE",'${param1}','1
+            res=$(at "${at_port}" "${at_command}")
+            json_select "result"
+            json_add_string "set_mode" "$res"
+            json_close_object
         ;;
         *)
             mode_num="0"
         ;;
-
     esac
 
-    #设置模组
-    at_command='AT+CUSBCFG=usbid,1e0e,'${mode_num}
-    res=$(at "${at_port}" "${at_command}")
-    json_select "result"
-    json_add_string "set_mode" "$res"
-    json_close_object
 }
 
 #获取网络偏好
@@ -351,6 +375,31 @@ get_band()
     echo "$band"
 }
 
+normalize_hex_width()
+{
+    local value="$1"
+    local width="$2"
+    local hex
+
+    value=$(echo "$value" | tr -d '\r' | xargs)
+    [ -z "$value" ] && value="0"
+
+    case "$value" in
+        0x*|0X*) hex=${value#0x}; hex=${hex#0X} ;;
+        *) hex=$value ;;
+    esac
+
+    hex=$(echo "$hex" | tr 'a-f' 'A-F')
+    hex=$(echo "$hex" | grep -o '^[0-9A-F]\+$')
+    [ -z "$hex" ] && hex="0"
+
+    if [ ${#hex} -lt "$width" ]; then
+        hex=$(printf "%0${width}s" "$hex" | tr ' ' '0')
+    fi
+
+    echo "0x$hex"
+}
+
 get_lockband_nr()
 {
     local at_port="$1"
@@ -464,6 +513,166 @@ get_lockband_nr()
     json_close_array
 }
 
+convert2band()
+{
+    local hex_band="$1"
+    local hex
+
+    hex=$(echo "$hex_band" | tr -d '\r' | tr 'a-f' 'A-F' | sed 's/^0X//')
+    hex=$(echo "$hex" | grep -o "^[0-9A-F]\{1,16\}$")
+    [ -z "$hex" ] && return
+
+    local band_list=""
+    local bin
+    bin=$(echo "ibase=16;obase=2;$hex" | bc)
+    local len=${#bin}
+    local i
+    for i in $(seq 1 ${#bin}); do
+        if [ "${bin:$((i-1)):1}" = "1" ]; then
+            band_list="$band_list $((len - i + 1))"
+        fi
+    done
+
+    echo "$band_list" | tr ' ' '\n' | sort -n | tr '\n' ' '
+}
+
+convert2hex_lte()
+{
+    local band_list="$1"
+    local hex="0"
+    local band
+
+    band_list=$(echo "$band_list" | tr ', ' '\n' | grep -E '^[0-9]+$' | sort -n | uniq)
+    for band in $band_list; do
+        [ "$band" -le 0 ] && continue
+        local add_hex
+        add_hex=$(echo "obase=16;2^($band - 1)" | bc)
+        hex=$(echo "obase=16;ibase=16;$hex + $add_hex" | bc)
+    done
+
+    hex=$(echo "$hex" | tr 'a-f' 'A-F')
+    echo "0x$hex"
+}
+
+convert2hex_lte_ext()
+{
+    local band_list="$1"
+    local hex="0"
+    local band
+    local ext_band
+
+    band_list=$(echo "$band_list" | tr ', ' '\n' | grep -E '^[0-9]+$' | sort -n | uniq)
+    for band in $band_list; do
+        [ "$band" -le 32 ] && continue
+        ext_band=$((band - 32))
+        [ "$ext_band" -le 0 ] && continue
+        local add_hex
+        add_hex=$(echo "obase=16;2^($ext_band - 1)" | bc)
+        hex=$(echo "obase=16;ibase=16;$hex + $add_hex" | bc)
+    done
+
+    hex=$(echo "$hex" | tr 'a-f' 'A-F')
+    echo "0x$hex"
+}
+
+get_wcdma_band_name_lte()
+{
+    #手册是傻逼，实际计算的bitmap频段和手册上标注的频段不一样，实际频段=标注频段+1
+    band_num=$(($1))
+    case "$1" in
+        "8") echo "GSM_DCS_1800" ;;
+        "9") echo "GSM_EGSM_900" ;;
+        "10") echo "GSM_PGSM_900" ;;
+        "17") echo "GSM_450" ;;
+        "18") echo "GSM_480" ;;
+        "19") echo "GSM_750" ;;
+        "20") echo "GSM_850" ;;
+        "21") echo "GSM_RGSM_900" ;;
+        "22") echo "GSM_PCS_1900" ;;
+        "23") echo "WCDMA_IMT_2000" ;;
+        "24") echo "WCDMA_PCS_1900" ;;
+        "25") echo "WCDMA_III_1700" ;;
+        "26") echo "WCDMA_IV_1700" ;;
+        "27") echo "WCDMA_850" ;;
+        "28") echo "WCDMA_800" ;;
+        "49") echo "WCDMA_VII_2600" ;;
+        "50") echo "WCDMA_VIII_900" ;;
+        "51") echo "WCDMA_IX_1700" ;;
+        *) echo "UMTS_B$1" ;;
+    esac
+}
+
+get_lockband_lte(){
+    local at_port="$1"
+    m_debug "SimCom LTE platform get lockband info"
+    
+    # WCDMA available bands
+    local gsm_available_band="7,8,9,16,17,18,19,20,21"
+    local wcdma_available_band="22,23,24,25,26,27,48,49,50"
+    [ -n "$(uci -q get qmodem.$config_section.wcdma_band)" ] && wcdma_available_band=$(uci -q get qmodem.$config_section.wcdma_band | tr '/' ',')
+    
+    # LTE available bands  
+    local lte_available_band="1,2,3,4,5,7,8,12,13,14,17,18,19,20,25,26,28,29,30,32,34,38,39,40,41,42,43,48,66,71"
+    [ -n "$(uci -q get qmodem.$config_section.lte_band)" ] && lte_available_band=$(uci -q get qmodem.$config_section.lte_band | tr '/' ',')
+    
+    # Get current modem settings
+    local response=$(at $at_port "AT+CNBP?")
+    
+    # Parse response: +CNBP:<mode>[,<lte_mode>][,<lte_modeExt>][,<saveMode>]
+    local mode=$(echo "$response" | grep "+CNBP:" | sed 's/+CNBP://g' | sed 's/\r//g' | cut -d',' -f1 | xargs)
+    local lte_mode=$(echo "$response" | grep "+CNBP:" | sed 's/+CNBP://g' | sed 's/\r//g' | cut -d',' -f2 | xargs)
+    local lte_modeext=$(echo "$response" | grep "+CNBP:" | sed 's/+CNBP://g' | sed 's/\r//g' | cut -d',' -f3 | xargs)
+    
+    # Parse WCDMA locked bands from mode
+    local wcdma_locked_bands=""
+    if [ -n "$mode" ] && [ "$mode" != "0" ]; then
+        wcdma_locked_bands=$(convert2band "$mode")
+    fi
+    
+    # Parse LTE locked bands from lte_mode
+    local lte_locked_bands=""
+    if [ -n "$lte_mode" ] && [ "$lte_mode" != "0" ]; then
+        lte_locked_bands=$(convert2band "$lte_mode")
+    fi
+    
+    # Parse extended LTE bands from lte_modeext
+    local lte_locked_bands_ext=""
+    if [ -n "$lte_modeext" ] && [ "$lte_modeext" != "0" ]; then
+        lte_locked_bands_ext=$(convert2band "$lte_modeext")
+    fi
+    
+    # Combine all LTE bands
+    [ -n "$lte_locked_bands_ext" ] && lte_locked_bands="$lte_locked_bands $lte_locked_bands_ext"
+    lte_locked_bands=$(echo "$lte_locked_bands" | xargs -n1 | sort -n | uniq | tr '\n' ' ' | xargs)
+    
+    # Output JSON
+    json_add_object "UMTS"
+    json_add_array "available_band"
+    for i in $(echo "$wcdma_available_band" | tr ',' ' '); do
+        add_avalible_band_entry "$i" "$(get_wcdma_band_name_lte "$i")"
+    done
+    json_close_array
+    json_add_array "lock_band"
+    for i in $wcdma_locked_bands; do
+        json_add_string "" "$i"
+    done
+    json_close_array
+    json_close_object
+    
+    json_add_object "LTE"
+    json_add_array "available_band"
+    for i in $(echo "$lte_available_band" | tr ',' ' '); do
+        add_avalible_band_entry "$i" "LTE_B$i"
+    done
+    json_close_array
+    json_add_array "lock_band"
+    for i in $lte_locked_bands; do
+        json_add_string "" "$i"
+    done
+    json_close_array
+    json_close_object
+}
+
 get_lockband()
 {
     json_add_object "lockband"
@@ -471,6 +680,9 @@ get_lockband()
         "qualcomm")
             get_lockband_nr $at_port
         ;;
+        "lte")
+            get_lockband_lte $at_port
+            ;;
         *)
             get_lockband_nr $at_port
         ;;
@@ -500,15 +712,52 @@ set_lockband_nr(){
     esac
 }
 
+set_lockband_lte(){
+    m_debug "SimCom LTE platform set lockband info"
+    case "$band_class" in
+        "UMTS")
+            # Convert WCDMA band list to hex format using bitmap
+            local wcdma_hex=$(convert2hex_lte "$lock_band")
+            wcdma_hex=$(normalize_hex_width "$wcdma_hex" 16)
+            at_command="AT+CNBP=$wcdma_hex"
+            res=$(at $at_port $at_command)
+            ;;
+        "LTE")
+            # Convert LTE band list to hex format using bitmap
+            local lte_bands=$(echo $lock_band | cut -d' ' -f1-32 | tr ' ' ',')
+            local lte_ext_bands=$(echo $lock_band | awk '{for(i=1;i<=NF;i++) if($i>32) print $i}' | tr '\n' ',')
+            
+            local lte_hex=$(convert2hex_lte "$lte_bands")
+            local lte_ext_hex="0x0"
+            [ -n "$lte_ext_bands" ] && lte_ext_hex=$(convert2hex_lte_ext "$lte_ext_bands")
+                lte_hex=$(normalize_hex_width "$lte_hex" 16)
+                lte_ext_hex=$(normalize_hex_width "$lte_ext_hex" 4)
+            
+            # Set bands: mode format is 0x<wcdma_hex>
+            # Get current WCDMA bands first by reading
+            local response=$(at $at_port "AT+CNBP?")
+            local current_mode=$(echo "$response" | grep "+CNBP:" | sed 's/+CNBP://g' | sed 's/\r//g' | cut -d',' -f1 | xargs)
+            [ -z "$current_mode" ] && current_mode="0x0"
+                current_mode=$(normalize_hex_width "$current_mode" 16)
+            
+            at_command="AT+CNBP=$current_mode,$lte_hex,$lte_ext_hex,0"
+            res=$(at $at_port $at_command)
+            ;;
+    esac
+}
+
 #设置锁频
 set_lockband()
 {
-    m_debug  "quectel set lockband info"
+    m_debug "simcom set lockband info"
     config=$1
-    #{"band_class":"NR","lock_band":"41,78,79"}
+    #{"band_class":"UMTS","lock_band":"1,2,3"} or {"band_class":"LTE","lock_band":"1,2,3"}
     band_class=$(echo $config | jq -r '.band_class')
     lock_band=$(echo $config | jq -r '.lock_band')
     case "$platform" in
+        "lte")
+            set_lockband_lte
+            ;;
         *)
             set_lockband_nr
         ;;
@@ -639,6 +888,7 @@ get_neighborcell(){
             get_neighborcell_qualcomm
         ;;
     esac
+    qmodem_lockcell_boot_hook_add_json "$config_section"
     json_close_object
 }
 
@@ -655,6 +905,7 @@ set_neighborcell(){
     arfcn=$(echo $json_param | jq -r '.arfcn')
     band=$(echo $json_param | jq -r '.band')
     scs=$(echo $json_param | jq -r '.scs')
+    en_boot_hook=$(echo $json_param | jq -r '.en_boot_hook // empty')
     case $platform in
         "qualcomm")
             lockcell_qualcomm
@@ -667,6 +918,11 @@ set_neighborcell(){
     json_add_string "arfcn" "$arfcn"
     json_add_string "band" "$band"
     json_add_string "scs" "$scs"
+    if qmodem_bool_enabled "$(uci -q get "qmodem.${config_section}.lockcell_boot_hook_enabled")"; then
+        json_add_boolean "boot_hook_enabled" 1
+    else
+        json_add_boolean "boot_hook_enabled" 0
+    fi
     json_close_object
 }
 
@@ -677,14 +933,17 @@ lockcell_qualcomm(){
         res1=$(at $at_port $unlocknr)
         res2=$(at $at_port $unlock4g)
         res=$res1,$res2
+        qmodem_lockcell_boot_hook_clear "$config_section"
     else
         lock4g="AT+CCELLCFG=1,$pci,$arfcn;+CNMP=38"
         locknr="AT+C5GCELLCFG=\"pci\",$pci,$arfcn,$scs,$band;+CNMP=71"
         if [ $rat = "1" ]; then
-            res=$(at $at_port $locknr)
+            lockcell_boot_cmd="$locknr"
         else
-            res=$(at $at_port $lock4g)
+            lockcell_boot_cmd="$lock4g"
         fi
+        res=$(at $at_port "$lockcell_boot_cmd")
+        qmodem_lockcell_boot_hook_sync "$config_section" "$en_boot_hook" "$lockcell_boot_cmd"
     fi
    
 }
@@ -1006,5 +1265,13 @@ cell_info()
         add_plain_info_entry "Tx Power" "$wcdma_tx_power" "Tx Power"
         add_plain_info_entry "RxLev" "$wcdma_rxlev" "Received Signal Level"
         ;;
+    esac
+}
+
+function vendor_get_disabled_features(){
+    case $platform in
+        "lte")
+            json_add_string "" "NeighborCell"
+            ;;
     esac
 }
