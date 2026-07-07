@@ -83,7 +83,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  		return false;
  
  	if (sdata->vif.type == NL80211_IFTYPE_AP_VLAN)
-@@ -4360,7 +4367,8 @@ void __ieee80211_subif_start_xmit(struct
+@@ -4378,7 +4385,8 @@ void __ieee80211_subif_start_xmit(struct
  		}
  	}
  
@@ -93,7 +93,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  	ieee80211_aggr_check(sdata, sta, skb);
  
  	if (sta) {
-@@ -4716,8 +4724,10 @@ static void ieee80211_8023_xmit(struct i
+@@ -4734,8 +4742,10 @@ static void ieee80211_8023_xmit(struct i
  	bool multicast;
  	u8 tid;
  
@@ -106,7 +106,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  
  	multicast = is_multicast_ether_addr(ra);
  
-@@ -6612,9 +6622,12 @@ int ieee80211_tx_control_port(struct wip
+@@ -6630,9 +6640,12 @@ int ieee80211_tx_control_port(struct wip
  	}
  
  	if (!IS_ERR(sta)) {
@@ -123,7 +123,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  		 * for MLO STA, the SA should be the AP MLD address, but
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -4990,6 +4990,9 @@ static int ieee80211_get_txq_stats(struc
+@@ -4994,6 +4994,9 @@ static int ieee80211_get_txq_stats(struc
  	struct ieee80211_sub_if_data *sdata;
  	int ret = 0;
  
@@ -247,7 +247,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  free:
  	sta_info_free_link(&sta->deflink);
  #ifdef CPTCFG_MAC80211_MESH
-@@ -1066,6 +1073,9 @@ static unsigned long ieee80211_tids_for_
+@@ -1071,6 +1078,9 @@ static unsigned long ieee80211_tids_for_
  
  static void __sta_info_recalc_tim(struct sta_info *sta, bool ignore_pending)
  {
@@ -257,7 +257,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  	struct ieee80211_local *local = sta->local;
  	struct ps_data *ps;
  	bool indicate_tim = false;
-@@ -1794,11 +1804,13 @@ void ieee80211_sta_ps_deliver_wakeup(str
+@@ -1799,11 +1809,13 @@ void ieee80211_sta_ps_deliver_wakeup(str
  	if (!ieee80211_hw_check(&local->hw, AP_LINK_PS))
  		drv_sta_notify(local, sdata, STA_NOTIFY_AWAKE, &sta->sta);
  
@@ -275,7 +275,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  	}
  
  	skb_queue_head_init(&pending);
-@@ -2213,6 +2225,9 @@ ieee80211_sta_ps_deliver_response(struct
+@@ -2218,6 +2230,9 @@ ieee80211_sta_ps_deliver_response(struct
  		 * TIM recalculation.
  		 */
  
@@ -285,7 +285,7 @@ Signed-off-by: Yuvasree Sivasankaran <quic_ysivasan@quicinc.com>
  		for (tid = 0; tid < ARRAY_SIZE(sta->sta.txq); tid++) {
  			if (!sta->sta.txq[tid] ||
  			    !(driver_release_tids & BIT(tid)) ||
-@@ -2667,7 +2682,7 @@ static void sta_set_tidstats(struct sta_
+@@ -2672,7 +2687,7 @@ static void sta_set_tidstats(struct sta_
  			link_sta_info->status_stats.msdu_failed[tid];
  	}
  
