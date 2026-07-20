@@ -393,7 +393,7 @@ define Device/zyxel_gs1900-8hp-a1
   DEVICE_VARIANT := A1
   ZYXEL_VERS := AAHI
   SUPPORTED_DEVICES += zyxel,gs1900-8hp-v1
-  DEVICE_PACKAGES += realtek-poe
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
 endef
 TARGET_DEVICES += zyxel_gs1900-8hp-a1
 
