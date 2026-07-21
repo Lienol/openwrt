@@ -27,10 +27,38 @@ struct srg_led_ctrl {
 	u8 control[5];
 };
 
+#define SRG_LED_WRITE_ATTEMPTS	5
+
 static int
 srg_led_i2c_write(struct srg_led_ctrl *sysled_ctrl, u8 reg, u8 value)
 {
-	return i2c_smbus_write_byte_data(sysled_ctrl->client, reg, value);
+	struct i2c_client *client = sysled_ctrl->client;
+	int attempt, ret;
+
+	/*
+	 * The MCU ACKs but silently discards register writes arriving
+	 * while it is still processing a previous one; on mt7622 boards
+	 * back-to-back writes spaced under ~3ms are dropped (fw 2.4),
+	 * while 5ms spacing measured fully reliable. Wait out the
+	 * consumption time, then read the register back and rewrite
+	 * until the value actually latched.
+	 */
+	for (attempt = 0; attempt < SRG_LED_WRITE_ATTEMPTS; attempt++) {
+		ret = i2c_smbus_write_byte_data(client, reg, value);
+		if (ret)
+			return ret;
+
+		usleep_range(5000, 7000);
+
+		ret = i2c_smbus_read_byte_data(client, reg);
+		if (ret == value)
+			return 0;
+	}
+
+	dev_warn_ratelimited(&client->dev,
+			     "failed to latch 0x%02x in reg 0x%02x (last read %d)\n",
+			     value, reg, ret);
+	return ret < 0 ? ret : -EIO;
 }
 
 /*
@@ -117,17 +145,18 @@ srg_led_set_brightness(struct led_classdev *led_cdev,
 }
 
 static int
-srg_led_init_led(struct srg_led_ctrl *sysled_ctrl, struct device_node *np)
+srg_led_init_led(struct srg_led_ctrl *sysled_ctrl, struct fwnode_handle *fw)
 {
 	struct led_init_data init_data = {};
 	struct led_classdev *led_cdev;
 	struct srg_led *sysled;
+	const char *name;
 	int index, ret;
 
-	if (!np)
+	if (!fw)
 		return -ENOENT;
 
-	ret = of_property_read_u32(np, "reg", &index);
+	ret = fwnode_property_read_u32(fw, "reg", &index);
 	if (ret) {
 		dev_err(&sysled_ctrl->client->dev,
 			"srg_led_init_led: no reg defined in np!\n");
@@ -143,9 +172,12 @@ srg_led_init_led(struct srg_led_ctrl *sysled_ctrl, struct device_node *np)
 	sysled->index = index;
 	sysled->ctrl = sysled_ctrl;
 
-	init_data.fwnode = of_fwnode_handle(np);
+	init_data.fwnode = fw;
 
-	led_cdev->name = of_get_property(np, "label", NULL) ? : np->name;
+	if (fwnode_property_read_string(fw, "label", &name))
+		name = fwnode_get_name(fw);
+
+	led_cdev->name = name;
 	led_cdev->brightness = LED_OFF;
 	/* MCU documented brightness range ends at 254 */
 	led_cdev->max_brightness = 254;
@@ -169,28 +201,24 @@ srg_led_init_led(struct srg_led_ctrl *sysled_ctrl, struct device_node *np)
 static int
 srg_led_probe(struct i2c_client *client)
 {
-	struct device_node *np = client->dev.of_node;
+	struct device *dev = &client->dev;
 	struct srg_led_ctrl *sysled_ctrl;
 	int err;
 
-	sysled_ctrl = devm_kzalloc(&client->dev, sizeof(*sysled_ctrl), GFP_KERNEL);
+	sysled_ctrl = devm_kzalloc(dev, sizeof(*sysled_ctrl), GFP_KERNEL);
 	if (!sysled_ctrl)
 		return -ENOMEM;
 
 	sysled_ctrl->client = client;
 
-	err = devm_mutex_init(&client->dev, &sysled_ctrl->lock);
+	err = devm_mutex_init(dev, &sysled_ctrl->lock);
 	if (err)
 		return err;
 
 	i2c_set_clientdata(client, sysled_ctrl);
 
-	for_each_available_child_of_node_scoped(np, child) {
-		if (srg_led_init_led(sysled_ctrl, child))
-			continue;
-
-		msleep(5);
-	}
+	device_for_each_child_node_scoped(dev, child)
+		srg_led_init_led(sysled_ctrl, child);
 
 	return srg_led_control_sync(sysled_ctrl);
 }
