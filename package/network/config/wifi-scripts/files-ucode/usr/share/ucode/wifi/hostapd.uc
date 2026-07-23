@@ -141,13 +141,6 @@ function device_cell_density_append(config) {
 	}
 }
 
-function device_rates(config) {
-	for (let key in [ 'supported_rates', 'basic_rates' ])
-		config[key] = map(config[key], x => x / 100);
-
-	append_vars(config, [ 'beacon_rate', 'supported_rates', 'basic_rates' ]);
-}
-
 function device_htmode_append(config) {
 	config.channel_offset = config.band == '6g' ? 1 : 0;
 
@@ -323,7 +316,7 @@ function device_htmode_append(config) {
 		set_default(config, 'tx_queue_data2_burst', '2.0');
 
 		let vht_capab = phy_capabilities.vht_capa;
-		
+
 		config.vht_capab = '';
 		if (vht_capab & 0x10 && config.rxldpc)
 			config.vht_capab += '[RXLDPC]';
@@ -430,12 +423,15 @@ function device_htmode_append(config) {
 			config.he_mu_beamformer = false;
 		if (!(he_phy_cap[7] & 0x1))
 			config.he_spr_psr_enabled = false;
-		if (!(he_mac_cap[0] & 0x1))
+		if (!(he_mac_cap[0] & 0x4))
+			config.he_twt_responder = false;
+		if (!config.he_twt_responder)
 			config.he_twt_required= false;
 
 		append_vars(config, [
 			'ieee80211ax', 'he_oper_chwidth', 'he_oper_centr_freq_seg0_idx',
-			'he_su_beamformer', 'he_su_beamformee', 'he_mu_beamformer', 'he_twt_required',
+			'he_su_beamformer', 'he_su_beamformee', 'he_mu_beamformer',
+			'he_twt_required', 'he_twt_responder',
 			'he_default_pe_duration', 'he_rts_threshold', 'he_mu_edca_qos_info_param_count',
 			'he_mu_edca_qos_info_q_ack', 'he_mu_edca_qos_info_queue_request', 'he_mu_edca_qos_info_txop_request',
 			'he_mu_edca_ac_be_aifsn', 'he_mu_edca_ac_be_aci', 'he_mu_edca_ac_be_ecwmin',
@@ -449,8 +445,21 @@ function device_htmode_append(config) {
 	}
 
 	if (wildcard(config.htmode, 'EHT*')) {
+		let eht_phy_cap = phy_capabilities.eht_phy_cap;
+
 		config.ieee80211be = true;
-		append_vars(config, [ 'ieee80211be' ]);
+
+		if (!(eht_phy_cap[0] & 0x20))
+			config.eht_su_beamformer = false;
+		if (!(eht_phy_cap[0] & 0x40))
+			config.eht_su_beamformee = false;
+		if (!(eht_phy_cap[7] & 0x70))
+			config.eht_mu_beamformer = false;
+
+		append_vars(config, [
+			'ieee80211be', 'eht_su_beamformer', 'eht_su_beamformee',
+			'eht_mu_beamformer',
+		]);
 
 		if (config.hw_mode == 'a')
 			append_vars(config, [ 'eht_oper_chwidth', 'eht_oper_centr_freq_seg0_idx' ]);
@@ -460,7 +469,7 @@ function device_htmode_append(config) {
 }
 
 function device_extended_features(data, flag) {
-	return !!(data[flag / 8] | (1 << (flag % 8)));
+	return !!(data[flag / 8] & (1 << (flag % 8)));
 }
 
 function device_capabilities(config) {
@@ -473,11 +482,13 @@ function device_capabilities(config) {
 	phy_capabilities.vht_capa = band.vht_capa ?? 0;
 	phy_capabilities.he_mac_cap = [];
 	phy_capabilities.he_phy_cap = [];
+	phy_capabilities.eht_phy_cap = [];
 	for (let iftype in band.iftype_data) {
 		if (!iftype.iftypes.ap)
 			continue;
 		phy_capabilities.he_mac_cap = iftype.he_cap_mac;
 		phy_capabilities.he_phy_cap = iftype.he_cap_phy;
+		phy_capabilities.eht_phy_cap = iftype.eht_cap_phy;
 	}
 
 	phy_features.ftm_responder = device_extended_features(phy.extended_features, NL80211_EXT_FEATURE_ENABLE_FTM_RESPONDER);
@@ -500,8 +511,6 @@ function generate(config) {
 	device_country_code(config);
 
 	device_cell_density_append(config);
-
-	device_rates(config);
 
 	/* beacon */
 	append_vars(config, [ 'beacon_int', 'beacon_rate', 'rnr_beacon' ]);
@@ -573,6 +582,10 @@ export function setup(data) {
 		append('\n#num_global_macaddr', data.config.num_global_macaddr);
 	if (data.config.macaddr_base)
 		append('\n#macaddr_base', data.config.macaddr_base);
+	if (data.config.frequency)
+		append('\n#frequency', data.config.frequency);
+	if (data.channel_follow)
+		append('\n#channel_follow', 1);
 
 	let has_ap;
 	for (let k, interface in data.interfaces) {
