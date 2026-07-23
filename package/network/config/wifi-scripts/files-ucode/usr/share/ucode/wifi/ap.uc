@@ -4,11 +4,11 @@ import * as libuci from 'uci';
 import { md5 } from 'digest';
 import * as fs from 'fs';
 
-import { append, append_raw, append_value, append_vars, append_string_vars, comment, push_config, set_default, touch_file } from 'wifi.common';
+import { append, append_raw, append_value, append_vars, append_list, append_string_vars, comment, push_config, set_default, touch_file } from 'wifi.common';
 import * as netifd from 'wifi.netifd';
 import * as iface from 'wifi.iface';
 
-function iface_setup(config) {
+function iface_setup(config, phy, num_global_macaddr, macaddr_base) {
 	switch(config.fixup) {
 	case 'owe':
 		config.ignore_broadcast_ssid = true;
@@ -22,7 +22,11 @@ function iface_setup(config) {
 		config.owe_transition_ssid = config.ssid + 'OWE';
 		config.encryption = 'none';
 		config.ignore_broadcast_ssid = false;
-		iface.prepare(config);
+		/* the transition BSS needs its own address, not the main BSS's */
+		config.macaddr = null;
+		delete config.default_macaddr;
+		delete config.random_macaddr;
+		iface.prepare(config, phy, num_global_macaddr, macaddr_base);
 		break;
 	}
 	
@@ -51,6 +55,10 @@ function iface_setup(config) {
 	config.wmm_enabled = 1;
 	append_string_vars(config, [ 'ssid2' ]);
 
+	/* vendor_elements is a single concatenated hex blob, not one per line */
+	if (type(config.vendor_elements) == 'array')
+		config.vendor_elements = join('', config.vendor_elements);
+
 	append_vars(config, [
 		'ctrl_interface', 'ap_isolate', 'max_num_sta', 'ap_max_inactivity', 'airtime_bss_weight',
 		'airtime_bss_limit', 'airtime_sta_weight', 'bss_load_update_period', 'chan_util_avg_period',
@@ -69,7 +77,7 @@ function iface_authentication_server(config) {
 		append_vars(config, [ 'auth_server_port', 'auth_server_shared_secret' ]);
 	}
 
-	append_vars(config, [ 'radius_auth_req_attr' ]);
+	append_list(config, [ 'radius_auth_req_attr' ]);
 }
 
 function iface_accounting_server(config) {
@@ -78,11 +86,11 @@ function iface_accounting_server(config) {
 		append_vars(config, [ 'acct_server_port', 'acct_server_shared_secret' ]);
 	}
 
-	append_vars(config, [ 'radius_acct_req_attr' ]);
+	append_list(config, [ 'radius_acct_req_attr' ]);
 }
 
 function iface_auth_type(config, band) {
-	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192' ])
+	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192', 'dpp' ])
 		config.ieee80211w = 2;
 
 	if (config.auth_type in [ 'psk-sae', 'eap-eap2' ])
@@ -131,6 +139,12 @@ function iface_auth_type(config, band) {
 		append_string_vars(config, [ 'owe_transition_ssid' ]);
 		append_vars(config, [
 			'owe_transition_bssid', 'owe_transition_ifname',
+		]);
+		break;
+
+	case 'dpp':
+		append_vars(config, [
+			'dpp_connector', 'dpp_csign', 'dpp_netaccesskey',
 		]);
 		break;
 
@@ -207,6 +221,11 @@ function iface_auth_type(config, band) {
 		'wpa_disable_eapol_key_retries', 'auth_algs', 'wpa', 'wpa_pairwise',
 		'erp_domain', 'fils_realm', 'erp_send_reauth_start', 'fils_cache_id'
 	]);
+
+	if (config.dpp && config.auth_type != 'dpp')
+		append_vars(config, [
+			'dpp_connector', 'dpp_csign', 'dpp_netaccesskey',
+		]);
 }
 
 function iface_ppsk(config) {
@@ -243,7 +262,7 @@ function iface_wps(config) {
 
 		append_vars(config, [
 			'wps_state', 'device_type', 'device_name', 'config_methods', 'wps_independent', 'eap_server',
-			'ap_pin', 'ap_setup_locked', 'upnp_iface'
+			'ap_pin', 'ap_setup_locked', 'upnp_iface', 'uuid'
 		]);
 	}
 }
@@ -511,8 +530,9 @@ function iface_hs20(config) {
 	append_vars(config, [
 		'hs20', 'disable_dgaf', 'anqp_domain_id', 'hs20_deauth_req_timeout',
 		'hs20_wan_metrics', 'hs20_operating_class', 'hs20_t_c_filename', 'hs20_t_c_timestamp',
-		'hs20_t_c_server_url', 'hs20_conn_capab'
+		'hs20_t_c_server_url'
 	]);
+	append_list(config, [ 'hs20_conn_capab' ]);
 }
 
 function iface_interworking(config) {
@@ -525,20 +545,21 @@ function iface_interworking(config) {
 		config.domain_name = join(',', config.domain_name);
 
 	if (config.anqp_3gpp_cell_net)
-		config.domain_name = join(',', config.anqp_3gpp_cell_net);
+		config.anqp_3gpp_cell_net = join(';', config.anqp_3gpp_cell_net);
 
 	append_vars(config, [
 		'interworking', 'internet', 'asra', 'uesa', 'access_network_type', 'hessid', 'venue_group',
-		'venue_type', 'network_auth_type', 'gas_address3', 'roaming_consortium', 'anqp_elem', 'nai_realm',
-		'venue_name', 'venue_url', 'domain_name', 'anqp_3gpp_cell_net',
+		'venue_type', 'network_auth_type', 'gas_address3', 'roaming_consortium',
+		'domain_name', 'anqp_3gpp_cell_net',
 	]);
+	append_list(config, [ 'anqp_elem', 'nai_realm', 'venue_name', 'venue_url' ]);
 }
 
 export function generate(interface, data, config, vlans, stas, phy_features) {
 	config.ctrl_interface = '/var/run/hostapd';
 
 	config.start_disabled = data.ap_start_disabled;
-	iface_setup(config);
+	iface_setup(config, data.phy + data.phy_suffix, data.config.num_global_macaddr, data.config.macaddr_base);
 
 	iface.parse_encryption(config, data.config, phy_features);
 	if (data.config.band == '6g') {
