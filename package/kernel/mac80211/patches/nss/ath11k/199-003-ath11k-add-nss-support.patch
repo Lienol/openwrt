@@ -380,7 +380,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  				       enum hal_encrypt_type enctype)
  {
  	switch (enctype) {
-@@ -2816,6 +2819,22 @@ static void ath11k_dp_rx_process_receive
+@@ -2815,6 +2818,22 @@ static void ath11k_dp_rx_process_receive
  	}
  }
  
@@ -403,7 +403,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  int ath11k_dp_process_rx(struct ath11k_base *ab, int ring_id,
  			 struct napi_struct *napi, int budget)
  {
-@@ -3115,7 +3134,8 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3114,7 +3133,8 @@ static void ath11k_dp_rx_update_user_sta
  	peer = ath11k_peer_find_by_ast(ar->ab, user_stats->ast_index);
  
  	if (peer == NULL) {
@@ -413,7 +413,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  			    user_stats->ast_index);
  		return;
  	}
-@@ -3123,6 +3143,13 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3122,6 +3142,13 @@ static void ath11k_dp_rx_update_user_sta
  	arsta = (struct ath11k_sta *)peer->sta->drv_priv;
  	rx_stats = arsta->rx_stats;
  
@@ -427,7 +427,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	if (!rx_stats)
  		return;
  
-@@ -3199,8 +3226,10 @@ static void ath11k_dp_rx_update_peer_mu_
+@@ -3198,8 +3225,10 @@ static void ath11k_dp_rx_update_peer_mu_
  {
  	u32 num_users, i;
  
@@ -439,7 +439,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  
  	num_users = ppdu_info->num_users;
  	if (num_users > HAL_MAX_UL_MU_USERS)
-@@ -5694,7 +5723,7 @@ int ath11k_dp_rx_process_mon_status(stru
+@@ -5693,7 +5722,7 @@ int ath11k_dp_rx_process_mon_status(stru
  	struct sk_buff *skb;
  	struct sk_buff_head skb_list;
  	struct ath11k_peer *peer;
@@ -448,7 +448,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	int num_buffs_reaped = 0;
  	u32 rx_buf_sz;
  	u16 log_type;
-@@ -5765,6 +5794,7 @@ int ath11k_dp_rx_process_mon_status(stru
+@@ -5764,6 +5793,7 @@ int ath11k_dp_rx_process_mon_status(stru
  			if (ppdu_info->reception_type == HAL_RX_RECEPTION_TYPE_SU) {
  				arsta = (struct ath11k_sta *)peer->sta->drv_priv;
  				ath11k_dp_rx_update_peer_su_stats(arsta, ppdu_info);

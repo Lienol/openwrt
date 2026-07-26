@@ -29,7 +29,7 @@
  
  		memset(&status, 0, sizeof(status));
  
-@@ -2999,8 +2999,7 @@ static void ath11k_dp_rx_h_mpdu(struct a
+@@ -2998,8 +2998,7 @@ static void ath11k_dp_rx_h_mpdu(struct a
  				msdu->protocol = eth_type_trans(msdu, msdu->dev);
  				napi_gro_receive(rxcb->napi, msdu);
  				if (peer->sta)
@@ -39,7 +39,7 @@
  				return;
  			}
  		}
-@@ -3743,7 +3742,7 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3742,7 +3741,7 @@ static void ath11k_dp_rx_update_user_sta
  		return;
  	}
  
@@ -48,7 +48,7 @@
  	rx_stats = arsta->rx_stats;
  
  	if (ar->ab->nss.enabled)
-@@ -6464,7 +6463,7 @@ int ath11k_dp_rx_process_mon_status(stru
+@@ -6463,7 +6462,7 @@ int ath11k_dp_rx_process_mon_status(stru
  		if ((ppdu_info->fc_valid) &&
  		    (ppdu_info->ast_index != HAL_AST_IDX_INVALID)) {
  			if (ppdu_info->reception_type == HAL_RX_RECEPTION_TYPE_SU) {

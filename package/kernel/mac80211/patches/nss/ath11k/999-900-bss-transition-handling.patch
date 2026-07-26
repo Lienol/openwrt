@@ -455,7 +455,7 @@
  		break;
  	case HTT_T2H_MSG_TYPE_PPDU_STATS_IND:
  		ath11k_htt_pull_ppdu_stats(ab, skb);
-@@ -2866,25 +2882,25 @@ static void ath11k_dp_rx_h_undecap(struc
+@@ -2866,24 +2882,24 @@ static void ath11k_dp_rx_h_undecap(struc
  }
  
  static struct ath11k_peer *
@@ -469,9 +469,8 @@
 -	lockdep_assert_held(&ab->base_lock);
 +	lockdep_assert_held(&ar->ab->base_lock);
  
- 	if (rxcb->peer_id)
--		peer = ath11k_peer_find_by_id(ab, rxcb->peer_id);
-+		peer = ath11k_peer_find_by_id(ar, rxcb->peer_id);
+-	peer = ath11k_peer_find_by_id(ab, rxcb->peer_id);
++	peer = ath11k_peer_find_by_id(ar, rxcb->peer_id);
  
  	if (peer)
  		return peer;
@@ -487,7 +486,7 @@
  	return peer;
  }
  
-@@ -2928,7 +2944,7 @@ static bool ath11k_dp_rx_check_fast_rx(s
+@@ -2927,7 +2943,7 @@ static bool ath11k_dp_rx_check_fast_rx(s
  		return false;
  
  	/* check if the msdu needs to be bridged to our connected peer */
@@ -496,7 +495,7 @@
  
  	if (f_peer && f_peer != peer)
  		return false;
-@@ -2967,7 +2983,7 @@ static void ath11k_dp_rx_h_mpdu(struct a
+@@ -2966,7 +2982,7 @@ static void ath11k_dp_rx_h_mpdu(struct a
  	}
  
  	spin_lock_bh(&ar->ab->base_lock);
@@ -505,7 +504,7 @@
  	if (peer) {
  		/* If the pkt is a valid IP packet and peer supports
  		 * fast rx, deliver directly to net, also note that
-@@ -3195,7 +3211,7 @@ static void ath11k_dp_rx_deliver_msdu(st
+@@ -3194,7 +3210,7 @@ static void ath11k_dp_rx_deliver_msdu(st
  		decap = ath11k_dp_rx_h_msdu_start_decap_type(ar->ab, rxcb->rx_desc);
  
  	spin_lock_bh(&ar->ab->base_lock);
@@ -514,7 +513,7 @@
  	if (peer && peer->sta)
  		pubsta = peer->sta;
  	spin_unlock_bh(&ar->ab->base_lock);
-@@ -3718,7 +3734,7 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3717,7 +3733,7 @@ static void ath11k_dp_rx_update_user_sta
  	if (user_stats->ast_index == 0 || user_stats->ast_index == 0xFFFF)
  		return;
  
@@ -523,7 +522,7 @@
  
  	if (peer == NULL) {
  		if (!ar->ab->nss.enabled)
-@@ -4193,7 +4209,7 @@ int ath11k_peer_rx_frag_setup(struct ath
+@@ -4192,7 +4208,7 @@ int ath11k_peer_rx_frag_setup(struct ath
  
  	spin_lock_bh(&ab->base_lock);
  
@@ -532,7 +531,7 @@
  	if (!peer) {
  		ath11k_warn(ab, "failed to find the peer to set up fragment info\n");
  		spin_unlock_bh(&ab->base_lock);
-@@ -4649,7 +4665,7 @@ static int ath11k_dp_rx_frag_h_mpdu(stru
+@@ -4648,7 +4664,7 @@ static int ath11k_dp_rx_frag_h_mpdu(stru
  		return -EINVAL;
  
  	spin_lock_bh(&ab->base_lock);
@@ -541,7 +540,7 @@
  	if (!peer) {
  		ath11k_warn(ab, "failed to find the peer to de-fragment received fragment peer_id %d\n",
  			    peer_id);
-@@ -4711,7 +4727,7 @@ static int ath11k_dp_rx_frag_h_mpdu(stru
+@@ -4710,7 +4726,7 @@ static int ath11k_dp_rx_frag_h_mpdu(stru
  	timer_delete_sync(&rx_tid->frag_timer);
  	spin_lock_bh(&ab->base_lock);
  
@@ -550,7 +549,7 @@
  	if (!peer)
  		goto err_frags_cleanup;
  
-@@ -6401,7 +6417,7 @@ int ath11k_dp_rx_process_mon_status(stru
+@@ -6400,7 +6416,7 @@ int ath11k_dp_rx_process_mon_status(stru
  			trace_ath11k_htt_rxdesc(ar, skb->data, log_type, rx_buf_sz);
  
  		ppdu_info->peer_id = HAL_INVALID_PEERID;
@@ -559,7 +558,7 @@
  
  		if (test_bit(ATH11K_FLAG_MONITOR_STARTED, &ar->monitor_flags) &&
  		    pmon->mon_ppdu_status == DP_PPDU_STATUS_START &&
-@@ -6436,7 +6452,7 @@ int ath11k_dp_rx_process_mon_status(stru
+@@ -6435,7 +6451,7 @@ int ath11k_dp_rx_process_mon_status(stru
  
  		rcu_read_lock();
  		spin_lock_bh(&ab->base_lock);
@@ -638,21 +637,18 @@
  		struct hal_rx_phyrx_rssi_legacy_info *rssi =
  			(struct hal_rx_phyrx_rssi_legacy_info *)tlv_data;
  		u32 reception_type = 0;
-@@ -1542,11 +1541,11 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
+@@ -1541,8 +1540,8 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
+ 		struct hal_rx_mpdu_info *mpdu_info =
  				(struct hal_rx_mpdu_info *)tlv_data;
- 		u16 peer_id;
  
--		peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ab, mpdu_info);
-+		peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ar->ab, mpdu_info);
- 		if (peer_id)
- 			ppdu_info->peer_id = peer_id;
- 
+-		ppdu_info->peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ab, mpdu_info);
 -		ppdu_info->mpdu_len += ab->hw_params.hw_ops->rx_desc_get_hal_mpdu_len(mpdu_info);
++		ppdu_info->peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ar->ab, mpdu_info);
 +		ppdu_info->mpdu_len += ar->ab->hw_params.hw_ops->rx_desc_get_hal_mpdu_len(mpdu_info);
- 
  		break;
  	}
-@@ -1574,7 +1573,7 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
+ 	case HAL_RXPCU_PPDU_END_INFO: {
+@@ -1569,7 +1568,7 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
  }
  
  enum hal_rx_mon_status
@@ -661,7 +657,7 @@
  			       struct hal_rx_mon_ppdu_info *ppdu_info,
  			       struct sk_buff *skb)
  {
-@@ -1600,7 +1599,7 @@ ath11k_hal_rx_parse_mon_status(struct at
+@@ -1595,7 +1594,7 @@ ath11k_hal_rx_parse_mon_status(struct at
  		if (tlv_tag == HAL_RX_PPDU_END)
  			tlv_len = sizeof(struct hal_rx_rxpcu_classification_overview);
  

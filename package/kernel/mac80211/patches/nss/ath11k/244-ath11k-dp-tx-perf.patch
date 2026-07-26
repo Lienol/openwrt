@@ -107,7 +107,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		spin_lock_bh(&dp->tx_ring[i].tx_idr_lock);
  		idr_for_each(&dp->tx_ring[i].txbuf_idr,
  			     ath11k_dp_tx_pending_cleanup, ab);
-@@ -1105,7 +1110,7 @@ int ath11k_dp_alloc(struct ath11k_base *
+@@ -1106,7 +1111,7 @@ int ath11k_dp_alloc(struct ath11k_base *
  
  	size = sizeof(struct hal_wbm_release_ring) * DP_TX_COMP_RING_SIZE;
  

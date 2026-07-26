@@ -269,7 +269,7 @@ Signed-off-by: Manikanta Pubbisetty <mpubbise@codeaurora.org>
  			    &fops_htt_peer_stats);
 --- a/drivers/net/wireless/ath/ath11k/dp_rx.c
 +++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
-@@ -2752,10 +2752,43 @@ exit:
+@@ -2751,10 +2751,43 @@ exit:
  	return total_msdu_reaped;
  }
  
@@ -313,7 +313,7 @@ Signed-off-by: Manikanta Pubbisetty <mpubbise@codeaurora.org>
  	u32 num_msdu;
  	int i;
  
-@@ -2765,6 +2798,8 @@ static void ath11k_dp_rx_update_peer_sta
+@@ -2764,6 +2797,8 @@ static void ath11k_dp_rx_update_peer_sta
  	arsta->rssi_comb = ppdu_info->rssi_comb;
  	ewma_avg_rssi_add(&arsta->avg_rssi, ppdu_info->rssi_comb);
  
@@ -322,7 +322,7 @@ Signed-off-by: Manikanta Pubbisetty <mpubbise@codeaurora.org>
  	num_msdu = ppdu_info->tcp_msdu_count + ppdu_info->tcp_ack_msdu_count +
  		   ppdu_info->udp_msdu_count + ppdu_info->other_msdu_count;
  
-@@ -2781,18 +2816,6 @@ static void ath11k_dp_rx_update_peer_sta
+@@ -2780,18 +2815,6 @@ static void ath11k_dp_rx_update_peer_sta
  		ppdu_info->tid = IEEE80211_NUM_TIDS;
  	}
  
@@ -341,7 +341,7 @@ Signed-off-by: Manikanta Pubbisetty <mpubbise@codeaurora.org>
  	if (ppdu_info->ldpc < HAL_RX_SU_MU_CODING_MAX)
  		rx_stats->coding_count[ppdu_info->ldpc] += num_msdu;
  
-@@ -2829,6 +2852,52 @@ static void ath11k_dp_rx_update_peer_sta
+@@ -2828,6 +2851,52 @@ static void ath11k_dp_rx_update_peer_sta
  
  	rx_stats->rx_duration += ppdu_info->rx_duration;
  	arsta->rx_duration = rx_stats->rx_duration;
@@ -527,13 +527,11 @@ Signed-off-by: Manikanta Pubbisetty <mpubbise@codeaurora.org>
  		ppdu_info->reception_type = HAL_RX_RECEPTION_TYPE_SU;
  		break;
  	}
-@@ -1472,6 +1506,9 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
- 		peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ab, mpdu_info);
- 		if (peer_id)
- 			ppdu_info->peer_id = peer_id;
-+
+@@ -1469,6 +1503,7 @@ ath11k_hal_rx_parse_mon_status_tlv(struc
+ 				(struct hal_rx_mpdu_info *)tlv_data;
+ 
+ 		ppdu_info->peer_id = ath11k_hal_rx_mpduinfo_get_peerid(ab, mpdu_info);
 +		ppdu_info->mpdu_len += ab->hw_params.hw_ops->rx_desc_get_hal_mpdu_len(mpdu_info);
-+
  		break;
  	}
  	case HAL_RXPCU_PPDU_END_INFO: {

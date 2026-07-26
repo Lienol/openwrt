@@ -152,7 +152,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  				   tlv_tag, ptr - begin, len, tlv_len);
  			return -EINVAL;
  		}
-@@ -2444,10 +2450,60 @@ ath11k_dp_rx_h_find_peer(struct ath11k_b
+@@ -2443,10 +2449,60 @@ ath11k_dp_rx_h_find_peer(struct ath11k_b
  	return peer;
  }
  
@@ -214,7 +214,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  {
  	bool  fill_crypto_hdr;
  	enum hal_encrypt_type enctype;
-@@ -2458,9 +2514,13 @@ static void ath11k_dp_rx_h_mpdu(struct a
+@@ -2457,9 +2513,13 @@ static void ath11k_dp_rx_h_mpdu(struct a
  	struct rx_attention *rx_attention;
  	u32 err_bitmap;
  
@@ -229,7 +229,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	rxcb->is_mcbc = fill_crypto_hdr;
  
  	if (rxcb->is_mcbc) {
-@@ -2471,6 +2531,26 @@ static void ath11k_dp_rx_h_mpdu(struct a
+@@ -2470,6 +2530,26 @@ static void ath11k_dp_rx_h_mpdu(struct a
  	spin_lock_bh(&ar->ab->base_lock);
  	peer = ath11k_dp_rx_h_find_peer(ar->ab, msdu);
  	if (peer) {
@@ -256,7 +256,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		if (rxcb->is_mcbc)
  			enctype = peer->sec_type_grp;
  		else
-@@ -2480,6 +2560,8 @@ static void ath11k_dp_rx_h_mpdu(struct a
+@@ -2479,6 +2559,8 @@ static void ath11k_dp_rx_h_mpdu(struct a
  	}
  	spin_unlock_bh(&ar->ab->base_lock);
  
@@ -265,7 +265,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	rx_attention = ath11k_dp_rx_get_attention(ar->ab, rx_desc);
  	err_bitmap = ath11k_dp_rx_h_attn_mpdu_err(rx_attention);
  	if (enctype != HAL_ENCRYPT_TYPE_OPEN && !err_bitmap)
-@@ -2721,7 +2803,8 @@ static void ath11k_dp_rx_deliver_msdu(st
+@@ -2720,7 +2802,8 @@ static void ath11k_dp_rx_deliver_msdu(st
  static int ath11k_dp_rx_process_msdu(struct ath11k *ar,
  				     struct sk_buff *msdu,
  				     struct sk_buff_head *msdu_list,
@@ -275,7 +275,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  {
  	struct ath11k_base *ab = ar->ab;
  	struct hal_rx_desc *rx_desc, *lrx_desc;
-@@ -2788,8 +2871,13 @@ static int ath11k_dp_rx_process_msdu(str
+@@ -2787,8 +2870,13 @@ static int ath11k_dp_rx_process_msdu(str
  		}
  	}
  
@@ -290,7 +290,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
  	rx_status->flag |= RX_FLAG_SKIP_MONITOR | RX_FLAG_DUP_VALIDATED;
  
-@@ -2804,10 +2892,12 @@ static void ath11k_dp_rx_process_receive
+@@ -2803,10 +2891,12 @@ static void ath11k_dp_rx_process_receive
  						  struct sk_buff_head *msdu_list,
  						  int mac_id)
  {
@@ -303,7 +303,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
  	if (skb_queue_empty(msdu_list))
  		return;
-@@ -2824,7 +2914,12 @@ static void ath11k_dp_rx_process_receive
+@@ -2823,7 +2913,12 @@ static void ath11k_dp_rx_process_receive
  	}
  
  	while ((msdu = __skb_dequeue(msdu_list))) {
@@ -317,7 +317,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  		if (unlikely(ret)) {
  			ath11k_dbg(ab, ATH11K_DBG_DATA,
  				   "Unable to process msdu %d", ret);
-@@ -2832,7 +2927,10 @@ static void ath11k_dp_rx_process_receive
+@@ -2831,7 +2926,10 @@ static void ath11k_dp_rx_process_receive
  			continue;
  		}
  
@@ -329,7 +329,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	}
  }
  
-@@ -2841,11 +2939,12 @@ void ath11k_dp_rx_from_nss(struct ath11k
+@@ -2840,11 +2938,12 @@ void ath11k_dp_rx_from_nss(struct ath11k
  {
  	struct ieee80211_rx_status rx_status = {0};
  	struct ath11k_skb_rxcb *rxcb;
@@ -343,7 +343,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  
  	rx_status.flag |= RX_FLAG_SKIP_MONITOR | RX_FLAG_DUP_VALIDATED;
  
-@@ -4379,6 +4478,7 @@ static int ath11k_dp_rx_h_null_q_desc(st
+@@ -4378,6 +4477,7 @@ static int ath11k_dp_rx_h_null_q_desc(st
  				      struct ieee80211_rx_status *status,
  				      struct sk_buff_head *msdu_list)
  {
@@ -351,7 +351,7 @@ Signed-off-by: P Praneesh <ppranees@codeaurora.org>
  	u16 msdu_len;
  	struct hal_rx_desc *desc = (struct hal_rx_desc *)msdu->data;
  	struct rx_attention *rx_attention;
-@@ -4428,7 +4528,8 @@ static int ath11k_dp_rx_h_null_q_desc(st
+@@ -4427,7 +4527,8 @@ static int ath11k_dp_rx_h_null_q_desc(st
  	}
  	ath11k_dp_rx_h_ppdu(ar, desc, status);
  
