@@ -35,7 +35,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	NUM_IEEE80211_HW_FLAGS
 --- a/net/mac80211/debugfs.c
 +++ b/net/mac80211/debugfs.c
-@@ -512,6 +512,7 @@ static const char *hw_flag_names[] = {
+@@ -508,6 +508,7 @@ static const char *hw_flag_names[] = {
  	FLAG(STRICT),
  	FLAG(SUPPORTS_NSS_OFFLOAD),
  	FLAG(SUPPORTS_MESH_NSS_OFFLOAD),

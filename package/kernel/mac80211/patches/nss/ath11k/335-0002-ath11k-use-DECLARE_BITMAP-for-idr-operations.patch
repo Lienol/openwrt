@@ -99,8 +99,8 @@ Signed-off-by: Venkateswara Naralasetty <quic_vnaralas@quicinc.com>
 -		idr_destroy(&dp->tx_ring[i].txbuf_idr);
 -		spin_unlock_bh(&dp->tx_ring[i].tx_idr_lock);
  		kfree(dp->tx_ring[i].tx_status);
+ 		dp->tx_ring[i].tx_status = NULL;
  	}
- 
 --- a/drivers/net/wireless/ath/ath11k/dp.h
 +++ b/drivers/net/wireless/ath/ath11k/dp.h
 @@ -8,6 +8,7 @@

@@ -34,7 +34,7 @@ Signed-off-by: Anilkumar Kolli <akolli@codeaurora.org>
 
 --- a/drivers/net/wireless/ath/ath11k/core.c
 +++ b/drivers/net/wireless/ath/ath11k/core.c
-@@ -2403,5 +2403,17 @@ err_sc_free:
+@@ -2431,5 +2431,17 @@ err_sc_free:
  }
  EXPORT_SYMBOL(ath11k_core_alloc);
  

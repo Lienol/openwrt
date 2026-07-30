@@ -49,7 +49,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  #endif /* __NET_CFG80211_H */
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -7589,6 +7589,20 @@ u32 ieee80211_calc_rx_airtime(struct iee
+@@ -7591,6 +7591,20 @@ u32 ieee80211_calc_rx_airtime(struct iee
  			      int len);
  
  /**
@@ -111,7 +111,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  	__NL80211_ATTR_AFTER_LAST,
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -9438,3 +9438,15 @@ void ieee80211_disable_rssi_reports(stru
+@@ -9441,3 +9441,15 @@ void ieee80211_disable_rssi_reports(stru
  	_ieee80211_enable_rssi_reports(sdata, 0, 0);
  }
  EXPORT_SYMBOL(ieee80211_disable_rssi_reports);
@@ -166,7 +166,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  	[NL80211_ATTR_BSS_DUMP_INCLUDE_USE_DATA] = { .type = NLA_FLAG },
  	[NL80211_ATTR_MLO_TTLM_DLINK] = NLA_POLICY_EXACT_LEN(sizeof(u16) * 8),
  	[NL80211_ATTR_MLO_TTLM_ULINK] = NLA_POLICY_EXACT_LEN(sizeof(u16) * 8),
-@@ -20460,6 +20461,42 @@ void cfg80211_schedule_channels_check(st
+@@ -20463,6 +20464,42 @@ void cfg80211_schedule_channels_check(st
  }
  EXPORT_SYMBOL(cfg80211_schedule_channels_check);
  

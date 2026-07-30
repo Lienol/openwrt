@@ -94,7 +94,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  unsigned int ath11k_debug_mask;
  EXPORT_SYMBOL(ath11k_debug_mask);
  module_param_named(debug_mask, ath11k_debug_mask, uint, 0644);
-@@ -1725,10 +1731,16 @@ static int ath11k_core_pdev_create(struc
+@@ -1753,10 +1759,16 @@ static int ath11k_core_pdev_create(struc
  		goto err_pdev_debug;
  	}
  
@@ -112,7 +112,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	}
  
  	ret = ath11k_thermal_register(ab);
-@@ -1750,6 +1762,8 @@ err_thermal_unregister:
+@@ -1778,6 +1790,8 @@ err_thermal_unregister:
  	ath11k_thermal_unregister(ab);
  err_mac_unregister:
  	ath11k_mac_unregister(ab);
@@ -121,7 +121,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  err_dp_pdev_free:
  	ath11k_dp_pdev_free(ab);
  err_pdev_debug:
-@@ -1763,6 +1777,10 @@ static void ath11k_core_pdev_destroy(str
+@@ -1791,6 +1805,10 @@ static void ath11k_core_pdev_destroy(str
  	ath11k_spectral_deinit(ab);
  	ath11k_thermal_unregister(ab);
  	ath11k_mac_unregister(ab);
@@ -132,7 +132,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	ath11k_hif_irq_disable(ab);
  	ath11k_dp_pdev_free(ab);
  	ath11k_debugfs_pdev_destroy(ab);
-@@ -1969,6 +1987,10 @@ static int ath11k_core_reconfigure_on_cr
+@@ -1997,6 +2015,10 @@ static int ath11k_core_reconfigure_on_cr
  	int ret;
  
  	mutex_lock(&ab->core_lock);
@@ -143,7 +143,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	ath11k_thermal_unregister(ab);
  	ath11k_dp_pdev_free(ab);
  	ath11k_spectral_deinit(ab);
-@@ -2300,6 +2322,10 @@ int ath11k_core_pre_init(struct ath11k_b
+@@ -2328,6 +2350,10 @@ int ath11k_core_pre_init(struct ath11k_b
  		ath11k_err(ab, "failed to pre init firmware: %d", ret);
  		return ret;
  	}
@@ -362,7 +362,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  
  	if (ar->ab->hw_params.rxdma1_enable) {
  		rx_ring = &dp->rxdma_mon_buf_ring;
-@@ -2053,7 +2056,7 @@ int ath11k_dp_rx_crypto_mic_len(struct a
+@@ -2052,7 +2055,7 @@ int ath11k_dp_rx_crypto_mic_len(struct a
  	return 0;
  }
  
@@ -371,7 +371,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  					 enum hal_encrypt_type enctype)
  {
  	switch (enctype) {
-@@ -2081,7 +2084,7 @@ static int ath11k_dp_rx_crypto_param_len
+@@ -2080,7 +2083,7 @@ static int ath11k_dp_rx_crypto_param_len
  	return 0;
  }
  
@@ -380,7 +380,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  				       enum hal_encrypt_type enctype)
  {
  	switch (enctype) {
-@@ -2817,6 +2820,22 @@ static void ath11k_dp_rx_process_receive
+@@ -2815,6 +2818,22 @@ static void ath11k_dp_rx_process_receive
  	}
  }
  
@@ -403,7 +403,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  int ath11k_dp_process_rx(struct ath11k_base *ab, int ring_id,
  			 struct napi_struct *napi, int budget)
  {
-@@ -3120,7 +3139,8 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3118,7 +3137,8 @@ static void ath11k_dp_rx_update_user_sta
  	peer = ath11k_peer_find_by_ast(ar->ab, user_stats->ast_index);
  
  	if (peer == NULL) {
@@ -413,7 +413,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  			    user_stats->ast_index);
  		return;
  	}
-@@ -3128,6 +3148,13 @@ static void ath11k_dp_rx_update_user_sta
+@@ -3126,6 +3146,13 @@ static void ath11k_dp_rx_update_user_sta
  	arsta = (struct ath11k_sta *)peer->sta->drv_priv;
  	rx_stats = arsta->rx_stats;
  
@@ -427,7 +427,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	if (!rx_stats)
  		return;
  
-@@ -3204,8 +3231,10 @@ static void ath11k_dp_rx_update_peer_mu_
+@@ -3202,8 +3229,10 @@ static void ath11k_dp_rx_update_peer_mu_
  {
  	u32 num_users, i;
  
@@ -823,7 +823,7 @@ Signed-off-by: Sriram R <srirrama@codeaurora.org>
  	struct ieee80211_key_conf *keys[WMI_MAX_KEY_INDEX + 1];
 --- a/drivers/net/wireless/ath/ath11k/pci.c
 +++ b/drivers/net/wireless/ath/ath11k/pci.c
-@@ -583,6 +583,7 @@ static int ath11k_pci_claim(struct ath11
+@@ -601,6 +601,7 @@ static int ath11k_pci_claim(struct ath11
  	}
  
  	ab->mem_ce = ab->mem;

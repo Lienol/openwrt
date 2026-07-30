@@ -228,7 +228,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  static void ath11k_dp_service_mon_ring(struct timer_list *t)
  {
  	struct ath11k_base *ab = from_timer(ab, t, mon_reap_timer);
-@@ -2380,6 +2415,49 @@ int ath11k_dp_rx_crypto_icv_len(struct a
+@@ -2379,6 +2414,49 @@ int ath11k_dp_rx_crypto_icv_len(struct a
  	return 0;
  }
  
@@ -278,7 +278,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  static void ath11k_dp_rx_h_undecap_nwifi(struct ath11k *ar,
  					 struct sk_buff *msdu,
  					 u8 *first_hdr,
-@@ -2393,7 +2471,8 @@ static void ath11k_dp_rx_h_undecap_nwifi
+@@ -2392,7 +2470,8 @@ static void ath11k_dp_rx_h_undecap_nwifi
  	u8 da[ETH_ALEN];
  	u8 sa[ETH_ALEN];
  	u16 qos_ctl = 0;
@@ -288,7 +288,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  
  	/* copy SA & DA and pull decapped header */
  	hdr = (struct ieee80211_hdr *)msdu->data;
-@@ -2402,7 +2481,7 @@ static void ath11k_dp_rx_h_undecap_nwifi
+@@ -2401,7 +2480,7 @@ static void ath11k_dp_rx_h_undecap_nwifi
  	ether_addr_copy(sa, ieee80211_get_SA(hdr));
  	skb_pull(msdu, ieee80211_hdrlen(hdr->frame_control));
  
@@ -297,7 +297,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  		/* original 802.11 header is valid for the first msdu
  		 * hence we can reuse the same header
  		 */
-@@ -2432,16 +2511,23 @@ static void ath11k_dp_rx_h_undecap_nwifi
+@@ -2431,16 +2510,23 @@ static void ath11k_dp_rx_h_undecap_nwifi
  
  		/* copy decap header before overwriting for reuse below */
  		memcpy(decap_hdr, (uint8_t *)hdr, hdr_len);
@@ -326,7 +326,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  		memcpy(skb_push(msdu,
  				IEEE80211_QOS_CTL_LEN), &qos_ctl,
  				IEEE80211_QOS_CTL_LEN);
-@@ -2557,6 +2643,20 @@ static void ath11k_dp_rx_h_undecap_eth(s
+@@ -2556,6 +2642,20 @@ static void ath11k_dp_rx_h_undecap_eth(s
  	u8 da[ETH_ALEN];
  	u8 sa[ETH_ALEN];
  	void *rfc1042;
@@ -347,7 +347,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  
  	rfc1042 = ath11k_dp_rx_h_find_rfc1042(ar, msdu, enctype);
  	if (WARN_ON_ONCE(!rfc1042))
-@@ -2585,6 +2685,7 @@ static void ath11k_dp_rx_h_undecap_eth(s
+@@ -2584,6 +2684,7 @@ static void ath11k_dp_rx_h_undecap_eth(s
  
  	memcpy(skb_push(msdu, hdr_len), hdr, hdr_len);
  
@@ -355,7 +355,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  	/* original 802.11 header has a different DA and in
  	 * case of 4addr it may also have different SA
  	 */
-@@ -2603,6 +2704,7 @@ static void ath11k_dp_rx_h_undecap_snap(
+@@ -2602,6 +2703,7 @@ static void ath11k_dp_rx_h_undecap_snap(
  	size_t hdr_len;
  	u8 l3_pad_bytes;
  	struct hal_rx_desc *rx_desc;
@@ -363,7 +363,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  
  	/* Delivered decapped frame:
  	 * [amsdu header] <-- replaced with 802.11 hdr
-@@ -2616,6 +2718,11 @@ static void ath11k_dp_rx_h_undecap_snap(
+@@ -2615,6 +2717,11 @@ static void ath11k_dp_rx_h_undecap_snap(
  	skb_put(msdu, l3_pad_bytes);
  	skb_pull(msdu, sizeof(struct ath11k_dp_amsdu_subframe_hdr) + l3_pad_bytes);
  
@@ -375,7 +375,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  	hdr = (struct ieee80211_hdr *)first_hdr;
  	hdr_len = ieee80211_hdrlen(hdr->frame_control);
  
-@@ -3089,6 +3196,20 @@ static int ath11k_dp_rx_process_msdu(str
+@@ -3087,6 +3194,20 @@ static int ath11k_dp_rx_process_msdu(str
  		goto free_out;
  	}
  
@@ -396,7 +396,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  	rxcb = ATH11K_SKB_RXCB(msdu);
  	rxcb->rx_desc = rx_desc;
  	msdu_len = ath11k_dp_rx_h_msdu_start_msdu_len(ab, rx_desc);
-@@ -3101,8 +3222,9 @@ static int ath11k_dp_rx_process_msdu(str
+@@ -3099,8 +3220,9 @@ static int ath11k_dp_rx_process_msdu(str
  			hdr_status = ath11k_dp_rx_h_80211_hdr(ab, rx_desc);
  			ret = -EINVAL;
  			ath11k_warn(ab, "invalid msdu len %u\n", msdu_len);
@@ -408,7 +408,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  			ath11k_dbg_dump(ab, ATH11K_DBG_DATA, NULL, "", rx_desc,
  					sizeof(struct hal_rx_desc));
  			goto free_out;
-@@ -4057,6 +4179,7 @@ static int ath11k_dp_rx_h_verify_tkip_mi
+@@ -4055,6 +4177,7 @@ static int ath11k_dp_rx_h_verify_tkip_mi
  
  	hdr = (struct ieee80211_hdr *)(msdu->data + hal_rx_desc_sz);
  	hdr_len = ieee80211_hdrlen(hdr->frame_control);
@@ -416,7 +416,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  	head_len = hdr_len + hal_rx_desc_sz + IEEE80211_TKIP_IV_LEN;
  	tail_len = IEEE80211_CCMP_MIC_LEN + IEEE80211_TKIP_ICV_LEN + FCS_LEN;
  
-@@ -4337,8 +4460,8 @@ static void ath11k_dp_rx_h_sort_frags(st
+@@ -4335,8 +4458,8 @@ static void ath11k_dp_rx_h_sort_frags(st
  
  static u64 ath11k_dp_rx_h_get_pn(struct ath11k *ar, struct sk_buff *skb)
  {
@@ -426,7 +426,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  	u8 *ehdr;
  	u32 hal_rx_desc_sz = ar->ab->hw_params.hal_desc_sz;
  
-@@ -4568,8 +4691,9 @@ ath11k_dp_process_rx_err_buf(struct ath1
+@@ -4566,8 +4689,9 @@ ath11k_dp_process_rx_err_buf(struct ath1
  	if ((msdu_len + hal_rx_desc_sz) > DP_RX_BUFFER_SIZE) {
  		hdr_status = ath11k_dp_rx_h_80211_hdr(ar->ab, rx_desc);
  		ath11k_warn(ar->ab, "invalid msdu leng %u", msdu_len);
@@ -438,7 +438,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  		ath11k_dbg_dump(ar->ab, ATH11K_DBG_DATA, NULL, "", rx_desc,
  				sizeof(struct hal_rx_desc));
  		dev_kfree_skb_any(msdu);
-@@ -5195,6 +5319,47 @@ void ath11k_dp_rx_pdev_free(struct ath11
+@@ -5193,6 +5317,47 @@ void ath11k_dp_rx_pdev_free(struct ath11
  	ath11k_dp_rxdma_pdev_buf_free(ar);
  }
  
@@ -486,7 +486,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  int ath11k_dp_rx_pdev_alloc(struct ath11k_base *ab, int mac_id)
  {
  	struct ath11k *ar = ab->pdevs[mac_id].ar;
-@@ -5288,6 +5453,12 @@ config_refill_ring:
+@@ -5286,6 +5451,12 @@ config_refill_ring:
  		}
  	}
  

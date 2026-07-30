@@ -20,7 +20,7 @@ Signed-off-by: Monika Korada <quic_koramoni@quicinc.com>
 
 --- a/net/mac80211/iface.c
 +++ b/net/mac80211/iface.c
-@@ -1408,7 +1408,8 @@ int ieee80211_do_open(struct wireless_de
+@@ -1412,7 +1412,8 @@ int ieee80211_do_open(struct wireless_de
  				ieee80211_link_vlan_copy_chanctx(link);
  			}
  
@@ -30,7 +30,7 @@ Signed-off-by: Monika Korada <quic_koramoni@quicinc.com>
  
  			if (ieee80211_hw_check(&local->hw, SUPPORTS_NSS_OFFLOAD)) {
  				ieee80211_set_sdata_offload_flags(sdata);
-@@ -1419,7 +1420,8 @@ int ieee80211_do_open(struct wireless_de
+@@ -1423,7 +1424,8 @@ int ieee80211_do_open(struct wireless_de
  
  			ieee80211_set_vif_encap_ops(sdata);
  		} else {
@@ -40,7 +40,7 @@ Signed-off-by: Monika Korada <quic_koramoni@quicinc.com>
  
  			if (ieee80211_hw_check(&local->hw, SUPPORTS_NSS_OFFLOAD)) {
  				ieee80211_set_sdata_offload_flags(sdata);
-@@ -1458,7 +1460,8 @@ int ieee80211_do_open(struct wireless_de
+@@ -1462,7 +1464,8 @@ int ieee80211_do_open(struct wireless_de
  		ieee80211_recalc_offload(local);
  		ieee80211_recalc_idle(local);
  
@@ -50,7 +50,7 @@ Signed-off-by: Monika Korada <quic_koramoni@quicinc.com>
  		break;
  	default:
  		if (coming_up) {
-@@ -1502,7 +1505,8 @@ int ieee80211_do_open(struct wireless_de
+@@ -1506,7 +1509,8 @@ int ieee80211_do_open(struct wireless_de
  		case NL80211_IFTYPE_AP:
  		case NL80211_IFTYPE_MESH_POINT:
  		case NL80211_IFTYPE_OCB:

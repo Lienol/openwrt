@@ -314,7 +314,7 @@ Signed-off-by: Ramya Gnanasekar <rgnanase@codeaurora.org>
  		.support_dual_stations = false,
  	},
  	{
-@@ -905,6 +911,21 @@ static const struct dmi_system_id ath11k
+@@ -933,6 +939,21 @@ static const struct dmi_system_id ath11k
  	{}
  };
  

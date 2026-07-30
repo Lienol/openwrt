@@ -370,7 +370,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  #if IS_ENABLED(CONFIG_IPV6)
 --- a/drivers/net/wireless/ath/ath11k/wmi.h
 +++ b/drivers/net/wireless/ath/ath11k/wmi.h
-@@ -5112,6 +5112,8 @@ enum wmi_vdev_subtype {
+@@ -5114,6 +5114,8 @@ enum wmi_vdev_subtype {
  	WMI_VDEV_SUBTYPE_MESH_11S,
  };
  
@@ -397,7 +397,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  	int ret;
  
  	ret = ath11k_peer_rx_tid_setup(ar, params->sta->addr, vdev_id,
-@@ -1130,13 +1131,13 @@ int ath11k_dp_rx_ampdu_start(struct ath1
+@@ -1130,14 +1131,14 @@ int ath11k_dp_rx_ampdu_start(struct ath1
  	return ret;
  }
  
@@ -409,11 +409,12 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  	struct ath11k_base *ab = ar->ab;
  	struct ath11k_peer *peer;
 -	struct ath11k_sta *arsta = ath11k_sta_to_arsta(params->sta);
+ 	struct dp_rx_tid *rx_tid;
 -	int vdev_id = arsta->arvif->vdev_id;
 +	int vdev_id = arvif->vdev_id;
- 	dma_addr_t paddr;
- 	bool active;
  	int ret;
+ 
+ 	spin_lock_bh(&ab->base_lock);
 --- a/drivers/net/wireless/ath/ath11k/dp_rx.h
 +++ b/drivers/net/wireless/ath/ath11k/dp_rx.h
 @@ -89,9 +89,9 @@ static inline u32 ath11k_he_gi_to_nl8021
