@@ -51,7 +51,7 @@
  #endif /* _LINUX_IF_MACVLAN_H */
 --- a/drivers/net/macvlan.c
 +++ b/drivers/net/macvlan.c
-@@ -966,6 +966,34 @@ static void macvlan_uninit(struct net_de
+@@ -967,6 +967,34 @@ static void macvlan_uninit(struct net_de
  		macvlan_port_destroy(port->dev);
  }
  
@@ -86,7 +86,7 @@
  static void macvlan_dev_get_stats64(struct net_device *dev,
  				    struct rtnl_link_stats64 *stats)
  {
-@@ -1512,6 +1540,7 @@ int macvlan_common_newlink(struct net *s
+@@ -1513,6 +1541,7 @@ int macvlan_common_newlink(struct net *s
  	vlan->dev      = dev;
  	vlan->port     = port;
  	vlan->set_features = MACVLAN_FEATURES;

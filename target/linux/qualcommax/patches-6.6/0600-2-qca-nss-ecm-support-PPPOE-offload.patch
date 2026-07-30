@@ -34,7 +34,7 @@
  /* Prototypes. */
  static int ppp_unattached_ioctl(struct net *net, struct ppp_file *pf,
  			struct file *file, unsigned int cmd, unsigned long arg);
-@@ -3482,7 +3502,10 @@ ppp_connect_channel(struct channel *pch,
+@@ -3485,7 +3505,10 @@ ppp_connect_channel(struct channel *pch,
  	struct ppp_net *pn;
  	int ret = -ENXIO;
  	int hdrlen;
@@ -45,7 +45,7 @@
  	pn = ppp_pernet(pch->chan_net);
  
  	mutex_lock(&pn->all_ppp_mutex);
-@@ -3514,13 +3537,40 @@ ppp_connect_channel(struct channel *pch,
+@@ -3517,13 +3540,40 @@ ppp_connect_channel(struct channel *pch,
  	++ppp->n_channels;
  	pch->ppp = ppp;
  	refcount_inc(&ppp->file.refcnt);
@@ -87,7 +87,7 @@
  	return ret;
  }
  
-@@ -3538,6 +3588,13 @@ ppp_disconnect_channel(struct channel *p
+@@ -3541,6 +3591,13 @@ ppp_disconnect_channel(struct channel *p
  	pch->ppp = NULL;
  	write_unlock_bh(&pch->upl);
  	if (ppp) {
@@ -101,7 +101,7 @@
  		/* remove it from the ppp unit's list */
  		ppp_lock(ppp);
  		list_del_rcu(&pch->clist);
-@@ -3618,6 +3675,222 @@ static void *unit_find(struct idr *p, in
+@@ -3621,6 +3678,222 @@ static void *unit_find(struct idr *p, in
  	return idr_find(p, n);
  }
  
@@ -324,7 +324,7 @@
  /* Module/initialization stuff */
  
  module_init(ppp_init);
-@@ -3634,6 +3907,7 @@ EXPORT_SYMBOL(ppp_input_error);
+@@ -3637,6 +3910,7 @@ EXPORT_SYMBOL(ppp_input_error);
  EXPORT_SYMBOL(ppp_output_wakeup);
  EXPORT_SYMBOL(ppp_register_compressor);
  EXPORT_SYMBOL(ppp_unregister_compressor);
@@ -351,7 +351,7 @@
  
  /* per-net private data for this module */
  static unsigned int pppoe_net_id __read_mostly;
-@@ -692,7 +693,7 @@ static int pppoe_connect(struct socket *
+@@ -698,7 +699,7 @@ static int pppoe_connect(struct socket *
  
  		po->chan.mtu = dev->mtu - sizeof(struct pppoe_hdr) - 2;
  		po->chan.private = sk;
@@ -360,7 +360,7 @@
  
  		error = ppp_register_net_channel(dev_net(dev), &po->chan);
  		if (error) {
-@@ -995,9 +996,80 @@ static int pppoe_fill_forward_path(struc
+@@ -1001,9 +1002,80 @@ static int pppoe_fill_forward_path(struc
  	return 0;
  }
  

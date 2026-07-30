@@ -187,7 +187,7 @@
  #endif
 --- a/include/net/route.h
 +++ b/include/net/route.h
-@@ -238,6 +238,11 @@ struct rtable *rt_dst_alloc(struct net_d
+@@ -232,6 +232,11 @@ struct rtable *rt_dst_alloc(struct net_d
  			    unsigned int flags, u16 type, bool noxfrm);
  struct rtable *rt_dst_clone(struct net_device *dev, struct rtable *rt);
  
@@ -304,7 +304,7 @@
  	skb = nlmsg_new(fdb_nlmsg_size(), GFP_ATOMIC);
  	if (skb == NULL)
  		goto errout;
-@@ -519,6 +552,22 @@ out:
+@@ -523,6 +556,22 @@ out:
  	spin_unlock_bh(&br->hash_lock);
  }
  
@@ -327,7 +327,7 @@
  void br_fdb_cleanup(struct work_struct *work)
  {
  	struct net_bridge *br = container_of(work, struct net_bridge,
-@@ -527,6 +576,7 @@ void br_fdb_cleanup(struct work_struct *
+@@ -531,6 +580,7 @@ void br_fdb_cleanup(struct work_struct *
  	unsigned long delay = hold_time(br);
  	unsigned long work_delay = delay;
  	unsigned long now = jiffies;
@@ -335,7 +335,7 @@
  
  	/* this part is tricky, in order to avoid blocking learning and
  	 * consequently forwarding, we rely on rcu to delete objects with
-@@ -553,8 +603,15 @@ void br_fdb_cleanup(struct work_struct *
+@@ -557,8 +607,15 @@ void br_fdb_cleanup(struct work_struct *
  			work_delay = min(work_delay, this_timer - now);
  		} else {
  			spin_lock_bh(&br->hash_lock);
@@ -352,7 +352,7 @@
  			spin_unlock_bh(&br->hash_lock);
  		}
  	}
-@@ -895,6 +952,12 @@ void br_fdb_update(struct net_bridge *br
+@@ -901,6 +958,12 @@ void br_fdb_update(struct net_bridge *br
  				 */
  				if (unlikely(test_bit(BR_FDB_LOCKED, &fdb->flags)))
  					clear_bit(BR_FDB_LOCKED, &fdb->flags);
@@ -365,7 +365,7 @@
  			}
  
  			if (unlikely(test_bit(BR_FDB_ADDED_BY_USER, &flags)))
-@@ -918,6 +981,64 @@ void br_fdb_update(struct net_bridge *br
+@@ -924,6 +987,64 @@ void br_fdb_update(struct net_bridge *br
  	}
  }
  
@@ -708,7 +708,7 @@
  static inline const void *choose_neigh_daddr(const struct in6_addr *p,
  					     struct sk_buff *skb,
  					     const void *daddr)
-@@ -3919,6 +3922,10 @@ int ip6_route_add(struct fib6_config *cf
+@@ -3922,6 +3925,10 @@ int ip6_route_add(struct fib6_config *cf
  		return PTR_ERR(rt);
  
  	err = __ip6_ins_rt(rt, &cfg->fc_nlinfo, extack);
@@ -719,7 +719,7 @@
  	fib6_info_release(rt);
  
  	return err;
-@@ -3940,6 +3947,9 @@ static int __ip6_del_rt(struct fib6_info
+@@ -3943,6 +3950,9 @@ static int __ip6_del_rt(struct fib6_info
  	err = fib6_del(rt, info);
  	spin_unlock_bh(&table->tb6_lock);
  
@@ -729,7 +729,7 @@
  out:
  	fib6_info_release(rt);
  	return err;
-@@ -6410,6 +6420,20 @@ static int ip6_route_dev_notify(struct n
+@@ -6415,6 +6425,20 @@ static int ip6_route_dev_notify(struct n
  	return NOTIFY_OK;
  }
  
@@ -830,7 +830,7 @@
  #endif /* _UAPI_LINUX_IN_H */
 --- a/net/netfilter/nf_conntrack_ecache.c
 +++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -349,7 +349,6 @@ int nf_conntrack_register_notifier(struc
+@@ -351,7 +351,6 @@ int nf_conntrack_register_notifier(struc
  	mutex_lock(&nf_ct_ecache_mutex);
  	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb,
  					   lockdep_is_held(&nf_ct_ecache_mutex));
@@ -866,7 +866,7 @@
  	/*
  	 * Get the required data from the packet.
  	 */
-@@ -1285,7 +1289,7 @@ int nf_conntrack_tcp_packet(struct nf_co
+@@ -1286,7 +1290,7 @@ int nf_conntrack_tcp_packet(struct nf_co
  		 IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED &&
  		 timeouts[new_state] > timeouts[TCP_CONNTRACK_UNACK])
  		timeout = timeouts[TCP_CONNTRACK_UNACK];
@@ -875,7 +875,7 @@
  		 timeouts[new_state] > timeouts[TCP_CONNTRACK_RETRANS])
  		timeout = timeouts[TCP_CONNTRACK_RETRANS];
  	else
-@@ -1597,6 +1601,9 @@ void nf_conntrack_tcp_init_net(struct ne
+@@ -1598,6 +1602,9 @@ void nf_conntrack_tcp_init_net(struct ne
  	 */
  	tn->tcp_be_liberal = 0;
  

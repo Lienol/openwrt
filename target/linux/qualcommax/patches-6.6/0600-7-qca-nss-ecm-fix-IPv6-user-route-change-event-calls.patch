@@ -15,7 +15,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
 
 --- a/net/ipv6/route.c
 +++ b/net/ipv6/route.c
-@@ -3922,10 +3922,6 @@ int ip6_route_add(struct fib6_config *cf
+@@ -3925,10 +3925,6 @@ int ip6_route_add(struct fib6_config *cf
  		return PTR_ERR(rt);
  
  	err = __ip6_ins_rt(rt, &cfg->fc_nlinfo, extack);
@@ -26,7 +26,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	fib6_info_release(rt);
  
  	return err;
-@@ -3947,9 +3943,6 @@ static int __ip6_del_rt(struct fib6_info
+@@ -3950,9 +3946,6 @@ static int __ip6_del_rt(struct fib6_info
  	err = fib6_del(rt, info);
  	spin_unlock_bh(&table->tb6_lock);
  
@@ -36,7 +36,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  out:
  	fib6_info_release(rt);
  	return err;
-@@ -4558,6 +4551,10 @@ int ipv6_route_ioctl(struct net *net, un
+@@ -4561,6 +4554,10 @@ int ipv6_route_ioctl(struct net *net, un
  		break;
  	}
  	rtnl_unlock();
@@ -47,7 +47,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  	return err;
  }
  
-@@ -5581,11 +5578,17 @@ static int inet6_rtm_delroute(struct sk_
+@@ -5584,11 +5581,17 @@ static int inet6_rtm_delroute(struct sk_
  	}
  
  	if (cfg.fc_mp)
@@ -67,7 +67,7 @@ Signed-off-by: Murat Sezgin <msezgin@codeaurora.org>
  }
  
  static int inet6_rtm_newroute(struct sk_buff *skb, struct nlmsghdr *nlh,
-@@ -5602,9 +5605,15 @@ static int inet6_rtm_newroute(struct sk_
+@@ -5605,9 +5608,15 @@ static int inet6_rtm_newroute(struct sk_
  		cfg.fc_metric = IP6_RT_PRIO_USER;
  
  	if (cfg.fc_mp)
