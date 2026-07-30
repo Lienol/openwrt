@@ -1089,11 +1089,7 @@
 		"uesa": {
 			"description": "Unauthenticated emergency service accessible",
 			"type": "boolean",
-			"default": false
-		},
-		"uuid": {
-			"description": "Device UUID used by WPS",
-			"type": "string"
+			"default": false			
 		},
 		"utf8_ssid": {
 			"description": "Whether the SSID is to be interpreted using UTF-8 encoding",

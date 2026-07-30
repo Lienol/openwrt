@@ -82,7 +82,7 @@ function iface_accounting_server(config) {
 }
 
 function iface_auth_type(config, band) {
-	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192', 'dpp' ])
+	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192' ])
 		config.ieee80211w = 2;
 
 	if (config.auth_type in [ 'psk-sae', 'eap-eap2' ])
@@ -131,12 +131,6 @@ function iface_auth_type(config, band) {
 		append_string_vars(config, [ 'owe_transition_ssid' ]);
 		append_vars(config, [
 			'owe_transition_bssid', 'owe_transition_ifname',
-		]);
-		break;
-
-	case 'dpp':
-		append_vars(config, [
-			'dpp_connector', 'dpp_csign', 'dpp_netaccesskey',
 		]);
 		break;
 
@@ -213,11 +207,6 @@ function iface_auth_type(config, band) {
 		'wpa_disable_eapol_key_retries', 'auth_algs', 'wpa', 'wpa_pairwise',
 		'erp_domain', 'fils_realm', 'erp_send_reauth_start', 'fils_cache_id'
 	]);
-
-	if (config.dpp && config.auth_type != 'dpp')
-		append_vars(config, [
-			'dpp_connector', 'dpp_csign', 'dpp_netaccesskey',
-		]);
 }
 
 function iface_ppsk(config) {
@@ -254,7 +243,7 @@ function iface_wps(config) {
 
 		append_vars(config, [
 			'wps_state', 'device_type', 'device_name', 'config_methods', 'wps_independent', 'eap_server',
-			'ap_pin', 'ap_setup_locked', 'upnp_iface', 'uuid'
+			'ap_pin', 'ap_setup_locked', 'upnp_iface'
 		]);
 	}
 }
