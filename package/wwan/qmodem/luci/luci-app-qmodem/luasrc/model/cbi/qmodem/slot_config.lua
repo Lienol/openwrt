@@ -39,6 +39,15 @@ for line in net:lines() do
 end
 net:close()
 
+bridge_port = s:option(Value, "bridge_port", translate("Bridge Port"))
+bridge_port.rmempty = true
+bridge_port.description = translate("Default bridge port for passthrough. Device-level bridge_port overrides this slot default.")
+local bridge_net = io.popen("ls /sys/class/net/")
+for line in bridge_net:lines() do
+    bridge_port:value(line, line)
+end
+bridge_net:close()
+
 default_alias = s:option(Value, "alias", translate("Default Alias"))
 default_alias.description = translate("After setting this option, the first module loaded into this slot will automatically be assigned this default alias.")
 

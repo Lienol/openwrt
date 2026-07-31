@@ -18,7 +18,7 @@ modem_slot=$(basename $modem_path)
     pdp_index="1"
 }
 
-[ $use_ubus -eq 1 ] && use_ubus_flag="-u"
+[ "${use_ubus:-0}" -eq 1 ] && use_ubus_flag="-u"
 
 #please update dynamic_load.json to add new vendor
 vendor_script_prefix="/usr/share/qmodem/vendor"
@@ -35,8 +35,11 @@ try_cache() {
     cache_file=$2
     function_name=$3
     current_time=$(date +%s)
-    file_time=$(stat -t $cache_file | awk '{print $14}')
-    [ -z "$file_time" ] && file_time=0
+    if [ -f "$cache_file" ]; then
+        file_time=$(stat -t "$cache_file" | awk '{print $14}')
+    else
+        file_time=0
+    fi
     if [ ! -f $cache_file ] || [ $(($current_time - $file_time)) -gt $cache_timeout ]; then
         touch $cache_file
         json_add_array modem_info
@@ -143,6 +146,10 @@ case $method in
         cache_file="/tmp/cache_$1_$2"
         try_cache 10 $cache_file cell_info
         ;;
+    "clear_stats")
+        json_init
+        clear_usage_stats
+        ;;
     "clear_dial_log")
         json_select result
         log_file="/var/run/qmodem/${config_section}_dir/dial_log"
@@ -185,6 +192,12 @@ case $method in
     "get_copyright")
         _copyright
         ;;
+    "get_current_band")
+        get_current_band
+        ;;
+    "get_current_band_capabilities")
+        get_current_band_capabilities
+        ;;
     "get_disabled_features")
         json_add_array disabled_features
         vendor_get_disabled_features
@@ -213,6 +226,10 @@ case $method in
     "get_reboot_caps")
         get_reboot_caps
         exit
+        ;;
+    "get_stats")
+        json_init
+        get_usage_stats
         ;;
     "get_sms")
         get_sms 10 /tmp/cache_sms_$2

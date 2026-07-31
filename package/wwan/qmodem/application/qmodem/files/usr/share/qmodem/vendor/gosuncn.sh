@@ -701,6 +701,7 @@ get_neighborcell()
     json_add_object "lockcell_status"
     json_add_string "LTE" "unlock"
     json_close_object
+    qmodem_lockcell_boot_hook_add_json "$config_section"
     json_close_object
 }
 

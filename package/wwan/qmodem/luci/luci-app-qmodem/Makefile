@@ -15,7 +15,7 @@ PKG_LICENSE:=GPLv3
 PKG_LINCESE_FILES:=LICENSE
 PKG_MAINTAINER:=Tom <fjrcn@outlook.com>
 LUCI_DEPENDS:=+luci-compat \
-		+qmodem 
+		+qmodem
 
 
 define Package/luci-app-qmodem/conffiles
@@ -47,17 +47,26 @@ choice
 
   config PACKAGE_luci-app-qmodem_INCLUDE_generic-qmi-wwan
   bool "Generic QMI driver"
+
+  config PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan
+  bool "NSS QMI driver"
+  depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq50xx
 endchoice
 
-choice 
+choice
 	prompt "MHI PCIe Modem Driver Selection"
+	default PACKAGE_luci-app-qmodem_VENDOR_MHI_PCIe_DRIVER
 	depends on PACKAGE_luci-app-qmodem_INCLUDE_ADD_PCI_SUPPORT
-	
+
 	config PACKAGE_luci-app-qmodem_VENDOR_MHI_PCIe_DRIVER
 	bool "Use Vendor MHI PCIe Driver"
 
 	config  PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER
 	bool "Use Generic MHI PCIe Driver"
+
+	config  PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER
+	bool "Use NSS MHI PCIe Driver"
+	depends on TARGET_qualcommax_ipq807x || TARGET_qualcommax_ipq50xx
 endchoice
 
 choice

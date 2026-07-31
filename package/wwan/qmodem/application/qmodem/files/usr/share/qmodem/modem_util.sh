@@ -1,5 +1,6 @@
 #!/bin/sh
 # Copyright (C) 2024 Tom <fjrcn@outlook.com>
+. /lib/functions.sh
 
 at()
 {
@@ -57,6 +58,99 @@ m_debug ()
 	fi
 }
 
+qmodem_bool_enabled()
+{
+	case "$1" in
+		1|true|TRUE|True|yes|YES|on|ON)
+			return 0
+			;;
+	esac
+	return 1
+}
+
+qmodem_lockcell_boot_hook_clear()
+{
+	local section="$1"
+
+	[ -z "$section" ] && return 1
+	uci -q delete "qmodem.${section}.lockcell_boot_hook_enabled"
+	uci -q delete "qmodem.${section}.lockcell_boot_hook_delay"
+	uci -q delete "qmodem.${section}.lockcell_boot_hook_at_cmds"
+	uci commit qmodem >/dev/null 2>&1
+}
+
+qmodem_lockcell_boot_hook_save()
+{
+	local section="$1"
+	local delay="$2"
+	local cmd
+
+	shift 2
+	[ -z "$section" ] && return 1
+	[ -z "$delay" ] && delay="15"
+
+	uci -q delete "qmodem.${section}.lockcell_boot_hook_at_cmds"
+	uci -q set "qmodem.${section}.lockcell_boot_hook_enabled=1" || return 1
+	uci -q set "qmodem.${section}.lockcell_boot_hook_delay=${delay}" || return 1
+
+	for cmd in "$@"; do
+		if [ -n "$cmd" ]; then
+			uci -q add_list "qmodem.${section}.lockcell_boot_hook_at_cmds=${cmd}" || return 1
+		fi
+	done
+
+	uci commit qmodem >/dev/null 2>&1
+}
+
+qmodem_lockcell_boot_hook_add_json()
+{
+	local section="$1"
+	local enabled delay
+	local has_cmds=0
+
+	enabled=$(uci -q get "qmodem.${section}.lockcell_boot_hook_enabled")
+	delay=$(uci -q get "qmodem.${section}.lockcell_boot_hook_delay")
+	[ -z "$delay" ] && delay="15"
+	config_load qmodem
+	config_list_foreach "$section" lockcell_boot_hook_at_cmds qmodem_lockcell_mark_list_cmd
+
+	json_add_object "lockcell_boot_hook"
+	if qmodem_bool_enabled "$enabled" && [ "$has_cmds" = "1" ]; then
+		json_add_boolean "enabled" 1
+	else
+		json_add_boolean "enabled" 0
+	fi
+	json_add_string "delay" "$delay"
+	json_add_array "at_cmds"
+	config_list_foreach "$section" lockcell_boot_hook_at_cmds qmodem_json_add_list_string
+	json_close_array
+	json_close_object
+}
+
+qmodem_lockcell_mark_list_cmd()
+{
+	[ -n "$1" ] && has_cmds=1
+}
+
+qmodem_json_add_list_string()
+{
+	[ -n "$1" ] && json_add_string "" "$1"
+}
+
+qmodem_lockcell_boot_hook_sync()
+{
+	local section="$1"
+	local en_boot_hook="$2"
+
+	shift 2
+	if qmodem_bool_enabled "$en_boot_hook"; then
+		[ -z "$*" ] && qmodem_lockcell_boot_hook_clear "$section" && return
+		qmodem_lockcell_boot_hook_save "$section" 15 "$@"
+	else
+		qmodem_lockcell_boot_hook_clear "$section"
+	fi
+}
+
 update_sim_slot()
 {
 	. /lib/functions.sh
@@ -85,7 +179,12 @@ at_get_slot()
 {
 	case $vendor in
 		"quectel")
-			at_res=$(at $at_port AT+QSIMDET? |grep +QSIMDET: |awk -F: '{print $2}')
+			at_res=$(at "$at_port" "AT+QUIMSLOT?" | awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
+				value=$2
+				gsub(/[^0-9]/, "", value)
+				print value
+				exit
+			}')
 			case "$at_res" in
 				"1")
 					sim_slot="1"
@@ -96,9 +195,6 @@ at_get_slot()
 				*)
 					sim_slot="1"
 					;;
-			*)
-				sim_slot="1"
-				;;
 			esac
 			;;
 		"fibocom")

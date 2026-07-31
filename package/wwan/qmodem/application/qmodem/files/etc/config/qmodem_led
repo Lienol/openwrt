@@ -1,0 +1,12 @@
+config main 'main'
+	option poll_interval '5'
+
+# config network_detect 'internet'
+#	option enabled '1'
+#	option script 'misectel_network_detect'
+
+# config modem_status 'cellular'
+#	option enabled '1'
+#	option script 'misectel_modem_status'
+#	option bind 'port'  # port or any
+#	option port '2-1'   # required when bind is port
