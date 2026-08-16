@@ -158,7 +158,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  };
  
  int xfrm_register_type(const struct xfrm_type *type, unsigned short family);
-@@ -1664,6 +1683,7 @@ struct xfrm_state *xfrm_state_lookup_bya
+@@ -1671,6 +1690,7 @@ struct xfrm_state *xfrm_state_lookup_bya
  					    const xfrm_address_t *saddr,
  					    u8 proto,
  					    unsigned short family);
@@ -166,7 +166,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  #ifdef CONFIG_XFRM_SUB_POLICY
  void xfrm_tmpl_sort(struct xfrm_tmpl **dst, struct xfrm_tmpl **src, int n,
  		    unsigned short family);
-@@ -1708,7 +1728,7 @@ void xfrm_sad_getinfo(struct net *net, s
+@@ -1715,7 +1735,7 @@ void xfrm_sad_getinfo(struct net *net, s
  void xfrm_spd_getinfo(struct net *net, struct xfrmk_spdinfo *si);
  u32 xfrm_replay_seqhi(struct xfrm_state *x, __be32 net_seq);
  int xfrm_init_replay(struct xfrm_state *x, struct netlink_ext_ack *extack);
@@ -177,7 +177,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  int xfrm_init_state(struct xfrm_state *x);
 --- a/net/xfrm/xfrm_policy.c
 +++ b/net/xfrm/xfrm_policy.c
-@@ -4301,6 +4301,10 @@ static int __net_init xfrm_net_init(stru
+@@ -4304,6 +4304,10 @@ static int __net_init xfrm_net_init(stru
  	spin_lock_init(&net->xfrm.xfrm_policy_lock);
  	seqcount_spinlock_init(&net->xfrm.xfrm_policy_hash_generation, &net->xfrm.xfrm_policy_lock);
  	mutex_init(&net->xfrm.xfrm_cfg_mutex);
@@ -207,7 +207,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  
  		xfrm_state_delete_tunnel(x);
  
-@@ -2999,6 +2998,20 @@ struct xfrm_state_afinfo *xfrm_state_get
+@@ -3007,6 +3006,20 @@ struct xfrm_state_afinfo *xfrm_state_get
  	return afinfo;
  }
  
@@ -228,7 +228,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  void xfrm_flush_gc(void)
  {
  	flush_work(&xfrm_state_gc_work);
-@@ -3017,51 +3030,16 @@ static void xfrm_state_delete_tunnel(str
+@@ -3025,51 +3038,16 @@ static void xfrm_state_delete_tunnel(str
  	}
  }
  
@@ -285,7 +285,7 @@ Signed-off-by: Pavithra R <quic_pavir@quicinc.com>
  
  int __xfrm_init_state(struct xfrm_state *x, bool init_replay, bool offload,
  		      struct netlink_ext_ack *extack)
-@@ -3407,3 +3385,39 @@ void xfrm_audit_state_icvfail(struct xfr
+@@ -3415,3 +3393,39 @@ void xfrm_audit_state_icvfail(struct xfr
  }
  EXPORT_SYMBOL_GPL(xfrm_audit_state_icvfail);
  #endif /* CONFIG_AUDITSYSCALL */
