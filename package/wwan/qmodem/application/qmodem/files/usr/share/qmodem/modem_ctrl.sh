@@ -18,7 +18,7 @@ modem_slot=$(basename $modem_path)
     pdp_index="1"
 }
 
-[ $use_ubus -eq 1 ] && use_ubus_flag="-u"
+[ "${use_ubus:-0}" -eq 1 ] && use_ubus_flag="-u"
 
 #please update dynamic_load.json to add new vendor
 vendor_script_prefix="/usr/share/qmodem/vendor"
@@ -35,8 +35,11 @@ try_cache() {
     cache_file=$2
     function_name=$3
     current_time=$(date +%s)
-    file_time=$(stat -t $cache_file | awk '{print $14}')
-    [ -z "$file_time" ] && file_time=0
+    if [ -f "$cache_file" ]; then
+        file_time=$(stat -t "$cache_file" | awk '{print $14}')
+    else
+        file_time=0
+    fi
     if [ ! -f $cache_file ] || [ $(($current_time - $file_time)) -gt $cache_timeout ]; then
         touch $cache_file
         json_add_array modem_info

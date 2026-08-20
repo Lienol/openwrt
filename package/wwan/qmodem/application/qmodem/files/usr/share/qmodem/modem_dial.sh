@@ -391,7 +391,7 @@ update_config()
     config_get pdp_index $modem_config pdp_index
     [ -n "$pdp_index" ] && userset_pdp_index="1" || userset_pdp_index="0"
     config_get suggest_pdp_index $modem_config suggest_pdp_index
-    [ -z "$suggest_pdp_index"] && suggest_pdp_index=$(get_platform_suggest_pdp_index)
+    [ -z "$suggest_pdp_index" ] && suggest_pdp_index=$(get_platform_suggest_pdp_index)
     [ -z "$pdp_index" ] && pdp_index=$suggest_pdp_index
     config_get ra_master $modem_config ra_master
     config_get extend_prefix $modem_config extend_prefix

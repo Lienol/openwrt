@@ -179,7 +179,12 @@ at_get_slot()
 {
 	case $vendor in
 		"quectel")
-			at_res=$(at $at_port AT+QSIMDET? |grep +QSIMDET: |awk -F: '{print $2}')
+			at_res=$(at "$at_port" "AT+QUIMSLOT?" | awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
+				value=$2
+				gsub(/[^0-9]/, "", value)
+				print value
+				exit
+			}')
 			case "$at_res" in
 				"1")
 					sim_slot="1"
@@ -190,9 +195,6 @@ at_get_slot()
 				*)
 					sim_slot="1"
 					;;
-			*)
-				sim_slot="1"
-				;;
 			esac
 			;;
 		"fibocom")

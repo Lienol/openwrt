@@ -735,6 +735,11 @@ get_modem_disabled_features()
     config_list_foreach $config_section disabled_features _add_disabled_features
 }
 
+vendor_get_disabled_features()
+{
+    return 0
+}
+
 get_sms_capabilities() {
     local res sms_cap
     res=$(at $at_port "AT+CPMS?" | grep "CPMS:" | xargs)

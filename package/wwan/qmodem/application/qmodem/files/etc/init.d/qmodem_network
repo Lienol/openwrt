@@ -13,9 +13,6 @@ extra_command "dial" "<modem_cfg> run dial script"
 extra_command "hang" "<modem_cfg> run hang script"
 extra_command "redial" "<modem_cfg> stop previous dial script. run hang script. and run dial script"
 extra_command "modem_status" "<modem_cfg> Check dial script status" 
-extra_command "start_led_service" "<modem_cfg> add led service for modem"
-extra_command "stop_led_service" "<modem_cfg> stop led service for modem"
-
 service_triggers()
 {
 	procd_add_reload_trigger "qmodem"
@@ -51,14 +48,12 @@ update_modem(){
 
 dial()
 {
-    rc_procd _dial $1
-    start_led_service $1
+	rc_procd _dial $1
 }
 
 hang()
 {
-    _hang $1
-    stop_led_service $1
+	_hang $1
 }
 
 modem_status()
@@ -112,15 +107,4 @@ _modem_status()
 	local data
     data=$(_procd_ubus_call list | jq  -r ".$service.instances.$instances")
     [ "$data" == "null" ] && echo "$instances Not Running"  || echo "$data"
-}
-
-start_led_service()
-{
-    /etc/init.d/qmodem_led start_instance "$1"
-    logger -t qmodem_network "Forward start LED event for modem $1"
-}
-
-stop_led_service(){
-    /etc/init.d/qmodem_led stop_instance "$1"
-    logger -t qmodem_network "Forward stop LED event for modem $1"
 }

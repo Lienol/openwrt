@@ -1019,9 +1019,17 @@ EOF
             set_sim_slot)
                 slot=$(echo "$input" | jsonfilter -e '@.slot')
                 json_init
-                set_sim_slot "$slot"
-                /etc/init.d/qmodem_network redial "$config_section" >/dev/null 2>&1
-                json_add_string "redial" "$?"
+                switch_status=1
+                redial_status=1
+                if set_sim_slot "$slot"; then
+                    switch_status=0
+                    /etc/init.d/qmodem_network redial "$config_section" >/dev/null 2>&1
+                    redial_status=$?
+                fi
+                success=0
+                [ "$switch_status" = "0" ] && [ "$redial_status" = "0" ] && success=1
+                json_add_boolean "success" "$success"
+                json_add_string "redial" "$redial_status"
                 json_dump
                 ;;
             

@@ -37,7 +37,6 @@ define Package/$(PKG_NAME)
 		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-rmnet-nss \
 		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-qmi_wwan_q_nss \
 		+PACKAGE_luci-app-qmodem_VENDOR_MHI_PCIe_DRIVER:kmod-pcie_mhi \
-		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-pci-generic \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-ctrl \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-mbim \
@@ -53,6 +52,10 @@ endef
 
 define Package/$(PKG_NAME)/description
 	QModem scripts
+endef
+
+define Package/$(PKG_NAME)/conffiles
+/etc/config/qmodem_led
 endef
 
 define Build/Prepare

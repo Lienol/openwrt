@@ -1020,7 +1020,7 @@ static int add_modem(const char *slot, const char *slot_type)
 	struct modem_profile profile;
 	char section[128], key[256], existing[64], fixed[16];
 	char orig_network[512] = "", orig_at[128] = "", orig_state[64] = "", orig_name[128] = "";
-	char net_join[512], default_alias[128] = "", default_metric[32] = "", led_script[128] = "";
+	char net_join[512], default_alias[128] = "", default_metric[32] = "";
 	int existed;
 
 	memset(&res, 0, sizeof(res));
@@ -1085,7 +1085,6 @@ static int add_modem(const char *slot, const char *slot_type)
 		int modem_count = 0;
 		get_slot_option(slot, "alias", default_alias, sizeof(default_alias));
 		get_slot_option(slot, "default_metric", default_metric, sizeof(default_metric));
-		get_slot_option(slot, "led_script", led_script, sizeof(led_script));
 		uci_get("qmodem.main.modem_count", modem_count_s, sizeof(modem_count_s));
 		if (modem_count_s[0])
 			modem_count = atoi(modem_count_s);
@@ -1094,7 +1093,6 @@ static int add_modem(const char *slot, const char *slot_type)
 		uci_set("qmodem.main.modem_count", modem_count_s);
 		snprintf(key, sizeof(key), "qmodem.%s", section); uci_set(key, "modem-device");
 		if (default_alias[0]) { snprintf(key, sizeof(key), "qmodem.%s.alias", section); uci_set(key, default_alias); }
-		if (led_script[0]) { snprintf(key, sizeof(key), "qmodem.%s.led_script", section); uci_set(key, led_script); }
 		snprintf(metric, sizeof(metric), "%d", modem_count + 10);
 		if (default_metric[0])
 			snprintf(metric, sizeof(metric), "%s", default_metric);

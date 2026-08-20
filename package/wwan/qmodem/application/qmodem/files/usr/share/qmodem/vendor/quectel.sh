@@ -367,14 +367,32 @@ base_info()
 }
 
 
+# Accept the documented response and the +QUSIMSLOT spelling shown in the
+# RM500U command manual example.
+quectel_parse_sim_slot()
+{
+    awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
+        value=$2
+        gsub(/[^0-9]/, "", value)
+        if (value == "1" || value == "2") {
+            print value
+            exit
+        }
+    }'
+}
+
+quectel_get_sim_slot_value()
+{
+    at "$at_port" "AT+QUIMSLOT?" | quectel_parse_sim_slot
+}
+
 #SIM卡信息
 sim_info()
 {
     m_debug  "Quectel sim info"
     
     #SIM Slot（SIM卡卡槽）
-    at_command="AT+QUIMSLOT?"
-	sim_slot=$(at $at_port $at_command | grep "+QUIMSLOT:" | awk -F' ' '{print $2}' | sed 's/\r//g')
+    sim_slot=$(quectel_get_sim_slot_value)
 
     #IMEI（国际移动设备识别码）
     at_command="AT+CGSN"
@@ -1860,33 +1878,77 @@ get_current_band_capabilities()
 
 # get sim switch capabilities
 sim_switch_capabilities(){
-    json_add_string "supportSwitch" "1"
+    local response slots slot
+
+    response=$(at "$at_port" "AT+QUIMSLOT=?")
+    slots=$(printf '%s\n' "$response" | awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
+        value=$2
+        gsub(/[(),]/, " ", value)
+        print value
+        exit
+    }')
+
+    json_add_string "supportSwitch" "$([ -n "$slots" ] && echo 1 || echo 0)"
     json_add_array "simSlots"
-    json_add_string "" "1"
-    json_add_string "" "2"
+    for slot in $slots; do
+        case "$slot" in
+            1|2) json_add_string "" "$slot" ;;
+        esac
+    done
     json_close_array
 }
 
 get_sim_slot(){
-    local at_command="AT+QUIMSLOT?"
-	sim_slot=$(at $at_port $at_command | grep "+QUIMSLOT:" | awk -F' ' '{print $2}' | sed 's/\r//g')
+    sim_slot=$(quectel_get_sim_slot_value)
     json_add_string "sim_slot" "$sim_slot"
 }
 
 set_sim_slot(){
-    local sim_slot_param=$1
-    local at_command="AT+QUIMSLOT=$sim_slot_param"
-    response=$(at $at_port $at_command)
+    local sim_slot_param="$1"
+    local response current_slot attempt
+
+    case "$sim_slot_param" in
+        1|2) ;;
+        *)
+            json_add_string "result" "Invalid SIM slot: $sim_slot_param"
+            return 1
+            ;;
+    esac
+
+    response=$(at "$at_port" "AT+QUIMSLOT=$sim_slot_param")
     json_add_string "result" "$response"
+    printf '%s\n' "$response" | grep -q '^OK' || return 1
+
+    attempt=0
+    while [ "$attempt" -lt 5 ]; do
+        current_slot=$(quectel_get_sim_slot_value)
+        [ "$current_slot" = "$sim_slot_param" ] && {
+            json_add_string "sim_slot" "$current_slot"
+            return 0
+        }
+        attempt=$((attempt + 1))
+        sleep 1
+    done
+
+    json_add_string "sim_slot" "$current_slot"
+    return 1
 }
 
 get_usage_stats()
 {
-    local response tx_bytes rx_bytes updated_at
+    local response marker tx_bytes rx_bytes updated_at
 
-    response=$(at "$at_port" "AT+QGDNRCNT?")
-    tx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDNRCNT:/ {gsub(/\r/, "", $2); print $2; exit}')
-    rx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDNRCNT:/ {gsub(/\r/, "", $3); print $3; exit}')
+    if [ "$platform" = "unisoc" ]; then
+        marker="+QGDCNT:"
+        response=$(at "$at_port" "AT+QGDCNT?")
+        rx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDCNT:/ {gsub(/\r/, "", $2); print $2; exit}')
+        tx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDCNT:/ {gsub(/\r/, "", $3); print $3; exit}')
+    else
+        marker="+QGDNRCNT:"
+        response=$(at "$at_port" "AT+QGDNRCNT?")
+        tx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDNRCNT:/ {gsub(/\r/, "", $2); print $2; exit}')
+        rx_bytes=$(echo "$response" | awk -F'[:, ]+' '/\+QGDNRCNT:/ {gsub(/\r/, "", $3); print $3; exit}')
+    fi
 
     case "$tx_bytes" in
         ''|*[!0-9]*)
@@ -1899,7 +1961,7 @@ get_usage_stats()
             ;;
     esac
 
-    if echo "$response" | grep -q "+QGDNRCNT:"; then
+    if echo "$response" | grep -q "$marker"; then
         updated_at=$(date +%s)
         json_add_boolean "available" 1
         json_add_int "updated_at" "$updated_at"
@@ -1917,7 +1979,11 @@ write_usage_stats()
 {
     local response
 
-    response=$(at "$at_port" "AT+QGDNRCNT=1")
+    if [ "$platform" = "unisoc" ]; then
+        response=$(at "$at_port" "AT+QAUGDCNT=30")
+    else
+        response=$(at "$at_port" "AT+QGDNRCNT=1")
+    fi
     echo "$response" | grep -qi "OK"
 }
 
@@ -1925,7 +1991,11 @@ clear_usage_stats()
 {
     local response
 
-    response=$(at "$at_port" "AT+QGDNRCNT=0")
+    if [ "$platform" = "unisoc" ]; then
+        response=$(at "$at_port" "AT+QGDCNT=0")
+    else
+        response=$(at "$at_port" "AT+QGDNRCNT=0")
+    fi
     if echo "$response" | grep -qi "OK"; then
         json_add_boolean "result" 1
     else

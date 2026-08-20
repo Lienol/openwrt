@@ -20,8 +20,7 @@ stop_service(){
 
 reload_service()
 {
-    stop
-    start
+    rc_procd start_service
 }
 
 _start_instances(){
@@ -30,8 +29,7 @@ _start_instances(){
 }
 
 _stop_instances(){
-    config_load qmodem
-    config_foreach _stop_instance modem-device
+    procd_kill "$service" 2>/dev/null
 }
 
 _start_instance(){
@@ -57,10 +55,11 @@ _start_instance(){
     [ -n "$ping_dest" ] && procd_append_param command --ping-dest "$ping_dest"
     [ -n "$ping_ip_version" ] && procd_append_param command --ping-ip-version "$ping_ip_version"
     [ -n "$http_url" ] && procd_append_param command --http-url "$http_url"
+    procd_set_param respawn 3600 5 5
     procd_close_instance
 
 }
 
 _stop_instance(){
-    :
+    procd_kill "$service" "m_$1" 2>/dev/null
 }
