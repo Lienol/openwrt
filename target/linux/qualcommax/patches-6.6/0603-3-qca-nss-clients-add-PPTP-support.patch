@@ -51,7 +51,7 @@
  #endif /* !(__LINUX_IF_PPPOX_H) */
 --- a/drivers/net/ppp/ppp_generic.c
 +++ b/drivers/net/ppp/ppp_generic.c
-@@ -3728,6 +3728,28 @@ void ppp_update_stats(struct net_device
+@@ -3761,6 +3761,28 @@ void ppp_update_stats(struct net_device
  	ppp_recv_unlock(ppp);
  }
  
@@ -82,7 +82,7 @@
   */
 --- a/include/linux/ppp_channel.h
 +++ b/include/linux/ppp_channel.h
-@@ -123,6 +123,7 @@ extern int __ppp_hold_channels(struct ne
+@@ -122,6 +122,7 @@ extern int __ppp_hold_channels(struct ne
  /* Test if ppp xmit lock is locked */
  extern bool ppp_is_xmit_locked(struct net_device *dev);
  
@@ -258,7 +258,7 @@
  		return sk_receive_skb(sk_pppox(po), skb, 0);
  	}
  drop:
-@@ -477,7 +588,7 @@ static int pptp_connect(struct socket *s
+@@ -478,7 +589,7 @@ static int pptp_connect(struct socket *s
  
  	opt->dst_addr = sp->sa_addr.pptp;
  	sk->sk_state |= PPPOX_CONNECTED;
@@ -267,7 +267,7 @@
   end:
  	release_sock(sk);
  	return error;
-@@ -607,9 +718,169 @@ static int pptp_ppp_ioctl(struct ppp_cha
+@@ -608,9 +719,169 @@ static int pptp_ppp_ioctl(struct ppp_cha
  	return err;
  }
  

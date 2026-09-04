@@ -1,6 +1,6 @@
 --- a/include/linux/ppp_channel.h
 +++ b/include/linux/ppp_channel.h
-@@ -98,6 +98,9 @@ extern int ppp_channel_get_protocol(stru
+@@ -97,6 +97,9 @@ extern int ppp_channel_get_protocol(stru
  /* Call this get protocol version */
  extern int ppp_channel_get_proto_version(struct ppp_channel *);
  
@@ -10,7 +10,7 @@
  /* Call this to hold a channel */
  extern bool ppp_channel_hold(struct ppp_channel *);
  
-@@ -113,12 +116,18 @@ extern int ppp_hold_channels(struct net_
+@@ -112,12 +115,18 @@ extern int ppp_hold_channels(struct net_
  				struct ppp_channel *channels[],
  				unsigned int chan_sz);
  
@@ -106,9 +106,9 @@
 -	po->chan.ops	 = &pppol2tp_chan_ops;
 +	po->chan.ops	 = (struct ppp_channel_ops *)&pppol2tp_chan_ops.ops;
  	po->chan.mtu	 = pppol2tp_tunnel_mtu(tunnel);
+ 	po->chan.direct_xmit	= true;
  
- 	error = ppp_register_net_channel(sock_net(sk), &po->chan);
-@@ -1723,6 +1738,109 @@ static void __exit pppol2tp_exit(void)
+@@ -1724,6 +1739,109 @@ static void __exit pppol2tp_exit(void)
  	unregister_pernet_device(&pppol2tp_net_ops);
  }
  
@@ -241,7 +241,7 @@
  
  /*
   * Disconnect a channel from the generic layer.
-@@ -3740,6 +3754,32 @@ int ppp_is_multilink(struct net_device *
+@@ -3773,6 +3787,32 @@ int ppp_is_multilink(struct net_device *
  }
  EXPORT_SYMBOL(ppp_is_multilink);
  
@@ -274,7 +274,7 @@
  /* ppp_channel_get_protocol()
   *	Call this to obtain the underlying protocol of the PPP channel,
   *	e.g. PX_PROTO_OE
-@@ -3878,6 +3918,59 @@ int ppp_hold_channels(struct net_device
+@@ -3911,6 +3951,59 @@ int ppp_hold_channels(struct net_device
  }
  EXPORT_SYMBOL(ppp_hold_channels);
  
@@ -334,7 +334,7 @@
  /* ppp_release_channels()
   *	Releases channels
   */
-@@ -3905,6 +3998,7 @@ EXPORT_SYMBOL(ppp_unregister_channel);
+@@ -3938,6 +4031,7 @@ EXPORT_SYMBOL(ppp_unregister_channel);
  EXPORT_SYMBOL(ppp_channel_index);
  EXPORT_SYMBOL(ppp_unit_number);
  EXPORT_SYMBOL(ppp_dev_name);

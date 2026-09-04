@@ -411,7 +411,7 @@
  }
  
  static int
-@@ -6405,6 +6520,8 @@ static int pskb_carve_inside_header(stru
+@@ -6418,6 +6533,8 @@ static int pskb_carve_inside_header(stru
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
@@ -420,7 +420,7 @@
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
  		return -ENOMEM;
-@@ -6528,6 +6645,8 @@ static int pskb_carve_inside_nonlinear(s
+@@ -6541,6 +6658,8 @@ static int pskb_carve_inside_nonlinear(s
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  

@@ -73,7 +73,7 @@
  		case AD_MUX_COLLECTING_DISTRIBUTING:
  			port->actor_oper_port_state |= LACP_STATE_COLLECTING;
  			port->actor_oper_port_state |= LACP_STATE_DISTRIBUTING;
-@@ -2069,6 +2127,7 @@ static void ad_enable_collecting_distrib
+@@ -2070,6 +2128,7 @@ static void ad_enable_collecting_distrib
  	struct aggregator *aggregator = rcu_dereference(port->aggregator);
  
  	if (aggregator->is_active) {
@@ -81,7 +81,7 @@
  		slave_dbg(port->slave->bond->dev, port->slave->dev,
  			  "Enabling port %d (LAG %d)\n",
  			  port->actor_port_number,
-@@ -2076,6 +2135,16 @@ static void ad_enable_collecting_distrib
+@@ -2077,6 +2136,16 @@ static void ad_enable_collecting_distrib
  		__enable_port(port);
  		/* Slave array needs update */
  		*update_slave_arr = true;
@@ -98,7 +98,7 @@
  	}
  }
  
-@@ -2839,6 +2908,104 @@ int bond_3ad_get_active_agg_info(struct
+@@ -2840,6 +2909,104 @@ int bond_3ad_get_active_agg_info(struct
  	return ret;
  }
  
@@ -251,7 +251,7 @@
  			if (bond_is_lb(bond))
  				bond_alb_handle_link_change(bond, new_active, BOND_LINK_UP);
  		} else {
-@@ -1887,6 +1919,7 @@ int bond_enslave(struct net_device *bond
+@@ -1851,6 +1883,7 @@ int bond_enslave(struct net_device *bond
  	const struct net_device_ops *slave_ops = slave_dev->netdev_ops;
  	struct slave *new_slave = NULL, *prev_slave;
  	struct sockaddr_storage ss;
@@ -259,7 +259,7 @@
  	int link_reporting;
  	int res = 0, i;
  
-@@ -2360,6 +2393,15 @@ skip_mac_set:
+@@ -2324,6 +2357,15 @@ skip_mac_set:
  		   bond_is_active_slave(new_slave) ? "an active" : "a backup",
  		   new_slave->link != BOND_LINK_DOWN ? "an up" : "a down");
  
@@ -275,7 +275,7 @@
  	/* enslave is successful */
  	bond_queue_slave_event(new_slave);
  	return 0;
-@@ -2425,6 +2467,15 @@ err_undo_flags:
+@@ -2389,6 +2431,15 @@ err_undo_flags:
  		}
  	}
  
@@ -291,7 +291,7 @@
  	return res;
  }
  
-@@ -2446,6 +2497,7 @@ static int __bond_release_one(struct net
+@@ -2410,6 +2461,7 @@ static int __bond_release_one(struct net
  	struct bonding *bond = netdev_priv(bond_dev);
  	struct slave *slave, *oldcurrent;
  	struct sockaddr_storage ss;
@@ -299,7 +299,7 @@
  	int old_flags = bond_dev->flags;
  	netdev_features_t old_features = bond_dev->features;
  
-@@ -2468,6 +2520,15 @@ static int __bond_release_one(struct net
+@@ -2432,6 +2484,15 @@ static int __bond_release_one(struct net
  
  	bond_set_slave_inactive_flags(slave, BOND_SLAVE_NOTIFY_NOW);
  
@@ -315,7 +315,7 @@
  	bond_sysfs_slave_del(slave);
  
  	/* recompute stats just before removing the slave */
-@@ -2796,6 +2857,8 @@ static void bond_miimon_commit(struct bo
+@@ -2760,6 +2821,8 @@ static void bond_miimon_commit(struct bo
  	struct slave *slave, *primary, *active;
  	bool do_failover = false;
  	struct list_head *iter;
@@ -324,7 +324,7 @@
  
  	ASSERT_RTNL();
  
-@@ -2835,6 +2898,12 @@ static void bond_miimon_commit(struct bo
+@@ -2799,6 +2862,12 @@ static void bond_miimon_commit(struct bo
  				bond_set_active_slave(slave);
  			}
  
@@ -337,7 +337,7 @@
  			slave_info(bond->dev, slave->dev, "link status definitely up, %u Mbps %s duplex\n",
  				   slave->speed == SPEED_UNKNOWN ? 0 : slave->speed,
  				   slave->duplex ? "full" : "half");
-@@ -2889,6 +2958,16 @@ static void bond_miimon_commit(struct bo
+@@ -2853,6 +2922,16 @@ static void bond_miimon_commit(struct bo
  		unblock_netpoll_tx();
  	}
  
@@ -354,7 +354,7 @@
  	bond_set_carrier(bond);
  }
  
-@@ -4138,9 +4217,220 @@ static inline u32 bond_eth_hash(struct s
+@@ -4103,9 +4182,220 @@ static inline u32 bond_eth_hash(struct s
  		return 0;
  
  	ep = (struct ethhdr *)(data + mhoff);
@@ -576,7 +576,7 @@
  static bool bond_flow_ip(struct sk_buff *skb, struct flow_keys *fk, const void *data,
  			 int hlen, __be16 l2_proto, int *nhoff, int *ip_proto, bool l34)
  {
-@@ -5313,15 +5603,18 @@ static netdev_tx_t bond_3ad_xor_xmit(str
+@@ -5278,15 +5568,18 @@ static netdev_tx_t bond_3ad_xor_xmit(str
  				     struct net_device *dev)
  {
  	struct bonding *bond = netdev_priv(dev);
@@ -602,7 +602,7 @@
  }
  
  /* in broadcast mode, we send everything to all or usable slave interfaces.
-@@ -5586,7 +5879,7 @@ static netdev_tx_t __bond_start_xmit(str
+@@ -5551,7 +5844,7 @@ static netdev_tx_t __bond_start_xmit(str
  			return bond_xmit_broadcast(skb, dev, false);
  		fallthrough;
  	case BOND_MODE_XOR:
@@ -657,9 +657,9 @@
 +/* QCA NSS ECM bonding support - End */
 +
  void bond_work_init_all(struct bonding *bond);
+ void bond_work_cancel_all(struct bonding *bond);
  
- #ifdef CONFIG_PROC_FS
-@@ -817,4 +827,18 @@ static inline netdev_tx_t bond_tx_drop(s
+@@ -818,4 +828,18 @@ static inline netdev_tx_t bond_tx_drop(s
  	return NET_XMIT_DROP;
  }
  
