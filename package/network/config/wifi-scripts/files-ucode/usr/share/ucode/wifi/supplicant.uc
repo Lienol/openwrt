@@ -60,7 +60,7 @@ export function ratelist(rates) {
 function setup_sta(data, config) {
 	iface.parse_encryption(config, data);
 
-	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192', 'dpp' ])
+	if (config.auth_type in [ 'sae', 'owe', 'eap2', 'eap192' ])
 		config.ieee80211w = 2;
 	else if (config.auth_type in [ 'psk-sae' ] && !config.ieee80211w)
 		config.ieee80211w = 1;
@@ -124,10 +124,6 @@ function setup_sta(data, config) {
 		iface.wpa_key_mgmt(config);
 		break;
 
-	case 'dpp':
-		iface.wpa_key_mgmt(config);
-		break;
-
 	case 'wps':
 		config.key_mgmt = 'WPS';
 		break;
@@ -141,8 +137,6 @@ function setup_sta(data, config) {
 
 		if (config.mode == 'mesh' || config.auth_type == 'sae')
 			config.sae_password = `"${config.key}"`;
-		else if (length(config.key) == 64)
-			config.psk = config.key;
 		else
 			config.psk = `"${config.key}"`;
 
@@ -192,8 +186,6 @@ function setup_sta(data, config) {
 	if (config.wpa_pairwise == 'GCMP') {
 		config.pairwise = 'GCMP';
 		config.group = 'GCMP';
-	} else if (config.wpa_pairwise) {
-		config.pairwise = config.wpa_pairwise;
 	}
 
 	config.key_mgmt ??= 'NONE';
@@ -234,7 +226,6 @@ function setup_sta(data, config) {
 		'domain_match', 'domain_match2',
 		'domain_suffix_match', 'domain_suffix_match2',
 		'private_key', 'private_key_passwd', 'private_key2', 'private_key2_passwd',
-		'dpp_connector',
 		 ]);
 	network_append_vars(config, [
 		'rsn_overriding', 'scan_ssid', 'noscan', 'disabled', 'multi_ap_profile', 'multi_ap_backhaul_sta',
@@ -243,7 +234,6 @@ function setup_sta(data, config) {
 		'disable_ht', 'disable_ht40', 'disable_vht', 'vht', 'max_oper_chwidth',
 		'ht40', 'beacon_int', 'ieee80211w', 'rates', 'mesh_basic_rates', 'mcast_rate',
 		'bssid_blacklist', 'bssid_whitelist', 'erp', 'eap', 'phase2',
-		'dpp_csign', 'dpp_netaccesskey',
 	]);
 }
 

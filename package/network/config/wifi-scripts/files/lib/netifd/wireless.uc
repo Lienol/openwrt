@@ -29,9 +29,7 @@ function wpad_update_mlo(service, mode)
 		if (!data.phy)
 			continue;
 
-		let entry = { ...data };
-		delete entry.radio_config;
-		config[ifname] = entry;
+		config[ifname] = data;
 	}
 
 	ubus.call({
@@ -277,7 +275,7 @@ function config_init(uci)
 						continue;
 
 					dev = devices[radio] = {
-						name: radio,
+						name,
 						config,
 
 						vif: [],
@@ -339,7 +337,7 @@ function config_init(uci)
 								sta: []
 							};
 							if (vif.vlans)
-								vif_data.vlan = vif.vlans;
+								vif_data.vlans = vif.vlans;
 							if (vif.stations)
 								vif_data.sta = vif.stations;
 							push(dev.vif, vif_data);

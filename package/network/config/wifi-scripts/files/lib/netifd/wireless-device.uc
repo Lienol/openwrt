@@ -61,7 +61,7 @@ function handle_link(dev, data, up)
 	};
 
 	if (ap && config.multicast_to_unicast != null)
-		dev_data.multicast_to_unicast = config.multicast_to_unicast ? 1 : 0;
+		dev_data.multicast_to_unicast = config.multicast_to_unicast;
 
 	if (data.type == "vif" && config.mode == "ap") {
 		dev_data.wireless_proxyarp = !!config.proxy_arp;
@@ -172,9 +172,6 @@ function wdev_teardown_cb(wdev)
 		delete_wdev(wdev.data.name);
 		return;
 	}
-
-	if (wdev.config_change)
-		wdev_config_init(wdev);
 
 	wdev.setup();
 }
@@ -446,14 +443,6 @@ function check()
 	if (!wdev_update_disabled_vifs(this))
 		return;
 
-	/*
-	 * Defer applying a new config while a handler run is in progress: the
-	 * running script keeps its start-time config, and the setup/teardown
-	 * callback re-applies once it finishes (config_change stays set).
-	 */
-	if (this.state != "up" && this.state != "down")
-		return;
-
 	wdev_config_init(this);
 	this.setup();
 }
@@ -463,14 +452,6 @@ function wdev_mark_up(wdev)
 	wdev.dbg("mark up, state=" + wdev.state);
 	if (wdev.state != "setup")
 		return;
-
-	if (wdev.cancel_setup || !wdev.autostart || wdev.delete) {
-		delete wdev.cancel_setup;
-		wdev.teardown();
-		return 0;
-	}
-
-	wdev_reset(wdev);
 
 	for (let section, data in wdev.handler_data) {
 		if (data.ifname)
@@ -555,7 +536,7 @@ function notify(req)
 function hotplug(name, add)
 {
 	let dev = name;
-	let m = match(name, /^(.+)\.sta[0-9]+$/);
+	let m = match(name, /(.+)\.sta.+/);
 	if (m)
 		name = m[1];
 
@@ -613,7 +594,7 @@ function status()
 		});
 	}
 	return {
-		up: this.state == "up" && !this.data.config.disabled,
+		up: this.state == "up",
 		pending: this.state == "setup" || this.state == "teardown",
 		autostart: this.autostart,
 		disabled: !!this.data.config.disabled,

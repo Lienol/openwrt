@@ -32,10 +32,18 @@ DEFAULT_PACKAGES:=\
 	uci \
 	uclient-fetch \
 	urandom-seed \
-	luci luci-compat wget-ssl curl ca-certificates htop \
-	default-settings luci-app-upnp luci-app-wol luci-app-ramfree \
-	luci-app-ddns ddns-scripts-cloudflare ddns-scripts_aliyun ddns-scripts_dnspod \
 	urngd
+
+DEFAULT_PACKAGES+=\
+	bind-dig htop \
+	wget-ssl curl ca-certificates \
+	ddns-scripts-cloudflare ddns-scripts_aliyun ddns-scripts_dnspod \
+	luci luci-compat \
+	luci-app-ddns \
+	luci-app-ramfree \
+	luci-app-upnp \
+	luci-app-wol \
+	default-settings
 
 ##@
 # @brief Default packages for @DEVICE_TYPE basic.

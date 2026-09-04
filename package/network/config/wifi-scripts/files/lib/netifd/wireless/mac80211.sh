@@ -591,25 +591,16 @@ get_board_phy_name() (
 		local val="$1"
 		local key="$2"
 		local ref_path="$3"
-		local type paths path
 
 		json_select "$key"
-		json_get_type type path
-		if [ "$type" = array ]; then
-			json_get_values paths path
-		else
-			json_get_vars path
-			paths="$path"
-		fi
+		json_get_vars path
 		json_select ..
 
-		for path in $paths; do
-			[ "${ref_path%+*}" = "${path%+*}" ] && fallback_phy=$key
-			[ "$ref_path" = "$path" ] || continue
+		[ "${ref_path%+*}" = "$path" ] && fallback_phy=$key
+		[ "$ref_path" = "$path" ] || return 0
 
-			echo "$key"
-			exit
-		done
+		echo "$key"
+		exit
 	}
 
 	json_load_file /etc/board.json
@@ -634,21 +625,9 @@ rename_board_phy_by_name() (
 	json_load_file /etc/board.json
 	json_select wlan
 	json_select "${phy%.*}" || return 0
+	json_get_vars path
 
-	local type paths path
-	json_get_type type path
-	if [ "$type" = array ]; then
-		json_get_values paths path
-	else
-		json_get_vars path
-		paths="$path"
-	fi
-
-	local prev_phy=
-	for path in $paths; do
-		prev_phy="$(iwinfo nl80211 phyname "path=$path${suffix:++$suffix}")"
-		[ -n "$prev_phy" ] && break
-	done
+	prev_phy="$(iwinfo nl80211 phyname "path=$path${suffix:++$suffix}")"
 	[ -n "$prev_phy" ] || return 0
 
 	[ "$prev_phy" = "$phy" ] && return 0

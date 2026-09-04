@@ -344,9 +344,6 @@ function hwmodelist(name) {
 }
 
 export function assoclist(dev) {
-	if (!ifaces[dev])
-		return {};
-
 	let stations = ifaces[dev].assoclist;
 	let ret = {};
 	
@@ -370,7 +367,6 @@ export function assoclist(dev) {
 				flags: assoc_flags(station.sta_info.tx_bitrate ?? {}),
 			},
 			expected_throughput: format_expected_throughput(station.sta_info.expected_throughput ?? 0),
-			connected_time: station.sta_info.connected_time ?? 0,
 		};
 		ret[sta.mac] = sta;
 	}
@@ -534,27 +530,22 @@ function scan_extension(ext, cell) {
 
 	switch(ord(ext, 0)) {
 	case 36:
-		cell.he = {};
+		let offset = 7;
 
-		if (cell.band == '6') {
-			let offset = 7;
+		if (!(ord(ext, 3) & 0x2))
+			break;
 
-			if (ord(ext, 2) & 0x40)
-				offset += 3;
+		if (ord(ext, 2) & 0x40)
+			offset += 3;
 
-			if (ord(ext, 2) & 0x80)
-				offset += 1;
+		if (ord(ext, 2) & 0x80)
+			offset += 1;
 
-			cell.he.chan_width = eht_chan_width[ord(ext, offset + 1) & 0x3];
-			cell.he.center_chan_1 = ord(ext, offset + 2);
-			cell.he.center_chan_2 = ord(ext, offset + 3);
-		} else if (cell.vht) {
-			cell.he.chan_width = cell.vht.chan_width;
-			cell.he.center_chan_1 = cell.vht.center_chan_1;
-			cell.he.center_chan_2 = cell.vht.center_chan_2;
-		} else if (cell.ht) {
-			cell.he.chan_width = cell.ht.chan_width;
-		}
+		cell.he = {
+			chan_width: eht_chan_width[ord(ext, offset + 1) & 0x3],
+			center_chan_1: ord(ext, offset + 2),
+			center_chan_2: ord(ext, offset + 3),
+		};
 		break;
 
 	case 106:
@@ -583,24 +574,23 @@ export function scan(dev) {
 		scan_ssids: [ '' ],
 	};
 
-	nl80211.request(nl80211.const.NL80211_CMD_TRIGGER_SCAN, 0, params);
-	let err = nl80211.error();
-	if (err) {
-		warn("Unable to trigger scan on " + dev + ": " + err + "\n");
-		return null;
+	let res = nl80211.request(nl80211.const.NL80211_CMD_TRIGGER_SCAN, 0, params);
+	if (res === false) {
+		printf("Unable to trigger scan: " + nl80211.error() + "\n");
+		exit(1);
 	}
 
-	let res = nl80211.waitfor([
+	res = nl80211.waitfor([
 		nl80211.const.NL80211_CMD_NEW_SCAN_RESULTS,
 		nl80211.const.NL80211_CMD_SCAN_ABORTED
 	], 5000);
 
 	if (!res) {
-		warn("Netlink error while awaiting scan results on " + dev + ": " + nl80211.error() + "\n");
-		return null;
+		printf("Netlink error while awaiting scan results: " + nl80211.error() + "\n");
+		exit(1);
 	} else if (res.cmd == nl80211.const.NL80211_CMD_SCAN_ABORTED) {
-		warn("Scan aborted by kernel on " + dev + "\n");
-		return null;
+		printf("Scan aborted by kernel\n");
+		exit(1);
 	}
 
 	let scan = nl80211.request(nl80211.const.NL80211_CMD_GET_SCAN, nl80211.const.NLM_F_DUMP, { dev });
