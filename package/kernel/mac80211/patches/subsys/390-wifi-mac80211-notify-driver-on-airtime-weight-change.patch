@@ -33,7 +33,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  			      struct ieee80211_twt_setup *twt);
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -2298,8 +2298,12 @@ static int sta_apply_parameters(struct i
+@@ -2328,8 +2328,12 @@ static int sta_apply_parameters(struct i
  	if (ieee80211_vif_is_mesh(&sdata->vif))
  		sta_apply_mesh_params(local, sta, params);
  
@@ -90,7 +90,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				     struct ieee80211_sta *sta,
 --- a/net/mac80211/sta_info.c
 +++ b/net/mac80211/sta_info.c
-@@ -832,8 +832,13 @@ static int sta_info_insert_drv_state(str
+@@ -839,8 +839,13 @@ static int sta_info_insert_drv_state(str
  		 * Drivers using legacy sta_add/sta_remove callbacks only
  		 * get uploaded set to true after sta_add is called.
  		 */
