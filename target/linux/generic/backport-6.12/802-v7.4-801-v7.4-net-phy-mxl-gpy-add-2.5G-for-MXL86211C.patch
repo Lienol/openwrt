@@ -23,12 +23,12 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
 
 --- a/drivers/net/phy/mxl-gpy.c
 +++ b/drivers/net/phy/mxl-gpy.c
-@@ -1352,7 +1352,7 @@ static struct phy_driver gpy_drivers[] =
- 		PHY_ID_MATCH_MODEL(PHY_ID_MXL86211C),
- 		.name		= "Maxlinear Ethernet MxL86211C",
+@@ -1258,7 +1258,7 @@ static struct phy_driver gpy_drivers[] =
+ 		PHY_ID_MATCH_MODEL(PHY_ID_GPY245B),
+ 		.name		= "Maxlinear Ethernet GPY245B",
  		.get_features	= genphy_c45_pma_read_abilities,
 -		.config_init	= gpy_config_init,
 +		.config_init	= gpy21x_config_init,
  		.probe		= gpy_probe,
- 		.inband_caps	= gpy_inband_caps,
- 		.config_inband	= gpy_config_inband,
+ 		.suspend	= genphy_suspend,
+ 		.resume		= genphy_resume,
