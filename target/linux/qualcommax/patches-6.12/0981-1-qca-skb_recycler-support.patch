@@ -105,7 +105,7 @@
  obj-$(CONFIG_NET_DEVMEM) += devmem.o
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -6242,12 +6242,17 @@ static int process_backlog(struct napi_s
+@@ -6246,12 +6246,17 @@ static int process_backlog(struct napi_s
  
  	napi->weight = READ_ONCE(net_hotdata.dev_rx_weight);
  	while (again) {
@@ -320,7 +320,7 @@
  {
  	struct sk_buff_fclones *fclones;
  
-@@ -1430,7 +1499,6 @@ void skb_tx_error(struct sk_buff *skb)
+@@ -1433,7 +1502,6 @@ void skb_tx_error(struct sk_buff *skb)
  }
  EXPORT_SYMBOL(skb_tx_error);
  
@@ -328,7 +328,7 @@
  /**
   *	consume_skb - free an skbuff
   *	@skb: buffer to free
-@@ -1439,13 +1507,48 @@ EXPORT_SYMBOL(skb_tx_error);
+@@ -1442,13 +1510,48 @@ EXPORT_SYMBOL(skb_tx_error);
   *	Functions identically to kfree_skb, but kfree_skb assumes that the frame
   *	is being dropped after a failure and notes that
   */
@@ -378,7 +378,7 @@
  }
  EXPORT_SYMBOL(consume_skb);
  #endif
-@@ -2284,6 +2387,8 @@ int pskb_expand_head(struct sk_buff *skb
+@@ -2287,6 +2390,8 @@ int pskb_expand_head(struct sk_buff *skb
  
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
@@ -387,7 +387,7 @@
  
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
-@@ -5145,6 +5250,14 @@ static void skb_extensions_init(void) {}
+@@ -5147,6 +5252,14 @@ static void skb_extensions_init(void) {}
  
  void __init skb_init(void)
  {
@@ -402,7 +402,7 @@
  	net_hotdata.skbuff_cache = kmem_cache_create_usercopy("skbuff_head_cache",
  					      sizeof(struct sk_buff),
  					      0,
-@@ -5170,6 +5283,7 @@ void __init skb_init(void)
+@@ -5172,6 +5285,7 @@ void __init skb_init(void)
  						SKB_SMALL_HEAD_HEADROOM,
  						NULL);
  	skb_extensions_init();
@@ -410,7 +410,7 @@
  }
  
  static int
-@@ -6716,6 +6830,8 @@ static int pskb_carve_inside_header(stru
+@@ -6756,6 +6870,8 @@ static int pskb_carve_inside_header(stru
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
@@ -419,7 +419,7 @@
  	data = kmalloc_reserve(&size, gfp_mask, NUMA_NO_NODE, NULL);
  	if (!data)
  		return -ENOMEM;
-@@ -6839,6 +6955,8 @@ static int pskb_carve_inside_nonlinear(s
+@@ -6879,6 +6995,8 @@ static int pskb_carve_inside_nonlinear(s
  	if (skb_pfmemalloc(skb))
  		gfp_mask |= __GFP_MEMALLOC;
  
