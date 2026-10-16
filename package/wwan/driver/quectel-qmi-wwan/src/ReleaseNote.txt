@@ -1,5 +1,36 @@
 Release Notes
 
+[V1.2.7]
+Date:   1/12/2024
+enhancement:
+	1. support SDX35 platform
+fix:
+
+[V1.2.6]
+Date:   5/25/2023
+enhancement:
+	1. support Linux 6.1
+fix:
+
+[V1.2.5]
+Date:   5/4/2023
+enhancement:
+	1. support Linux 5.19
+	2. NSS not effect on SPF12.x and support SFE on 9574
+fix:
+
+[V1.2.4]
+Date:   4/14/2023
+enhancement:
+	1. support SDX7X platform
+fix:
+
+[V1.2.3]
+Date:   9/20/2022
+enhancement:
+	1. support 9x07(pid 0x030E) platform
+fix:
+
 [V1.2.2]
 Date:   9/7/2022
 enhancement:

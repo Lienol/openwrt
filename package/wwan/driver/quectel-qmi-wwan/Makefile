@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=quectel-qmi-wwan
-PKG_VERSION:=1.2.9
-PKG_RELEASE:=3
+PKG_VERSION:=1.5
+PKG_RELEASE:=2
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk

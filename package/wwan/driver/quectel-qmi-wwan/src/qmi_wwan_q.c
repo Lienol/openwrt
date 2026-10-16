@@ -2,14 +2,14 @@
     Copyright (c) Bjørn Mork of author <bjorn@mork.no>
 
     This program is free software; you can redistribute it and/ormodify it under the terms of the GNU General
-    Public licenseas published byFree Software Foundation; either version 2theof the License,(at your option)
+    Public licenseas published byFree Software Foundation; either version 2theof the License,(at your option) 
     any later version.O1
-    This program isdistributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the
-    implied warranty ofOr FITNESS FOR A PARTICULAR PURPOSE.MERCHANTABILITYSee theGNU General Public License
+    This program isdistributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the 
+    implied warranty ofOr FITNESS FOR A PARTICULAR PURPOSE.MERCHANTABILITYSee theGNU General Public License 
     for more details.
     You should have received a copy of the GNU General Public licensealong withthis program; if not, write to
     the Free SoftwareFoundation, Inc.r51 Franklin Street, Fifth Floor，Boston，MA 02110-1301，USA.
-
+    
     Based on version modification, the author is Quectel <fae-support@quectel.com>
  */
 
@@ -20,6 +20,8 @@
 #include <linux/ethtool.h>
 #include <linux/etherdevice.h>
 #include <linux/time.h>
+#include <linux/hrtimer.h>
+#include <linux/workqueue.h>
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,16,0) //8b094cd03b4a3793220d8d8d86a173bfea8c285b
 #include <linux/timekeeping.h>
 #else
@@ -49,10 +51,11 @@
 #define ARPHRD_RAWIP ARPHRD_NONE
 #endif
 
-#ifdef CONFIG_PINCTRL_IPQ807x
-#define CONFIG_QCA_NSS_DRV
-//#define CONFIG_QCA_NSS_PACKET_FILTER
-#endif
+/*
+ * struct usbnet lost tasklet member .bh in favor of .bh_work (BH workqueue);
+ * merged for Linux 6.17 (net: usb: tasklet -> system_bh_wq).
+ */
+#define QMI_USBNET_HAS_BH_WORK (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0))
 
 #define _RMNET_NSS_H_
 #define _RMENT_NSS_H_
@@ -62,15 +65,9 @@ struct rmnet_nss_cb {
         int (*nss_tx)(struct sk_buff *skb);
 };
 static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
-#if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018)
-#ifdef CONFIG_RMNET_DATA
-#define CONFIG_QCA_NSS_DRV
-/* define at qsdk/qca/src/linux-4.4/net/rmnet_data/rmnet_data_main.c */ //for spf11.x
-/* define at qsdk/qca/src/datarmnet/core/rmnet_config.c */ //for spf12.x
-/* set at qsdk/qca/src/data-kernel/drivers/rmnet-nss/rmnet_nss.c */
-/* need add DEPENDS:= kmod-rmnet-core in feeds/makefile */
+#ifdef CONFIG_QCA_NSS_DRV
+/* NSS builds must explicitly enable this and provide the callback symbol. */
 extern struct rmnet_nss_cb *rmnet_nss_callbacks __rcu __read_mostly;
-#endif
 #endif
 
 /* This driver supports wwan (3G/LTE/?) devices using a vendor
@@ -96,7 +93,7 @@ extern struct rmnet_nss_cb *rmnet_nss_callbacks __rcu __read_mostly;
  * These devices may alternatively/additionally be configured using AT
  * commands on a serial interface
  */
-#define VERSION_NUMBER "V1.2.9"
+#define VERSION_NUMBER "V1.5.0"
 #define QUECTEL_WWAN_VERSION "Quectel_Linux&Android_QMI_WWAN_Driver_"VERSION_NUMBER
 static const char driver_name[] = "qmi_wwan_q";
 
@@ -111,6 +108,16 @@ struct qmi_wwan_state {
 
 /* default ethernet address used by the modem */
 static const u8 default_modem_addr[ETH_ALEN] = {0x02, 0x50, 0xf3};
+
+#define CONFIG_ZERO_MAC
+#ifdef CONFIG_ZERO_MAC
+static const u8 zero_mac_addr[ETH_ALEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+#endif
+
+/* Multiple network cards have the same MAC address.
+ * After registering the network card, a random MAC address is directly assigned.
+ */
+//#define CONFIG_RANDOM_MAC
 
 #if 1 //Added by Quectel
 /*
@@ -185,7 +192,11 @@ typedef struct sQmiWwanQmap
 #if defined(QUECTEL_UL_DATA_AGG)
 	struct tx_agg_ctx tx_ctx;
 	struct tasklet_struct	txq;
+#if QMI_USBNET_HAS_BH_WORK
+	work_func_t usbnet_bh_work;
+#else
 	struct tasklet_struct usbnet_bh;
+#endif
 #endif
 
 #ifdef QUECTEL_BRIDGE_MODE
@@ -828,35 +839,35 @@ static struct rtnl_link_stats64 *_rmnet_vnd_get_stats64(struct net_device *net, 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION( 6,1,0 ))
 		u64 rx_packets, rx_bytes;
 		u64 tx_packets, tx_bytes;
-#else
-		u64_stats_t rx_packets, rx_bytes;
-		u64_stats_t tx_packets, tx_bytes;
-#endif
 
 		stats64 = per_cpu_ptr(dev->stats64, cpu);
 
 		do {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION( 6,6,0 ))
-			start = u64_stats_fetch_begin(&stats64->syncp);
-#else
 			start = u64_stats_fetch_begin_irq(&stats64->syncp);
-#endif
 			rx_packets = stats64->rx_packets;
 			rx_bytes = stats64->rx_bytes;
 			tx_packets = stats64->tx_packets;
 			tx_bytes = stats64->tx_bytes;
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION( 6,6,0 ))
-		} while (u64_stats_fetch_retry(&stats64->syncp, start));
-#else
 		} while (u64_stats_fetch_retry_irq(&stats64->syncp, start));
-#endif
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION( 6,1,0 ))
 		stats->rx_packets += rx_packets;
 		stats->rx_bytes += rx_bytes;
 		stats->tx_packets += tx_packets;
 		stats->tx_bytes += tx_bytes;
 #else
+        u64_stats_t rx_packets, rx_bytes;
+		u64_stats_t tx_packets, tx_bytes;
+
+		stats64 = per_cpu_ptr(dev->stats64, cpu);
+
+		do {
+			start = u64_stats_fetch_begin(&stats64->syncp);
+			rx_packets = stats64->rx_packets;
+			rx_bytes = stats64->rx_bytes;
+			tx_packets = stats64->tx_packets;
+			tx_bytes = stats64->tx_bytes;
+		} while (u64_stats_fetch_retry(&stats64->syncp, start));
+
         stats->rx_packets += u64_stats_read(&rx_packets);
 		stats->rx_bytes += u64_stats_read(&rx_bytes);
 		stats->tx_packets += u64_stats_read(&tx_packets);
@@ -879,12 +890,31 @@ static struct rtnl_link_stats64 *rmnet_vnd_get_stats64(struct net_device *net, s
 #endif
 
 #if defined(QUECTEL_UL_DATA_AGG)
+#if QMI_USBNET_HAS_BH_WORK
+static void qmi_qmap_usbnet_bh_work(struct work_struct *work)
+{
+	struct usbnet *dev = container_of(work, struct usbnet, bh_work);
+	struct qmi_wwan_state *info = (void *)&dev->data;
+	sQmiWwanQmap *pQmapDev = (sQmiWwanQmap *)info->unused;
+	work_func_t fn;
+
+	if (!pQmapDev)
+		return;
+
+	fn = READ_ONCE(pQmapDev->usbnet_bh_work);
+	if (fn)
+		fn(work);
+
+	if (!netif_queue_stopped(pQmapDev->mpNetDev->net))
+		qmap_wake_queue(pQmapDev);
+}
+#else
 static void usbnet_bh(unsigned long data) {
 	sQmiWwanQmap *pQmapDev = (sQmiWwanQmap *)data;
 	struct tasklet_struct *t = &pQmapDev->usbnet_bh;
 	bool use_callback = false;
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION( 5,8,0 )) && (LINUX_VERSION_CODE < KERNEL_VERSION( 6,17,0 ))
+#if (LINUX_VERSION_CODE > KERNEL_VERSION( 5,8,0 )) //c955e329bb9d44fab75cf2116542fcc0de0473c5
 	use_callback = t->use_callback;
 	if (use_callback)
 		t->callback(&pQmapDev->mpNetDev->bh);
@@ -897,6 +927,7 @@ static void usbnet_bh(unsigned long data) {
 		qmap_wake_queue((sQmiWwanQmap *)data);
 	}
 }
+#endif /* QMI_USBNET_HAS_BH_WORK */
 
 static void rmnet_usb_tx_wake_queue(unsigned long data) {
 	qmap_wake_queue((sQmiWwanQmap *)data);
@@ -1356,11 +1387,12 @@ static int qmap_register_device(sQmiWwanQmap * pDev, u8 offset_id)
 #endif
 	priv->agg_skb = NULL;
 	priv->agg_count = 0;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6,18,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 17, 0)
+	hrtimer_setup(&priv->agg_hrtimer, rmnet_usb_tx_agg_timer_cb,
+		      CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+#else
 	hrtimer_init(&priv->agg_hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 	priv->agg_hrtimer.function = rmnet_usb_tx_agg_timer_cb;
-#else
-	hrtimer_setup(&priv->agg_hrtimer, rmnet_usb_tx_agg_timer_cb, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
 #endif
 	INIT_WORK(&priv->agg_wq, rmnet_usb_tx_agg_work);
 	ktime_get_ts64(&priv->agg_time);
@@ -1463,8 +1495,6 @@ typedef struct {
     u8 brmac[ETH_ALEN];
 } BRMAC_SETTING;
 #endif
-
-static int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size);
 
 int qma_setting_store(struct device *dev, QMAP_SETTING *qmap_settings, size_t size) {
 	struct net_device *netdev = to_net_dev(dev);
@@ -1676,7 +1706,7 @@ static int qmi_wwan_rx_fixup(struct usbnet *dev, struct sk_buff *skb)
 	eth_hdr(skb)->h_proto = proto;
 	memset(eth_hdr(skb)->h_source, 0, ETH_ALEN);
 #if 1 //Added by Quectel
-	//some kernel will drop ethernet packet which's souce mac is all zero
+	//some kernel will drop ethernet packet which's source mac is all zero
 	memcpy(eth_hdr(skb)->h_source, default_modem_addr, ETH_ALEN);
 #endif
 
@@ -2129,6 +2159,20 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 	if (ether_addr_equal(dev->net->dev_addr, default_modem_addr))
 		eth_hw_addr_random(dev->net);
 
+#ifdef CONFIG_RANDOM_MAC
+	eth_hw_addr_random(dev->net);
+	printk(KERN_INFO "%s: %s:random mac addr  %p\n",
+                       driver->name, __func__, dev->net->dev_addr);
+#endif
+
+	/*if host get zero mac, set random mac*/
+#ifdef CONFIG_ZERO_MAC 
+	if (ether_addr_equal(dev->net->dev_addr, zero_mac_addr)){
+		eth_hw_addr_random(dev->net);
+		printk(KERN_INFO "%s: %s:if get zero mac, random mac addr  %p\n", 
+	               driver->name, __func__, dev->net->dev_addr);
+	}			   
+#endif
 	/* make MAC addr easily distinguishable from an IP header */
 	if (possibly_iphdr(dev->net->dev_addr)) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)
@@ -2143,14 +2187,7 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 #endif
 		}
 	if (!_usbnet_get_stats64)
-#if (LINUX_VERSION_CODE < KERNEL_VERSION( 6,10,0 ))
 		_usbnet_get_stats64 = dev->net->netdev_ops->ndo_get_stats64;
-#else
-		/* From kernel 6.10+, usbnet sets pcpu_stat_type = NETDEV_PCPU_STAT_TSTATS (352f5b3282), but removed ndo_get_stats64 (9cb3d523c1) */
-		/* Use dev_get_tstats64 to read per-CPU stats when NETDEV_PCPU_STAT_TSTATS was set */
-		if (dev->net->pcpu_stat_type == NETDEV_PCPU_STAT_TSTATS)
-			_usbnet_get_stats64 = dev_get_tstats64;
-#endif
 	dev->net->netdev_ops = &qmi_wwan_netdev_ops;
 
 	ql_net_ethtool_ops = *dev->net->ethtool_ops;
@@ -2216,7 +2253,8 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 			int qmap_size = (dev->driver_info->data)&0xFF;
 			int idProduct = le16_to_cpu(dev->udev->descriptor.idProduct);
 			int lte_a = (idProduct == 0x0306 || idProduct == 0x030B || idProduct == 0x0512 || idProduct == 0x0620 ||
-							idProduct == 0x0800 || idProduct == 0x0801 || idProduct == 0x0122 || idProduct == 0x0316);
+							idProduct == 0x0800 || idProduct == 0x0801 || idProduct == 0x0122 || idProduct == 0x0316 ||
+							idProduct == 0x0455 || idProduct == 0x013D);
 
 			if (qmap_size > 4096 || dev->udev->speed >= USB_SPEED_SUPER) { //if meet this requirements, must be LTE-A or 5G
 				lte_a = 1;
@@ -2238,7 +2276,7 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 
 				if (pQmapDev->qmap_mode > 1)
 					pQmapDev->use_rmnet_usb = 1;
-				else if (idProduct == 0x0800 || idProduct == 0x0801 || idProduct == 0x0122)
+				else if (idProduct == 0x0800 || idProduct == 0x0801 || idProduct == 0x0122 || idProduct == 0x0455 || idProduct == 0x013D)
 					pQmapDev->use_rmnet_usb = 1; //benefit for ul data agg
 #ifdef QMI_NETDEV_ONE_CARD_MODE
 				if(pQmapDev->use_rmnet_usb == 1 && pQmapDev->qmap_mode == 1)
@@ -2267,7 +2305,9 @@ static int qmi_wwan_bind(struct usbnet *dev, struct usb_interface *intf)
 				}
 
 				if (pQmapDev->use_rmnet_usb && !one_card_mode) {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION( 6,17,0 ))
+#if QMI_USBNET_HAS_BH_WORK
+					pQmapDev->usbnet_bh_work = READ_ONCE(dev->bh_work.func);
+					INIT_WORK(&dev->bh_work, qmi_qmap_usbnet_bh_work);
 #else
 					pQmapDev->usbnet_bh = dev->bh;
 					tasklet_init(&dev->bh, usbnet_bh, (unsigned long)pQmapDev);
@@ -2549,11 +2589,15 @@ static const struct usb_device_id products[] = {
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0512, 4, mdm9x40) },  /* Quectel EG12/EP12/EM12/EG16/EG18 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0296, 4, mdm9x07) },  /* Quectel BG96 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0435, 4, mdm9x07) },  /* Quectel AG35 */
+	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0455, 2, mdm9x40) },  /* Quectel AG551 */
+	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0457, 2, mdm9x40) },  /* Quectel AG598 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0620, 4, mdm9x40) },  /* Quectel EG20 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0316, 3, mdm9x40) },  /* Quectel RG255 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0800, 4, sdx55) },  /* Quectel RG500 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0801, 4, sdx55) },  /* Quectel RG520 */
 	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x0122, 4, sdx55) },  /* Quectel RG650 */
+	{ QMI_FIXED_RAWIP_INTF(0x2C7C, 0x013D, 4, sdx55) },  /* Quectel SDX8X */
+	/* custom devices */
 	{ QMI_FIXED_RAWIP_INTF(0x05c6, 0x90d5, 3, sdx55) },  /* Foxconn T99W240T00 */
 	{ QMI_FIXED_RAWIP_INTF(0x05c6, 0x90db, 2, sdx55) },  /* SIM8200 */
 	{ QMI_FIXED_RAWIP_INTF(0x2dee, 0x4d22, 5, sdx55) }, /* Meige SRM815 */
