@@ -126,7 +126,7 @@ static const struct firmware_info firmware_table[] = {
 static int debug_mode;
 module_param_named(debug_mode, debug_mode, int, 0644);
 
-int mhi_debugfs_trigger_m0(void *data, u64 val)
+static int mhi_debugfs_trigger_m0(void *data, u64 val)
 {
 	struct mhi_controller *mhi_cntrl = data;
 	struct mhi_dev *mhi_dev = mhi_controller_get_devdata(mhi_cntrl);
@@ -140,7 +140,7 @@ int mhi_debugfs_trigger_m0(void *data, u64 val)
 DEFINE_SIMPLE_ATTRIBUTE(debugfs_trigger_m0_fops, NULL,
 			mhi_debugfs_trigger_m0, "%llu\n");
 
-int mhi_debugfs_trigger_m3(void *data, u64 val)
+static int mhi_debugfs_trigger_m3(void *data, u64 val)
 {
 	struct mhi_controller *mhi_cntrl = data;
 	struct mhi_dev *mhi_dev = mhi_controller_get_devdata(mhi_cntrl);
@@ -430,7 +430,6 @@ rpm_resume_exit:
 	return ret;
 }
 
-#ifdef CONFIG_PM_SLEEP
 static int mhi_system_resume(struct device *dev)
 {
 	int ret = 0;
@@ -447,7 +446,7 @@ static int mhi_system_resume(struct device *dev)
 	return ret;
 }
 
-int mhi_system_suspend(struct device *dev)
+static int mhi_system_suspend(struct device *dev)
 {
 	struct mhi_controller *mhi_cntrl = dev_get_drvdata(dev);
 	int ret;
@@ -474,7 +473,6 @@ int mhi_system_suspend(struct device *dev)
 	MHI_LOG("Exit\n");
 	return 0;
 }
-#endif
 #endif
 
 /* checks if link is down */
@@ -1070,7 +1068,7 @@ static struct pci_device_id mhi_pcie_device_id[] = {
 	{PCI_DEVICE(MHI_PCIE_VENDOR_ID, 0x0308)}, //SDX62
 	{PCI_DEVICE(MHI_PCIE_VENDOR_ID, 0x011a)}, //SDX35
 	{PCI_DEVICE(MHI_PCIE_VENDOR_ID, 0x0309)}, //SDX7X
-	{PCI_DEVICE(PCI_VENDOR_ID_FOXCONN, 0xe0f5)}, //FOXCONN SDX6X
+	{PCI_DEVICE(0x105b, 0xe0f5)}, //FOXCONN SDX6X
 	{PCI_DEVICE(0x1eac, 0x1001)}, //EM120
 	{PCI_DEVICE(0x1eac, 0x1002)}, //EM160
 	{PCI_DEVICE(0x1eac, 0x1004)}, //RM520
@@ -1210,16 +1208,16 @@ void mhi_arch_pcie_deinit(struct mhi_controller *mhi_cntrl)
 {
 	mhi_arch_set_bus_request(mhi_cntrl, 0);
 }
-
-int mhi_arch_platform_init(struct mhi_dev *mhi_dev)
+/*
+static int mhi_arch_platform_init(struct mhi_dev *mhi_dev)
 {
 	return 0;
 }
 
-void mhi_arch_platform_deinit(struct mhi_dev *mhi_dev)
+static void mhi_arch_platform_deinit(struct mhi_dev *mhi_dev)
 {
 }
-
+*/
 int mhi_arch_link_off(struct mhi_controller *mhi_cntrl,
 				    bool graceful)
 {

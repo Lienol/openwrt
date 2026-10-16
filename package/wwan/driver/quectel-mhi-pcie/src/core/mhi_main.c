@@ -291,7 +291,7 @@ static void *mhi_to_virtual(struct mhi_ring *ring, dma_addr_t addr)
 	return (addr - ring->iommu_base) + ring->base;
 }
 
-dma_addr_t mhi_to_physical(struct mhi_ring *ring, void *addr)
+static dma_addr_t mhi_to_physical(struct mhi_ring *ring, void *addr)
 {
 	return (addr - ring->base) + ring->iommu_base;
 }

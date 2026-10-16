@@ -153,7 +153,7 @@ void mhi_set_mhi_state(struct mhi_controller *mhi_cntrl,
 }
 
 /* set device wake */
-void mhi_assert_dev_wake(struct mhi_controller *mhi_cntrl, bool force)
+static void mhi_assert_dev_wake(struct mhi_controller *mhi_cntrl, bool force)
 {
 	unsigned long flags;
 
@@ -193,7 +193,7 @@ void mhi_assert_dev_wake(struct mhi_controller *mhi_cntrl, bool force)
 }
 
 /* clear device wake */
-void mhi_deassert_dev_wake(struct mhi_controller *mhi_cntrl, bool override)
+static void mhi_deassert_dev_wake(struct mhi_controller *mhi_cntrl, bool override)
 {
 	unsigned long flags;
 

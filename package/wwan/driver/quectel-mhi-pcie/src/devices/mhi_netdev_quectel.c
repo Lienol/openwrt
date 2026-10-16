@@ -63,8 +63,8 @@ struct rmnet_nss_cb {
 	int (*nss_tx)(struct sk_buff *skb);
 };
 static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
-#if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018)
-#ifdef CONFIG_RMNET_DATA
+#if defined(CONFIG_PINCTRL_IPQ807x) || defined(CONFIG_PINCTRL_IPQ5018) || defined(CONFIG_PINCTRL_IPQ8074)
+//#ifdef CONFIG_RMNET_DATA //spf12.x have no macro defined, just for spf11.x
 #define CONFIG_QCA_NSS_DRV
 #define CONFIG_USE_RMNET_DATA_FOR_SKIP_MEMCPY
 /* define at qca/src/linux-4.4/drivers/net/ethernet/qualcomm/rmnet/rmnet_config.c */ //for spf11.x
@@ -72,9 +72,9 @@ static struct rmnet_nss_cb __read_mostly *nss_cb = NULL;
 /* set at qsdk/qca/src/data-kernel/drivers/rmnet-nss/rmnet_nss.c */
 /* need add DEPENDS:= kmod-rmnet-core in feeds/makefile */
 extern struct rmnet_nss_cb *rmnet_nss_callbacks __rcu __read_mostly;
+//#endif
 #endif
-#endif
-	
+
 
 int mhi_netdev_use_xfer_type_dma(unsigned chan)
 {
@@ -202,7 +202,7 @@ static void qmap_hex_dump(const char *tag, unsigned char *data, unsigned len) {
 	}
 }
 #else
-static void qmap_hex_dump(const char *tag, unsigned char *data, unsigned len) {
+static void __attribute__((used)) qmap_hex_dump(const char *tag, unsigned char *data, unsigned len) {
 }
 #endif
 
@@ -1728,9 +1728,10 @@ static struct net_device * rmnet_vnd_register_device(struct mhi_netdev *pQmapDev
 
 out_free_newdev:
 	free_netdev(qmap_net);
-	return NULL;
+	return qmap_net;
 }
 
+#ifndef	CONFIG_USE_RMNET_DATA_FOR_SKIP_MEMCPY
 static void  rmnet_vnd_unregister_device(struct net_device *qmap_net) {
 	struct qmap_priv *priv;
 	unsigned long flags;
@@ -1762,6 +1763,7 @@ static void  rmnet_vnd_unregister_device(struct net_device *qmap_net) {
 	unregister_netdev (qmap_net);
 	free_netdev(qmap_net);
 }
+#endif
 #endif
 
 static void rmnet_info_set(struct mhi_netdev *pQmapDev, RMNET_INFO *rmnet_info)
@@ -1900,7 +1902,7 @@ static void mhi_netdev_upate_tx_stats(struct mhi_netdev *mhi_netdev,
 #endif
 }
 
-static __be16 mhi_netdev_ip_type_trans(u8 data)
+static __be16 __attribute__((used)) mhi_netdev_ip_type_trans(u8 data)
 {
 	__be16 protocol = 0;
 
@@ -2623,13 +2625,12 @@ static const struct net_device_ops mhi_netdev_ops_ip = {
 static void mhi_netdev_get_drvinfo (struct net_device *ndev, struct ethtool_drvinfo *info)
 {
 	//struct mhi_netdev *mhi_netdev = ndev_to_mhi(ndev);
-	/* strlcpy() is deprecated in kernel 6.8.0+, using strscpy instead */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,8,0))
-	strlcpy(info->driver, "pcie_mhi", sizeof(info->driver));
-	strlcpy(info->version, PCIE_MHI_DRIVER_VERSION, sizeof(info->version));
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0))
+	strscpy (info->driver, "pcie_mhi", sizeof info->driver);
+	strscpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
 #else
-	strscpy(info->driver, "pcie_mhi", sizeof(info->driver));
-	strscpy(info->version, PCIE_MHI_DRIVER_VERSION, sizeof(info->version));
+	strlcpy (info->driver, "pcie_mhi", sizeof info->driver);
+	strlcpy (info->version, PCIE_MHI_DRIVER_VERSION, sizeof info->version);
 #endif
 }
 
@@ -3205,7 +3206,7 @@ static void mhi_netdev_remove(struct mhi_device *mhi_dev)
 	struct mhi_netdev *mhi_netdev = mhi_device_get_devdata(mhi_dev);
 	struct sk_buff *skb;
 
-	MSG_LOG("Remove notification received\n");
+	//MSG_LOG("Remove notification received\n");
 #ifndef MHI_NETDEV_ONE_CARD_MODE
 #ifndef	CONFIG_USE_RMNET_DATA_FOR_SKIP_MEMCPY
 
@@ -3316,12 +3317,10 @@ static int mhi_netdev_probe(struct mhi_device *mhi_dev,
 	mhi_netdev->use_rmnet_usb = 1;
 	if ((mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0306)
 		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0308)
-		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0309)
-		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x011a)
 		|| (mhi_dev->vendor == 0x1eac && mhi_dev->dev_id == 0x1004)
+		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x011a)
 		|| (mhi_dev->vendor == 0x1eac && mhi_dev->dev_id == 0x100b)
-		|| (mhi_dev->vendor == 0x105b && mhi_dev->dev_id == 0xe0f5)
-		|| (mhi_dev->vendor == 0x03f0 && mhi_dev->dev_id == 0x0a6c)
+		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0309)
 	) {
 		mhi_netdev->qmap_version = 9;
 	}
@@ -3332,9 +3331,13 @@ static int mhi_netdev_probe(struct mhi_device *mhi_dev,
 	}
 
 	mhi_netdev->mbim_mux_id = 0;
-	if (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0309) {
+	if ((mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x0309)
+		|| (mhi_dev->vendor == 0x17cb && mhi_dev->dev_id == 0x011a)
+		|| (mhi_dev->vendor == 0x1eac && mhi_dev->dev_id == 0x100b))
+	{
 		mhi_netdev->mbim_mux_id = MBIM_MUX_ID_SDX7X;
 	}
+
 	rmnet_info_set(mhi_netdev, &mhi_netdev->rmnet_info);
 
 	mhi_netdev->rx_queue = mhi_netdev_alloc_skb;
@@ -3451,12 +3454,4 @@ void mhi_device_netdev_exit(void)
 	debugfs_remove_recursive(mhi_netdev_debugfs_dentry);
 #endif
 	mhi_driver_unregister(&mhi_netdev_driver);
-}
-
-void mhi_netdev_quectel_avoid_unused_function(void) {
-#ifdef CONFIG_USE_RMNET_DATA_FOR_SKIP_MEMCPY
-	qmap_hex_dump(NULL, NULL, 0);
-	mhi_netdev_ip_type_trans(0);
-#else
-#endif
 }
