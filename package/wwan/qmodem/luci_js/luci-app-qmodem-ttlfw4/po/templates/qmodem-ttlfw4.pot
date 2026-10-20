@@ -1,0 +1,41 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "TTL Configuration"
+msgstr ""
+
+msgid "Configure TTL/Hop Limit settings to modify outgoing packet TTL values. This can help bypass carrier restrictions on tethering."
+msgstr ""
+
+msgid "Global TTL Settings"
+msgstr ""
+
+msgid "Enable TTL Modification"
+msgstr ""
+
+msgid "Enable or disable TTL/Hop Limit modification for outgoing packets."
+msgstr ""
+
+msgid "TTL Value"
+msgstr ""
+
+msgid "Set the TTL (Time To Live) value for IPv4 packets and Hop Limit for IPv6 packets. Common values: 64 (Linux default), 128 (Windows default)."
+msgstr ""
+
+msgid "Important Notes"
+msgstr ""
+
+msgid "Warning:"
+msgstr ""
+
+msgid "Enabling TTL modification will disable hardware flow offloading for proper packet modification."
+msgstr ""
+
+msgid "This may affect network performance on some devices."
+msgstr ""
+
+msgid "NSS ECM, SFE, and other acceleration modules will be disabled when TTL modification is active."
+msgstr ""
+
+msgid "Settings will take effect after saving and applying changes."
+msgstr ""

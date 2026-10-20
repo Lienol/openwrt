@@ -94,4 +94,33 @@ migrate_legacy_leds
 after="$(declare -p DB)"
 [[ "$before" == "$after" ]]
 
+DB=(
+	[qmodem.modem0]=modem-device
+	[qmodem.modem0.led_script]=m01k43
+	[qmodem_led.modem_status]=modem_status
+	[qmodem_led.modem_status.enabled]=1
+	[qmodem_led.modem_status.script]=misectel_modem_status
+	[qmodem_led.modem_status.bind]=any
+	[qmodem_led.cellular]=modem_status
+	[qmodem_led.cellular.enabled]=0
+	[qmodem_led.cellular.script]=misectel_modem_status
+	[qmodem_led.cellular.bind]=port
+	[qmodem_led.cellular.port]=2-1
+)
+
+configure_m01k21_leds misectel,m01k21
+
+[[ ! -v 'DB[qmodem.modem0.led_script]' ]]
+[[ ! -v 'DB[qmodem_led.modem_status]' ]]
+[[ "${DB[qmodem_led.cellular]}" == modem_status ]]
+[[ "${DB[qmodem_led.cellular.enabled]}" == 1 ]]
+[[ "${DB[qmodem_led.cellular.script]}" == misectel_3led ]]
+[[ "${DB[qmodem_led.cellular.bind]}" == any ]]
+[[ ! -v 'DB[qmodem_led.cellular.port]' ]]
+
+before="$(declare -p DB)"
+configure_m01k21_leds misectel,m01k21
+after="$(declare -p DB)"
+[[ "$before" == "$after" ]]
+
 echo 'qmodem_led migration tests passed'

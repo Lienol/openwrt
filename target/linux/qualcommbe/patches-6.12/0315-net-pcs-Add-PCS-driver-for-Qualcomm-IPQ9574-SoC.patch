@@ -26,7 +26,7 @@ Signed-off-by: Lei Wei <quic_leiwei@quicinc.com>
 
 --- a/drivers/net/pcs/Kconfig
 +++ b/drivers/net/pcs/Kconfig
-@@ -43,6 +43,15 @@ config PCS_MTK_USXGMII
+@@ -42,6 +42,15 @@ config PCS_MTK_USXGMII
  	  1000Base-X, 2500Base-X and Cisco SGMII are supported on the same
  	  differential pairs via an embedded LynxI PHY.
  

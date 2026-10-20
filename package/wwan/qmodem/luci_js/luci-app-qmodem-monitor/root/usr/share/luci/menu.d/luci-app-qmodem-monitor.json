@@ -1,0 +1,13 @@
+{
+	"admin/modem/qmodem/monitor": {
+		"title": "Monitor",
+		"order": 7,
+		"action": {
+			"type": "view",
+			"path": "qmodem/monitor"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-monitor" ]
+		}
+	}
+}

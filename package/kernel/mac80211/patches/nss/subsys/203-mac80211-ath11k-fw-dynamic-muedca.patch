@@ -31,9 +31,9 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
 
 --- a/include/net/cfg80211.h
 +++ b/include/net/cfg80211.h
-@@ -10332,4 +10332,15 @@ cfg80211_s1g_get_primary_sibling(struct
- 	return ieee80211_get_channel_khz(wiphy, sibling_1mhz_khz);
- }
+@@ -10480,4 +10480,15 @@ void cfg80211_incumbent_signal_notify(st
+ 				      u32 signal_interference_bitmap,
+ 				      gfp_t gfp);
  
 +/**
 + * cfg80211_update_muedca_params_event - Notify the updated MU-EDCA parameters
@@ -49,7 +49,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  #endif /* __NET_CFG80211_H */
 --- a/include/net/mac80211.h
 +++ b/include/net/mac80211.h
-@@ -7767,6 +7767,20 @@ u32 ieee80211_calc_rx_airtime(struct iee
+@@ -7770,6 +7770,20 @@ u32 ieee80211_calc_rx_airtime(struct iee
  			      int len);
  
  /**
@@ -72,10 +72,11 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
   * This function calculates the estimated airtime usage of a frame based on the
 --- a/include/uapi/linux/nl80211.h
 +++ b/include/uapi/linux/nl80211.h
-@@ -1361,6 +1361,10 @@
-  *	user space that the NAN new cluster has been joined. The cluster ID is
-  *	indicated by %NL80211_ATTR_MAC.
-  *
+@@ -1381,6 +1381,11 @@
+  *	%NL80211_CMD_NAN_SET_LOCAL_SCHED and %NL80211_ATTR_NAN_SCHED_DEFERRED)
+  *	has been completed. The presence of %NL80211_ATTR_NAN_SCHED_UPDATE_SUCCESS
+  *	indicates that the update was successful.
++ *
 + * @NL80211_CMD_UPDATE_HE_MUEDCA_PARAMS: Updated MU-EDCA parameters from driver.
 + *	This event is used to update dynamic MU-EDCA parameters in Beacon frame,
 + *	coming from driver and now need to be reflected in Beacon frame.
@@ -83,26 +84,26 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
   * @NL80211_CMD_MAX: highest used command number
   * @__NL80211_CMD_AFTER_LAST: internal use
   */
-@@ -1624,6 +1628,7 @@ enum nl80211_commands {
- 	NL80211_CMD_NAN_NEXT_DW_NOTIFICATION,
- 	NL80211_CMD_NAN_CLUSTER_JOINED,
+@@ -1650,6 +1655,7 @@ enum nl80211_commands {
+ 
+ 	NL80211_CMD_NAN_SCHED_UPDATE_DONE,
  
 +	NL80211_CMD_UPDATE_HE_MUEDCA_PARAMS,
  	/* add new commands above here */
  
  	/* used to define NL80211_CMD_MAX below */
-@@ -2973,6 +2978,8 @@ enum nl80211_commands {
-  *	primary channel is 2 MHz wide, and the control channel designates
-  *	the 1 MHz primary subchannel within that 2 MHz primary.
+@@ -3070,6 +3076,8 @@ enum nl80211_commands {
+  *	association response etc., since it's abridged in the beacon. Used
+  *	for START_AP etc.
   *
 + * @NL80211_ATTR_HE_MUEDCA_PARAMS: MU-EDCA AC parameters for the
 + *	%NL80211_CMD_UPDATE_HE_MUEDCA_PARAMS command.
   * @NUM_NL80211_ATTR: total number of nl80211_attrs available
   * @NL80211_ATTR_MAX: highest attribute number currently defined
   * @__NL80211_ATTR_AFTER_LAST: internal use
-@@ -3541,6 +3548,8 @@ enum nl80211_attrs {
- 
- 	NL80211_ATTR_S1G_PRIMARY_2MHZ,
+@@ -3655,6 +3663,8 @@ enum nl80211_attrs {
+ 	NL80211_ATTR_NAN_SCHED_DEFERRED,
+ 	NL80211_ATTR_NAN_SCHED_UPDATE_SUCCESS,
  
 +	NL80211_ATTR_HE_MUEDCA_PARAMS,
 +
@@ -111,7 +112,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  	__NL80211_ATTR_AFTER_LAST,
 --- a/net/mac80211/mlme.c
 +++ b/net/mac80211/mlme.c
-@@ -11093,3 +11093,15 @@ void ieee80211_process_epcs_teardown(str
+@@ -11130,3 +11130,15 @@ void ieee80211_process_epcs_teardown(str
  	ieee80211_epcs_teardown(sdata);
  	ieee80211_epcs_changed(sdata, false);
  }
@@ -158,7 +159,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  		     struct ieee80211_sub_if_data *sdata,
 --- a/net/wireless/nl80211.c
 +++ b/net/wireless/nl80211.c
-@@ -915,6 +915,7 @@ static const struct nla_policy nl80211_p
+@@ -973,6 +973,7 @@ static const struct nla_policy nl80211_p
  	[NL80211_ATTR_HW_TIMESTAMP_ENABLED] = { .type = NLA_FLAG },
  	[NL80211_ATTR_EMA_RNR_ELEMS] = { .type = NLA_NESTED },
  	[NL80211_ATTR_MLO_LINK_DISABLED] = { .type = NLA_FLAG },
@@ -166,7 +167,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  	[NL80211_ATTR_BSS_DUMP_INCLUDE_USE_DATA] = { .type = NLA_FLAG },
  	[NL80211_ATTR_MLO_TTLM_DLINK] = NLA_POLICY_EXACT_LEN(sizeof(u16) * 8),
  	[NL80211_ATTR_MLO_TTLM_ULINK] = NLA_POLICY_EXACT_LEN(sizeof(u16) * 8),
-@@ -21896,6 +21897,42 @@ void cfg80211_nan_cluster_joined(struct
+@@ -22340,6 +22341,42 @@ void cfg80211_nan_cluster_joined(struct
  }
  EXPORT_SYMBOL(cfg80211_nan_cluster_joined);
  
@@ -211,7 +212,7 @@ Signed-off-by: Muna Sinada <msinada@codeaurora.org>
  int __init nl80211_init(void)
 --- a/net/wireless/trace.h
 +++ b/net/wireless/trace.h
-@@ -4001,6 +4001,46 @@ TRACE_EVENT(cfg80211_update_owe_info_eve
+@@ -4022,6 +4022,46 @@ TRACE_EVENT(cfg80211_update_owe_info_eve
  		  __entry->assoc_link_id, __entry->peer_mld_addr)
  );
  

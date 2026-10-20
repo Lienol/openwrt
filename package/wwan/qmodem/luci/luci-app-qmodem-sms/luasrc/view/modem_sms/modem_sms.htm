@@ -764,24 +764,39 @@ class ModemSMS {
         ];
     }
 
-    poll_info(){
-        if (this.cfg_id == null){
-            return;
-        }
-        XHR.poll(10,'<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_sms")%>',{
-            "cfg": this.cfg_id,
-        }, (x,data) => {
-            this.combine_messages(data);
-        });
+    poll_info() {
+        if (this.sms_polling) return;
+        this.sms_polling = true;
+        const poll = () => {
+            if (!this.sms_polling) return;
+            if (this.cfg_id == null) {
+                this.sms_poll_timer = setTimeout(poll, 1000);
+                return;
+            }
+            let next_poll_scheduled = false;
+            const schedule_next_poll = () => {
+                if (next_poll_scheduled) return;
+                next_poll_scheduled = true;
+                this.sms_poll_timer = setTimeout(poll, 10000);
+            };
+            XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_sms")%>', {"cfg": this.cfg_id},
+                (x, data) => {
+                    try {
+                        if (data) {
+                            this.combine_messages(data);
+                            if (data.sms_capabilities) this.update_sms_capabilities(data);
+                        }
+                    } finally {
+                        schedule_next_poll();
+                    }
+                }
+            ).catch(schedule_next_poll);
+        };
+        poll();
     }
 
     update(){
-        XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "qmodem", "get_sms")%>',{
-            "cfg": this.cfg_id,
-        }, (x,data) => {
-            this.combine_messages(data);
-            this.update_sms_capabilities(data);
-        });
+        this.poll_info();
     }
 
     update_modem_cfg_list(){
@@ -794,7 +809,15 @@ class ModemSMS {
                 var value = cfg.cfg;
                 new_cfg_list.push({"value":value,"name":name});
             }
-            if (new_cfg_list != this.modem_cfg_list) {
+            const cfg_changed =
+                new_cfg_list.length !== this.modem_cfg_list.length ||
+                new_cfg_list.some((item, index) => {
+                    const old_item = this.modem_cfg_list[index];
+                    return !old_item ||
+                        item.value !== old_item.value ||
+                        item.name !== old_item.name;
+                });
+            if (cfg_changed) {
                 this.cfg_options = new_cfg_list;
             }
         });
@@ -805,7 +828,7 @@ class ModemSMS {
         var messages,reference_table,msgs;
         messages = []
         reference_table = {}
-        msgs = data.msg;
+        msgs = Array.isArray(data.msg) ? data.msg : [];
         for ( let msg of msgs){
             let part,total,index,reference,sender,timestamp,content;
             if (msg.reference){

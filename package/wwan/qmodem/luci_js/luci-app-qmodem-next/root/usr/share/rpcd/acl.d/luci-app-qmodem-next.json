@@ -1,0 +1,61 @@
+{
+	"luci-app-qmodem-next": {
+		"description": "Grant access to QModem Next application",
+		"read": {
+			"ubus": {
+				"qmodem": [
+					"*"
+				],
+				"qmodem_sms": [
+					"*"
+				],
+				"rc" : [ "list" ,"init"],
+				"uci": [ "qmodem", "sms_forwarder" ]
+			},
+			"uci": [ "qmodem", "sms_forwarder" ]
+		},
+		"write": {
+			"ubus": {
+				"qmodem": [
+					"delete_sms",
+					"do_reboot",
+					"modem_dial",
+					"modem_hang",
+					"modem_redial",
+					"scan_all",
+					"scan_pcie",
+					"scan_usb",
+					"send_at",
+					"send_raw_pdu",
+					"send_sms",
+					"set_imei",
+					"set_lockband",
+					"set_mode",
+					"set_neighborcell",
+					"set_network_prefer",
+					"set_sms_storage"
+				],
+				"qmodem_sms": [
+					"send_sms",
+					"delete_sms",
+					"delete_sim_sms",
+					"mark_read",
+					"mark_forwarded",
+					"clear_sent_history",
+					"clear_received_history",
+					"set_sms_storage"
+				],
+				"uci": [ "qmodem", "sms_forwarder" ]
+			},
+			"uci": [ "qmodem", "sms_forwarder" ]
+		}
+	},
+	"luci-mod-status-index": {
+		"description": "Grant access to main status display",
+		"read": {
+			"ubus": {
+				"qmodem": [ "cell_info","base_info" ]
+			}
+		}
+	}
+}

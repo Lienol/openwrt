@@ -24,6 +24,9 @@
 #define MAX_REGEX_SIZE 128
 #define MAX_PREFIX_SIZE 64
 #define MAX_CALLBACKS 16
+#define AT_LINE_QUEUE_CAPACITY 256
+#define AT_LINE_EVENT_DRAIN_BUDGET 64
+#define MAX_AT_LINE_SIZE 4096
 
 // AT command termination
 #define AT_CMD_TERMINATOR "\r\n"

@@ -1,0 +1,117 @@
+{
+	"admin/modem": {
+		"title": "Modem",
+		"order": 25,
+		"action": {
+			"type": "firstchild"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem": {
+		"title": "QModem",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "qmodem/overview"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/overview": {
+		"title": "Overview",
+		"order": 1,
+		"action": {
+			"type": "view",
+			"path": "qmodem/overview"
+		}
+	},
+	"admin/modem/qmodem/network_config": {
+		"title": "NetworkConfiguration",
+		"order": 2,
+		"action": {
+			"type": "view",
+			"path": "qmodem/network_config"
+		}
+	},
+	"admin/modem/qmodem/debug": {
+		"title": "AT Debug",
+		"order": 3,
+		"action": {
+			"type": "view",
+			"path": "qmodem/debug"
+		}
+	},
+	"admin/modem/qmodem/config_advanced": {
+		"title": "Advanced Modem Config",
+		"order": 4,
+		"action": {
+			"type": "view",
+			"path": "qmodem/config_advanced"
+		}
+	},
+	"admin/modem/qmodem/sms": {
+		"title": "SMS Messages",
+		"order": 5,
+		"action": {
+			"type": "view",
+			"path": "qmodem/sms"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/sms/conversation/*": {
+		"title": "SMS Conversation",
+		"action": {
+			"type": "view",
+			"path": "qmodem/sms_conversation"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/sms_sim": {
+		"title": "SIM Card SMS",
+		"order": 5.3,
+		"action": {
+			"type": "view",
+			"path": "qmodem/sms_sim"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/sms_forward": {
+		"title": "SMS Forwarder",
+		"order": 5.5,
+		"action": {
+			"type": "view",
+			"path": "qmodem/sms_forward"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/sim_switch": {
+		"title": "SIM Switch",
+		"order": 5.6,
+		"action": {
+			"type": "view",
+			"path": "qmodem/sim_switch"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-next" ]
+		}
+	},
+	"admin/modem/qmodem/settings": {
+		"title": "QModem Settings",
+		"order": 6,
+		"action": {
+			"type": "view",
+			"path": "qmodem/settings"
+		}
+	}
+}

@@ -776,16 +776,16 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  #endif /* _PEER_H_ */
 --- a/drivers/net/wireless/ath/ath11k/wmi.c
 +++ b/drivers/net/wireless/ath/ath11k/wmi.c
-@@ -161,6 +161,8 @@ static const struct wmi_tlv_policy wmi_t
- 		.min_len = sizeof(struct ath11k_wmi_p2p_noa_info) },
- 	[WMI_TAG_P2P_NOA_EVENT] = {
+@@ -163,6 +163,8 @@ static const struct wmi_tlv_policy wmi_t
  		.min_len = sizeof(struct wmi_p2p_noa_event) },
+ 	[WMI_TAG_PDEV_CSA_SWITCH_COUNT_STATUS_EVENT] = {
+ 		.min_len = sizeof(struct wmi_pdev_csa_switch_ev) },
 +	[WMI_TAG_WDS_ADDR_EVENT] = {
 +		.min_len = sizeof(struct wmi_wds_addr_event) },
  };
  
  #define PRIMAP(_hw_mode_) \
-@@ -1131,6 +1133,51 @@ int ath11k_wmi_send_peer_delete_cmd(stru
+@@ -1140,6 +1142,51 @@ int ath11k_wmi_send_peer_delete_cmd(stru
  	return ret;
  }
  
@@ -837,7 +837,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  int ath11k_wmi_send_pdev_set_regdomain(struct ath11k *ar,
  				       struct pdev_set_regdomain_params *param)
  {
-@@ -6491,6 +6538,36 @@ static int ath11k_pull_peer_assoc_conf_e
+@@ -6503,6 +6550,36 @@ static int ath11k_pull_peer_assoc_conf_e
  	return 0;
  }
  
@@ -874,7 +874,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  static void ath11k_wmi_pull_pdev_stats_base(const struct wmi_pdev_stats_base *src,
  					    struct ath11k_fw_stats_pdev *dst)
  {
-@@ -7315,6 +7392,7 @@ static int ath11k_wmi_tlv_rdy_parse(stru
+@@ -7327,6 +7404,7 @@ static int ath11k_wmi_tlv_rdy_parse(stru
  
  		ether_addr_copy(ab->mac_addr,
  				fixed_param.ready_event_min.mac_addr.addr);
@@ -882,7 +882,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  		ab->pktlog_defs_checksum = fixed_param.pktlog_defs_checksum;
  		break;
  	case WMI_TAG_ARRAY_FIXED_STRUCT:
-@@ -8924,6 +9002,22 @@ exit:
+@@ -8944,6 +9022,22 @@ exit:
  	kfree(tb);
  }
  
@@ -905,7 +905,7 @@ Signed-off-by: Sathishkumar Muruganandam <murugana@codeaurora.org>
  static void ath11k_wmi_tlv_op_rx(struct ath11k_base *ab, struct sk_buff *skb)
  {
  	struct wmi_cmd_hdr *cmd_hdr;
-@@ -9057,6 +9151,9 @@ static void ath11k_wmi_tlv_op_rx(struct
+@@ -9079,6 +9173,9 @@ static void ath11k_wmi_tlv_op_rx(struct
  	case WMI_P2P_NOA_EVENTID:
  		ath11k_wmi_p2p_noa_event(ab, skb);
  		break;

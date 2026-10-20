@@ -1,0 +1,29 @@
+{
+	"luci-app-qmodem-monitor": {
+		"description": "Grant access to QModem Monitor application",
+		"read": {
+			"ubus": {
+				"rc": [ "list", "init" ],
+				"file": [ "list", "stat", "read" ],
+				"luci": [ "getFeatures" ]
+			},
+			"uci": [ "qmodem" ],
+			"file": {
+				"/usr/share/qmodem/user_scripts/*": [ "read" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"luci": [ "setInitAction" ],
+				"file": [ "write", "remove" ]
+			},
+			"uci": [ "qmodem" ],
+			"file": {
+				"/usr/share/qmodem/user_scripts": [ "write" ],
+				"/usr/share/qmodem/user_scripts/*": [ "write", "remove" ],
+				"/bin/mkdir": [ "exec" ],
+				"/bin/chmod": [ "exec" ]
+			}
+		}
+	}
+}

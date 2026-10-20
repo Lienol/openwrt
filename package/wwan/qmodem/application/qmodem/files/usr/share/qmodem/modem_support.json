@@ -1,6 +1,21 @@
 {
     "modem_support": {
         "usb": {
+            "air724ug": {
+                "manufacturer_id": "1782",
+                "manufacturer": "openluat",
+                "platform": "unisoc",
+                "data_interface": "usb",
+                "pdp_index": "5",
+                "wcdma_band": "0",
+                "lte_band": "1/3/5/8/34/38/39/40/41",
+                "nsa_band": "0",
+                "sa_band": "0",
+                "modes": [
+                    "ecm",
+                    "rndis"
+                ]
+            },
             "s10": {
                 "manufacturer_id": "12dc",
                 "manufacturer": "huawei",
@@ -158,7 +173,8 @@
                 "nsa_band": "41/78/79",
                 "sa_band": "1/41/78/79",
                 "modes": [
-                    "ecm"
+                    "ecm",
+                    "ncm"
                 ]
             },
             "mh5000-82": {
@@ -1288,6 +1304,52 @@
                     "rmnet"
                 ]
             },
+            "t99w368": {
+                "manufacturer_id": "05c6",
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/53/66/70/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/75/76/77/78/79",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
+            "mv32-w-a": {
+                "manufacturer_id": "1e2d",
+                "id": "1e2d:00f1",
+                "manufacturer": "thales",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/77/78/79",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "mv32-w-b": {
+                "manufacturer_id": "1e2d",
+                "id": "1e2d:00f2",
+                "manufacturer": "thales",
+                "platform": "qualcomm",
+                "data_interface": "usb",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/66/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/77/78/79/257/258/260/261",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/77/78/79/257/258/260/261",
+                "modes": [
+                    "mbim",
+                    "rmnet"
+                ]
+            },
             "srm821": {
                 "manufacturer_id": "1782",
                 "manufacturer": "meig",
@@ -1371,6 +1433,19 @@
                 "platform": "qualcomm",
                 "data_interface": "pcie",
                 "pdp_index": "1",
+                "modes": [
+                    "mbim"
+                ]
+            },
+            "t99w368": {
+                "manufacturer": "foxconn",
+                "platform": "qualcomm",
+                "data_interface": "pcie",
+                "pdp_index": "1",
+                "wcdma_band": "1/2/4/5/8",
+                "lte_band": "1/2/3/4/5/7/8/12/13/14/17/18/19/20/25/26/28/29/30/32/34/38/39/40/41/42/43/46/48/53/66/70/71",
+                "nsa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/75/76/77/78/79",
+                "sa_band": "1/2/3/5/7/8/12/13/14/18/20/25/26/28/30/38/40/41/48/53/66/70/71/75/76/77/78/79",
                 "modes": [
                     "mbim"
                 ]
@@ -1996,6 +2071,17 @@
                         "e0ab",
                         "81d7",
                         "0a6c"
+                    ]
+                }
+            },
+            "thales": {
+                "qualcomm": {
+                    "vendor_id": [
+                        "1e2d"
+                    ],
+                    "product_id": [
+                        "00f1",
+                        "00f2"
                     ]
                 }
             },

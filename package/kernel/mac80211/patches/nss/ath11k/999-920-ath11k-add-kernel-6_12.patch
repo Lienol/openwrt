@@ -18,7 +18,7 @@
  }
 --- a/drivers/net/wireless/ath/ath11k/dp_rx.c
 +++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
-@@ -1822,7 +1822,7 @@ struct htt_ppdu_stats_info *ath11k_dp_ht
+@@ -1823,7 +1823,7 @@ struct htt_ppdu_stats_info *ath11k_dp_ht
  	return ppdu_info;
  }
  
@@ -27,7 +27,7 @@
  				  struct htt_ppdu_user_stats* usr_stats)
  {
  	peer->ppdu_stats_delayba.reserved0 = usr_stats->rate.reserved0;
-@@ -1837,7 +1837,7 @@ void ath11k_copy_to_delay_stats(struct a
+@@ -1838,7 +1838,7 @@ void ath11k_copy_to_delay_stats(struct a
  	peer->delayba_flag = true;
  }
  
@@ -36,7 +36,7 @@
  			struct htt_ppdu_user_stats* usr_stats)
  {
  	usr_stats->rate.reserved0 = peer->ppdu_stats_delayba.reserved0;
-@@ -6322,7 +6322,7 @@ static void ath11k_dp_rx_mon_dest_proces
+@@ -6371,7 +6371,7 @@ static void ath11k_dp_rx_mon_dest_proces
  	}
  }
  
@@ -121,7 +121,7 @@
  {
  	struct arvif_nss *nss;
  
-@@ -4624,7 +4624,7 @@ void ath11k_nss_peer_stats_enable(struct
+@@ -4626,7 +4626,7 @@ void ath11k_nss_peer_stats_enable(struct
  			     ATH11K_NSS_STATS_ENABLE);
  }
  
@@ -130,7 +130,7 @@
  {
  	struct ath11k *ar = ab->pdevs[radio_id].ar;
  	struct nss_wifili_pdev_init_msg *pdevmsg;
-@@ -4759,7 +4759,7 @@ dealloc:
+@@ -4761,7 +4761,7 @@ dealloc:
  /* TODO : Check if start, reset and stop messages can be done using single function as
   * body is similar, having it now for clarity */
  
@@ -139,7 +139,7 @@
  {
  	struct nss_wifili_msg *wlmsg = NULL;
  	nss_wifili_msg_callback_t msg_cb;
-@@ -4924,7 +4924,7 @@ free:
+@@ -4926,7 +4926,7 @@ free:
  	return ret;
  }
  

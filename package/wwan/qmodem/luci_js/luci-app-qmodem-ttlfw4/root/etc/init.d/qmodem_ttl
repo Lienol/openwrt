@@ -1,0 +1,62 @@
+#!/bin/sh /etc/rc.common
+START=95
+STOP=13
+USE_PROCD=1
+
+. $IPKG_INSTROOT/usr/share/libubox/jshn.sh
+. $IPKG_INSTROOT/lib/functions.sh
+
+nftfile="/etc/nftables.d/99-reset-ttl-from-br-lan.nft"
+start_service()
+{
+    config_load 'qmodem_ttl'
+    config_get enable 'main' 'enable' '0'
+    if [ "$enable" == 0 ]; then
+        return
+    fi
+    set_if_ttl
+}
+
+set_if_ttl()
+{
+    config_get ttl 'main' 'ttl'
+    logger -t modem_ttl "Ovrewirte TTL from br-lan to $ttl"
+    comment="modem_ttl"
+    #nftables
+    cat << EOF > $nftfile
+chain postrouting {
+    type filter hook postrouting priority mangle; policy accept;
+    iifname "br-lan" ip ttl set $ttl comment "Reset TTL for br-lan IPv4"
+    iifname "br-lan" ip6 hoplimit set $ttl comment "Reset Hop Limit for br-lan IPv6"
+}
+
+EOF
+    /etc/firewall.d/qmodem_ttl
+    [ -d /sys/kernel/debug/ecm/ ] && /etc/init.d/qca-nss-ecm stop
+    [ -d /sys/module/shortcut_fe_cm ] && rmmod shortcut_fe_cm
+    [ -d /sys/module/fast_classifier ] && rmmod fast_classifier
+    uci set firewall.@defaults[0].flow_offloading='0'
+    uci set firewall.@defaults[0].flow_offloading_hw='0'
+    uci commit firewall
+    /etc/init.d/firewall restart
+}
+
+stop_service(){
+    local kernel_version=$(uname -r)
+    rm -f $nftfile
+    [ -f /etc/init.d/qca-nss-ecm ] && /etc/init.d/qca-nss-ecm start
+    [ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && modprobe shortcut-fe-cm
+    [ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && modprobe fast-classifier
+    /etc/init.d/firewall restart
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "qmodem_ttl"
+}
+
+reload_service()
+{
+    stop
+    start
+}

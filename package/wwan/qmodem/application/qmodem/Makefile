@@ -26,7 +26,8 @@ define Package/$(PKG_NAME)
   		+ubus-at-daemon +tom_modem +terminfo +sms-tool_q \
 		+modem_scan \
 		+jq +bc\
-		+coreutils +coreutils-stat \
+		+coreutils +coreutils-stat +xxd \
+		+PACKAGE_qmodem_INCLUDE_SEAL:qmodem-seal \
 		+usbutils \
 		+PACKAGE_luci-app-qmodem_INCLUDE_rdisc6:rdisc6 \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ndisc6:ndisc6 \
@@ -48,6 +49,15 @@ define Package/$(PKG_NAME)
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_QFIREHOSE_SUPPORT:qfirehose \
 		+PACKAGE_luci-app-qmodem_USE_TOM_CUSTOMIZED_QUECTEL_CM:quectel-CM-5G-M \
 		+PACKAGE_luci-app-qmodem_USING_NORMAL_QUECTEL_CM:quectel-CM-5G
+endef
+
+define Package/$(PKG_NAME)/config
+	config PACKAGE_qmodem_INCLUDE_SEAL
+		bool "Include encrypted feedback support (qmodem-seal)"
+		default y
+		help
+		  Build and install qmodem-seal. When omitted, qmodem_collect
+		  falls back to an explicitly marked unencrypted archive.
 endef
 
 define Package/$(PKG_NAME)/description

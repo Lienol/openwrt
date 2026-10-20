@@ -1,0 +1,41 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "TTL Configuration"
+msgstr "TTL 配置"
+
+msgid "Configure TTL/Hop Limit settings to modify outgoing packet TTL values. This can help bypass carrier restrictions on tethering."
+msgstr "配置 TTL/跳数限制设置以修改出站数据包的 TTL 值。这可以帮助绕过运营商对网络共享的限制。"
+
+msgid "Global TTL Settings"
+msgstr "全局 TTL 设置"
+
+msgid "Enable TTL Modification"
+msgstr "启用 TTL 修改"
+
+msgid "Enable or disable TTL/Hop Limit modification for outgoing packets."
+msgstr "启用或禁用出站数据包的 TTL/跳数限制修改。"
+
+msgid "TTL Value"
+msgstr "TTL 值"
+
+msgid "Set the TTL (Time To Live) value for IPv4 packets and Hop Limit for IPv6 packets. Common values: 64 (Linux default), 128 (Windows default)."
+msgstr "设置 IPv4 数据包的 TTL（生存时间）值和 IPv6 数据包的跳数限制。常用值：64（Linux 默认）、128（Windows 默认）。"
+
+msgid "Important Notes"
+msgstr "重要说明"
+
+msgid "Warning:"
+msgstr "警告："
+
+msgid "Enabling TTL modification will disable hardware flow offloading for proper packet modification."
+msgstr "启用 TTL 修改将禁用硬件流量卸载以确保正确修改数据包。"
+
+msgid "This may affect network performance on some devices."
+msgstr "这可能会影响某些设备的网络性能。"
+
+msgid "NSS ECM, SFE, and other acceleration modules will be disabled when TTL modification is active."
+msgstr "当 TTL 修改激活时，NSS ECM、SFE 和其他加速模块将被禁用。"
+
+msgid "Settings will take effect after saving and applying changes."
+msgstr "设置将在保存并应用更改后生效。"

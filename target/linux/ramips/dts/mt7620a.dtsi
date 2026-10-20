@@ -295,7 +295,7 @@
 		};
 
 		systick: systick@d00 {
-			compatible = "ralink,cevt-systick";
+			compatible = "ralink,mt7620a-systick", "ralink,cevt-systick";
 			reg = <0xd00 0x10>;
 
 			interrupt-parent = <&cpuintc>;

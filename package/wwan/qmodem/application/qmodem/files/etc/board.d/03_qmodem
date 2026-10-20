@@ -55,6 +55,9 @@ huasifei,ws3009)
 	ucidef_add_qmodem_slot 4g1 type usb slot 1-1.4 alias 4g3 net_led green:network2 default_metric 21
 	ucidef_add_qmodem_slot 4g2 type usb slot 1-1.1 alias 4g4 net_led green:network3 default_metric 22
 	;;
+misectel,m01k21)
+	ucidef_add_qmodem_modem_status cellular enabled 1 script misectel_3led bind any
+	;;
 misectel,m01k43|\
 misectel,m01k43-usb|\
 misectel,m01k43-usb-p|\

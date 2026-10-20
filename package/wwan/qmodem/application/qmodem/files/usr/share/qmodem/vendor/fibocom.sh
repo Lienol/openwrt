@@ -4,7 +4,8 @@
 _Vendor="fibocom"
 _Author="Siriling Fujr"
 _Maintainer="Fujr <fjrcn@outlook.com>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/fibocom.sh"
 
 vendor_get_disabled_features(){
     json_add_string "" ""
@@ -21,6 +22,18 @@ fibocom_is_uint()
         *)
             return 0
             ;;
+    esac
+}
+
+fibocom_uses_empty_gtact_fields()
+{
+    local model="${QMODEM_TESTCASE_MODEL:-}"
+
+    [ "$platform" = "qualcomm" ] || return 1
+    [ -z "$model" ] && model=$(uci -q get "qmodem.${config_section}.name" 2>/dev/null)
+    case "$(echo "$model" | tr '[:upper:]' '[:lower:]')" in
+        fm150|fm150-*) return 1 ;;
+        *) return 0 ;;
     esac
 }
 
@@ -316,7 +329,7 @@ fibocom_gtact_network_prefer_from_bands()
     fi
 }
 
-fibocom_gtact_command()
+fibocom_gtact_params()
 {
     local network_prefer_num="$1"
     local bands_str="$2"
@@ -327,12 +340,39 @@ fibocom_gtact_command()
     [ -n "$nr_bands" ] && rat_count=$((rat_count + 1))
 
     if [ -z "$bands_str" ]; then
-        echo "AT+GTACT=${network_prefer_num}"
+        echo "${network_prefer_num}"
     elif [ "$rat_count" -gt 1 ]; then
-        echo "AT+GTACT=${network_prefer_num},${GTACT_PARAM2:-6},${GTACT_PARAM3:-3},$bands_str"
+        echo "${network_prefer_num},${GTACT_PARAM2:-6},${GTACT_PARAM3:-3},$bands_str"
     else
-        echo "AT+GTACT=${network_prefer_num},,,$bands_str"
+        echo "${network_prefer_num},,,$bands_str"
     fi
+}
+
+fibocom_gtact_lock_params()
+{
+    local network_prefer_num bands_str
+
+    if [ "$platform" = "mediatek" ] && { [ "$band_class" = "LTE" ] || [ "$band_class" = "NR" ]; }; then
+        umts_bands=""
+        [ -n "$lte_bands" ] || lte_bands="$ALL_LTE_CODES"
+        [ -n "$nr_bands" ] || nr_bands="$ALL_NR_CODES"
+        bands_str=$(fibocom_normalize_band_list "$lte_bands,$nr_bands")
+        echo "17,6,6,$bands_str"
+        return
+    fi
+
+    if fibocom_uses_empty_gtact_fields && { [ "$band_class" = "LTE" ] || [ "$band_class" = "NR" ]; }; then
+        umts_bands=""
+        [ -n "$lte_bands" ] || lte_bands="$ALL_LTE_CODES"
+        [ -n "$nr_bands" ] || nr_bands="$ALL_NR_CODES"
+        bands_str=$(fibocom_normalize_band_list "$lte_bands,$nr_bands")
+        echo "17,,,$bands_str"
+        return
+    fi
+
+    bands_str=$(fibocom_normalize_band_list "$umts_bands,$lte_bands,$nr_bands")
+    network_prefer_num=$(fibocom_gtact_network_prefer_from_bands)
+    fibocom_gtact_params "$network_prefer_num" "$bands_str"
 }
 
 #获取拨号模式
@@ -340,8 +380,7 @@ fibocom_gtact_command()
 # $2:平台
 get_mode()
 {
-    local at_command="AT+GTUSBMODE?"
-    local mode_num=$(at ${at_port} ${at_command} | grep "+GTUSBMODE:" | sed 's/+GTUSBMODE: //g' | sed 's/\r//g')
+    local mode_num=$(cmd_gtusbmode_query "$at_port" | grep "+GTUSBMODE:" | sed 's/+GTUSBMODE: //g' | sed 's/\r//g')
 
     local mode
     case "$platform" in
@@ -457,8 +496,7 @@ set_mode()
     esac
 
     #设置模组
-    at_command="AT+GTUSBMODE=${mode_num}"
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_gtusbmode_set "$at_port" "$mode_num")
     json_add_object "result"
     json_add_string "set_mode" "$res"
     json_add_string "mode" "$mode_config"
@@ -468,8 +506,7 @@ set_mode()
 #获取网络偏好
 get_network_prefer_nr()
 {
-    at_command="AT+GTACT?"
-    local network_prefer_num=$(at $at_port $at_command | grep "+GTACT:" | awk -F',' '{print $1}' | sed 's/+GTACT: //g')
+    local network_prefer_num=$(cmd_gtact_query "$at_port" | grep "+GTACT:" | awk -F',' '{print $1}' | sed 's/+GTACT: //g')
     
     local network_prefer_3g="0";
     local network_prefer_4g="0";
@@ -555,8 +592,8 @@ set_network_prefer_nr()
         *) network_prefer_num="20" ;;
     esac
 
-    get_lockband_config_res=$(at $at_port "AT+GTACT?" | grep "+GTACT:" | head -n1)
-    get_available_band_res=$(at $at_port "AT+GTACT=?" | grep "+GTACT:" | head -n1)
+    get_lockband_config_res=$(cmd_gtact_query "$at_port" | grep "+GTACT:" | head -n1)
+    get_available_band_res=$(cmd_gtact_list_query "$at_port" | grep "+GTACT:" | head -n1)
     fibocom_gtact_load_available_bands "$get_available_band_res"
     umts_bands=""
     lte_bands=""
@@ -572,20 +609,19 @@ set_network_prefer_nr()
     [ "$network_prefer_5g" = "true" ] && [ -z "$nr_bands" ] && nr_bands="$ALL_NR_CODES"
 
     bands_str=$(fibocom_normalize_band_list "$umts_bands,$lte_bands,$nr_bands")
-    at_command=$(fibocom_gtact_command "${network_prefer_num:-20}" "$bands_str")
+    gtact_params=$(fibocom_gtact_params "${network_prefer_num:-20}" "$bands_str")
 
-    res=$(at $at_port "$at_command")
+    res=$(cmd_gtact_set "$at_port" "$gtact_params")
     json_add_object "result"
     json_add_string "status" "$res"
-    json_add_string "command" "$at_command"
+    json_add_string "command" "AT+GTACT=$gtact_params"
     json_close_object
 }
 
 #获取网络偏好
 get_network_prefer_lte()
 {
-    at_command="AT+GTACT?"
-    local network_prefer_num=$(at $at_port $at_command | grep "+GTACT:" | awk -F',' '{print $1}' | sed 's/+GTACT: //g')
+    local network_prefer_num=$(cmd_gtact_query "$at_port" | grep "+GTACT:" | awk -F',' '{print $1}' | sed 's/+GTACT: //g')
     
     local network_prefer_3g="0";
     local network_prefer_4g="0";
@@ -638,8 +674,7 @@ set_network_prefer_lte()
     esac
 
     #设置模组
-    at_command="AT+GTACT=$network_prefer_num"
-    res=$(at $at_port "$at_command")
+    res=$(cmd_gtact_set "$at_port" "$network_prefer_num")
     json_add_object "result"
     json_add_string "status" "$res"
     json_add_string raw "$1"
@@ -694,8 +729,7 @@ set_network_prefer()
 # $1:AT串口
 get_voltage()
 {
-    at_command="AT+CBC"
-	local voltage=$(at $at_port $at_command | grep "+CBC:" | awk -F',' '{print $2}' | sed 's/\r//g')
+	local voltage=$(cmd_cbc "$at_port" | grep "+CBC:" | awk -F',' '{print $2}' | sed 's/\r//g')
     [ -n $voltage ] && {
         voltage="${voltage}mV"
     }
@@ -707,27 +741,23 @@ get_voltage()
 get_temperature()
 {
     #Temperature（温度）
-    at_command="AT+MTSM=1,6"
-    response=$(at $at_port $at_command | grep "+MTSM: " | sed 's/+MTSM: //g' | sed 's/\r//g')
+    response=$(cmd_mtsm_1_6 "$at_port" | grep "+MTSM: " | sed 's/+MTSM: //g' | sed 's/\r//g')
 
     [ -z "$response" ] && {
         #Fx160及以后型号
-        at_command="AT+GTLADC"
-	    response=$(at $at_port $at_command | grep "cpu" | awk -F' ' '{print $2}' | sed 's/\r//g')
+	    response=$(cmd_gtladc "$at_port" | grep "cpu" | awk -F' ' '{print $2}' | sed 's/\r//g')
         response="${response:0:2}"
     }
 
     [ -z "$response" ] && {
         #联发科平台
-        at_command="AT+GTSENRDTEMP=1"
-        response=$(at $at_port $at_command | grep "+GTSENRDTEMP: " | awk -F',' '{print $2}' | sed 's/\r//g')
+        response=$(cmd_gtsenrdtemp "$at_port" | grep "+GTSENRDTEMP: " | awk -F',' '{print $2}' | sed 's/\r//g')
         response="${response:0:2}"
     }
     
     [ -z "$response" ] && {
         #紫光平台
-        at_command="AT+MTSM=1"
-        response=$(at $at_port $at_command | grep "+MTSM: " | sed 's/+MTSM: //g' | sed 's/\r//g')
+        response=$(cmd_mtsm "$at_port" | grep "+MTSM: " | sed 's/+MTSM: //g' | sed 's/\r//g')
     }
 
     local temperature
@@ -746,14 +776,11 @@ base_info()
     m_debug "Fibocom base info"
 
     #Name（名称）
-    at_command="AT+CGMM?"
-    name=$(at $at_port $at_command | grep "+CGMM: " | awk -F'"' '{print $2}')
+    name=$(cmd_cgmm "$at_port" | grep "+CGMM: " | awk -F'"' '{print $2}')
     #Manufacturer（制造商）
-    at_command="AT+CGMI?"
-    manufacturer=$(at $at_port $at_command | grep "+CGMI: " | awk -F'"' '{print $2}')
+    manufacturer=$(cmd_cgmi "$at_port" | grep "+CGMI: " | awk -F'"' '{print $2}')
     #Revision（固件版本）
-    at_command="AT+CGMR?"
-    revision=$(at $at_port $at_command | grep "+CGMR: " | awk -F'"' '{print $2}')
+    revision=$(cmd_cgmr "$at_port" | grep "+CGMR: " | awk -F'"' '{print $2}')
 
     class="Base Information"
     add_plain_info_entry "name" "$name" "Name"
@@ -769,24 +796,34 @@ base_info()
 # $1:SIM卡状态标志
 
 
+fibocom_get_carrier()
+{
+    local carrier
+
+    case "$platform" in
+        "mediatek")
+            carrier=$(cmd_gtcurcar_query "$at_port" | awk -F'"' '/^\+GTCURCAR:/ {print $2; exit}')
+            ;;
+    esac
+    [ -n "$carrier" ] || carrier=$(cmd_cops_query "$at_port" | grep "+COPS" | awk -F'"' '{print $2}')
+    echo "$carrier"
+}
+
 #SIM卡信息
 sim_info()
 {
     m_debug "Fibocom sim info"
     
     #SIM Slot（SIM卡卡槽）
-    at_command="AT+GTDUALSIM?"
-	sim_slot=$(at ${at_port} ${at_command} | grep "+GTDUALSIM" | awk -F'"' '{print $2}' | sed 's/SUB//g')
+	sim_slot=$(cmd_gtdualsim_query "$at_port" | grep "+GTDUALSIM" | awk -F'"' '{print $2}' | sed 's/SUB//g')
 
     #IMEI（国际移动设备识别码）
-    at_command="AT+CGSN?"
-	imei=$(at ${at_port} ${at_command} | grep "+CGSN: " | awk -F'"' '{print $2}')
+	imei=$(cmd_cgsn "$at_port" | grep "+CGSN: " | awk -F'"' '{print $2}')
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-	sim_status_flag=$(at ${at_port} ${at_command} | grep "+CPIN: ")
+	sim_status_flag=$(cmd_cpin_query "$at_port" | grep "+CPIN: ")
     [ -z "$sim_status_flag" ] && {
-        sim_status_flag=$(at ${at_port} ${at_command} | grep "+CME")
+        sim_status_flag=$(cmd_cpin_query "$at_port" | grep "+CME")
     }
     sim_status=$(get_sim_status "$sim_status_flag")
 
@@ -795,8 +832,7 @@ sim_info()
     fi
 
     #ISP（互联网服务提供商）
-    at_command="AT+COPS?"
-    isp=$(at ${at_port} ${at_command} | grep "+COPS" | awk -F'"' '{print $2}')
+    isp=$(fibocom_get_carrier)
     # if [ "$isp" = "CHN-CMCC" ] || [ "$isp" = "CMCC" ]|| [ "$isp" = "46000" ]; then
     #     isp="中国移动"
     # elif [ "$isp" = "CHN-UNICOM" ] || [ "$isp" = "UNICOM" ] || [ "$isp" = "46001" ]; then
@@ -806,24 +842,21 @@ sim_info()
     # fi
 
     #SIM Number（SIM卡号码，手机号）
-    at_command="AT+CNUM"
-    sim_number=$(at ${at_port} ${at_command} | grep "+CNUM: " | awk -F'"' '{print $2}')
+    sim_number=$(cmd_cnum "$at_port" | grep "+CNUM: " | awk -F'"' '{print $2}')
     [ -z "$sim_number" ] && {
-        sim_number=$(at ${at_port} ${at_command} | grep "+CNUM: " | awk -F'"' '{print $4}')
+        sim_number=$(cmd_cnum "$at_port" | grep "+CNUM: " | awk -F'"' '{print $4}')
     }
 	
     #IMSI（国际移动用户识别码）
-    at_command="AT+CIMI?"
-    imsi=$(at ${at_port} ${at_command} | grep "+CIMI: " | awk -F' ' '{print $2}' | sed 's/"//g' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | grep "+CIMI: " | awk -F' ' '{print $2}' | sed 's/"//g' | sed 's/\r//g')
     [ -z "$sim_number" ] && {
-        imsi=$(at ${at_port} ${at_command} | grep "+CIMI: " | awk -F'"' '{print $2}')
+        imsi=$(cmd_cimi "$at_port" | grep "+CIMI: " | awk -F'"' '{print $2}')
     }
 
     #ICCID（集成电路卡识别码）
-    at_command="AT+ICCID"
-    iccid=$(at ${at_port} ${at_command} | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
+    iccid=$(cmd_iccid "$at_port" | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
 		[ -z "$iccid" ] && {
-        iccid=$(at ${at_port} "AT+CCID" | grep -o "+CCID:[ ]*[-0-9]\+" | awk -F' ' '{print $2}')
+        iccid=$(cmd_ccid "$at_port" | grep -o "+CCID:[ ]*[-0-9]\+" | awk -F' ' '{print $2}')
     }
     class="SIM Information"
     case "$sim_status" in
@@ -855,33 +888,25 @@ sim_info()
 
 get_imei()
 {
-    at_command="AT+CGSN?"
-    imei=$(at ${at_port} ${at_command} | grep "+CGSN: " | awk -F'"' '{print $2}'| grep -E '[0-9]+')
+    imei=$(cmd_cgsn "$at_port" | grep "+CGSN: " | awk -F'"' '{print $2}'| grep -E '[0-9]+')
     json_add_string "imei" "$imei"
 }
 
 set_imei()
 {
     imei="$1"
+    #重定向stderr
     case "$platform" in
-        "qualcomm")
-            at_command="AT+GTSN=1,7,\"$imei\""
-            ;;
-        "unisoc")
-            at_command="AT+GTSN=1,7,\"$imei\""
-            ;;
         "mediatek")
-            at_command="AT+EGMREXT=1,7,\"$imei\""
+            res=$(cmd_egmrext_set_imei "$at_port" "$imei") 2>&1
             ;;
         "lte")
-            at_command="AT+LCTSN=1,7,\"$imei\""
+            res=$(cmd_lctsn_set_imei "$at_port" "$imei") 2>&1
             ;;
         *)
-            at_command="AT+GTSN=1,7,\"$imei\""
+            res=$(cmd_gtsn_set_imei "$at_port" "$imei") 2>&1
             ;;
     esac
-    #重定向stderr
-    res=$(at ${at_port} "${at_command}") 2>&1
     json_select "result"
     json_add_string "set_imei" "$res"
     json_close_object
@@ -895,12 +920,10 @@ network_info()
     m_debug "Fibocom network info"
     class="Network Information"
     #Network Type（网络类型）
-    at_command="AT+PSRAT?"
-    network_type=$(at ${at_port} ${at_command} | grep "+PSRAT:" | sed 's/+PSRAT: //g' | sed 's/\r//g')
+    network_type=$(cmd_psrat_query "$at_port" | grep "+PSRAT:" | sed 's/+PSRAT: //g' | sed 's/\r//g')
 
     [ -z "$network_type" ] && {
-        at_command='AT+COPS?'
-        local rat_num=$(at ${at_port} ${at_command} | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
+        local rat_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
         network_type=$(get_rat ${rat_num})
     }
     add_plain_info_entry "Network Type" "$network_type" "Network Type"
@@ -909,8 +932,7 @@ network_info()
         "qualcomm")
             #CSQ（信号强度）
             #速率统计
-            at_command="AT+GTSTATIS?"
-            response=$(at $at_port $at_command | grep "+GTSTATIS:" | sed 's/+GTSTATIS: //g' | sed 's/\r//g')
+            response=$(cmd_gtstatis_query "$at_port" | grep "+GTSTATIS:" | sed 's/+GTSTATIS: //g' | sed 's/\r//g')
 
             #当前上传速率（单位，Byte/s）
             tx_rate=$(echo $response | awk -F',' '{print $2}')
@@ -952,10 +974,8 @@ get_lockband(){
 get_lockband_nr()
 {
     m_debug "Fibocom get lockband info nr"
-    get_lockband_config_command="AT+GTACT?"
-    get_available_band_command="AT+GTACT=?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command)
-    get_available_band_res=$(at $at_port $get_available_band_command)
+    get_lockband_config_res=$(cmd_gtact_query "$at_port")
+    get_available_band_res=$(cmd_gtact_list_query "$at_port")
     fibocom_gtact_load_available_bands "$get_available_band_res"
     json_add_object "UMTS"
     json_add_array "available_band"
@@ -1006,10 +1026,8 @@ get_lockband_nr()
 get_lockband_lte()
 {
     m_debug "Fibocom get lockband info lte"
-    get_lockband_config_command="AT+GTACT?"
-    get_available_band_command="AT+GTACT=?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command |grep GTACT: | sed 's/\r//g')
-    get_available_band_res=$(at $at_port $get_available_band_command |grep GTACT: | sed 's/\r//g')
+    get_lockband_config_res=$(cmd_gtact_query "$at_port" |grep GTACT: | sed 's/\r//g')
+    get_available_band_res=$(cmd_gtact_list_query "$at_port" |grep GTACT: | sed 's/\r//g')
     json_add_object "UMTS"
     json_add_array "available_band"
     json_close_array
@@ -1100,7 +1118,7 @@ set_lockband()
             set_lockband_nr
             ;;
         "mediatek")
-            set_lockband_nr_mediatek
+            set_lockband_nr
             ;;
         "lte")
             set_lockband_lte
@@ -1122,23 +1140,18 @@ set_lockband()
 set_lockband_nr_mediatek()
 {
     m_debug "Fibocom set lockband info"
-    get_lockband_config_command="AT+GTACT?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command)
+    get_lockband_config_res=$(cmd_gtact_query "$at_port")
     network_prefer_config=$(echo $get_lockband_config_res |cut -d : -f 2| awk -F"," '{print $1}' |tr -d ' ')
     local lock_band="$network_prefer_config,6,3,$lock_band"
-    set_lockband_command="AT+GTACT=$lock_band"
-    res=$(at $at_port $set_lockband_command)
+    res=$(cmd_gtact_set "$at_port" "$lock_band")
 }
 
 set_lockband_nr()
 {
     m_debug "Fibocom set lockband info nr"
 
-    local network_prefer_num bands_str
-
-    get_lockband_config_command="AT+GTACT?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command | grep "+GTACT:" | head -n1)
-    get_available_band_res=$(at $at_port "AT+GTACT=?" | grep "+GTACT:" | head -n1)
+    get_lockband_config_res=$(cmd_gtact_query "$at_port" | grep "+GTACT:" | head -n1)
+    get_available_band_res=$(cmd_gtact_list_query "$at_port" | grep "+GTACT:" | head -n1)
     fibocom_gtact_load_available_bands "$get_available_band_res"
 
     band_class=$(echo "$config" | jq -r '.band_class')
@@ -1160,37 +1173,31 @@ set_lockband_nr()
             ;;
     esac
 
-    bands_str=$(fibocom_normalize_band_list "$umts_bands,$lte_bands,$nr_bands")
-    network_prefer_num=$(fibocom_gtact_network_prefer_from_bands)
+    gtact_params=$(fibocom_gtact_lock_params)
 
-    set_lockband_command=$(fibocom_gtact_command "$network_prefer_num" "$bands_str")
-
-    res=$(at $at_port "$set_lockband_command")
+    res=$(cmd_gtact_set "$at_port" "$gtact_params")
+    set_lockband_command="AT+GTACT=$gtact_params"
 }
 
 set_lockband_lte()
 {
     m_debug "Fibocom set lte lockband"
-    get_lockband_config_command="AT+GTACT?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command)
+    get_lockband_config_res=$(cmd_gtact_query "$at_port")
     network_prefer_config=$(echo $get_lockband_config_res |cut -d : -f 2| awk -F"," '{ print $1}' |tr -d ' ')
     local lock_band="$network_prefer_config,,,$lock_band"
-    set_lockband_command="AT+GTACT=$lock_band"
-    res=$(at $at_port $set_lockband_command)
+    res=$(cmd_gtact_set "$at_port" "$lock_band")
 }
 
 get_neighborcell()
 {
     m_debug "Fibocom get neighborcell info"
-    get_neighborcell_command="AT+GTCCINFO?"
-    get_lockcell_command="AT+GTCELLLOCK?"
     cell_type="undefined"
     json_add_object "neighborcell"
     json_add_array "NR"
     json_close_array
     json_add_array "LTE"
     json_close_array
-    at $at_port $get_neighborcell_command > /tmp/neighborcell
+    cmd_gtccinfo_query "$at_port" > /tmp/neighborcell
      while IFS= read -r line; do
         #跳过空行
         line=$(echo $line | sed 's/\r//g')
@@ -1256,7 +1263,7 @@ get_neighborcell()
         esac
     done < "/tmp/neighborcell"
 
-    result=`at $at_port $get_lockcell_command | grep "+GTCELLLOCK:" | sed 's/+GTCELLLOCK: //g' | sed 's/\r//g'`
+    result=`cmd_gtcelllock_query "$at_port" | grep "+GTCELLLOCK:" | sed 's/+GTCELLLOCK: //g' | sed 's/\r//g'`
     #$1:lockcell_status $2:cell_type $3:lock_type $4:arfcn $5:pci $6:scs $7:nr_band
     json_add_object "lockcell_status"
     if [ -n "$result" ]; then
@@ -1321,8 +1328,7 @@ set_neighborcell(){
 
 lockcell_all(){
     if [ -z "$pci" ] && [ -z "$arfcn" ]; then
-        local unlockcell="AT+GTCELLLOCK=0"
-        res1=$(at $at_port $unlockcell)
+        res1=$(cmd_gtcelllock_set "$at_port" "0")
         res=$res1
         qmodem_lockcell_boot_hook_clear "$config_section"
     else
@@ -1345,7 +1351,7 @@ lockcell_all(){
         elif [ "$rat" = "0" ]; then
             lockcell_boot_cmd="$lockpci_lte"
         fi
-        res=$(at $at_port "$lockcell_boot_cmd")
+        res=$(cmd_gtcelllock_set "$at_port" "${lockcell_boot_cmd#AT+GTCELLLOCK=}")
         qmodem_lockcell_boot_hook_sync "$config_section" "$en_boot_hook" "$lockcell_boot_cmd"
     fi
 }
@@ -1496,24 +1502,20 @@ cell_info()
 {
     m_debug "Fibocom cell info"
 
-    at_command='AT+GTCCINFO?'
-    response=$(at $at_port $at_command)
+    response=$(cmd_gtccinfo_query "$at_port")
 
-    at_command='AT+GTCAINFO?'
-    ca_response=$(at $at_port $at_command)
+    ca_response=$(cmd_gtcainfo_query "$at_port")
 
     local rat=$(echo "$response" | grep "service" | awk -F' ' '{print $1}')
 
     #适配联发科平台（FM350-GL）
     [ -z "$rat" ] && {
-        at_command='AT+COPS?'
-        rat_num=$(at $at_port $at_command | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
+        rat_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
         rat=$(get_rat ${rat_num})
     }
     
     #CSQ（信号强度）
-    at_command="AT+CSQ"
-    csqinfo=$(at ${at_port} ${at_command} | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
+    csqinfo=$(cmd_csq "$at_port" | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
     
     #RSSI（信号强度指示）
     rssi_num=$(echo $csqinfo | awk -F',' '{print $1}')
@@ -1779,13 +1781,13 @@ get_current_band()
 {
     local response ca_response rat network_mode status line
 
-    response=$(at "$at_port" 'AT+GTCCINFO?')
-    ca_response=$(at "$at_port" 'AT+GTCAINFO?')
+    response=$(cmd_gtccinfo_query "$at_port")
+    ca_response=$(cmd_gtcainfo_query "$at_port")
     rat=$(echo "$response" | grep "service" | awk -F' ' '{print $1}' | head -n 1)
 
     [ -z "$rat" ] && {
         local rat_num
-        rat_num=$(at "$at_port" 'AT+COPS?' | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
+        rat_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
         rat=$(get_rat "$rat_num")
     }
 
@@ -1931,9 +1933,8 @@ sim_switch_capabilities(){
 }
 
 get_sim_slot(){
-    local at_command="AT+GTDUALSIM?"
 	local expect_response="+GTDUALSIM"
-    response=$(at $at_port $at_command |grep $expect_response)
+    response=$(cmd_gtdualsim_query "$at_port" |grep $expect_response)
     case $platform in
         "qualcomm")
             sim_slot=$(echo "$response" | awk -F': ' '{print $2}' | awk -F',' '{print $1}' | tr -d '\r')
@@ -1950,8 +1951,7 @@ get_sim_slot(){
 
 set_sim_slot(){
     local sim_slot_param=$1
-    local at_command="AT+GTDUALSIM=$sim_slot_param"
-    response=$(at $at_port $at_command)
+    response=$(cmd_gtdualsim_set "$at_port" "$sim_slot_param")
     json_add_string "result" "$response"
 }
 
@@ -2009,7 +2009,7 @@ get_usage_stats()
 {
     local response usage_value usage_unit total_bytes updated_at
 
-    response=$(at "$at_port" "AT+GTUSAGEREC?")
+    response=$(cmd_gtusagerec_query "$at_port")
     usage_value=$(echo "$response" | awk -F'[:, ]+' '/\+GTUSAGEREC:/ {gsub(/\r/, "", $2); print $2; exit}')
     usage_unit=$(echo "$response" | awk -F'[:, ]+' '/\+GTUSAGEREC:/ {gsub(/\r/, "", $3); print $3; exit}')
     total_bytes=$(fibocom_usage_to_bytes "$usage_value" "$usage_unit")
@@ -2038,7 +2038,7 @@ write_usage_stats()
 {
     local response
 
-    response=$(at "$at_port" "AT+GTUSAGEREC")
+    response=$(cmd_gtusagerec "$at_port")
     echo "$response" | grep -qi "OK"
 }
 
@@ -2046,7 +2046,7 @@ clear_usage_stats()
 {
     local response
 
-    response=$(at "$at_port" "AT+GTUSAGEREC")
+    response=$(cmd_gtusagerec "$at_port")
     if echo "$response" | grep -qi "OK"; then
         json_add_boolean "result" 1
     else

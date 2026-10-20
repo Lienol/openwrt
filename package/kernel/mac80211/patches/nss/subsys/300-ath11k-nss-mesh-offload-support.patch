@@ -142,7 +142,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	void (*add_twt_setup)(struct ieee80211_hw *hw,
  			      struct ieee80211_sta *sta,
  			      struct ieee80211_twt_setup *twt);
-@@ -8009,4 +8038,101 @@ int ieee80211_emulate_switch_vif_chanctx
+@@ -8012,4 +8041,101 @@ int ieee80211_emulate_switch_vif_chanctx
   * Return: %true iff the vif is a NAN interface and NAN is started
   */
  bool ieee80211_vif_nan_started(struct ieee80211_vif *vif);
@@ -246,7 +246,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  #endif /* MAC80211_H */
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -2797,6 +2797,7 @@ static int ieee80211_update_mesh_config(
+@@ -2827,6 +2827,7 @@ static int ieee80211_update_mesh_config(
  	struct mesh_config *conf;
  	struct ieee80211_sub_if_data *sdata;
  	struct ieee80211_if_mesh *ifmsh;
@@ -254,7 +254,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  
  	sdata = IEEE80211_DEV_TO_SUB_IF(dev);
  	ifmsh = &sdata->u.mesh;
-@@ -2813,8 +2814,11 @@ static int ieee80211_update_mesh_config(
+@@ -2843,8 +2844,11 @@ static int ieee80211_update_mesh_config(
  		conf->dot11MeshMaxPeerLinks = nconf->dot11MeshMaxPeerLinks;
  	if (_chg_mesh_attr(NL80211_MESHCONF_MAX_RETRIES, mask))
  		conf->dot11MeshMaxRetries = nconf->dot11MeshMaxRetries;
@@ -267,7 +267,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	if (_chg_mesh_attr(NL80211_MESHCONF_ELEMENT_TTL, mask))
  		conf->element_ttl = nconf->element_ttl;
  	if (_chg_mesh_attr(NL80211_MESHCONF_AUTO_OPEN_PLINKS, mask)) {
-@@ -2828,8 +2832,12 @@ static int ieee80211_update_mesh_config(
+@@ -2858,8 +2862,12 @@ static int ieee80211_update_mesh_config(
  	if (_chg_mesh_attr(NL80211_MESHCONF_HWMP_MAX_PREQ_RETRIES, mask))
  		conf->dot11MeshHWMPmaxPREQretries =
  			nconf->dot11MeshHWMPmaxPREQretries;
@@ -281,7 +281,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	if (_chg_mesh_attr(NL80211_MESHCONF_MIN_DISCOVERY_TIMEOUT, mask))
  		conf->min_discovery_timeout = nconf->min_discovery_timeout;
  	if (_chg_mesh_attr(NL80211_MESHCONF_HWMP_ACTIVE_PATH_TIMEOUT, mask))
-@@ -2864,8 +2872,12 @@ static int ieee80211_update_mesh_config(
+@@ -2894,8 +2902,12 @@ static int ieee80211_update_mesh_config(
  	if (_chg_mesh_attr(NL80211_MESHCONF_HWMP_RANN_INTERVAL, mask))
  		conf->dot11MeshHWMPRannInterval =
  			nconf->dot11MeshHWMPRannInterval;
@@ -295,7 +295,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	if (_chg_mesh_attr(NL80211_MESHCONF_RSSI_THRESHOLD, mask)) {
  		/* our RSSI threshold implementation is supported only for
  		 * devices that report signal in dBm.
-@@ -2907,6 +2919,7 @@ static int ieee80211_update_mesh_config(
+@@ -2937,6 +2949,7 @@ static int ieee80211_update_mesh_config(
  		conf->dot11MeshConnectedToAuthServer =
  			nconf->dot11MeshConnectedToAuthServer;
  	ieee80211_mbss_info_change_notify(sdata, BSS_CHANGED_BEACON);
@@ -1161,7 +1161,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  void mesh_pathtbl_unregister(struct ieee80211_sub_if_data *sdata)
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
-@@ -2634,7 +2634,7 @@ static struct sk_buff *ieee80211_build_h
+@@ -2670,7 +2670,7 @@ static struct sk_buff *ieee80211_build_h
  	bool multicast;
  	u16 info_id = 0;
  	struct ieee80211_chanctx_conf *chanctx_conf = NULL;
@@ -1170,7 +1170,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	int ret;
  	u8 link_id = u32_get_bits(ctrl_flags, IEEE80211_TX_CTRL_MLO_LINK);
  
-@@ -2646,6 +2646,9 @@ static struct sk_buff *ieee80211_build_h
+@@ -2682,6 +2682,9 @@ static struct sk_buff *ieee80211_build_h
  		info_flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
  #endif
  
@@ -1180,7 +1180,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	/* convert Ethernet header to proper 802.11 header (based on
  	 * operation mode) */
  	ethertype = (skb->data[12] << 8) | skb->data[13];
-@@ -2716,6 +2719,13 @@ static struct sk_buff *ieee80211_build_h
+@@ -2752,6 +2755,13 @@ static struct sk_buff *ieee80211_build_h
  		break;
  #ifdef CPTCFG_MAC80211_MESH
  	case NL80211_IFTYPE_MESH_POINT:
@@ -1194,17 +1194,22 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  		if (!is_multicast_ether_addr(skb->data)) {
  			struct sta_info *next_hop;
  			bool mpp_lookup = true;
-@@ -2978,6 +2988,9 @@ static struct sk_buff *ieee80211_build_h
+@@ -2950,10 +2960,10 @@ static struct sk_buff *ieee80211_build_h
+ 	}
  
- 	skb_reset_mac_header(skb);
- 
+ 	/* set this up so failure paths can clean up ack skb */
+-	info = IEEE80211_SKB_CB(skb);
+-	memset(info, 0, sizeof(*info));
+-
+-	info->flags = info_flags;
 +#ifdef CPTCFG_MAC80211_MESH
 +nss_mesh:
 +#endif
- 	info = IEEE80211_SKB_CB(skb);
- 	memset(info, 0, sizeof(*info));
- 
-@@ -4325,6 +4338,7 @@ void __ieee80211_subif_start_xmit(struct
++	info->flags |= info_flags;
+ 	if (info_id) {
+ 		info->status_data = info_id;
+ 		info->status_data_idr = 1;
+@@ -4366,6 +4376,7 @@ void __ieee80211_subif_start_xmit(struct
  	struct sk_buff *next;
  	int len = skb->len;
  	struct ieee80211_key *key = NULL;
@@ -1212,7 +1217,7 @@ Signed-off-by: Gautham Kumar Senthilkumaran <quic_gauthamk@quicinc.com>
  	struct ieee80211_sub_if_data *ap_sdata;
  
  	if (unlikely(!ieee80211_sdata_running(sdata) || skb->len < ETH_HLEN)) {
-@@ -4399,9 +4413,15 @@ void __ieee80211_subif_start_xmit(struct
+@@ -4440,9 +4451,15 @@ void __ieee80211_subif_start_xmit(struct
  			goto out;
  		}
  

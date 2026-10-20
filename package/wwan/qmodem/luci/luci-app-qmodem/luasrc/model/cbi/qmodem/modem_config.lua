@@ -66,7 +66,7 @@ alias.placeholder = translate("Enter alias name")
 -- Modem Model
 name = s:option(Value, "name", translate("Modem Model"))
 name.cfgvalue = function(t, n)
-    return Value.cfgvalue(t, n) or "-"
+    return Value.cfgvalue(t, n) or ""
 end
 
 -- Soft Reboot

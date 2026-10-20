@@ -603,6 +603,34 @@
 			}
 		]
 	},
+	"thales": {
+		"qualcomm": [
+			{
+				"切换USB数据模式(MBIM/RMNET) > AT+SETCONFIG=0/1": "AT+SETCONFIG?"
+			},
+			{
+				"切换USB/PCIe模式 > AT+MODESWITCH?": "AT+MODESWITCH?"
+			},
+			{
+				"获取SIM卡卡槽状态 > AT+SWITCH_SLOT?": "AT+SWITCH_SLOT?"
+			},
+			{
+				"设置当前使用的为卡1 > at+switch_slot=0": "at+switch_slot=0"
+			},
+			{
+				"设置当前使用的为卡2 > at+switch_slot=1": "at+switch_slot=1"
+			},
+			{
+				"查询网络及载波信息 > AT^DEBUG?": "AT^DEBUG?"
+			},
+			{
+				"获取模组温度 > AT^TEMP?": "AT^TEMP?"
+			},
+			{
+				"重启模组 > AT+RESET": "AT+RESET"
+			}
+		]
+	},
 	"huawei": {
 		"hisilicon": [
 			{
@@ -722,6 +750,73 @@
 			},
 			{
 				"设置模块功能 > 离线模式": "AT+CFUN=7"
+			}
+		]
+	},
+	"openluat": {
+		"unisoc": [
+			{
+				"重启模组 > AT+RESET": "AT+RESET"
+			},
+			{
+				"关闭网络功能 > AT+RNDISCALL=0,1": "AT+RNDISCALL=0,1"
+			},
+			{
+				"查询本机号码 > AT+CNUM": "AT+CNUM"
+			},
+			{
+				"查询VoLTE注册状态 > AT+CIREG?": "AT+CIREG?"
+			},
+			{
+				"查询短信存储及条数 > AT+CPMS?": "AT+CPMS?"
+			},
+			{
+				"查看当前存储位置的所有短信 > AT+CMGL=\"ALL\"": "AT+CMGL=\"ALL\""
+			},
+			{
+				"切换到SIM卡短信存储 > AT+CPMS=\"SM\",\"SM\",\"SM\"": "AT+CPMS=\"SM\",\"SM\",\"SM\""
+			},
+			{
+				"切换到设备短信存储 > AT+CPMS=\"ME\",\"ME\",\"ME\"": "AT+CPMS=\"ME\",\"ME\",\"ME\""
+			},
+			{
+				"查询短信是否开启存储 > AT+CNMI?": "AT+CNMI?"
+			},
+			{
+				"设置收到短信后存储 > AT+CNMI=2,1,0,0,0": "AT+CNMI=2,1,0,0,0"
+			},
+			{
+				"查询PDP地址详情 > AT+CGCONTRDP=5": "AT+CGCONTRDP=5"
+			},
+			{
+				"查询当前USB网卡模式 > AT+SETUSB?": "AT+SETUSB?"
+			},
+			{
+				"切换到RNDIS网卡 > AT+SETUSB=1": "AT+SETUSB=1"
+			},
+			{
+				"切换到ECM网卡 > AT+SETUSB=2": "AT+SETUSB=2"
+			},
+			{
+				"开启网络指示灯 > AT+CNETLIGHT=1": "AT+CNETLIGHT=1"
+			},
+			{
+				"关闭网络指示灯 > AT+CNETLIGHT=0": "AT+CNETLIGHT=0"
+			},
+			{
+				"手动注册中国电信LTE > AT+COPS=1,2,\"46011\",7": "AT+COPS=1,2,\"46011\",7"
+			},
+			{
+				"手动注册中国联通LTE > AT+COPS=1,2,\"46001\",7": "AT+COPS=1,2,\"46001\",7"
+			},
+			{
+				"手动注册中国移动LTE > AT+COPS=1,2,\"46000\",7": "AT+COPS=1,2,\"46000\",7"
+			},
+			{
+				"恢复自动选择运营商 > AT+COPS=0": "AT+COPS=0"
+			},
+			{
+				"保存当前用户设置 > AT&W": "AT&W"
 			}
 		]
 	}

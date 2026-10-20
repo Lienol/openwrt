@@ -3,7 +3,8 @@
 _Vendor="huawei"
 _Author="Lean"
 _Maintainer="Lean <coolsnowwolf@gmail.com>"
-. /usr/share/qmodem/generic.sh
+. "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+. "${QMODEM_HOME:-/usr/share/qmodem}/cmds/huawei.sh"
 debug_subject="huawei_ctrl"
 
 vendor_get_disabled_features(){
@@ -15,19 +16,19 @@ vendor_get_disabled_features(){
     esac
 }
 
-function get_imei(){
-    imei=$(at $at_port "AT+CGSN" | grep -o '[0-9]\{15\}')
+get_imei(){
+    imei=$(cmd_cgsn "$at_port" | grep -o '[0-9]\{15\}')
     json_add_string imei $imei
 }
 
-function set_imei(){
+set_imei(){
     imei=$1
-    res=$(at $at_port "at^phynum=IMEI,$imei")
+    res=$(cmd_phynum_set_imei "$at_port" "$imei")
     json_add_string "result" "$res"
 }
 
-function get_mode(){
-    cfg=$(at $at_port "AT^SETMODE?")
+get_mode(){
+    cfg=$(cmd_setmode_query "$at_port")
     
     case $platform in
         "unisoc")
@@ -65,7 +66,7 @@ function get_mode(){
     json_close_object
 }
 
-function set_mode(){
+set_mode(){
     local mode=$1
     local mode_num
     case "$platform" in
@@ -97,11 +98,11 @@ function set_mode(){
         ;;
     esac
 
-    res=$(at $at_port "AT^SETMODE=${mode_num}")
-    json_add_string "cmd_result" "$res at $at_port "AT^SETMODE=${mode_num}""
+    res=$(cmd_setmode_set "$at_port" "$mode_num")
+    json_add_string "cmd_result" "$res at $at_port AT^SETMODE=${mode_num}"
 }
 
-function get_scs()
+get_scs()
 {
     local scs
     case $1 in
@@ -115,8 +116,8 @@ function get_scs()
     echo "$scs"
 }
 
-function get_network_prefer(){
-    res=$(at $at_port "AT^SYSCFGEX?"| grep "\^SYSCFGEX:" | sed 's/\^SYSCFGEX://g')
+get_network_prefer(){
+    res=$(cmd_syscfgex_query "$at_port" | grep "\^SYSCFGEX:" | sed 's/\^SYSCFGEX://g')
     # (RAT index): 
     # • 00 – Automatic 
     # • 01 – UMTS 3G only 
@@ -162,7 +163,7 @@ function get_network_prefer(){
     json_close_array
 }
 
-function set_network_prefer(){
+set_network_prefer(){
     local network_prefer_3g=$(echo $1 |jq -r 'contains(["3G"])')
     local network_prefer_4g=$(echo $1 |jq -r 'contains(["4G"])')
     local network_prefer_5g=$(echo $1 |jq -r 'contains(["5G"])')
@@ -194,13 +195,12 @@ function set_network_prefer(){
             ;;
     esac
     
-    at_command='AT^SYSCFGEX="'${code}'",40000000,1,2,40000000,,'
-    res=$(at $at_port "${at_command}")
+    res=$(cmd_syscfgex_set "$at_port" "$code")
     json_add_string "code" "$code"
     json_add_string "result" "$res"
 }
 
-function get_lockband(){
+get_lockband(){
     json_add_object "lockband"
     case $platform in
         *)
@@ -210,7 +210,7 @@ function get_lockband(){
     json_close_object
 }
 
-function set_lockband(){
+set_lockband(){
     config=$1
     band_class=$(echo $config | jq -r '.band_class')
     lock_band=$(echo $config | jq -r '.lock_band')
@@ -221,15 +221,14 @@ function set_lockband(){
     esac
 }
 
-function sim_info()
+sim_info()
 {
     class="SIM Information"
     
     sim_slot=$(cat /tmp/huawei_sim_slot_$config_section)||sim_slot="0"
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-    sim_status=$(at $at_port $at_command | grep -E "\+CPIN:|\+CME ERROR: 10")
+    sim_status=$(cmd_cpin_query "$at_port" | grep -E "\+CPIN:|\+CME ERROR: 10")
     if [[ "$sim_status" == "+CME ERROR:"* ]]; then
         sim_status="not inserted"
     else
@@ -239,19 +238,16 @@ function sim_info()
     fi
 
     #SIM Number（SIM卡号码，手机号）
-    at_command="AT+CNUM"
-    sim_number=$(at $at_port $at_command | grep "+CNUM: " | awk -F'"' '{print $2}')
+    sim_number=$(cmd_cnum "$at_port" | grep "+CNUM: " | awk -F'"' '{print $2}')
     [ -z "$sim_number" ] && {
-      sim_number=$(at $at_port $at_command | grep "+CNUM: " | awk -F'"' '{print $4}')
+      sim_number=$(cmd_cnum "$at_port" | grep "+CNUM: " | awk -F'"' '{print $4}')
     }
     
     #IMSI（国际移动用户识别码）
-    at_command="AT+CIMI"
-    imsi=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | sed -n '2p' | sed 's/\r//g')
     
     #IMEI（国际移动设备识别码）
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imei=$(cmd_cgsn "$at_port" | sed -n '2p' | sed 's/\r//g')
     
     add_plain_info_entry "SIM Status" "$sim_status" "SIM Status" 
     add_plain_info_entry "SIM Slot" "$sim_slot" "SIM Slot"
@@ -260,16 +256,13 @@ function sim_info()
     add_plain_info_entry "IMSI" "$imsi" "International Mobile Subscriber Identity"
 }
 
-function base_info(){
+base_info(){
      #Name（名称）
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | grep -v "OK" | sed -n '2p' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | grep -v "OK" | sed -n '2p' | sed 's/\r//g')
     #Manufacturer（制造商）
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | sed -n '2p' | sed 's/\r//g')
     #Revision（固件版本）
-    at_command="ATI"
-    revision=$(at $at_port $at_command | grep "Revision:" | sed 's/Revision: //g' | sed 's/\r//g')
+    revision=$(cmd_ati "$at_port" | grep "Revision:" | sed 's/Revision: //g' | sed 's/\r//g')
     # at_command="AT+CGMR"
     # revision=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
     class="Base Information"
@@ -285,10 +278,9 @@ cell_info()
 {
     case "$platform" in
         "unisoc")
-            at_command="AT^MONSC"
-            monsc_response=$(at $at_port $at_command | grep "\^MONSC:" | sed 's/\^MONSC: //')
-            second_cell_response=$(at $at_port "AT^CSERSSI?"| grep "CSERSSI")
-            hfreqinfo_response=$(at $at_port "AT^HFREQINFO?" | grep "HFREQINFO:")
+            monsc_response=$(cmd_monsc "$at_port" | grep "\^MONSC:" | sed 's/\^MONSC: //')
+            second_cell_response=$(cmd_cserssi_query "$at_port" | grep "CSERSSI")
+            hfreqinfo_response=$(cmd_hfreqinfo_query "$at_port" | grep "HFREQINFO:")
             _parse_hfreqinfo "$hfreqinfo_response"
             cell_rat=$(echo "$monsc_response" | awk -F',' '{print $1}')
             [ -n "$second_cell_response" ] && cell_rat="LTE-NR"
@@ -415,8 +407,7 @@ cell_info()
             unset extra_info
             ;;
         *)
-            at_command="AT^MONSC"
-            response=$(at $at_port $at_command | grep "\^MONSC:" | sed 's/\^MONSC: //')
+            response=$(cmd_monsc "$at_port" | grep "\^MONSC:" | sed 's/\^MONSC: //')
             cell_rat=$(echo "$response" | awk -F',' '{print $1}')
             case $cell_rat in
                 "NR"|"NR-5GC")
@@ -436,7 +427,7 @@ cell_info()
                     nr_sinr=$(echo "$response" | awk -F',' '{print $11}' | sed 's/\r//g')
                 ;;
                 "LTE-NR")
-                    nr_response=$(at $at_port "AT^CSERSSI?")
+                    nr_response=$(cmd_cserssi_query "$at_port")
                     network_mode="EN-DC Mode"
                     #LTE
                     endc_lte_mcc=$(echo "$response" | awk -F',' '{print $2}')
@@ -595,13 +586,13 @@ cell_info()
     
 }
 
-function network_info() {
+network_info() {
     return 0
 }
 
-function _get_lockband_nr(){
-    local bandcfg=$(at $at_port "AT!BAND?")
-    local bandtemplate=$(at $at_port "AT!BAND=?")
+_get_lockband_nr(){
+    local bandcfg=$(cmd_band_query "$at_port")
+    local bandtemplate=$(cmd_band_list_query "$at_port")
     local start_flag=0
     IFS=$'\n'
     for line in $bandtemplate; do
@@ -667,7 +658,7 @@ function _get_lockband_nr(){
     unset IFS
 }
 
-function _set_lockband_nr(){
+_set_lockband_nr(){
     case $band_class in
         "GW")
             band_class=0
@@ -685,19 +676,18 @@ function _set_lockband_nr(){
     bandlist=$(_band_list_to_mask $lock_band)
     [ "$band_class" -eq 0 ] && bandlist=${bandlist:0:16}
     cmd="AT!BAND=0F,1,\"Custom\",$band_class,${bandlist}"
-    res=$(at $at_port "$cmd" | xargs)
+    res=$(cmd_band_set_custom "$at_port" "$band_class" "$bandlist" | xargs)
     if [ "$res" == "OK" ]; then
-        set_lockband="AT!BAND=0F"
+        r=$(cmd_band_reset "$at_port" "0F")
     else
-        set_lockband="AT!BAND=00"
+        r=$(cmd_band_reset "$at_port" "00")
     fi
-    r=$(at $at_port "$set_lockband")
     json_add_string "result" "$res"
     json_add_string "cmd" "$cmd"
 }
 
-function _get_temperature(){
-    response=$(at $at_port "AT^CHIPTEMP?" | grep "\^CHIPTEMP" | awk -F',' '{print $6}' | sed 's/\r//g' )
+_get_temperature(){
+    response=$(cmd_chiptemp_query "$at_port" | grep "\^CHIPTEMP" | awk -F',' '{print $6}' | sed 's/\r//g' )
     
     local temperature
     case $platform in
@@ -717,15 +707,15 @@ function _get_temperature(){
 
 }
 
-function _add_avalible_band(){
+_add_avalible_band(){
     add_avalible_band_entry $1 $1
 }
 
-function _add_lock_band(){
+_add_lock_band(){
     json_add_string "" $1
 }
 
-function _mask_to_band()
+_mask_to_band()
 {
     func=$1
     low_band=$2
@@ -750,7 +740,7 @@ function _mask_to_band()
 
 }
 
-function _band_list_to_mask()
+_band_list_to_mask()
 {
     local band_list=$1
     local low=0
@@ -775,7 +765,7 @@ function _band_list_to_mask()
     echo "$low,$high"
 }
 
-function _parse_hfreqinfo(){
+_parse_hfreqinfo(){
     local hfreqinfo="$1"
     IFS=$'\n'
     for line in $hfreqinfo; do
@@ -855,22 +845,21 @@ get_sim_slot(){
 
 set_sim_slot(){
     local sim_slot=$1
+    echo "$sim_slot" > /tmp/huawei_sim_slot_$config_section
     case $platform in
         "unisoc")
-            at_command="AT^SIMSWITCH=$sim_slot"
+            response=$(cmd_simswitch_set "$at_port" "$sim_slot" | xargs)
             ;;
         "hisilicon")
             case $sim_slot in
                 "0")
-                    at_command="AT^SCICHG=0,1"
+                    response=$(cmd_scichg "$at_port" 0 1 | xargs)
                     ;;
                 "1")
-                    at_command="AT^SCICHG=1,0"
+                    response=$(cmd_scichg "$at_port" 1 0 | xargs)
                     ;;
             esac
             ;;
     esac
-    echo "$sim_slot" > /tmp/huawei_sim_slot_$config_section
-    response=$(at $at_port $at_command | xargs)
     json_add_string "result" "$response"
 }

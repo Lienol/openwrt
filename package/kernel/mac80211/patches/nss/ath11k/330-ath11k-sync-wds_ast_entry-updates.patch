@@ -46,7 +46,7 @@ Signed-off-by: Rameshkumar Sundaram <ramess@codeaurora.org>
 
 --- a/drivers/net/wireless/ath/ath11k/ahb.c
 +++ b/drivers/net/wireless/ath/ath11k/ahb.c
-@@ -1321,6 +1321,7 @@ static void ath11k_ahb_remove_prepare(st
+@@ -1322,6 +1322,7 @@ static void ath11k_ahb_remove_prepare(st
  	set_bit(ATH11K_FLAG_UNREGISTERING, &ab->dev_flags);
  	cancel_work_sync(&ab->restart_work);
  	cancel_work_sync(&ab->qmi.event_work);
@@ -183,7 +183,7 @@ Signed-off-by: Rameshkumar Sundaram <ramess@codeaurora.org>
  }
 --- a/drivers/net/wireless/ath/ath11k/pci.c
 +++ b/drivers/net/wireless/ath/ath11k/pci.c
-@@ -1211,6 +1211,7 @@ static void ath11k_pci_remove(struct pci
+@@ -1215,6 +1215,7 @@ static void ath11k_pci_remove(struct pci
  	}
  
  	set_bit(ATH11K_FLAG_UNREGISTERING, &ab->dev_flags);

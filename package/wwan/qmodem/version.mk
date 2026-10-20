@@ -21,5 +21,5 @@ endef
 QMODEM_COMMITCOUNT = $(if $(DUMP),0,$(call qmodem_commitcount))
 QMODEM_AUTORELEASE = $(if $(DUMP),0,$(call qmodem_commitcount,1))
 
-QMODEM_VERSION:=3.1.0
+QMODEM_VERSION:=3.2.0
 QMODEM_RELEASE:=$(QMODEM_AUTORELEASE)

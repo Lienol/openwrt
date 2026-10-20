@@ -3,7 +3,7 @@
 . /lib/functions.sh
 . /lib/functions/system.sh
 
-BOARD_DEFAULTS_VERSION=3
+BOARD_DEFAULTS_VERSION=4
 BOARD_FILE=/etc/board.json
 BOARD_SCRIPT=/etc/board.d/03_qmodem
 
@@ -267,6 +267,31 @@ migrate_misectel_leds()
 	done
 }
 
+configure_m01k21_leds()
+{
+	local board="$1"
+	local source legacy_sections
+
+	[ "$board" = 'misectel,m01k21' ] || return
+
+	# Older images used board-incompatible status scripts. They must not
+	# compete with the M01K21 controller for the same GPIO LEDs.
+	uci -q delete qmodem_led.modem_status
+	legacy_sections="$(
+		uci -q show qmodem 2>/dev/null | sed -n \
+			-e "s/^qmodem\.\([A-Za-z0-9_]*\)\.led_script=.*$/\1/p"
+	)"
+	for source in $legacy_sections; do
+		uci -q delete "qmodem.${source}.led_script"
+	done
+
+	uci -q set qmodem_led.cellular=modem_status
+	uci -q set qmodem_led.cellular.enabled=1
+	uci -q set qmodem_led.cellular.script=misectel_3led
+	uci -q set qmodem_led.cellular.bind=any
+	uci -q delete qmodem_led.cellular.port
+}
+
 fix_m01k43_usb_p()
 {
 	[ "$1" = 'misectel,m01k43-usb-p' ] || return
@@ -287,6 +312,7 @@ if [ -x "$BOARD_SCRIPT" ] && command -v jq >/dev/null 2>&1 && merge_qmodem_board
 	fix_m01k43_usb_p "$board"
 	migrate_led_schema
 	migrate_misectel_leds "$board"
+	configure_m01k21_leds "$board"
 	migrate_legacy_leds
 	uci -q commit qmodem
 	uci -q commit qmodem_led

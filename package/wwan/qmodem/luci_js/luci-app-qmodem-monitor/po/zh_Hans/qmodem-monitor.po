@@ -1,0 +1,333 @@
+# Chinese Simplified translation for luci-app-qmodem-monitor
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: view/qmodem/monitor.js
+msgid "QModem Monitor Configuration"
+msgstr "QModem 监控配置"
+
+#: view/qmodem/monitor.js
+msgid "Configure monitoring methods and actions for modem connectivity."
+msgstr "配置调制解调器连接的监控方式和动作。"
+
+#: view/qmodem/monitor.js
+msgid "Global Monitor Settings"
+msgstr "全局监控设置"
+
+#: view/qmodem/monitor.js
+msgid "Enable Monitor (Global)"
+msgstr "启用监控（全局）"
+
+#: view/qmodem/monitor.js
+msgid "Service Control"
+msgstr "服务控制"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service started"
+msgstr "监控服务已启动"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service started successfully"
+msgstr "监控服务启动成功"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service stopped"
+msgstr "监控服务已停止"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service stopped successfully"
+msgstr "监控服务停止成功"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service restarted"
+msgstr "监控服务已重启"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service restarted successfully"
+msgstr "监控服务重启成功"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service enabled successfully"
+msgstr "监控服务启用成功"
+
+#: view/qmodem/monitor.js
+msgid "Monitor service disabled successfully"
+msgstr "监控服务禁用成功"
+
+#: view/qmodem/monitor.js
+msgid "Failed to enable monitor: "
+msgstr "启用监控失败："
+
+#: view/qmodem/monitor.js
+msgid "Failed to disable monitor: "
+msgstr "禁用监控失败："
+
+#: view/qmodem/monitor.js
+msgid "Failed to start monitor: "
+msgstr "启动监控失败："
+
+#: view/qmodem/monitor.js
+msgid "Failed to stop monitor: "
+msgstr "停止监控失败："
+
+#: view/qmodem/monitor.js
+msgid "Failed to restart monitor: "
+msgstr "重启监控失败："
+
+#: view/qmodem/monitor.js
+msgid "Modem Monitor Configuration"
+msgstr "调制解调器监控配置"
+
+#: view/qmodem/monitor.js
+msgid "Monitor Configuration"
+msgstr "监控配置"
+
+#: view/qmodem/monitor.js
+msgid "Modem"
+msgstr "调制解调器"
+
+#: view/qmodem/monitor.js
+msgid "Enable"
+msgstr "启用"
+
+#: view/qmodem/monitor.js
+msgid "Method"
+msgstr "监控方式"
+
+#: view/qmodem/monitor.js
+msgid "Actions"
+msgstr "动作"
+
+#: view/qmodem/monitor.js
+msgid "Monitor Method"
+msgstr "监控方式"
+
+#: view/qmodem/monitor.js
+msgid "Ping"
+msgstr "Ping"
+
+#: view/qmodem/monitor.js
+msgid "Ping target to check connectivity"
+msgstr "Ping目标以检查连接性"
+
+#: view/qmodem/monitor.js
+msgid "HTTP Request"
+msgstr "HTTP请求"
+
+#: view/qmodem/monitor.js
+msgid "HTTP request to check connectivity"
+msgstr "HTTP请求以检查连接性"
+
+#: view/qmodem/monitor.js
+msgid "Ping Type"
+msgstr "Ping类型"
+
+#: view/qmodem/monitor.js
+msgid "IP Address / Domain"
+msgstr "IP地址 / 域名"
+
+#: view/qmodem/monitor.js
+msgid "Target IP / Domain"
+msgstr "目标IP / 域名"
+
+#: view/qmodem/monitor.js
+msgid "Enter an IP address or domain name. Note: Using a domain name may cause false disconnection detection if DNS resolution fails."
+msgstr "输入IP地址或域名。注意：使用域名时，如果DNS解析失败可能会被误判为断网。"
+
+#: view/qmodem/monitor.js
+msgid "Gateway"
+msgstr "网关"
+
+#: view/qmodem/monitor.js
+msgid "DNS Server"
+msgstr "DNS服务器"
+
+#: view/qmodem/monitor.js
+msgid "Target IP"
+msgstr "目标IP"
+
+#: view/qmodem/monitor.js
+msgid "IP Version"
+msgstr "IP版本"
+
+#: view/qmodem/monitor.js
+msgid "URL"
+msgstr "URL"
+
+#: view/qmodem/monitor.js
+msgid "Check Interval (seconds)"
+msgstr "检查间隔（秒）"
+
+#: view/qmodem/monitor.js
+msgid "Failure Threshold"
+msgstr "失败阈值"
+
+#: view/qmodem/monitor.js
+msgid "Number of consecutive failures before triggering actions"
+msgstr "触发动作前的连续失败次数"
+
+#: view/qmodem/monitor.js
+msgid "Switch SIM Slot"
+msgstr "切换SIM卡槽"
+
+#: view/qmodem/monitor.js
+msgid "Switch to another SIM slot"
+msgstr "切换到另一个SIM卡槽"
+
+#: view/qmodem/monitor.js
+msgid "Send AT Commands"
+msgstr "发送AT命令"
+
+#: view/qmodem/monitor.js
+msgid "Send AT commands to modem"
+msgstr "向调制解调器发送AT命令"
+
+#: view/qmodem/monitor.js
+msgid "Run Scripts"
+msgstr "运行脚本"
+
+#: view/qmodem/monitor.js
+msgid "Run custom scripts"
+msgstr "运行自定义脚本"
+
+#: view/qmodem/monitor.js
+msgid "AT Commands"
+msgstr "AT命令"
+
+#: view/qmodem/monitor.js
+msgid "AT commands to send when action is triggered"
+msgstr "触发动作时发送的AT命令"
+
+#: view/qmodem/monitor.js
+msgid "Script Paths"
+msgstr "脚本路径"
+
+#: view/qmodem/monitor.js
+msgid "Scripts to execute when action is triggered"
+msgstr "触发动作时执行的脚本"
+
+#: view/qmodem/monitor.js
+msgid "Actions to perform when monitor threshold is reached"
+msgstr "达到监控阈值时执行的动作"
+
+#: menu
+msgid "Monitor"
+msgstr "监控"
+
+#: view/qmodem/monitor.js
+msgid "Monitor Service"
+msgstr "监控服务"
+
+#: view/qmodem/monitor.js
+msgid "Failed to load status"
+msgstr "加载状态失败"
+
+#: view/qmodem/monitor.js
+msgid "Enabled"
+msgstr "已启用"
+
+#: view/qmodem/monitor.js
+msgid "Running"
+msgstr "运行中"
+
+#: view/qmodem/monitor.js
+msgid "Yes"
+msgstr "是"
+
+#: view/qmodem/monitor.js
+msgid "No"
+msgstr "否"
+
+#: view/qmodem/monitor.js
+msgid "Start"
+msgstr "启动"
+
+#: view/qmodem/monitor.js
+msgid "Stop"
+msgstr "停止"
+
+#: view/qmodem/monitor.js
+msgid "Restart"
+msgstr "重启"
+
+#: view/qmodem/monitor.js
+msgid "Enable"
+msgstr "启用"
+
+#: view/qmodem/monitor.js
+msgid "Disable"
+msgstr "禁用"
+
+#: view/qmodem/monitor.js
+msgid "User Scripts Management"
+msgstr "用户脚本管理"
+
+#: view/qmodem/monitor.js
+msgid "Security Warning"
+msgstr "安全警告"
+
+#: view/qmodem/monitor.js
+msgid "User scripts run with root privileges. Only upload scripts from trusted sources. Malicious scripts can damage your system or compromise security. Review script contents before uploading."
+msgstr "用户脚本将以root权限运行。请仅上传来自可信来源的脚本。恶意脚本可能会损坏您的系统或危及安全。上传前请仔细检查脚本内容。"
+
+#: view/qmodem/monitor.js
+msgid "Upload Script"
+msgstr "上传脚本"
+
+#: view/qmodem/monitor.js
+msgid "Please select a file to upload"
+msgstr "请选择要上传的文件"
+
+#: view/qmodem/monitor.js
+msgid "Invalid file type. Only .sh, .py, and .lua files are allowed."
+msgstr "无效的文件类型。仅允许上传 .sh、.py 和 .lua 文件。"
+
+#: view/qmodem/monitor.js
+msgid "Script uploaded successfully: "
+msgstr "脚本上传成功："
+
+#: view/qmodem/monitor.js
+msgid "Failed to upload script: "
+msgstr "脚本上传失败："
+
+#: view/qmodem/monitor.js
+msgid "Upload"
+msgstr "上传"
+
+#: view/qmodem/monitor.js
+msgid "Scripts will be uploaded to "
+msgstr "脚本将上传至 "
+
+#: view/qmodem/monitor.js
+msgid ". Allowed types: .sh, .py, .lua"
+msgstr "。允许的类型：.sh、.py、.lua"
+
+#: view/qmodem/monitor.js
+msgid "Uploaded Scripts"
+msgstr "已上传的脚本"
+
+#: view/qmodem/monitor.js
+msgid "No scripts uploaded yet"
+msgstr "暂无已上传的脚本"
+
+#: view/qmodem/monitor.js
+msgid "Delete"
+msgstr "删除"
+
+#: view/qmodem/monitor.js
+msgid "Are you sure you want to delete this script?"
+msgstr "确定要删除此脚本吗？"
+
+#: view/qmodem/monitor.js
+msgid "Script deleted successfully: "
+msgstr "脚本删除成功："
+
+#: view/qmodem/monitor.js
+msgid "Failed to delete script: "
+msgstr "脚本删除失败："
+
+#: view/qmodem/monitor.js
+msgid "Scripts to execute when action is triggered. You can upload scripts in the User Scripts Management section above."
+msgstr "触发动作时要执行的脚本。您可以在上方的用户脚本管理部分上传脚本。"

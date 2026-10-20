@@ -1,0 +1,2634 @@
+# Source: vendor/sierra.sh:437, vendor/sierra.sh:440, vendor/sierra.sh:443, vendor/sierra.sh:446
+msgid "$key"
+msgstr "$key"
+
+# Source: view/qmodem/sms.js:450, view/qmodem/sms_conversation.js:255
+msgid "16-bit (Unicode)"
+msgstr "16位（Unicode）"
+
+# Source: view/qmodem/settings.js:220
+msgid "5G Ethernet Interface"
+msgstr "5G以太网接口"
+
+# Source: view/qmodem/sms.js:449, view/qmodem/sms_conversation.js:254
+msgid "7-bit (ASCII)"
+msgstr "7位（ASCII）"
+
+# Source: view/qmodem/network_config.js:195
+# Source: view/qmodem/network_config.js:346, view/qmodem/network_config.js:422
+msgid "APN"
+msgstr "APN"
+
+# Source: view/qmodem/config_advanced.js:737
+msgid "ARFCN"
+msgstr "ARFCN"
+
+# Source: view/qmodem/debug.js:157
+msgid "AT Command"
+msgstr "AT命令"
+
+# Source: view/qmodem/debug.js:19
+# Source: view/qmodem/debug.js
+msgid "AT Debug"
+msgstr "AT 调试"
+
+# Source: vendor/fibocom.sh:432, vendor/foxconn.sh:307, vendor/huawei.sh:278, vendor/meig.sh:238, vendor/neoway.sh:161, vendor/quectel.sh:363, vendor/sierra.sh:215, vendor/simcom.sh:245, vendor/telit.sh:164, view/qmodem/settings.js:174
+msgid "AT Port"
+msgstr "AT端口"
+
+# Source: view/qmodem/config_advanced.js:743
+msgid "Absolute Radio Frequency Channel Number"
+msgstr "绝对射频信道号"
+
+# Source: vendor/fibocom.sh:1426, vendor/fibocom.sh:1437, vendor/fibocom.sh:1476, vendor/huawei.sh:381, vendor/huawei.sh:513, vendor/neoway.sh:719, vendor/neoway.sh:774, vendor/quectel.sh:1668, vendor/quectel.sh:1706, vendor/simcom.sh:930, vendor/simcom.sh:970, vendor/telit.sh:763
+msgid "Absolute Radio-Frequency Channel Number"
+msgstr "绝对射频信道号"
+
+# Source: vendor/meig.sh:383, vendor/neoway.sh:289, vendor/quectel.sh:509
+msgid "Access Maximum Bit Rate for Downlink"
+msgstr "下行接入最大比特率"
+
+# Source: vendor/meig.sh:382, vendor/neoway.sh:288, vendor/quectel.sh:508
+msgid "Access Maximum Bit Rate for Uplink"
+msgstr "上行接入最大比特率"
+
+# Source: view/qmodem/config_advanced.js:893, view/qmodem/config_advanced.js:918
+msgid "Action"
+msgstr "操作"
+
+# Source: view/qmodem/sms.js:98, view/qmodem/sms_conversation.js:116
+msgid "Adjust received messages for local timezone (UTC+8)"
+msgstr "调整接收消息的本地时区（UTC+8）"
+
+# Source: view/qmodem/sms.js:123, view/qmodem/sms_conversation.js:141
+msgid "Adjust sent messages for local timezone (UTC+8)"
+msgstr "调整发送消息的本地时区（UTC+8）"
+
+# Source: view/qmodem/config_advanced.js:19
+msgid "Advanced Configuration"
+msgstr "高级配置"
+
+# Source: view/qmodem/settings.js:204
+msgid "After setting this option, the first module loaded into this slot will automatically be assigned this default alias."
+msgstr "设置此选项后，首次加载到此插槽的模块将自动分配此默认别名。"
+
+# Source: view/qmodem/settings.js:167
+msgid "Alias"
+msgstr "别名"
+
+# Source: view/qmodem/settings.js:47
+msgid "Alternative AT Tools"
+msgstr "备用AT工具"
+
+# Source: view/qmodem/config_advanced.js:262, view/qmodem/config_advanced.js:267, view/qmodem/config_advanced.js:270, view/qmodem/config_advanced.js:401, view/qmodem/config_advanced.js:406, view/qmodem/config_advanced.js:409, view/qmodem/config_advanced.js:579, view/qmodem/config_advanced.js:584, view/qmodem/config_advanced.js:587, view/qmodem/config_advanced.js:821, view/qmodem/config_advanced.js:825, view/qmodem/config_advanced.js:828, view/qmodem/config_advanced.js:1278, view/qmodem/config_advanced.js:1283, view/qmodem/config_advanced.js:1286
+msgid "Apply"
+msgstr "应用"
+
+# Source: view/qmodem/config_advanced.js:252, view/qmodem/config_advanced.js:391, view/qmodem/config_advanced.js:810, view/qmodem/config_advanced.js:1268
+msgid "Applying..."
+msgstr "应用中..."
+
+# Source: view/qmodem/config_advanced.js:564
+msgid "Are you sure you want to change the IMEI to %s? This requires modem reboot."
+msgstr "确定要将IMEI更改为%s吗？这需要重启调制解调器。"
+
+# Source: view/qmodem/network_config.js:553
+msgid "Are you sure you want to clear the dial log?"
+msgstr "确定要清除拨号日志吗？"
+
+# Source: view/qmodem/config_advanced.js:1424
+msgid "Are you sure you want to perform a hard reboot? This will power cycle the modem and may cause a longer disconnection."
+msgstr "确定要执行硬重启吗？这将断电重启调制解调器，可能导致更长的断连时间。"
+
+# Source: view/qmodem/config_advanced.js:1387
+msgid "Are you sure you want to perform a soft reboot? The modem will restart and may lose connection temporarily."
+msgstr "确定要执行软重启吗？调制解调器将重启，可能暂时断开连接。"
+
+# Source: view/qmodem/settings.js:224
+msgid "Associated USB"
+msgstr "关联的USB"
+
+# Source: view/qmodem/settings.js:74
+msgid "Attempt to use pre-configured PCIe settings from the CPE vendor."
+msgstr "尝试使用CPE厂商预配置的PCIe设置。"
+
+# Source: view/qmodem/settings.js:70
+msgid "Attempt to use pre-configured USB settings from the CPE vendor."
+msgstr "尝试使用CPE厂商预配置的USB设置。"
+
+# Source: view/qmodem/sms.js:153
+msgid "Auto Delete from SIM"
+msgstr "自动从SIM卡删除"
+
+# Source: view/qmodem/sms.js:163
+msgid "Automatically delete SMS from SIM card after reading"
+msgstr "读取后自动从SIM卡删除短信"
+
+# Source: view/qmodem/debug.js:81
+msgid "Available AT Ports"
+msgstr "可用AT端口"
+
+# Source: view/qmodem/sms_conversation.js:160
+msgid "Back"
+msgstr "返回"
+
+# Source: vendor/fibocom.sh:1428, vendor/fibocom.sh:1439, vendor/fibocom.sh:1459, vendor/fibocom.sh:1477, vendor/fibocom.sh:1493, vendor/fibocom.sh:1516, vendor/foxconn.sh:582, vendor/foxconn.sh:629, vendor/huawei.sh:382, vendor/huawei.sh:514, vendor/huawei.sh:532, vendor/huawei.sh:557, vendor/huawei.sh:579, vendor/meig.sh:569, vendor/meig.sh:584, vendor/meig.sh:596, vendor/meig.sh:611, vendor/meig.sh:625, vendor/neoway.sh:720, vendor/neoway.sh:731, vendor/neoway.sh:756, vendor/neoway.sh:775, vendor/quectel.sh:1669, vendor/quectel.sh:1689, vendor/quectel.sh:1707, vendor/quectel.sh:1722, vendor/quectel.sh:1743, vendor/simcom.sh:931, vendor/simcom.sh:953, vendor/simcom.sh:971, vendor/telit.sh:761, view/qmodem/config_advanced.js:754
+msgid "Band"
+msgstr "频段"
+
+# Source: view/qmodem/config_advanced.js:805
+msgid "Band is required for NR"
+msgstr "NR需要频段"
+
+# Source: vendor/telit.sh:762
+msgid "Bandwidth"
+msgstr "带宽"
+
+# Source: view/qmodem/settings.js:57
+msgid "Block Auto Probe/Remove"
+msgstr "阻止自动探测/移除"
+
+# Source: view/qmodem/network_config.js:558, view/qmodem/sms.js:474
+msgid "Cancel"
+msgstr "取消"
+
+# Source: vendor/gosuncn.sh:141
+msgid "Carrier"
+msgstr "运营商"
+
+# Source: vendor/fibocom.sh:1423, vendor/fibocom.sh:1455, vendor/fibocom.sh:1489, vendor/fibocom.sh:1512, vendor/foxconn.sh:578, vendor/foxconn.sh:634, vendor/huawei.sh:378, vendor/huawei.sh:510, vendor/huawei.sh:528, vendor/huawei.sh:553, vendor/huawei.sh:575, vendor/meig.sh:566, vendor/meig.sh:581, vendor/meig.sh:608, vendor/meig.sh:623, vendor/neoway.sh:717, vendor/neoway.sh:728, vendor/neoway.sh:752, vendor/quectel.sh:1665, vendor/quectel.sh:1685, vendor/quectel.sh:1718, vendor/quectel.sh:1739, vendor/simcom.sh:927, vendor/simcom.sh:949, vendor/simcom.sh:982, vendor/simcom.sh:1001
+msgid "Cell ID"
+msgstr "小区ID"
+
+# Source: view/qmodem/config_advanced.js:892, view/qmodem/config_advanced.js:917
+msgid "Cell Information"
+msgstr "小区信息"
+
+# Source: view/qmodem/config_advanced.js:1036
+msgid "Cell is unlocked (no lock active)"
+msgstr "小区未锁定（无锁定）"
+
+# Source: view/qmodem/config_advanced.js:1003
+msgid "Cell parameters copied to settings"
+msgstr "小区参数已复制到设置"
+
+# Source: view/qmodem/config_advanced.js:597
+msgid "Changing IMEI may be illegal in some countries. Use at your own risk."
+msgstr "在某些国家更改IMEI可能违法，请自行承担风险。"
+
+# Source: vendor/fibocom.sh:1469, vendor/fibocom.sh:1503, vendor/foxconn.sh:591, vendor/huawei.sh:535, vendor/huawei.sh:566, vendor/neoway.sh:741, vendor/quectel.sh:1699, vendor/quectel.sh:1731, vendor/simcom.sh:933, vendor/simcom.sh:963, vendor/simcom.sh:993
+msgid "Channel Quality Indicator"
+msgstr "信道质量指示"
+
+# Source: vendor/quectel.sh:507, vendor/telit.sh:260
+msgid "Channel Quality Indicator for Downlink"
+msgstr "下行信道质量指示"
+
+# Source: vendor/quectel.sh:506
+msgid "Channel Quality Indicator for Uplink"
+msgstr "上行信道质量指示"
+
+# Source: view/qmodem/network_config.js:480, view/qmodem/sms_conversation.js:315
+msgid "Clear"
+msgstr "清除"
+
+# Source: view/qmodem/network_config.js:552
+msgid "Clear Dial Log"
+msgstr "清除拨号日志"
+
+# Source: view/qmodem/config_advanced.js:670
+msgid "Click \"Scan Neighbor Cells\" to search for nearby cell towers"
+msgstr "点击“扫描邻区小区”以搜索附近基站"
+
+# Source: view/qmodem/debug.js:177
+msgid "Click \"Send AT Command\" to execute"
+msgstr "点击“发送AT命令”以执行"
+
+# Source: view/qmodem/network_config.js:485
+msgid "Close"
+msgstr "关闭"
+
+# Source: vendor/fibocom.sh:1524, vendor/huawei.sh:587, vendor/neoway.sh:766, vendor/quectel.sh:1751
+msgid "Compression Mode"
+msgstr "压缩模式"
+
+# Source: view/qmodem/config_advanced.js:984
+msgid "Configuration inputs not found"
+msgstr "未找到配置输入"
+
+# Source: view/qmodem/sms.js:580
+msgid "Configuration saved"
+msgstr "配置已保存"
+
+# Source: view/qmodem/config_advanced.js:698
+msgid "Configure cell lock parameters. You can manually enter values or use the \"Copy\" button from scanned cells."
+msgstr "配置小区锁定参数。可手动输入值，或从扫描的小区使用“复制”按钮。"
+
+# Source: view/qmodem/config_advanced.js:347
+msgid "Configure network preference (5G/4G/3G priority). Changes may require modem restart."
+msgstr "配置网络优先级（5G/4G/3G）。更改可能需要重启调制解调器。"
+
+# Source: view/qmodem/settings.js:190
+msgid "Configure physical slots for modem installation"
+msgstr "配置调制解调器安装的物理插槽"
+
+# Source: view/qmodem/config_advanced.js:205
+msgid "Configure the modem dial mode (QMI/MBIM/ECM/NCM, etc.). Changes require modem reboot to take effect."
+msgstr "配置调制解调器拨号模式（QMI/MBIM/ECM/NCM等）。更改需重启调制解调器生效。"
+
+# Source: view/qmodem/debug.js:102
+msgid "Configured Ports"
+msgstr "已配置端口"
+
+# Source: view/qmodem/network_config.js:580
+msgid "Confirm"
+msgstr "确认"
+
+# Source: generic.sh:369
+msgid "Connect Status"
+msgstr "连接状态"
+
+# Source: view/qmodem/network_config.js:332
+msgid "Connected"
+msgstr "已连接"
+
+# Source: view/qmodem/sms.js:332
+msgid "Contact"
+msgstr "联系人"
+
+# Source: view/qmodem/network_config.js:44
+msgid "Control"
+msgstr "控制"
+
+# Source: view/qmodem/sms_conversation.js:162
+msgid "Conversation with "
+msgstr "与 "
+
+# Source: view/qmodem/sms.js:324
+msgid "Conversations"
+msgstr "会话"
+
+# Source: view/qmodem/config_advanced.js:1005
+msgid "Copy"
+msgstr "复制"
+
+# Source: view/qmodem/sms.js:335
+msgid "Count"
+msgstr "数量"
+
+# Source: view/qmodem/config_advanced.js:491
+msgid "Current IMEI"
+msgstr "当前IMEI"
+
+# Source: view/qmodem/config_advanced.js:210
+msgid "Current Mode"
+msgstr "当前模式"
+
+# Source: view/qmodem/debug.js:96
+msgid "Current Port"
+msgstr "当前端口"
+
+# Source: view/qmodem/config_advanced.js:352
+msgid "Current Preference"
+msgstr "当前优先级"
+
+# Source: vendor/huawei.sh:405
+msgid "DL"
+msgstr "下行"
+
+# Source: vendor/fibocom.sh:1429, vendor/fibocom.sh:1440, vendor/fibocom.sh:1461, vendor/fibocom.sh:1478, vendor/fibocom.sh:1495, vendor/foxconn.sh:584, vendor/foxconn.sh:630, vendor/huawei.sh:383, vendor/huawei.sh:515, vendor/huawei.sh:534, vendor/huawei.sh:559, vendor/meig.sh:570, vendor/meig.sh:586, vendor/meig.sh:597, vendor/meig.sh:613, vendor/neoway.sh:742, vendor/quectel.sh:1670, vendor/quectel.sh:1690, vendor/quectel.sh:1708, vendor/quectel.sh:1723, vendor/simcom.sh:932, vendor/simcom.sh:955, vendor/simcom.sh:972, vendor/simcom.sh:987
+msgid "DL Bandwidth"
+msgstr "下行带宽"
+
+# Source: vendor/simcom.sh:935, vendor/telit.sh:766
+msgid "DL/UL MOD"
+msgstr "下行/上行调制"
+
+# Source: view/qmodem/settings.js:203
+msgid "Default Alias"
+msgstr "默认别名"
+
+# Source: view/qmodem/settings.js:207
+msgid "Default Metric"
+msgstr "默认跃点数"
+
+# Source: view/qmodem/settings.js:51
+msgid "Delay Start"
+msgstr "延迟启动"
+
+# Source: view/qmodem/sms_conversation.js:531
+msgid "Delete"
+msgstr "删除"
+
+# Source: view/qmodem/sms_conversation.js:526
+msgid "Delete this message?"
+msgstr "删除此消息？"
+
+# Source: view/qmodem/debug.js:109
+msgid "Detected Ports"
+msgstr "检测到的端口"
+
+# Source: view/qmodem/settings.js:170
+msgid "Device Path"
+msgstr "设备路径"
+
+# Source: view/qmodem/network_config.js:283
+msgid "Dial"
+msgstr "拨号"
+
+# Source: view/qmodem/network_config.js:93, view/qmodem/network_config.js:99
+msgid "Dial Configuration"
+msgstr "拨号配置"
+
+# Source: view/qmodem/network_config.js:160
+msgid "Dial Control"
+msgstr "拨号控制"
+
+# Source: view/qmodem/network_config.js:141, view/qmodem/network_config.js:439
+msgid "Dial Log"
+msgstr "拨号日志"
+
+# Source: view/qmodem/config_advanced.js:92
+msgid "Dial Mode"
+msgstr "拨号模式"
+
+# Source: view/qmodem/config_advanced.js:201
+msgid "Dial Mode Configuration"
+msgstr "拨号模式配置"
+
+# Source: view/qmodem/network_config.js:271
+msgid "Dial command sent successfully"
+msgstr "拨号命令发送成功"
+
+# Source: view/qmodem/network_config.js:167
+msgid "Dial disabled for this modem"
+msgstr "此调制解调器已禁用拨号"
+
+# Source: view/qmodem/network_config.js:88
+msgid "Disable"
+msgstr "禁用"
+
+# Source: view/qmodem/network_config.js:335
+msgid "Disconnected"
+msgstr "已断开"
+
+# Source: vendor/huawei.sh:388
+msgid "Discontinuous Reception"
+msgstr "不连续接收"
+
+# Source: view/qmodem/network_config.js:473
+msgid "Download"
+msgstr "下载"
+
+# Source: vendor/fibocom.sh:1422, vendor/fibocom.sh:1454, vendor/fibocom.sh:1488, vendor/foxconn.sh:577, vendor/foxconn.sh:633, vendor/huawei.sh:377, vendor/huawei.sh:509, vendor/huawei.sh:527, vendor/huawei.sh:552, vendor/meig.sh:565, vendor/meig.sh:580, vendor/meig.sh:607, vendor/quectel.sh:1664, vendor/quectel.sh:1684, vendor/quectel.sh:1717, vendor/simcom.sh:926, vendor/simcom.sh:948, vendor/simcom.sh:981
+msgid "Duplex Mode"
+msgstr "双工模式"
+
+# Source: vendor/fibocom.sh:1457, vendor/fibocom.sh:1491, vendor/foxconn.sh:580, vendor/foxconn.sh:636, vendor/huawei.sh:530, vendor/huawei.sh:555, vendor/neoway.sh:730, vendor/quectel.sh:1687, vendor/quectel.sh:1720, vendor/simcom.sh:951, vendor/simcom.sh:984
+msgid "E-UTRA Absolute Radio Frequency Channel Number"
+msgstr "E-UTRA绝对射频信道号"
+
+# Source: vendor/fibocom.sh:1518, vendor/huawei.sh:581, vendor/meig.sh:627, vendor/neoway.sh:760, vendor/quectel.sh:1745, vendor/simcom.sh:1005
+# Source: vendor/fibocom.sh:1518, vendor/huawei.sh:582, vendor/meig.sh:627, vendor/neoway.sh:760, vendor/quectel.sh:1745, vendor/simcom.sh:1005
+msgid "Ec/Io"
+msgstr "Ec/Io"
+
+# Source: vendor/fibocom.sh:1519, vendor/huawei.sh:582, vendor/quectel.sh:1746
+# Source: vendor/fibocom.sh:1519, vendor/huawei.sh:583, vendor/quectel.sh:1746
+msgid "Ec/No"
+msgstr "Ec/No"
+
+# Source: view/qmodem/network_config.js:67
+msgid "Enable"
+msgstr "启用"
+
+# Source: view/qmodem/network_config.js:118
+msgid "Enable Dial"
+msgstr "启用拨号"
+
+# Source: view/qmodem/network_config.js:31
+msgid "Enable Dial (Global)"
+msgstr "启用拨号（全局）"
+
+# Source: view/qmodem/settings.js:61
+msgid "Enable PCIe Scan"
+msgstr "启用PCIe扫描"
+
+# Source: view/qmodem/settings.js:65
+msgid "Enable USB Scan"
+msgstr "启用USB扫描"
+
+# Source: view/qmodem/sms.js:119, view/qmodem/sms_conversation.js:137
+msgid "Enable if SMS timestamps appear 8 hours ahead (e.g., UTC+8 local time parsed as UTC+0)"
+msgstr "若短信时间戳显示提前8小时（例如UTC+8本地时间被解析为UTC+0），请启用"
+
+# Source: view/qmodem/debug.js:151
+msgid "Enable to use Ubus AT daemon instead of direct serial port access"
+msgstr "启用以使用Ubus AT守护进程而非直接串口访问"
+
+# Source: view/qmodem/network_config.js:411, view/qmodem/settings.js:159
+msgid "Enabled"
+msgstr "已启用"
+
+# Source: view/qmodem/sms.js:443, view/qmodem/sms_conversation.js:248
+msgid "Encoding"
+msgstr "编码"
+
+# Source: vendor/huawei.sh:387
+msgid "Energy per Chip over Noise"
+msgstr "每芯片能量与噪声比"
+
+# Source: view/qmodem/config_advanced.js:534
+msgid "Enter exactly 15 digits"
+msgstr "请输入恰好15位数字"
+
+# Source: view/qmodem/sms.js:427
+msgid "Enter phone number"
+msgstr "请输入电话号码"
+
+# Source: view/qmodem/sms.js:438, view/qmodem/sms_conversation.js:239
+msgid "Enter your message here..."
+msgstr "在此输入您的消息..."
+
+# Source: view/qmodem/config_advanced.js:334, view/qmodem/config_advanced.js:473, view/qmodem/config_advanced.js:627
+msgid "Error"
+msgstr "错误"
+
+# Source: view/qmodem/debug.js:239
+msgid "Error loading AT configuration: %s"
+msgstr "加载AT配置失败：%s"
+
+# Source: view/qmodem/config_advanced.js:613
+msgid "Error loading IMEI"
+msgstr "加载IMEI失败"
+
+# Source: view/qmodem/config_advanced.js:628
+msgid "Error loading IMEI: %s"
+msgstr "加载IMEI失败：%s"
+
+# Source: view/qmodem/sms.js:265
+msgid "Error loading SMS: "
+msgstr "加载短信失败："
+
+# Source: view/qmodem/config_advanced.js:71
+msgid "Error loading features: %s"
+msgstr "加载功能失败：%s"
+
+# Source: view/qmodem/config_advanced.js:1301
+msgid "Error loading lock band configuration:"
+msgstr "加载锁定频段配置失败："
+
+# Source: view/qmodem/sms_conversation.js:409
+msgid "Error loading messages: "
+msgstr "加载消息失败："
+
+# Source: view/qmodem/config_advanced.js:284
+msgid "Error loading mode"
+msgstr "加载模式失败"
+
+# Source: view/qmodem/config_advanced.js:336
+msgid "Error loading mode: %s"
+msgstr "加载模式失败：%s"
+
+# Source: view/qmodem/overview.js:314
+msgid "Error loading modem information: %s"
+msgstr "加载调制解调器信息失败：%s"
+
+# Source: view/qmodem/config_advanced.js:475
+msgid "Error loading network preference: %s"
+msgstr "加载网络优先级失败：%s"
+
+# Source: view/qmodem/config_advanced.js:423
+msgid "Error loading preference"
+msgstr "加载优先级失败"
+
+# Source: view/qmodem/config_advanced.js:1476
+msgid "Error loading reboot capabilities: %s"
+msgstr "加载重启能力失败：%s"
+
+# Source: view/qmodem/config_advanced.js:1022
+msgid "Error loading status"
+msgstr "加载状态失败"
+
+# Source: view/qmodem/config_advanced.js:939
+msgid "Error scanning neighbor cells: %s"
+msgstr "扫描邻区小区失败：%s"
+
+# Source: view/qmodem/network_config.js:244, view/qmodem/network_config.js:258, view/qmodem/network_config.js:280, view/qmodem/network_config.js:357, view/qmodem/network_config.js:431, view/qmodem/network_config.js:519, view/qmodem/network_config.js:576
+msgid "Error: "
+msgstr "错误："
+
+# Source: view/qmodem/config_advanced.js:265, view/qmodem/config_advanced.js:404, view/qmodem/config_advanced.js:582, view/qmodem/config_advanced.js:823, view/qmodem/config_advanced.js:1281, view/qmodem/config_advanced.js:1407, view/qmodem/config_advanced.js:1444, view/qmodem/debug.js:205
+msgid "Error: %s"
+msgstr "错误：%s"
+
+# Source: view/qmodem/debug.js:187
+msgid "Error: Please enter AT command"
+msgstr "错误：请输入AT命令"
+
+# Source: view/qmodem/network_config.js:186
+msgid "Extend Prefix"
+msgstr "扩展前缀"
+
+# Source: view/qmodem/sms_conversation.js:516
+msgid "Failed"
+msgstr "失败"
+
+# Source: view/qmodem/config_advanced.js:1276
+msgid "Failed to apply lock band configuration"
+msgstr "应用锁定频段配置失败"
+
+# Source: view/qmodem/config_advanced.js:818
+msgid "Failed to apply lock cell configuration"
+msgstr "应用锁定小区配置失败"
+
+# Source: view/qmodem/network_config.js:572
+msgid "Failed to clear log"
+msgstr "清除日志失败"
+
+# Source: view/qmodem/sms_conversation.js:572, view/qmodem/sms_conversation.js:583
+msgid "Failed to delete SMS: "
+msgstr "删除短信失败："
+
+# Source: view/qmodem/network_config.js:547
+msgid "Failed to download log: "
+msgstr "下载日志失败："
+
+# Source: view/qmodem/config_advanced.js:1439
+msgid "Failed to initiate hard reboot"
+msgstr "启动硬重启失败"
+
+# Source: view/qmodem/config_advanced.js:1402
+msgid "Failed to initiate soft reboot"
+msgstr "启动软重启失败"
+
+# Source: view/qmodem/debug.js:90
+msgid "Failed to load AT configuration"
+msgstr "加载AT配置失败"
+
+# Source: view/qmodem/sms.js:276
+msgid "Failed to load SMS: "
+msgstr "加载短信失败："
+
+# Source: view/qmodem/config_advanced.js:285
+msgid "Failed to load available modes"
+msgstr "加载可用模式失败"
+
+# Source: view/qmodem/network_config.js:511
+msgid "Failed to load log"
+msgstr "加载日志失败"
+
+# Source: view/qmodem/sms_conversation.js:420
+msgid "Failed to load messages: "
+msgstr "加载消息失败："
+
+# Source: view/qmodem/config_advanced.js:424
+msgid "Failed to load network preferences"
+msgstr "加载网络优先级失败"
+
+# Source: view/qmodem/config_advanced.js:1365
+msgid "Failed to load reboot capabilities"
+msgstr "加载重启能力失败"
+
+# Source: view/qmodem/network_config.js:423
+msgid "Failed to load status"
+msgstr "加载状态失败"
+
+# Source: view/qmodem/sms.js:582
+msgid "Failed to save configuration: "
+msgstr "保存配置失败："
+
+# Source: view/qmodem/sms_conversation.js:515
+msgid "Failed to send"
+msgstr "发送失败"
+
+# Source: view/qmodem/sms.js:507, view/qmodem/sms.js:520, view/qmodem/sms_conversation.js:345, view/qmodem/sms_conversation.js:361
+msgid "Failed to send SMS: "
+msgstr "发送短信失败："
+
+# Source: view/qmodem/network_config.js:277
+msgid "Failed to send dial command"
+msgstr "发送拨号命令失败"
+
+# Source: view/qmodem/network_config.js:241
+msgid "Failed to send hang command"
+msgstr "发送挂断命令失败"
+
+# Source: view/qmodem/network_config.js:255
+msgid "Failed to send redial command"
+msgstr "发送重拨命令失败"
+
+# Source: view/qmodem/config_advanced.js:577
+msgid "Failed to set IMEI"
+msgstr "设置IMEI失败"
+
+# Source: view/qmodem/config_advanced.js:260
+msgid "Failed to set mode"
+msgstr "设置模式失败"
+
+# Source: view/qmodem/config_advanced.js:399
+msgid "Failed to set network preference"
+msgstr "设置网络优先级失败"
+
+# Source: view/qmodem/network_config.js:63
+msgid "Failed to start QModem Network: "
+msgstr "启动QModem网络失败："
+
+# Source: view/qmodem/network_config.js:84
+msgid "Failed to stop QModem Network: "
+msgstr "停止QModem网络失败："
+
+# Source: view/qmodem/settings.js:221
+msgid "For 5G modules using the Ethernet PHY connection, please specify the network interface name (e.g., eth0, eth1)"
+msgstr "对于使用以太网PHY连接的5G模块，请指定网络接口名称（例如eth0、eth1）"
+
+# Source: view/qmodem/settings.js:225
+msgid "For M.2 slots with both PCIe and USB support, specify the associated USB port (for ttyUSB access)"
+msgstr "对于同时支持PCIe和USB的M.2插槽，请指定关联的USB端口（用于ttyUSB访问）"
+
+# Source: vendor/fibocom.sh:1458, vendor/fibocom.sh:1492, vendor/foxconn.sh:581, vendor/foxconn.sh:637, vendor/huawei.sh:531, vendor/huawei.sh:556, vendor/quectel.sh:1688, vendor/quectel.sh:1721, vendor/simcom.sh:952, vendor/simcom.sh:985
+msgid "Freq band indicator"
+msgstr "频段指示器"
+
+# Source: qmodem/sms.js:222
+msgid "Friday"
+msgstr "星期五"
+
+# Source: view/qmodem/settings.js:134
+msgid "Full scan completed successfully"
+msgstr "全扫描完成"
+
+# Source: view/qmodem/settings.js:143
+msgid "Full scan error: "
+msgstr "全扫描错误："
+
+# Source: view/qmodem/settings.js:136
+msgid "Full scan failed"
+msgstr "全扫描失败"
+
+# Source: view/qmodem/settings.js:233
+msgid "GPIO Down Value"
+msgstr "GPIO低电平值"
+
+# Source: view/qmodem/settings.js:237
+msgid "GPIO Up Value"
+msgstr "GPIO高电平值"
+
+# Source: view/qmodem/settings.js:230
+msgid "GPIO pin for power control"
+msgstr "电源控制GPIO引脚"
+
+# Source: view/qmodem/network_config.js:29
+msgid "Global Configuration"
+msgstr "全局配置"
+
+# Source: view/qmodem/network_config.js:247
+msgid "Hang"
+msgstr "挂断"
+
+# Source: view/qmodem/network_config.js:235
+msgid "Hang command sent successfully"
+msgstr "挂断命令发送成功"
+
+# Source: view/qmodem/config_advanced.js:1436, view/qmodem/config_advanced.js:1441, view/qmodem/config_advanced.js:1446, view/qmodem/config_advanced.js:1449, view/qmodem/config_advanced.js:1466
+msgid "Hard Reboot"
+msgstr "硬重启"
+
+# Source: view/qmodem/config_advanced.js:1433
+msgid "Hard reboot initiated successfully. The modem is restarting..."
+msgstr "硬重启已启动。调制解调器正在重启..."
+
+# Source: view/qmodem/config_advanced.js:482
+msgid "IMEI Configuration"
+msgstr "IMEI配置"
+
+# Source: view/qmodem/config_advanced.js:554
+msgid "IMEI must be exactly 15 digits"
+msgstr "IMEI必须为恰好15位数字"
+
+# Source: view/qmodem/config_advanced.js:559
+msgid "IMEI must contain only numbers"
+msgstr "IMEI只能包含数字"
+
+# Source: view/qmodem/config_advanced.js:573
+msgid "IMEI set successfully. Please reboot the modem for changes to take effect."
+msgstr "IMEI设置成功。请重启调制解调器使更改生效。"
+
+# Source: view/qmodem/network_config.js:180
+# Source: view/qmodem/network_config.js:339
+msgid "IPv4"
+msgstr "IPv4"
+
+# Source: view/qmodem/network_config.js:182
+# Source: view/qmodem/network_config.js:341
+msgid "IPv4/IPv6"
+msgstr "IPv4/IPv6"
+
+# Source: view/qmodem/network_config.js:181
+# Source: view/qmodem/network_config.js:340
+msgid "IPv6"
+msgstr "IPv6"
+
+# Source: view/qmodem/settings.js:58
+msgid "If enabled, the modem auto scan will be blocked."
+msgstr "启用后，将阻止调制解调器自动扫描。"
+
+# Source: view/qmodem/settings.js:48
+msgid "If enabled, using alternative AT Tools"
+msgstr "启用后，使用备用AT工具"
+
+# Source: view/qmodem/sms_conversation.js:506
+msgid "Incomplete (part "
+msgstr "不完整（第"
+
+# Source: vendor/huawei.sh:403
+msgid "Information"
+msgstr "信息"
+
+# Source: vendor/fibocom.sh:507, vendor/fibocom.sh:521, vendor/foxconn.sh:276, vendor/foxconn.sh:290, vendor/meig.sh:288, vendor/meig.sh:302, vendor/neoway.sh:218, vendor/neoway.sh:232, vendor/quectel.sh:426, vendor/quectel.sh:440, vendor/simcom.sh:307, vendor/simcom.sh:321, vendor/telit.sh:223, vendor/telit.sh:237
+msgid "Integrate Circuit Card Identity"
+msgstr "集成电路卡标识"
+
+# Source: vendor/fibocom.sh:505, vendor/fibocom.sh:511, vendor/fibocom.sh:519, vendor/foxconn.sh:274, vendor/foxconn.sh:280, vendor/foxconn.sh:288, vendor/huawei.sh:258, vendor/meig.sh:286, vendor/meig.sh:292, vendor/meig.sh:300, vendor/neoway.sh:216, vendor/neoway.sh:222, vendor/neoway.sh:230, vendor/quectel.sh:424, vendor/quectel.sh:430, vendor/quectel.sh:438, vendor/simcom.sh:305, vendor/simcom.sh:311, vendor/simcom.sh:319, vendor/telit.sh:221, vendor/telit.sh:227, vendor/telit.sh:235
+msgid "International Mobile Equipment Identity"
+msgstr "国际移动设备识别码"
+
+# Source: vendor/fibocom.sh:506, vendor/fibocom.sh:520, vendor/foxconn.sh:275, vendor/foxconn.sh:289, vendor/huawei.sh:259, vendor/meig.sh:287, vendor/meig.sh:301, vendor/neoway.sh:217, vendor/neoway.sh:231, vendor/quectel.sh:425, vendor/quectel.sh:439, vendor/simcom.sh:306, vendor/simcom.sh:320, vendor/telit.sh:222, vendor/telit.sh:236
+msgid "International Mobile Subscriber Identity"
+msgstr "国际移动用户识别码"
+
+# Source: vendor/fibocom.sh:502, vendor/foxconn.sh:271, vendor/meig.sh:283, vendor/neoway.sh:213, vendor/quectel.sh:421, vendor/simcom.sh:302, vendor/telit.sh:219
+msgid "Internet Service Provider"
+msgstr "互联网服务提供商"
+
+# Source: view/qmodem/sms_conversation.js:64
+msgid "Invalid contact"
+msgstr "无效联系人"
+
+# Source: view/qmodem/config_advanced.js:1089
+msgid "Invalid lockband data structure"
+msgstr "无效的锁定频段数据结构"
+
+# Source: view/qmodem/settings.js:213
+msgid "LED indicator for SIM card status"
+msgstr "SIM卡状态LED指示灯"
+
+# Source: view/qmodem/settings.js:217
+msgid "LED indicator for network connection status"
+msgstr "网络连接状态LED指示灯"
+
+# Source: vendor/huawei.sh:392
+msgid "LTE Band"
+msgstr "LTE频段"
+
+# Source: view/qmodem/config_advanced.js:885
+msgid "LTE Cells"
+msgstr "LTE小区"
+
+# Source: vendor/huawei.sh:393
+msgid "LTE DL"
+msgstr "LTE下行"
+
+# Source: vendor/huawei.sh:391
+msgid "LTE Information"
+msgstr "LTE信息"
+
+# Source: vendor/huawei.sh:394
+msgid "LTE UL"
+msgstr "LTE上行"
+
+# Source: view/qmodem/sms.js:333
+msgid "Last Message"
+msgstr "最后一条消息"
+
+# Source: view/qmodem/overview.js:309, view/qmodem/overview.js:360
+msgid "Last update"
+msgstr "最后更新"
+
+# Source: view/qmodem/sms.js:458, view/qmodem/sms_conversation.js:268
+msgid "Length"
+msgstr "长度"
+
+# Source: view/qmodem/config_advanced.js:224
+msgid "Loading available modes..."
+msgstr "正在加载可用模式..."
+
+# Source: view/qmodem/config_advanced.js:366
+msgid "Loading available networks..."
+msgstr "正在加载可用网络..."
+
+# Source: view/qmodem/config_advanced.js:1063
+msgid "Loading band configuration..."
+msgstr "正在加载频段配置..."
+
+# Source: view/qmodem/sms_conversation.js:175
+msgid "Loading messages..."
+msgstr "正在加载消息..."
+
+# Source: view/qmodem/overview.js:241
+msgid "Loading modem information..."
+msgstr "正在加载调制解调器信息..."
+
+# Source: view/qmodem/config_advanced.js:1350
+msgid "Loading reboot capabilities..."
+msgstr "正在加载重启能力..."
+
+# Source: view/qmodem/config_advanced.js:63, view/qmodem/config_advanced.js:212, view/qmodem/config_advanced.js:354, view/qmodem/config_advanced.js:496, view/qmodem/debug.js:83, view/qmodem/network_config.js:40, view/qmodem/network_config.js:175, view/qmodem/network_config.js:443, view/qmodem/sms.js:184, view/qmodem/sms.js:200, view/qmodem/sms.js:208, view/qmodem/sms.js:216, view/qmodem/sms.js:375, view/qmodem/sms.js:403, view/qmodem/sms_conversation.js:190, view/qmodem/sms_conversation.js:198, view/qmodem/sms_conversation.js:206, view/qmodem/sms_conversation.js:579
+msgid "Loading..."
+msgstr "加载中..."
+
+# Source: vendor/fibocom.sh:1511, vendor/huawei.sh:574, vendor/meig.sh:622, vendor/neoway.sh:751, vendor/quectel.sh:1738, vendor/simcom.sh:1000
+msgid "Location Area Code"
+msgstr "位置区码"
+
+# Source: view/qmodem/config_advanced.js:108
+msgid "Lock Band"
+msgstr "锁定频段"
+
+# Source: view/qmodem/config_advanced.js:1054
+msgid "Lock Band Configuration"
+msgstr "锁定频段配置"
+
+# Source: view/qmodem/config_advanced.js:692
+msgid "Lock Cell Settings"
+msgstr "锁定小区设置"
+
+# Source: view/qmodem/config_advanced.js:679
+msgid "Lock Cell Status"
+msgstr "锁定小区状态"
+
+# Source: view/qmodem/config_advanced.js:1272
+msgid "Lock band configuration applied for %s"
+msgstr "已为%s应用锁定频段配置"
+
+# Source: view/qmodem/config_advanced.js:814
+msgid "Lock cell configuration applied successfully"
+msgstr "锁定小区配置已成功应用"
+
+# Source: view/qmodem/config_advanced.js:1058
+msgid "Lock modem to specific frequency bands. Select bands for each network type (UMTS/LTE/NR)."
+msgstr "将调制解调器锁定至特定频段。为每种网络类型（UMTS/LTE/NR）选择频段。"
+
+# Source: view/qmodem/config_advanced.js:1164
+msgid "Locked Bands"
+msgstr "锁定频段"
+
+# Source: view/qmodem/network_config.js:565
+msgid "Log cleared successfully"
+msgstr "日志已成功清除"
+
+# Source: view/qmodem/network_config.js:542
+msgid "Log downloaded successfully"
+msgstr "日志已成功下载"
+
+# Source: vendor/fibocom.sh:430, vendor/foxconn.sh:305, vendor/gosuncn.sh:132, vendor/huawei.sh:276, vendor/meig.sh:236, vendor/neoway.sh:159, vendor/quectel.sh:361, vendor/sierra.sh:213, vendor/simcom.sh:243, vendor/telit.sh:162
+msgid "Manufacturer"
+msgstr "制造商"
+
+# Source: view/qmodem/sms.js:432, view/qmodem/sms_conversation.js:233
+msgid "Message"
+msgstr "消息"
+
+# Source: view/qmodem/sms_conversation.js:576
+msgid "Message deleted"
+msgstr "消息已删除"
+
+# Source: view/qmodem/sms.js:512, view/qmodem/sms_conversation.js:350
+msgid "Message sent successfully"
+msgstr "消息发送成功"
+
+# Source: vendor/fibocom.sh:1420, vendor/fibocom.sh:1452, vendor/fibocom.sh:1473, vendor/fibocom.sh:1486, vendor/fibocom.sh:1509, vendor/foxconn.sh:575, vendor/foxconn.sh:631, vendor/huawei.sh:375, vendor/huawei.sh:507, vendor/huawei.sh:525, vendor/huawei.sh:550, vendor/huawei.sh:572, vendor/meig.sh:563, vendor/meig.sh:578, vendor/meig.sh:593, vendor/meig.sh:605, vendor/meig.sh:620, vendor/neoway.sh:715, vendor/neoway.sh:726, vendor/neoway.sh:749, vendor/neoway.sh:772, vendor/quectel.sh:1662, vendor/quectel.sh:1682, vendor/quectel.sh:1703, vendor/quectel.sh:1715, vendor/quectel.sh:1736, vendor/simcom.sh:924, vendor/simcom.sh:946, vendor/simcom.sh:967, vendor/simcom.sh:979, vendor/simcom.sh:998
+msgid "Mobile Country Code"
+msgstr "移动国家码"
+
+# Source: vendor/fibocom.sh:1421, vendor/fibocom.sh:1453, vendor/fibocom.sh:1474, vendor/fibocom.sh:1487, vendor/fibocom.sh:1510, vendor/foxconn.sh:576, vendor/foxconn.sh:632, vendor/huawei.sh:376, vendor/huawei.sh:508, vendor/huawei.sh:526, vendor/huawei.sh:551, vendor/huawei.sh:573, vendor/meig.sh:564, vendor/meig.sh:579, vendor/meig.sh:594, vendor/meig.sh:606, vendor/meig.sh:621, vendor/neoway.sh:716, vendor/neoway.sh:727, vendor/neoway.sh:750, vendor/neoway.sh:773, vendor/quectel.sh:1663, vendor/quectel.sh:1683, vendor/quectel.sh:1704, vendor/quectel.sh:1716, vendor/quectel.sh:1737, vendor/simcom.sh:925, vendor/simcom.sh:947, vendor/simcom.sh:968, vendor/simcom.sh:980, vendor/simcom.sh:999
+msgid "Mobile Network Code"
+msgstr "移动网络码"
+
+# Source: view/qmodem/config_advanced.js:256
+msgid "Mode set successfully. Please reboot the modem."
+msgstr "模式设置成功。请重启调制解调器。"
+
+# Source: vendor/gosuncn.sh:133
+msgid "Model"
+msgstr "型号"
+
+# Source: view/qmodem/settings.js:163
+msgid "Model Name"
+msgstr "型号名称"
+
+# Source: view/qmodem/network_config.js:129
+msgid "Modem Alias"
+msgstr "调制解调器别名"
+
+# Source: view/qmodem/settings.js:156
+msgid "Modem Device"
+msgstr "调制解调器设备"
+
+# Source: view/qmodem/settings.js:150
+msgid "Modem Devices"
+msgstr "调制解调器设备"
+
+# Source: view/qmodem/network_config.js:123
+msgid "Modem Model"
+msgstr "调制解调器型号"
+
+# Source: view/qmodem/config_advanced.js:27, view/qmodem/debug.js:27, view/qmodem/overview.js:334, view/qmodem/sms.js:65, view/qmodem/sms_conversation.js:83
+msgid "Modem Name"
+msgstr "调制解调器名称"
+
+# Source: generic.sh:385
+msgid "Modem Offline"
+msgstr "调制解调器离线"
+
+# Source: view/qmodem/settings.js:45
+msgid "Modem Probe Settings"
+msgstr "调制解调器探测设置"
+
+# Source: view/qmodem/settings.js:189
+msgid "Modem Slot Configuration"
+msgstr "调制解调器插槽配置"
+
+# Source: qmodem/sms.js:221
+msgid "Monday"
+msgstr "星期一"
+
+# Source: view/qmodem/sms_conversation.js:497
+msgid "Multi-part"
+msgstr "多部分"
+
+# Source: view/qmodem/config_advanced.js:910
+msgid "NR (5G) Cells"
+msgstr "NR（5G）小区"
+
+# Source: vendor/huawei.sh:404, view/qmodem/config_advanced.js:760
+msgid "NR Band"
+msgstr "NR频段"
+
+# Source: vendor/fibocom.sh:429, vendor/huawei.sh:275, vendor/meig.sh:235, vendor/neoway.sh:158, vendor/quectel.sh:360, vendor/sierra.sh:212, vendor/simcom.sh:242, vendor/telit.sh:161
+msgid "Name"
+msgstr "名称"
+
+# Source: view/qmodem/config_advanced.js:104
+msgid "Neighbor Cell"
+msgstr "邻区小区"
+
+# Source: view/qmodem/config_advanced.js:635
+msgid "Neighbor Cell / Lock Cell"
+msgstr "邻区小区 / 锁定小区"
+
+# Source: view/qmodem/config_advanced.js:649
+msgid "Neighbor Cell List"
+msgstr "邻区小区列表"
+
+# Source: view/qmodem/settings.js:216
+msgid "Network LED"
+msgstr "网络LED"
+
+# Source: vendor/fibocom.sh:1417, vendor/foxconn.sh:555, vendor/foxconn.sh:628, vendor/huawei.sh:373, vendor/huawei.sh:504, vendor/meig.sh:560, vendor/neoway.sh:711, vendor/quectel.sh:1659, vendor/simcom.sh:921, vendor/telit.sh:760
+msgid "Network Mode"
+msgstr "网络模式"
+
+# Source: view/qmodem/config_advanced.js:96
+msgid "Network Preference"
+msgstr "网络优先级"
+
+# Source: view/qmodem/config_advanced.js:343
+msgid "Network Preference Configuration"
+msgstr "网络优先级配置"
+
+# Source: vendor/fibocom.sh:576, vendor/foxconn.sh:323, vendor/meig.sh:381, vendor/neoway.sh:771, vendor/quectel.sh:505, vendor/simcom.sh:341, vendor/telit.sh:259
+msgid "Network Type"
+msgstr "网络类型"
+
+# Source: view/qmodem/config_advanced.js:395
+msgid "Network preference set successfully"
+msgstr "网络优先级设置成功"
+
+# Source: view/qmodem/sms.js:397, view/qmodem/sms.js:466
+msgid "New Conversation"
+msgstr "新建会话"
+
+# Source: view/qmodem/config_advanced.js:503
+msgid "New IMEI"
+msgstr "新IMEI"
+
+# Source: view/qmodem/network_config.js:411, view/qmodem/network_config.js:412
+msgid "No"
+msgstr "否"
+
+# Source: view/qmodem/config_advanced.js:1103
+msgid "No bands available for this modem"
+msgstr "此调制解调器无可用频段"
+
+# Source: view/qmodem/config_advanced.js:128
+msgid "No features available for this modem."
+msgstr "此调制解调器无可用功能。"
+
+# Source: view/qmodem/network_config.js:502
+msgid "No log available"
+msgstr "无日志可用"
+
+# Source: view/qmodem/network_config.js:544
+msgid "No log content to download"
+msgstr "无日志内容可下载"
+
+# Source: view/qmodem/sms.js:319
+msgid "No messages found"
+msgstr "未找到消息"
+
+# Source: view/qmodem/sms_conversation.js:463
+msgid "No messages in this conversation"
+msgstr "此会话中无消息"
+
+# Source: view/qmodem/config_advanced.js:15, view/qmodem/debug.js:15
+msgid "No modem configured."
+msgstr "未配置调制解调器。"
+
+# Source: view/qmodem/overview.js:324, view/qmodem/sms.js:56, view/qmodem/sms_conversation.js:73
+msgid "No modems configured or all modems are disabled."
+msgstr "未配置调制解调器或所有调制解调器均已禁用。"
+
+# Source: view/qmodem/config_advanced.js:306
+msgid "No modes available"
+msgstr "无可用模式"
+
+# Source: view/qmodem/config_advanced.js:874
+msgid "No neighbor cells found. Make sure the modem has network signal."
+msgstr "未找到邻区小区。请确保调制解调器有网络信号。"
+
+# Source: view/qmodem/config_advanced.js:445
+msgid "No network types available"
+msgstr "无可用网络类型"
+
+# Source: view/qmodem/config_advanced.js:1374
+msgid "No reboot methods available for this modem"
+msgstr "此调制解调器无可用重启方法"
+
+# Source: view/qmodem/debug.js:202
+msgid "No response received"
+msgstr "未收到响应"
+
+# Source: view/qmodem/config_advanced.js:1079
+msgid "No result returned from getLockBand"
+msgstr "getLockBand未返回结果"
+
+# Source: view/qmodem/config_advanced.js:856
+msgid "No result returned from neighbor cell scan"
+msgstr "邻区小区扫描未返回结果"
+
+# Source: view/qmodem/config_advanced.js:686, view/qmodem/config_advanced.js:1019
+msgid "No status information available"
+msgstr "无状态信息可用"
+
+# Source: vendor/nk.sh:10
+msgid "No.1"
+msgstr "第1项"
+
+# Source: vendor/nk.sh:11
+msgid "No.2"
+msgstr "第2项"
+
+# Source: vendor/nk.sh:12
+msgid "No.3"
+msgstr "第3项"
+
+# Source: vendor/nk.sh:13
+msgid "No.4"
+msgstr "第4项"
+
+# Source: vendor/nk.sh:14
+msgid "No.5"
+msgstr "第5项"
+
+# Source: vendor/nk.sh:15
+msgid "No.6"
+msgstr "第6项"
+
+# Source: view/qmodem/config_advanced.js:441
+msgid "None"
+msgstr "无"
+
+# Source: view/qmodem/config_advanced.js:1311
+msgid "None (All bands unlocked)"
+msgstr "无（所有频段解锁）"
+
+# Source: view/qmodem/config_advanced.js:618
+msgid "Not available"
+msgstr "不可用"
+
+# Source: view/qmodem/settings.js:62
+msgid "Once enabled, the PCIe ports will be scanned on every boot."
+msgstr "启用后，每次启动时都将扫描PCIe端口。"
+
+# Source: view/qmodem/settings.js:66
+msgid "Once enabled, the USB ports will be scanned on every boot."
+msgstr "启用后，每次启动时都将扫描USB端口。"
+
+# Source: view/qmodem/settings.js:181
+msgid "Override AT Port"
+msgstr "覆盖AT端口"
+
+# Source: view/qmodem/config_advanced.js:723
+msgid "PCI"
+msgstr "PCI"
+
+# Source: view/qmodem/config_advanced.js:800
+msgid "PCI and ARFCN are required"
+msgstr "PCI和ARFCN为必填项"
+
+# Source: view/qmodem/settings.js:196
+# Source: view/qmodem/settings.js:248
+msgid "PCIe"
+msgstr "PCIe"
+
+# Source: view/qmodem/settings.js:88
+msgid "PCIe scan completed successfully"
+msgstr "PCIe扫描完成"
+
+# Source: view/qmodem/settings.js:97
+msgid "PCIe scan error: "
+msgstr "PCIe扫描错误："
+
+# Source: view/qmodem/settings.js:90
+msgid "PCIe scan failed"
+msgstr "PCIe扫描失败"
+
+# Source: view/qmodem/network_config.js:179
+msgid "PDP Type"
+msgstr "PDP类型"
+
+# Source: view/qmodem/sms.js:85, view/qmodem/sms_conversation.js:103
+msgid "Parse received SMS time as UTC+0"
+msgstr "将接收短信时间解析为UTC+0"
+
+# Source: view/qmodem/sms.js:106, view/qmodem/sms_conversation.js:124
+msgid "Parse sent SMS time as UTC+0"
+msgstr "将发送短信时间解析为UTC+0"
+
+# Source: view/qmodem/sms.js:145
+msgid "Path to SMS database file"
+msgstr "短信数据库文件路径"
+
+# Source: view/qmodem/sms.js:421
+msgid "Phone Number"
+msgstr "电话号码"
+
+# Source: vendor/fibocom.sh:1427, vendor/fibocom.sh:1438, vendor/fibocom.sh:1456, vendor/fibocom.sh:1475, vendor/fibocom.sh:1490, vendor/foxconn.sh:579, vendor/foxconn.sh:635, vendor/huawei.sh:379, vendor/huawei.sh:511, vendor/huawei.sh:529, vendor/huawei.sh:554, vendor/meig.sh:567, vendor/meig.sh:582, vendor/meig.sh:595, vendor/meig.sh:609, vendor/neoway.sh:718, vendor/neoway.sh:729, vendor/quectel.sh:1666, vendor/quectel.sh:1686, vendor/quectel.sh:1705, vendor/quectel.sh:1719, vendor/simcom.sh:928, vendor/simcom.sh:950, vendor/simcom.sh:969, vendor/simcom.sh:983, vendor/telit.sh:764, view/qmodem/config_advanced.js:729
+msgid "Physical Cell ID"
+msgstr "物理小区ID"
+
+# Source: vendor/fibocom.sh:1520, vendor/huawei.sh:583, vendor/neoway.sh:763, vendor/quectel.sh:1747
+msgid "Physical Channel"
+msgstr "物理信道"
+
+# Source: view/qmodem/settings.js:200
+msgid "Physical slot identifier (e.g., 1-1.4, 0000:01:00.0)"
+msgstr "物理插槽标识符（例如1-1.4、0000:01:00.0）"
+
+# Source: view/qmodem/config_advanced.js:1304
+msgid "Please check browser console for more details"
+msgstr "请查看浏览器控制台以获取更多详情"
+
+# Source: view/qmodem/sms.js:494, view/qmodem/sms_conversation.js:332
+msgid "Please enter a message"
+msgstr "请输入消息"
+
+# Source: view/qmodem/sms.js:489
+msgid "Please enter a phone number"
+msgstr "请输入电话号码"
+
+# Source: view/qmodem/config_advanced.js:247
+msgid "Please select a mode"
+msgstr "请选择模式"
+
+# Source: view/qmodem/config_advanced.js:386
+msgid "Please select at least one network type"
+msgstr "请选择至少一种网络类型"
+
+# Source: view/qmodem/settings.js:229
+msgid "Power GPIO"
+msgstr "电源GPIO"
+
+# Source: view/qmodem/config_advanced.js:1467
+msgid "Power cycles the modem completely. Takes longer but ensures a full restart."
+msgstr "完全断电重启调制解调器。耗时较长，但确保完全重启。"
+
+# Source: vendor/fibocom.sh:1514, vendor/huawei.sh:577, vendor/meig.sh:624, vendor/neoway.sh:754, vendor/quectel.sh:1741, vendor/simcom.sh:1003
+msgid "Primary Scrambling Code"
+msgstr "主扰码"
+
+# Source: view/qmodem/network_config.js:26
+msgid "QModem Configuration"
+msgstr "QModem配置"
+
+# Source: view/qmodem/network_config.js:36
+msgid "QModem Network"
+msgstr "QModem网络"
+
+# Source: view/qmodem/network_config.js:59
+msgid "QModem Network started successfully"
+msgstr "QModem网络已成功启动"
+
+# Source: view/qmodem/network_config.js:80
+msgid "QModem Network stopped successfully"
+msgstr "QModem网络已成功停止"
+
+# Source: view/qmodem/settings.js:40
+# Source: view/qmodem/settings.js
+msgid "QModem Settings"
+msgstr "QModem 设置"
+
+# Source: view/qmodem/debug.js:220
+msgid "Quick Commands"
+msgstr "快速命令"
+
+# Source: view/qmodem/config_advanced.js:703, view/qmodem/config_advanced.js:891, view/qmodem/config_advanced.js:916
+msgid "RAT"
+msgstr "无线接入技术"
+
+# Source: vendor/neoway.sh:733, vendor/neoway.sh:757
+msgid "RX Power (dBm)"
+msgstr "接收功率（dBm）"
+
+# Source: vendor/gosuncn.sh:142
+msgid "Radio Access Technology"
+msgstr "无线接入技术"
+
+# Source: vendor/fibocom.sh:1468, vendor/fibocom.sh:1502, vendor/foxconn.sh:590, vendor/huawei.sh:543, vendor/huawei.sh:565, vendor/quectel.sh:1698, vendor/quectel.sh:1730, vendor/simcom.sh:962
+msgid "Radio Signal Strength Noise Ratio"
+msgstr "无线信号强度噪声比"
+
+# Source: view/qmodem/network_config.js:261
+msgid "ReDial"
+msgstr "重拨"
+
+# Source: view/qmodem/config_advanced.js:112, view/qmodem/config_advanced.js:1336
+msgid "Reboot Modem"
+msgstr "重启调制解调器"
+
+# Source: view/qmodem/config_advanced.js:1345
+msgid "Reboot Options"
+msgstr "重启选项"
+
+# Source: view/qmodem/config_advanced.js:1340
+msgid "Reboot the modem device. Soft reboot restarts the modem firmware, hard reboot power cycles the modem."
+msgstr "重启调制解调器设备。软重启重启固件，硬重启断电重启。"
+
+# Source: view/qmodem/config_advanced.js:1392, view/qmodem/config_advanced.js:1429
+msgid "Rebooting..."
+msgstr "重启中..."
+
+# Source: generic.sh:103
+msgid "Receive Rate"
+msgstr "接收速率"
+
+# Source: vendor/fibocom.sh:1517, vendor/huawei.sh:386, vendor/huawei.sh:580, vendor/meig.sh:626, vendor/neoway.sh:759, vendor/quectel.sh:1744, vendor/simcom.sh:1004
+msgid "Received Signal Code Power"
+msgstr "接收信号码功率"
+
+# Source: vendor/fibocom.sh:1446, vendor/fibocom.sh:1467, vendor/fibocom.sh:1501, vendor/foxconn.sh:589, vendor/huawei.sh:389, vendor/huawei.sh:399, vendor/huawei.sh:519, vendor/huawei.sh:542, vendor/huawei.sh:564, vendor/quectel.sh:1675, vendor/quectel.sh:1697, vendor/quectel.sh:1729, vendor/simcom.sh:940, vendor/simcom.sh:961, vendor/simcom.sh:1007
+msgid "Received Signal Level"
+msgstr "接收信号电平"
+
+# Source: vendor/fibocom.sh:1465, vendor/fibocom.sh:1499, vendor/foxconn.sh:587, vendor/huawei.sh:562, vendor/neoway.sh:738, vendor/quectel.sh:1695, vendor/quectel.sh:1727, vendor/simcom.sh:938, vendor/simcom.sh:959, vendor/simcom.sh:991, vendor/telit.sh:770
+msgid "Received Signal Strength Indicator"
+msgstr "接收信号强度指示"
+
+# Source: view/qmodem/network_config.js:253
+msgid "Redial command sent successfully"
+msgstr "重拨命令发送成功"
+
+# Source: vendor/fibocom.sh:1443, vendor/fibocom.sh:1463, vendor/fibocom.sh:1479, vendor/fibocom.sh:1497, vendor/foxconn.sh:640, vendor/huawei.sh:396, vendor/huawei.sh:407, vendor/huawei.sh:411, vendor/huawei.sh:516, vendor/huawei.sh:539, vendor/huawei.sh:545, vendor/meig.sh:571, vendor/meig.sh:587, vendor/meig.sh:598, vendor/meig.sh:614, vendor/neoway.sh:721, vendor/neoway.sh:735, vendor/quectel.sh:1672, vendor/quectel.sh:1693, vendor/quectel.sh:1709, vendor/simcom.sh:936, vendor/simcom.sh:957, vendor/simcom.sh:973, vendor/simcom.sh:989, vendor/telit.sh:768
+msgid "Reference Signal Received Power"
+msgstr "参考信号接收功率"
+
+# Source: vendor/fibocom.sh:1444, vendor/fibocom.sh:1464, vendor/fibocom.sh:1480, vendor/fibocom.sh:1498, vendor/foxconn.sh:586, vendor/foxconn.sh:639, vendor/huawei.sh:397, vendor/huawei.sh:408, vendor/huawei.sh:412, vendor/huawei.sh:517, vendor/huawei.sh:540, vendor/huawei.sh:546, vendor/huawei.sh:561, vendor/meig.sh:572, vendor/meig.sh:588, vendor/meig.sh:599, vendor/meig.sh:615, vendor/neoway.sh:722, vendor/neoway.sh:736, vendor/quectel.sh:1673, vendor/quectel.sh:1694, vendor/quectel.sh:1710, vendor/quectel.sh:1726, vendor/simcom.sh:937, vendor/simcom.sh:958, vendor/simcom.sh:974, vendor/simcom.sh:990, vendor/telit.sh:769
+msgid "Reference Signal Received Quality"
+msgstr "参考信号接收质量"
+
+# Source: view/qmodem/sms.js:407
+msgid "Refresh"
+msgstr "刷新"
+
+# Source: view/qmodem/debug.js:171
+msgid "Response"
+msgstr "响应"
+
+# Source: view/qmodem/config_advanced.js:1460
+msgid "Restarts the modem firmware without power cycling. Faster but may not resolve all issues."
+msgstr "重启调制解调器固件而不断电。更快，但可能无法解决所有问题。"
+
+# Source: vendor/fibocom.sh:431, vendor/foxconn.sh:306, vendor/gosuncn.sh:134, vendor/huawei.sh:277, vendor/meig.sh:237, vendor/neoway.sh:160, vendor/quectel.sh:362, vendor/sierra.sh:214, vendor/simcom.sh:244, vendor/telit.sh:163
+msgid "Revision"
+msgstr "版本"
+
+# Source: vendor/fibocom.sh:1515, vendor/huawei.sh:578, vendor/neoway.sh:755, vendor/quectel.sh:1742
+msgid "Routing Area Code"
+msgstr "路由区码"
+
+# Source: view/qmodem/network_config.js:412
+msgid "Running"
+msgstr "运行中"
+
+# Source: vendor/fibocom.sh:1525, vendor/huawei.sh:588, vendor/quectel.sh:1752
+msgid "RxLev"
+msgstr "接收电平"
+
+# Source: vendor/fibocom.sh:1447, vendor/fibocom.sh:1482, vendor/huawei.sh:520, vendor/meig.sh:574, vendor/meig.sh:601, vendor/quectel.sh:1676, vendor/quectel.sh:1712, vendor/simcom.sh:941, vendor/simcom.sh:976, view/qmodem/config_advanced.js:771
+msgid "SCS"
+msgstr "子载波间隔"
+
+# Source: generic.sh:384
+msgid "SIM Error,Error code:"
+msgstr "SIM错误，错误代码："
+
+# Source: view/qmodem/settings.js:212
+msgid "SIM LED"
+msgstr "SIM卡LED"
+
+# Source: vendor/fibocom.sh:504, vendor/foxconn.sh:273, vendor/huawei.sh:257, vendor/meig.sh:285, vendor/neoway.sh:215, vendor/quectel.sh:423, vendor/simcom.sh:304
+msgid "SIM Number"
+msgstr "SIM卡号"
+
+# Source: vendor/fibocom.sh:503, vendor/fibocom.sh:518, vendor/foxconn.sh:272, vendor/foxconn.sh:287, vendor/gosuncn.sh:124, vendor/huawei.sh:256, vendor/meig.sh:284, vendor/meig.sh:299, vendor/neoway.sh:214, vendor/neoway.sh:229, vendor/quectel.sh:422, vendor/quectel.sh:437, vendor/sierra.sh:196, vendor/simcom.sh:303, vendor/simcom.sh:318, vendor/telit.sh:220, vendor/telit.sh:234
+msgid "SIM Slot"
+msgstr "SIM卡插槽"
+
+# Source: vendor/fibocom.sh:501, vendor/fibocom.sh:510, vendor/fibocom.sh:514, vendor/fibocom.sh:517, vendor/foxconn.sh:270, vendor/foxconn.sh:279, vendor/foxconn.sh:283, vendor/foxconn.sh:286, vendor/gosuncn.sh:123, vendor/huawei.sh:255, vendor/meig.sh:282, vendor/meig.sh:291, vendor/meig.sh:295, vendor/meig.sh:298, vendor/neoway.sh:212, vendor/neoway.sh:221, vendor/neoway.sh:225, vendor/neoway.sh:228, vendor/quectel.sh:420, vendor/quectel.sh:429, vendor/quectel.sh:433, vendor/quectel.sh:436, vendor/sierra.sh:195, vendor/simcom.sh:301, vendor/simcom.sh:310, vendor/simcom.sh:314, vendor/simcom.sh:317, vendor/telit.sh:218, vendor/telit.sh:226, vendor/telit.sh:230, vendor/telit.sh:233
+msgid "SIM Status"
+msgstr "SIM卡状态"
+
+# Source: view/qmodem/settings.js:178
+msgid "SMS AT Port"
+msgstr "短信AT端口"
+
+# Source: view/qmodem/sms_conversation.js:62
+# Source: view/qmodem/sms_conversation.js
+msgid "SMS Conversation"
+msgstr "短信对话"
+
+# Source: view/qmodem/sms.js:132
+msgid "SMS Database Path"
+msgstr "短信数据库路径"
+
+# Source: view/qmodem/sms.js:171
+# Source: view/qmodem/sms.js
+msgid "SMS Messages"
+msgstr "短信消息"
+
+# Source: qmodem/sms.js:222
+msgid "Saturday"
+msgstr "星期六"
+
+# Source: view/qmodem/settings.js:124
+msgid "Scan ALL Manually"
+msgstr "手动全扫描"
+
+# Source: view/qmodem/config_advanced.js:663, view/qmodem/config_advanced.js:858, view/qmodem/config_advanced.js:876, view/qmodem/config_advanced.js:934, view/qmodem/config_advanced.js:941
+msgid "Scan Neighbor Cells"
+msgstr "扫描邻区小区"
+
+# Source: view/qmodem/settings.js:78
+msgid "Scan PCIe Manually"
+msgstr "手动扫描PCIe"
+
+# Source: view/qmodem/settings.js:101
+msgid "Scan USB Manually"
+msgstr "手动扫描USB"
+
+# Source: view/qmodem/config_advanced.js:639
+msgid "Scan neighboring cell towers and lock modem to specific cell. You can scan for nearby cells and then lock to a specific cell by copying its parameters."
+msgstr "扫描邻区基站并将调制解调器锁定至特定小区。可扫描附近小区，然后通过复制其参数锁定至特定小区。"
+
+# Source: view/qmodem/settings.js:81, view/qmodem/settings.js:104, view/qmodem/settings.js:127
+msgid "Scanning"
+msgstr "扫描中"
+
+# Source: view/qmodem/settings.js:82
+msgid "Scanning PCIe ports, please wait..."
+msgstr "正在扫描PCIe端口，请稍候..."
+
+# Source: view/qmodem/settings.js:105
+msgid "Scanning USB ports, please wait..."
+msgstr "正在扫描USB端口，请稍候..."
+
+# Source: view/qmodem/settings.js:128
+msgid "Scanning all ports, please wait..."
+msgstr "正在扫描所有端口，请稍候..."
+
+# Source: view/qmodem/config_advanced.js:659
+msgid "Scanning neighbor cells..."
+msgstr "正在扫描邻区小区..."
+
+# Source: view/qmodem/config_advanced.js:658
+msgid "Scanning..."
+msgstr "扫描中..."
+
+# Source: view/qmodem/debug.js:122
+msgid "Select AT Port"
+msgstr "选择AT端口"
+
+# Source: view/qmodem/config_advanced.js:1254
+msgid "Select All / None"
+msgstr "全选/全不选"
+
+# Source: view/qmodem/config_advanced.js:1176
+msgid "Select Bands"
+msgstr "选择频段"
+
+# Source: view/qmodem/config_advanced.js:219
+msgid "Select Mode"
+msgstr "选择模式"
+
+# Source: view/qmodem/config_advanced.js:361
+msgid "Select Networks"
+msgstr "选择网络"
+
+# Source: view/qmodem/sms.js:523, view/qmodem/sms_conversation.js:306, view/qmodem/sms_conversation.js:342, view/qmodem/sms_conversation.js:360
+msgid "Send"
+msgstr "发送"
+
+# Source: view/qmodem/debug.js:208
+msgid "Send AT Command"
+msgstr "发送AT命令"
+
+# Source: view/qmodem/sms_conversation.js:228
+msgid "Send Message"
+msgstr "发送消息"
+
+# Source: view/qmodem/debug.js:191
+msgid "Sending command..."
+msgstr "发送命令中..."
+
+# Source: view/qmodem/sms.js:501
+msgid "Sending message..."
+msgstr "发送消息中..."
+
+# Source: view/qmodem/sms.js:501, view/qmodem/sms_conversation.js:338
+msgid "Sending..."
+msgstr "发送中..."
+
+# Source: vendor/fibocom.sh:1448, vendor/fibocom.sh:1471, vendor/fibocom.sh:1505, vendor/foxconn.sh:593, vendor/huawei.sh:521, vendor/huawei.sh:537, vendor/huawei.sh:568, vendor/neoway.sh:744, vendor/quectel.sh:1677, vendor/quectel.sh:1701, vendor/quectel.sh:1733, vendor/simcom.sh:942, vendor/simcom.sh:965, vendor/simcom.sh:995
+msgid "Serving Cell Receive Level"
+msgstr "服务小区接收电平"
+
+# Source: view/qmodem/config_advanced.js:100
+msgid "Set IMEI"
+msgstr "设置IMEI"
+
+# Source: view/qmodem/config_advanced.js:569
+msgid "Setting..."
+msgstr "设置中..."
+
+# Source: vendor/meig.sh:573, vendor/meig.sh:589, vendor/meig.sh:600, vendor/meig.sh:616, vendor/neoway.sh:723, vendor/neoway.sh:737
+msgid "Signal to Interference plus Noise Ratio"
+msgstr "信号与干扰加噪声比"
+
+# Source: vendor/fibocom.sh:1445, vendor/fibocom.sh:1466, vendor/fibocom.sh:1481, vendor/fibocom.sh:1500, vendor/foxconn.sh:588, vendor/foxconn.sh:641, vendor/huawei.sh:398, vendor/huawei.sh:409, vendor/huawei.sh:413, vendor/huawei.sh:518, vendor/huawei.sh:541, vendor/huawei.sh:547, vendor/huawei.sh:563, vendor/quectel.sh:1674, vendor/quectel.sh:1696, vendor/quectel.sh:1711, vendor/quectel.sh:1728, vendor/simcom.sh:939, vendor/simcom.sh:960, vendor/simcom.sh:975, vendor/simcom.sh:992, vendor/telit.sh:771
+msgid "Signal to Interference plus Noise Ratio Bandwidth"
+msgstr "信号与干扰加噪声比带宽"
+
+# Source: vendor/fibocom.sh:1522, vendor/huawei.sh:585, vendor/neoway.sh:765, vendor/quectel.sh:1749
+msgid "Slot"
+msgstr "插槽"
+
+# Source: view/qmodem/settings.js:199
+msgid "Slot ID"
+msgstr "插槽ID"
+
+# Source: view/qmodem/settings.js:194
+msgid "Slot Type"
+msgstr "插槽类型"
+
+# Source: view/qmodem/config_advanced.js:1399, view/qmodem/config_advanced.js:1404, view/qmodem/config_advanced.js:1409, view/qmodem/config_advanced.js:1412, view/qmodem/config_advanced.js:1459, view/qmodem/network_config.js:190
+msgid "Soft Reboot"
+msgstr "软重启"
+
+# Source: view/qmodem/config_advanced.js:1396
+msgid "Soft reboot initiated successfully. The modem is restarting..."
+msgstr "软重启已启动。调制解调器正在重启..."
+
+# Source: vendor/fibocom.sh:1523, vendor/huawei.sh:586, vendor/quectel.sh:1750
+msgid "Speech Code"
+msgstr "语音编码"
+
+# Source: vendor/fibocom.sh:1521, vendor/huawei.sh:584, vendor/neoway.sh:764, vendor/quectel.sh:1748
+msgid "Spreading Factor"
+msgstr "扩频因子"
+
+# Source: view/qmodem/network_config.js:103, view/qmodem/network_config.js:134
+msgid "Status"
+msgstr "状态"
+
+# Source: qmodem/sms.js:221
+msgid "Sunday"
+msgstr "星期日"
+
+# Source: vendor/fibocom.sh:1470, vendor/fibocom.sh:1504, vendor/foxconn.sh:592, vendor/foxconn.sh:642, vendor/huawei.sh:536, vendor/huawei.sh:567, vendor/meig.sh:590, vendor/meig.sh:617, vendor/quectel.sh:1700, vendor/quectel.sh:1732, vendor/simcom.sh:934, vendor/simcom.sh:964, vendor/simcom.sh:994, vendor/telit.sh:767
+msgid "TX Power"
+msgstr "发射功率"
+
+# Source: vendor/neoway.sh:734, vendor/neoway.sh:758
+msgid "TX Power (dBm)"
+msgstr "发射功率（dBm）"
+
+# Source: vendor/fibocom.sh:408, vendor/foxconn.sh:470, vendor/meig.sh:220, vendor/quectel.sh:338, vendor/sierra.sh:340, vendor/simcom.sh:220, vendor/telit.sh:144
+msgid "Temperature"
+msgstr "温度"
+
+# Source: view/qmodem/settings.js:208
+msgid "The first module loaded into this slot will automatically be assigned this default metric."
+msgstr "首次加载到此插槽的模块将自动分配此默认跃点数。"
+
+# Source: qmodem/sms.js:222
+msgid "Thursday"
+msgstr "星期四"
+
+# Source: view/qmodem/sms.js:334
+msgid "Time"
+msgstr "时间"
+
+# Source: vendor/neoway.sh:732, vendor/telit.sh:765
+msgid "Tracking Area Code"
+msgstr "跟踪区码"
+
+# Source: vendor/meig.sh:568, vendor/meig.sh:583, vendor/meig.sh:610
+msgid "Tracking area code"
+msgstr "跟踪区码"
+
+# Source: vendor/fibocom.sh:1424, vendor/fibocom.sh:1462, vendor/fibocom.sh:1496, vendor/foxconn.sh:585, vendor/foxconn.sh:638, vendor/huawei.sh:380, vendor/huawei.sh:512, vendor/huawei.sh:538, vendor/huawei.sh:560, vendor/quectel.sh:1667, vendor/quectel.sh:1692, vendor/quectel.sh:1725, vendor/simcom.sh:929, vendor/simcom.sh:956, vendor/simcom.sh:988
+msgid "Tracking area code of cell served by neighbor Enb"
+msgstr "邻近eNodeB服务小区的跟踪区码"
+
+# Source: generic.sh:100
+msgid "Transmit Rate"
+msgstr "发送速率"
+
+# Source: view/qmodem/settings.js:73
+msgid "Try Preset PCIe Port"
+msgstr "尝试预设PCIe端口"
+
+# Source: view/qmodem/settings.js:69
+msgid "Try Preset USB Port"
+msgstr "尝试预设USB端口"
+
+# Source: qmodem/sms.js:221
+msgid "Tuesday"
+msgstr "星期二"
+
+# Source: vendor/simcom.sh:1006
+msgid "Tx Power"
+msgstr "发射功率"
+
+# Source: vendor/huawei.sh:406
+msgid "UL"
+msgstr "上行"
+
+# Source: vendor/fibocom.sh:1431, vendor/fibocom.sh:1434, vendor/fibocom.sh:1441, vendor/fibocom.sh:1460, vendor/fibocom.sh:1494, vendor/foxconn.sh:583, vendor/huawei.sh:533, vendor/huawei.sh:558, vendor/meig.sh:585, vendor/meig.sh:612, vendor/neoway.sh:743, vendor/quectel.sh:1671, vendor/quectel.sh:1691, vendor/quectel.sh:1724, vendor/simcom.sh:954, vendor/simcom.sh:986
+msgid "UL Bandwidth"
+msgstr "上行带宽"
+
+# Source: vendor/fibocom.sh:1432
+msgid "UL CA"
+msgstr "上行载波聚合"
+
+# Source: view/qmodem/settings.js:195
+# Source: view/qmodem/settings.js:247
+msgid "USB"
+msgstr "USB"
+
+# Source: view/qmodem/settings.js:111
+msgid "USB scan completed successfully"
+msgstr "USB扫描完成"
+
+# Source: view/qmodem/settings.js:120
+msgid "USB scan error: "
+msgstr "USB扫描错误："
+
+# Source: view/qmodem/settings.js:113
+msgid "USB scan failed"
+msgstr "USB扫描失败"
+
+# Source: vendor/fibocom.sh:1513, vendor/huawei.sh:576, vendor/neoway.sh:753, vendor/quectel.sh:1740
+msgid "UTRA Absolute Radio Frequency Channel Number"
+msgstr "UTRA绝对射频信道号"
+
+# Source: view/qmodem/settings.js:52
+msgid "Units: seconds"
+msgstr "单位：秒"
+
+# Source: view/qmodem/config_advanced.js:302, view/qmodem/network_config.js:137, view/qmodem/network_config.js:325
+msgid "Unknown"
+msgstr "未知"
+
+# Source: vendor/simcom.sh:1002
+msgid "Uplink Absolute Radio Frequency Channel Number"
+msgstr "上行绝对射频信道号"
+
+# Source: view/qmodem/network_config.js:196
+msgid "Use Slot 1 Config"
+msgstr "使用插槽1配置"
+
+# Source: view/qmodem/debug.js:140, view/qmodem/settings.js:184
+msgid "Use Ubus AT Daemon"
+msgstr "使用Ubus AT守护进程"
+
+# Source: view/qmodem/network_config.js:156
+msgid "View Log"
+msgstr "查看日志"
+
+# Source: view/qmodem/sms.js:176
+msgid "View and manage SMS messages. Messages are grouped by sender/recipient."
+msgstr "查看和管理短信。消息按发件人/收件人分组。"
+
+# Source: view/qmodem/config_advanced.js:486
+msgid "View and modify the modem IMEI number. IMEI must be 15 digits. Changes require modem reboot to take effect."
+msgstr "查看和修改调制解调器IMEI。IMEI必须为15位数字。更改需重启调制解调器生效。"
+
+# Source: vendor/fibocom.sh:372, vendor/foxconn.sh:463, vendor/meig.sh:187, vendor/quectel.sh:313, vendor/sierra.sh:333, vendor/simcom.sh:203, vendor/telit.sh:131
+msgid "Voltage"
+msgstr "电压"
+
+# Source: vendor/huawei.sh:385
+msgid "WCDMA Information"
+msgstr "WCDMA信息"
+
+# Source: view/qmodem/config_advanced.js:596
+msgid "Warning: "
+msgstr "警告："
+
+# Source: qmodem/sms.js:221
+msgid "Wednesday"
+msgstr "星期三"
+
+# Source: view/qmodem/network_config.js:411, view/qmodem/network_config.js:412
+msgid "Yes"
+msgstr "是"
+
+# Source: qmodem/sms.js:218
+msgid "Yesterday"
+msgstr "昨天"
+
+# Source: view/qmodem
+msgid "Modem"
+msgstr "调制解调器"
+
+# Source: view/qmodem
+msgid "QModem"
+msgstr "QModem"
+
+# Source: view/qmodem/overview.js
+msgid "Overview"
+msgstr "概览"
+
+# Source: view/qmodem/network_config.js
+msgid "NetworkConfiguration"
+msgstr "网络配置"
+
+# Source: view/qmodem/config_advanced.js
+msgid "Advanced Modem Config"
+msgstr "高级调制解调器配置"
+
+# Source: view/qmodem/network_config.js:364, view/qmodem/network_config.js:441
+msgid "A1 (AT)"
+msgstr "A1 (AT)"
+
+# Source: view/qmodem/network_config.js:390
+msgid "Authentication Type"
+msgstr "认证类型"
+
+# Source: view/qmodem/network_config.js:347, view/qmodem/network_config.js:350, view/qmodem/network_config.js:424, view/qmodem/network_config.js:427
+msgid "Auto Choose"
+msgstr "自动选择"
+
+# Source: view/qmodem/network_config.js:381, view/qmodem/network_config.js:458
+msgid "Beeline (RU)"
+msgstr "Beeline (RU)"
+
+# Source: view/qmodem/network_config.js:310
+msgid "Bridge Mode"
+msgstr "桥接模式"
+
+# Source: view/qmodem/network_config.js:323
+msgid "Caution: Enabling this option will make it the IPV6 RA Master, and only one interface can be configured as such."
+msgstr "注意：启用此选项将使其成为IPv6 RA主设备，且仅能配置一个接口为此类型。"
+
+# Source: view/qmodem/network_config.js:311
+msgid "Caution: Only avalible for quectel sdx 5G Modem."
+msgstr "注意：仅适用于高通SDX 5G调制解调器。"
+
+# Source: view/qmodem/network_config.js:373, view/qmodem/network_config.js:450
+msgid "Celcom (MY)"
+msgstr "Celcom (MY)"
+
+# Source: view/qmodem/network_config.js:354, view/qmodem/network_config.js:431
+msgid "China Broadcast (CN)"
+msgstr "中国广播电视 (CN)"
+
+# Source: view/qmodem/network_config.js:351, view/qmodem/network_config.js:428
+msgid "China Mobile (CN)"
+msgstr "中国移动 (CN)"
+
+# Source: view/qmodem/network_config.js:353, view/qmodem/network_config.js:430
+msgid "China Telecom (CN)"
+msgstr "中国电信 (CN)"
+
+# Source: view/qmodem/network_config.js:352, view/qmodem/network_config.js:429
+msgid "China Unicom (CN)"
+msgstr "中国联通 (CN)"
+
+# Source: view/qmodem/network_config.js:293
+msgid "DNS"
+msgstr "DNS"
+
+# Source: view/qmodem/network_config.js:374, view/qmodem/network_config.js:451
+msgid "DiGi (MY)"
+msgstr "DiGi (MY)"
+
+# Source: view/qmodem/network_config.js:371, view/qmodem/network_config.js:448
+msgid "Dito Telecomunity (PH)"
+msgstr "Dito Telecom (PH)"
+
+# Source: view/qmodem/network_config.js:316
+msgid "Do Not modify resolv.conf"
+msgstr "不修改 resolv.conf"
+
+# Source: view/qmodem/network_config.js:365, view/qmodem/network_config.js:442
+msgid "Drei (AT)"
+msgstr "Drei (AT)"
+
+# Source: view/qmodem/network_config.js:362, view/qmodem/network_config.js:439
+msgid "E-Plus (DE)"
+msgstr "E-Plus (DE)"
+
+# Source: view/qmodem/network_config.js:166, view/qmodem/network_config.js:769
+msgid "Failed to disable QModem Network: "
+msgstr "禁用QModem网络失败："
+
+# Source: view/qmodem/network_config.js:147, view/qmodem/network_config.js:750
+msgid "Failed to enable QModem Network: "
+msgstr "启用QModem网络失败："
+
+# Source: view/qmodem/network_config.js:304
+msgid "Force Set APN"
+msgstr "强制设置APN"
+
+# Source: view/qmodem/network_config.js:369, view/qmodem/network_config.js:446
+msgid "Globe Postpaid (PH)"
+msgstr "Globe 后付费 (PH)"
+
+# Source: view/qmodem/network_config.js:368, view/qmodem/network_config.js:445
+msgid "Globe Prepaid (PH)"
+msgstr "Globe 预付费 (PH)"
+
+# Source: view/qmodem/network_config.js:305
+msgid "If enabled, the APN will be set even if it matches the current configuration.(only works with tom modified version of quectel-cm)"
+msgstr "启用后，即使APN与当前配置一致也会被设置。（仅适用于Tom修改版的quectel-cm）"
+
+# Source: view/qmodem/network_config.js:423
+msgid "If slot 2 config is not set,will use slot 1 config."
+msgstr "若未设置插槽2配置，则使用插槽1配置。"
+
+# Source: view/qmodem/network_config.js:294
+msgid "If the DNS server is not set, it will use the DNS server leased by the operator."
+msgstr "若未设置DNS服务器，将使用运营商分配的DNS服务器。"
+
+# Source: view/qmodem/network_config.js:417
+msgid "If the PIN code is not set, leave it blank."
+msgstr "若未设置PIN码，请留空。"
+
+# Source: view/qmodem/network_config.js:382, view/qmodem/network_config.js:459
+msgid "MTS (RU)"
+msgstr "MTS (RU)"
+
+# Source: view/qmodem/network_config.js:366, view/qmodem/network_config.js:443
+msgid "Magenta (AT)"
+msgstr "Magenta (AT)"
+
+# Source: view/qmodem/network_config.js:376, view/qmodem/network_config.js:453
+msgid "Maxis UT (MY)"
+msgstr "Maxis UT (MY)"
+
+# Source: view/qmodem/network_config.js:375, view/qmodem/network_config.js:452
+msgid "Maxis | Hotlink (MY)"
+msgstr "Maxis | Hotlink (MY)"
+
+# Source: view/qmodem/network_config.js:383, view/qmodem/network_config.js:460
+msgid "Megafon (RU)"
+msgstr "Megafon (RU)"
+
+# Source: view/qmodem/network_config.js:467
+msgid "Metric"
+msgstr "跃点数"
+
+# Source: view/status/include/11_modem.js:19
+msgid "Modem Info"
+msgstr "调制解调器信息"
+
+# Source: view/qmodem/settings.js:243
+msgid "Modem Slot"
+msgstr "调制解调器插槽"
+
+# Source: view/qmodem/network_config.js:392
+msgid "MsChapV2"
+msgstr "MS-CHAPv2"
+
+# Source: view/qmodem/network_config.js:391
+msgid "NONE"
+msgstr "无"
+
+# Source: view/status/include/11_modem.js:51, view/status/include/11_modem.js:88, view/status/include/11_modem.js:120
+msgid "No modem information available"
+msgstr "无调制解调器信息"
+
+# Source: view/qmodem/network_config.js:329
+msgid "Once checking, the prefix will be apply to lan zone"
+msgstr "勾选后，前缀将应用于LAN区域"
+
+# Source: view/qmodem/network_config.js:407
+msgid "PAP/CHAP Password"
+msgstr "PAP/CHAP 密码"
+
+# Source: view/qmodem/network_config.js:399
+msgid "PAP/CHAP Username"
+msgstr "PAP/CHAP 用户名"
+
+# Source: view/qmodem/network_config.js:334
+msgid "PDP Context Index"
+msgstr "PDP上下文索引"
+
+# Source: view/qmodem/network_config.js:416
+msgid "PIN Code"
+msgstr "PIN码"
+
+# Source: view/qmodem/settings.js:253
+msgid "Physical slot identifier (e.g., 1-1.4 for USB, 0000:01:00.0 for PCIe)"
+msgstr "物理插槽标识符（例如：USB为1-1.4，PCIe为0000:01:00.0）"
+
+# Source: view/qmodem/network_config.js:162, view/qmodem/network_config.js:765
+msgid "QModem Network disabled successfully"
+msgstr "QModem网络已成功禁用"
+
+# Source: view/qmodem/network_config.js:143, view/qmodem/network_config.js:746
+msgid "QModem Network enabled successfully"
+msgstr "QModem网络已成功启用"
+
+# Source: view/qmodem/network_config.js:322
+msgid "RA Master"
+msgstr "RA主设备"
+
+# Source: view/qmodem/network_config.js:387, view/qmodem/network_config.js:464
+msgid "Rostelecom (RU)"
+msgstr "Rostelecom (RU)"
+
+# Source: view/qmodem/network_config.js:388, view/qmodem/network_config.js:465
+msgid "Sber Mobile (RU)"
+msgstr "Sber Mobile (RU)"
+
+# Source: view/qmodem/network_config.js:355, view/qmodem/network_config.js:432
+msgid "Skytone (CN)"
+msgstr "Skytone (CN)"
+
+# Source: view/qmodem/network_config.js:370, view/qmodem/network_config.js:447
+msgid "Smart Communications (PH)"
+msgstr "Smart Communications (PH)"
+
+# Source: view/qmodem/network_config.js:108, view/qmodem/network_config.js:711
+msgid "Start"
+msgstr "启动"
+
+# Source: view/qmodem/network_config.js:127, view/qmodem/network_config.js:730
+msgid "Stop"
+msgstr "停止"
+
+# Source: view/qmodem/network_config.js:357, view/qmodem/network_config.js:434
+msgid "Swisscom (CH)"
+msgstr "Swisscom (CH)"
+
+# Source: view/qmodem/network_config.js:386, view/qmodem/network_config.js:463
+msgid "T-mobile (RU)"
+msgstr "T-mobile (RU)"
+
+# Source: view/qmodem/network_config.js:384, view/qmodem/network_config.js:461
+msgid "Tele2 (RU)"
+msgstr "Tele2 (RU)"
+
+# Source: view/qmodem/network_config.js:361, view/qmodem/network_config.js:438
+msgid "Telekom (DE)"
+msgstr "Telekom (DE)"
+
+# Source: view/qmodem/network_config.js:468
+msgid "The metric value is used to determine the priority of the route. The smaller the value, the higher the priority. Cannot duplicate."
+msgstr "跃点数用于确定路由优先级，数值越小优先级越高，不可重复。"
+
+# Source: view/qmodem/network_config.js:378, view/qmodem/network_config.js:455
+msgid "UMobile (MY)"
+msgstr "UMobile (MY)"
+
+# Source: view/qmodem/network_config.js:379, view/qmodem/network_config.js:456
+msgid "Unifi (MY)"
+msgstr "Unifi (MY)"
+
+# Source: view/qmodem/network_config.js:298
+msgid "Use Ubus"
+msgstr "使用Ubus"
+
+# Source: view/qmodem/network_config.js:360, view/qmodem/network_config.js:437
+msgid "Vodafone (DE)"
+msgstr "Vodafone (DE)"
+
+# Source: view/qmodem/network_config.js:377, view/qmodem/network_config.js:454
+msgid "YES (MY)"
+msgstr "YES (MY)"
+
+# Source: view/qmodem/network_config.js:385, view/qmodem/network_config.js:462
+msgid "Yota (RU)"
+msgstr "Yota (RU)"
+
+# Source: view/qmodem/settings.js:207, view/qmodem/settings.js:209, view/qmodem/settings.js:210, view/qmodem/settings.js:212, view/qmodem/settings.js:219, view/qmodem/settings.js:225, view/qmodem/settings.js:271, view/qmodem/settings.js:277, view/qmodem/settings.js:328, view/qmodem/settings.js:332
+msgid "e.g."
+msgstr "例如"
+
+# Source: view/qmodem/settings.js:201
+msgid "enable modem soft reboot"
+msgstr "启用调制解调器软重启"
+
+# Source: view/qmodem/network_config.js:317
+msgid "quectel-CM will append the DNS server to the resolv.conf file by default.if you do not want to modify the resolv.conf file, please check this option."
+msgstr "默认情况下，quectel-CM会将DNS服务器追加到resolv.conf文件中。如不希望修改该文件，请勾选此选项。"
+
+# Source: view/qmodem/sms_forward.js
+msgid "SMS Forwarder Configuration"
+msgstr "短信转发配置"
+
+# Source: view/qmodem/settings.js:326
+msgid "GPIO Value(Modem Power Down)"
+msgstr "GPIO值（调制解调器断电）"
+
+# Source: view/qmodem/settings.js:331
+msgid "GPIO Value(Modem Power Up)"
+msgstr "GPIO值（调制解调器通电）"
+
+# Source: view/qmodem/sms_forward.js:66
+msgid "PushDeer"
+msgstr "PushDeer"
+
+# Source: view/qmodem/sms_forward.js:64
+msgid "Webhook"
+msgstr "Webhook"
+
+# Source: view/qmodem/sms_forward.js:129, view/qmodem/sms_forward.js:267
+msgid "Webhook URL"
+msgstr "Webhook URL"
+
+# Source: view/qmodem/network_config.js:474, view/qmodem/network_config.js:483, view/qmodem/network_config.js:492, view/qmodem/network_config.js:499
+msgid "(beta)"
+msgstr "(测试版)"
+
+# Source: view/qmodem/network_config.js:475, view/qmodem/network_config.js:484, view/qmodem/network_config.js:493, view/qmodem/network_config.js:500
+msgid "(still in beta)"
+msgstr "(仍为测试版)"
+
+# Source: view/qmodem/network_config.js:493
+msgid "AT commands to execute after modem initialization."
+msgstr "模组初始化后执行的AT指令。"
+
+# Source: view/qmodem/network_config.js:500
+msgid "AT commands to execute before dialing."
+msgstr "拨号前执行的AT指令。"
+
+# Source: view/qmodem/network_config.js:484
+msgid "Delay of executing AT command after modem initialization, in seconds."
+msgstr "模组初始化后执行AT指令的延迟时间（秒）。"
+
+# Source: view/qmodem/network_config.js:475
+msgid "Delay of executing AT command before dialing, in seconds."
+msgstr "拨号前执行AT指令的延迟时间（秒）。"
+
+# Source: view/qmodem/network_config.js:494, view/qmodem/network_config.js:501
+msgid "Enter AT commands"
+msgstr "输入AT指令"
+
+# Source: view/qmodem/network_config.js:476, view/qmodem/network_config.js:485
+msgid "Enter delay in seconds"
+msgstr "输入延迟时间（秒）"
+
+# Source: view/qmodem/network_config.js:492
+msgid "Post Init AT Commands"
+msgstr "初始化后AT指令"
+
+# Source: view/qmodem/network_config.js:483
+msgid "Post Init Delay"
+msgstr "初始化后延迟"
+
+# Source: view/qmodem/network_config.js:499
+msgid "Pre Dial AT Commands"
+msgstr "拨号前AT指令"
+
+# Source: view/qmodem/network_config.js:474
+msgid "Pre Dial Delay"
+msgstr "拨号前延迟"
+
+# Source: view/qmodem/network_config.js:141, view/qmodem/network_config.js:794
+msgid "Failed to restart QModem Network: "
+msgstr "重启QModem网络失败："
+
+# Source: view/qmodem/network_config.js:137, view/qmodem/network_config.js:790
+msgid "QModem Network restarted successfully"
+msgstr "QModem网络已成功重启"
+
+# Source: view/qmodem/network_config.js:145, view/qmodem/network_config.js:798
+msgid "Restart"
+msgstr "重启"
+
+# Source: generic.sh:12, generic.sh:39, generic.sh:67
+msgid "$class_overwrite"
+msgstr "覆盖类"
+
+# Source: view/qmodem/sms_forward.js:62
+msgid "API Type"
+msgstr "API 类型"
+
+# Source: view/qmodem/sms_forward.js:353
+msgid "API configuration saved. Remember to save & apply changes."
+msgstr "API 配置已保存。请记得保存并应用更改。"
+
+# Source: vendor/fibocom.sh:428, vendor/foxconn.sh:304, vendor/gosuncn.sh:128, vendor/huawei.sh:275, vendor/meig.sh:234, vendor/neoway.sh:157, vendor/quectel.sh:359, vendor/sierra.sh:211, vendor/simcom.sh:241, vendor/telit.sh:160
+msgid "Base Information"
+msgstr "基本信息"
+
+# Source: view/qmodem/sms_forward.js:103
+msgid "Bot Token"
+msgstr "机器人令牌"
+
+# Source: view/qmodem/sms_forward.js:197
+msgid "Channel (optional)"
+msgstr "频道（可选）"
+
+# Source: view/qmodem/sms_forward.js:115
+msgid "Chat ID"
+msgstr "聊天ID"
+
+# Source: view/qmodem/sms_forward.js:72
+msgid "Configure"
+msgstr "配置"
+
+# Source: view/qmodem/sms_forward.js:73
+msgid "Configure API"
+msgstr "配置 API"
+
+# Source: view/qmodem/sms_forward.js:297
+msgid "Configure API Settings"
+msgstr "配置 API 设置"
+
+# Source: view/qmodem/sms_forward.js:39
+msgid "Configure SMS forwarding instances for different modems and services"
+msgstr "为不同调制解调器和服务配置短信转发实例"
+
+# Source: view/qmodem/sms_forward.js:21
+msgid "Configure SMS forwarding to various notification services"
+msgstr "配置短信转发至多种通知服务"
+
+# Source: view/qmodem/sms_forward.js:98
+msgid "Configure the API settings for "
+msgstr "配置以下 API 设置："
+
+# Source: view/qmodem/sms_forward.js:260
+msgid "Custom PushDeer API endpoint, leave empty to use default"
+msgstr "自定义 PushDeer API 端点，留空使用默认值"
+
+# Source: view/qmodem/sms_forward.js:68
+msgid "Custom Script"
+msgstr "自定义脚本"
+
+# Source: view/qmodem/sms_forward.js:162
+msgid "Custom format using placeholders: {SENDER}, {CONTENT}, {TIME}"
+msgstr "使用占位符的自定义格式：{SENDER}、{CONTENT}、{TIME}"
+
+# Source: view/qmodem/sms_forward.js:34
+msgid "Debug"
+msgstr "调试"
+
+# Source: view/qmodem/sms_forward.js:26
+msgid "Enable SMS Forwarder"
+msgstr "启用短信转发器"
+
+# Source: view/qmodem/sms_forward.js:67
+msgid "Feishu Bot"
+msgstr "飞书机器人"
+
+# Source: view/qmodem/sms_forward.js:276
+msgid "Feishu webhook URL from your bot configuration"
+msgstr "来自飞书机器人配置的 Webhook URL"
+
+# Source: view/qmodem/sms_forward.js:38
+msgid "Forward Instances"
+msgstr "转发实例"
+
+# Source: view/qmodem/sms_forward.js:24
+msgid "Global Settings"
+msgstr "全局设置"
+
+# Source: view/qmodem/sms_forward.js:176
+msgid "HTTP headers, one per line"
+msgstr "HTTP 头，每行一个"
+
+# Source: view/qmodem/sms_forward.js:167
+msgid "Headers (optional)"
+msgstr "头信息（可选）"
+
+# Source: view/qmodem/sms_forward.js:211
+msgid "Hide IP"
+msgstr "隐藏 IP"
+
+# Source: vendor/nk.sh:9
+msgid "I Love U"
+msgstr "我爱你"
+
+# Source: view/qmodem/sms_forward.js:33
+msgid "Info"
+msgstr "信息"
+
+# Source: view/qmodem/sms_forward.js:30
+msgid "Log Level"
+msgstr "日志级别"
+
+# Source: view/qmodem/sms_forward.js:153
+msgid "Message Format (optional)"
+msgstr "消息格式（可选）"
+
+# Source: view/qmodem/sms_forward.js:206
+msgid "Message channel, use | to separate multiple channels"
+msgstr "消息通道，使用 | 分隔多个通道"
+
+# Source: view/qmodem/sms_forward.js:49
+msgid "Modem Config"
+msgstr "调制解调器配置"
+
+# Source: vendor/fibocom.sh:566, vendor/foxconn.sh:314, vendor/meig.sh:380, vendor/neoway.sh:287, vendor/quectel.sh:504, vendor/sierra.sh:222, vendor/simcom.sh:340, vendor/telit.sh:258
+msgid "Network Information"
+msgstr "网络信息"
+
+# Source: view/qmodem/sms_forward.js:221
+msgid "OpenID (optional)"
+msgstr "OpenID（可选）"
+
+# Source: view/qmodem/sms_forward.js:230
+msgid "OpenID for message forwarding, use comma to separate multiple IDs"
+msgstr "用于消息转发的 OpenID，使用逗号分隔多个 ID"
+
+# Source: view/qmodem/sms_forward.js:292
+msgid "Path to custom forwarding script. Script receives SMS_SENDER, SMS_TIME, SMS_CONTENT environment variables"
+msgstr "自定义转发脚本路径。脚本将接收 SMS_SENDER、SMS_TIME、SMS_CONTENT 环境变量"
+
+# Source: view/qmodem/sms_forward.js:57
+msgid "Poll Interval (seconds)"
+msgstr "轮询间隔（秒）"
+
+# Source: view/qmodem/sms_forward.js:237
+msgid "Push Key"
+msgstr "推送密钥"
+
+# Source: view/qmodem/sms_forward.js:246
+msgid "PushDeer Push Key from http://pushdeer.com"
+msgstr "来自 http://pushdeer.com 的 PushDeer 推送密钥"
+
+# Source: view/qmodem/sms_forward.js:143
+msgid "Request Method"
+msgstr "请求方法"
+
+# Source: vendor/fibocom.sh:498, vendor/foxconn.sh:227, vendor/gosuncn.sh:116, vendor/huawei.sh:226, vendor/meig.sh:279, vendor/neoway.sh:209, vendor/quectel.sh:417, vendor/sierra.sh:183, vendor/simcom.sh:298, vendor/telit.sh:215
+msgid "SIM Information"
+msgstr "SIM 信息"
+
+# Source: view/qmodem/sms_forward.js:309
+msgid "Save"
+msgstr "保存"
+
+# Source: view/qmodem/sms_forward.js:283
+msgid "Script Path"
+msgstr "脚本路径"
+
+# Source: view/qmodem/sms_forward.js:251
+msgid "Server (optional)"
+msgstr "服务器（可选）"
+
+# Source: view/qmodem/sms_forward.js:65
+msgid "ServerChan"
+msgstr "ServerChan"
+
+# Source: view/qmodem/sms_forward.js:192
+msgid "ServerChan API token from https://sctapi.ftqq.com"
+msgstr "来自 https://sctapi.ftqq.com 的 ServerChan API 令牌"
+
+# Source: view/qmodem/sms_forward.js:138
+msgid "Supports placeholders: {SENDER}, {CONTENT}, {TIME}"
+msgstr "支持占位符：{SENDER}、{CONTENT}、{TIME}"
+
+# Source: view/qmodem/sms_forward.js:63
+msgid "Telegram Bot"
+msgstr "Telegram 机器人"
+
+# Source: view/qmodem/sms_forward.js:183
+msgid "Token"
+msgstr "令牌"
+
+# Source: view/qmodem/sms_forward.js:32
+msgid "Warning"
+msgstr "警告"
+
+# Source: view/qmodem/settings.js:249
+msgid "Add"
+msgstr "添加"
+
+# Source: view/qmodem/settings.js:219
+msgid "Add Modem Device"
+msgstr "添加模组设备"
+
+# Source: view/qmodem/settings.js:222
+msgid "Available Devices"
+msgstr "可用设备"
+
+# Source: view/qmodem/settings.js:328
+msgid "Disabled Features"
+msgstr "已禁用功能"
+
+# Source: view/qmodem/settings.js:346
+msgid "NSA Band"
+msgstr "NSA频段"
+
+# Source: view/qmodem/settings.js:211
+msgid "No devices available. Please scan for devices first."
+msgstr "无可用设备，请先扫描设备。"
+
+# Source: view/qmodem/settings.js:313
+msgid "Platform"
+msgstr "平台"
+
+# Source: view/qmodem/settings.js:351
+msgid "SA Band"
+msgstr "SA频段"
+
+# Source: view/qmodem/settings.js:220
+msgid "Select a device to configure:"
+msgstr "请选择要配置的设备："
+
+# Source: view/qmodem/settings.js:329
+msgid "Select features to disable for this modem."
+msgstr "请选择要为此模组禁用的功能。"
+
+# Source: view/qmodem/settings.js:320
+msgid "Supported Modes"
+msgstr "支持的模式"
+
+# Source: view/qmodem/settings.js:321
+msgid "Supported driver modes (e.g., RNDIS/NCM/QMI/MBIM/ETH/PPP)"
+msgstr "支持的驱动模式（例如：RNDIS/NCM/QMI/MBIM/ETH/PPP）"
+
+# Source: view/qmodem/settings.js:259
+msgid "Type"
+msgstr "类型"
+
+# Source: view/qmodem/settings.js:306
+msgid "Vendor"
+msgstr "厂商"
+
+# Source: view/qmodem/settings.js:336
+msgid "WCDMA Band"
+msgstr "WCDMA频段"
+
+# Source: view/qmodem/config_advanced.js:805
+msgid "Cell unlocked successfully"
+msgstr "小区解锁成功"
+
+# Source: view/qmodem/config_advanced.js:810
+msgid "Failed to unlock cell"
+msgstr "解锁小区失败"
+
+# Source: view/qmodem/config_advanced.js:813, view/qmodem/config_advanced.js:817, view/qmodem/config_advanced.js:820
+msgid "Unlock Cell"
+msgstr "解锁小区"
+
+# Source: view/qmodem/config_advanced.js:795
+msgid "Unlocking..."
+msgstr "解锁中..."
+
+# Source: view/qmodem/network_config.js:340
+msgid "Do Not NAT(Only for Quectel Modem)"
+msgstr "不启用NAT（仅适用于移远模组）"
+
+# Source: view/qmodem/network_config.js:341
+msgid "If enabled, will turn off NAT function on quectel modem."
+msgstr "启用后，将关闭移远模组的NAT功能。"
+
+# Source: generic.sh:262
+msgid "$arfcn_label"
+msgstr "$arfcn_label"
+
+# Source: view/qmodem/settings.js:266
+msgid "Are you sure you want to remove this modem device? this cannot be roll back with uci machanism."
+msgstr "确定要移除此模组设备吗？此操作无法通过UCI机制回滚。"
+
+# Source: generic.sh:263
+msgid "Band (CA)"
+msgstr "频段（载波聚合）"
+
+# Source: generic.sh:265
+msgid "DL Bandwidth (CA)"
+msgstr "下行带宽（载波聚合）"
+
+# Source: view/qmodem/settings.js:276
+msgid "Modem device removal failed: "
+msgstr "模组设备移除失败："
+
+# Source: view/qmodem/settings.js:271
+msgid "Modem device removed successfully"
+msgstr "模组设备已成功移除"
+
+# Source: generic.sh:261
+msgid "Physical Cell ID (CA)"
+msgstr "物理小区ID（载波聚合）"
+
+# Source: generic.sh:264
+msgid "UL Bandwidth (CA)"
+msgstr "上行带宽（载波聚合）"
+
+# Source: view/qmodem/sim_switch.js
+msgid "SIM Switch"
+msgstr "SIM卡切换"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Switch between SIM card slots. Note: Some modems may require a reboot after switching SIM slots."
+msgstr "在SIM卡槽之间切换。注意：某些调制解调器在切换SIM卡槽后可能需要重启。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "SIM Switch Status"
+msgstr "SIM卡切换状态"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Select SIM Slot"
+msgstr "选择SIM卡槽"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Support"
+msgstr "支持"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Supported"
+msgstr "支持"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Not Supported"
+msgstr "不支持"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Current SIM Slot"
+msgstr "当前SIM卡槽"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Slot 1"
+msgstr "卡槽1"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Slot 2"
+msgstr "卡槽2"
+
+# Source: view/qmodem/sim_switch.js
+msgid "SIM Slot 1"
+msgstr "SIM卡槽1"
+
+# Source: view/qmodem/sim_switch.js
+msgid "SIM Slot 2"
+msgstr "SIM卡槽2"
+
+# Source: view/qmodem/sim_switch.js
+msgid "This modem does not support SIM switching."
+msgstr "此调制解调器不支持SIM卡切换。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Note"
+msgstr "注意"
+
+# Source: vendor/huawei.sh
+msgid "Huawei Modem does not support querying SIM slot capabilities via AT commands.Slot display may be incorrect."
+msgstr "华为调制解调器不支持通过AT命令查询SIM卡槽功能，卡槽显示可能不正确。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Switching SIM slot..."
+msgstr "正在切换SIM卡槽..."
+
+# Source: view/qmodem/sim_switch.js
+msgid "SIM slot switched to Slot %s successfully."
+msgstr "SIM卡槽已成功切换到卡槽%s。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Note: Some modems may require a reboot for the change to take effect."
+msgstr "注意：某些调制解调器可能需要重启才能使更改生效。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Failed to switch SIM slot. Please check modem status."
+msgstr "切换SIM卡槽失败。请检查调制解调器状态。"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Error switching SIM slot: %s"
+msgstr "切换SIM卡槽时出错：%s"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Error loading SIM switch information: %s"
+msgstr "加载SIM卡切换信息时出错：%s"
+
+# Source: view/qmodem/sim_switch.js
+msgid "Result"
+msgstr "结果"
+# Source: view/qmodem/sms.js
+msgid "SMS Storage"
+msgstr "短信存储"
+
+# Source: view/qmodem/sms.js
+msgid "Reading Storage"
+msgstr "读取存储"
+
+# Source: view/qmodem/sms.js
+msgid "Writing Storage"
+msgstr "写入存储"
+
+# Source: view/qmodem/sms.js
+msgid "Other Storage"
+msgstr "其他存储"
+
+# Source: view/qmodem/sms.js
+msgid "Mobile Equipment (ME)"
+msgstr "移动设备(ME)"
+
+# Source: view/qmodem/sms.js
+msgid "SIM Card (SM)"
+msgstr "SIM卡(SM)"
+
+# Source: view/qmodem/sms.js
+msgid "Apply Storage Settings"
+msgstr "应用存储设置"
+
+# Source: view/qmodem/sms.js
+msgid "Failed to get SMS storage: "
+msgstr "获取短信存储失败："
+
+# Source: view/qmodem/sms.js
+msgid "Failed to set SMS storage: "
+msgstr "设置短信存储失败："
+
+# Source: view/qmodem/sms.js
+msgid "SMS storage settings applied successfully"
+msgstr "短信存储设置已成功应用"
+
+# Source: view/qmodem/sms.js
+msgid "Please wait for storage info to load"
+msgstr "请等待存储信息加载"
+
+# Source: view/qmodem/sms.js
+msgid "Setting SMS Storage"
+msgstr "设置短信存储"
+
+# Source: view/qmodem/sms.js
+msgid "Applying settings..."
+msgstr "正在应用设置..."
+
+# Source: view/qmodem/sms.js
+msgid "Error loading SMS storage: "
+msgstr "加载短信存储时出错："
+
+# Source: view/qmodem/sms.js
+msgid "Error setting SMS storage: "
+msgstr "设置短信存储时出错："
+
+# Source: view/qmodem/sms.js
+msgid "Failed to get SMS storage"
+msgstr "获取短信存储失败"
+
+# Source: view/qmodem/sms.js
+msgid "Failed to set SMS storage"
+msgstr "设置短信存储失败"
+
+# Source: view/qmodem/sms_sim.js
+msgid "SIM Card SMS Management"
+msgstr "SIM卡短信管理"
+
+# Source: view/qmodem/sms_sim.js
+msgid "SIM Card SMS"
+msgstr "SIM卡短信"
+
+# Source: view/qmodem/sms_sim.js
+msgid "View and delete SMS messages stored on SIM card. These are raw messages before being processed into conversations."
+msgstr "查看和删除存储在SIM卡上的短信。这些是处理成会话之前的原始消息。"
+
+# Source: view/qmodem/sms_sim.js
+msgid "SMS Messages on SIM Card"
+msgstr "SIM卡上的短信"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Index"
+msgstr "索引"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Type"
+msgstr "类型"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Part"
+msgstr "部分"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Single"
+msgstr "单条"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Summary"
+msgstr "摘要"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Total Messages"
+msgstr "总消息数"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Delete All"
+msgstr "全部删除"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Confirm Delete"
+msgstr "确认删除"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Are you sure you want to delete this message from SIM card?"
+msgstr "确定要从SIM卡删除此消息吗？"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Deleting..."
+msgstr "正在删除..."
+
+# Source: view/qmodem/sms_sim.js
+msgid "Deleting message..."
+msgstr "正在删除消息..."
+
+# Source: view/qmodem/sms_sim.js
+msgid "Message deleted successfully"
+msgstr "消息已成功删除"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Failed to delete message"
+msgstr "删除消息失败"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Confirm Delete All"
+msgstr "确认全部删除"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Are you sure you want to delete ALL %d messages from SIM card? This action cannot be undone."
+msgstr "确定要从SIM卡删除全部%d条消息吗？此操作无法撤销。"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Deleting all messages... This may take a while."
+msgstr "正在删除全部消息...这可能需要一段时间。"
+
+# Source: view/qmodem/sms_sim.js
+msgid "All %d messages deleted successfully"
+msgstr "所有%d条消息已成功删除"
+
+# Source: view/qmodem/sms_sim.js
+msgid "%d messages deleted, %d failed"
+msgstr "已删除%d条消息，%d条失败"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Error deleting messages: "
+msgstr "删除消息时出错："
+
+# Source: view/qmodem/sms_sim.js
+msgid "No messages found on SIM card"
+msgstr "SIM卡上未找到消息"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Invalid message index"
+msgstr "无效的消息索引"
+
+# Source: view/qmodem/sms_sim.js
+msgid "Error loading SIM SMS: "
+msgstr "加载SIM卡短信时出错："
+
+# Source: view/qmodem/sms_sim.js
+msgid "Failed to load SIM SMS: "
+msgstr "加载SIM卡短信失败："
+
+# Source: view/qmodem/sms_sim.js
+msgid "Error deleting SMS: "
+msgstr "删除短信时出错："
+
+# Source: view/qmodem/config_advanced.js
+msgid "Boot Hook"
+msgstr "启动 Hook"
+
+# Source: view/qmodem/config_advanced.js
+msgid "Reapply lock cell command after modem initialization"
+msgstr "模组初始化后重新发送锁小区命令"
+
+# Source: view/qmodem/config_advanced.js
+msgid "Delay"
+msgstr "延迟"

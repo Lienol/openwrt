@@ -1,0 +1,261 @@
+# Translation template for luci-app-qmodem-monitor
+
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#: view/qmodem/monitor.js
+msgid "QModem Monitor Configuration"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Configure monitoring methods and actions for modem connectivity."
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Global Monitor Settings"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Enable Monitor (Global)"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Service Control"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Monitor service started"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Monitor service stopped"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Monitor service restarted"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failed to start monitor: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failed to stop monitor: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failed to restart monitor: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Modem Monitor Configuration"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Monitor Configuration"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Modem"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Enable"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Method"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Actions"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Monitor Method"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Ping"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Ping target to check connectivity"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "HTTP Request"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "HTTP request to check connectivity"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Ping Type"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "IP Address / Domain"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Target IP / Domain"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Enter an IP address or domain name. Note: Using a domain name may cause false disconnection detection if DNS resolution fails."
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Gateway"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "DNS Server"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Target IP"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "IP Version"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "URL"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Check Interval (seconds)"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failure Threshold"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Number of consecutive failures before triggering actions"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Switch SIM Slot"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Switch to another SIM slot"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Send AT Commands"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Send AT commands to modem"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Run Scripts"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Run custom scripts"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "AT Commands"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "AT commands to send when action is triggered"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Script Paths"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Scripts to execute when action is triggered"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Scripts to execute when action is triggered. You can upload scripts in the User Scripts Management section above."
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Actions to perform when monitor threshold is reached"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "User Scripts Management"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Security Warning"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "User scripts run with root privileges. Only upload scripts from trusted sources. Malicious scripts can damage your system or compromise security. Review script contents before uploading."
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Upload Script"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Please select a file to upload"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Invalid file type. Only .sh, .py, and .lua files are allowed."
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Script uploaded successfully: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failed to upload script: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Upload"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Scripts will be uploaded to "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid ". Allowed types: .sh, .py, .lua"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Uploaded Scripts"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "No scripts uploaded yet"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Delete"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Are you sure you want to delete this script?"
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Script deleted successfully: "
+msgstr ""
+
+#: view/qmodem/monitor.js
+msgid "Failed to delete script: "
+msgstr ""
+
+#: menu
+msgid "Monitor"
+msgstr ""

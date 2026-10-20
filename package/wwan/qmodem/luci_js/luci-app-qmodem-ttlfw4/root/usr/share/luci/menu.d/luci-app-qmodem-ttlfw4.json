@@ -1,0 +1,13 @@
+{
+	"admin/modem/qmodem/ttl": {
+		"title": "TTL",
+		"order": 22,
+		"action": {
+			"type": "view",
+			"path": "qmodem/ttl"
+		},
+		"depends": {
+			"acl": [ "luci-app-qmodem-ttlfw4" ]
+		}
+	}
+}

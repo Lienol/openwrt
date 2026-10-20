@@ -3,25 +3,26 @@
 _Vendor="sierra"
 _Author="Fujr"
 _Maintainer="Fujr <fjrcn@outlook.com>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/sierra.sh"
 debug_subject="quectel_ctrl"
-function unlock_advance(){
+unlock_advance(){
     [ -z "$sierra_pass" ] && sierra_pass="A710"
-    at $at_port "AT!ENTERCND=\"$sierra_pass\"" > /dev/null
+    cmd_entercnd "$at_port" "$sierra_pass" > /dev/null
 }
 
-function get_imei(){
-    imei=$(at $at_port "AT+CGSN" | grep -o '[0-9]\{15\}')
+get_imei(){
+    imei=$(cmd_cgsn "$at_port" | grep -o '[0-9]\{15\}')
     json_add_string imei $imei
 }
 
-function set_imei(){
+set_imei(){
     imei=$1
-    at $at_port "AT+EGMR=1,7,\"$imei\""
+    cmd_egmr_set_imei "$at_port" "$imei"
 }
 
-function get_mode(){
-    cfg=$(at $at_port "AT!USBCOMP?")
+get_mode(){
+    cfg=$(cmd_usbcomp_query "$at_port")
     config_type=`echo -e "$cfg" | grep -o 'Config Type:  [0-9]'`
     config_type=${config_type:14}
     interface_mask=`echo -e "$cfg" | grep -o 'Interface bitmask: [0-9a-fA-F]*'`
@@ -44,7 +45,7 @@ function get_mode(){
     json_close_object
 }
 
-function set_mode(){
+set_mode(){
     local mode=$1
     case $mode in
         "mbim")
@@ -58,11 +59,11 @@ function set_mode(){
             return 1
             ;;
     esac
-    at $at_port "AT!USBCOMP=1,4,$interface_mask"
+    cmd_usbcomp_set "$at_port" "$interface_mask"
 }
 
-function get_network_prefer(){
-    res=$(at $at_port "at!SELRAT?"| grep -o "!SELRAT: [0-9A-Fa-f]*")
+get_network_prefer(){
+    res=$(cmd_selrat_query "$at_port" | grep -o "!SELRAT: [0-9A-Fa-f]*")
 # (RAT index): 
 # • 00 – Automatic 
 # • 01 – UMTS 3G only 
@@ -115,7 +116,7 @@ function get_network_prefer(){
     json_close_array
 }
 
-function set_network_prefer(){
+set_network_prefer(){
     local network_prefer_3g=$(echo $1 |jq -r 'contains(["3G"])')
     local network_prefer_4g=$(echo $1 |jq -r 'contains(["4G"])')
     local network_prefer_5g=$(echo $1 |jq -r 'contains(["5G"])')
@@ -146,12 +147,12 @@ function set_network_prefer(){
             code="00"
             ;;
     esac
-    res=$(at $at_port "AT!SELRAT=$code")
+    res=$(cmd_selrat_set "$at_port" "$code")
     json_add_string "code" "$code"
     json_add_string "result" "$res"
 }
 
-function get_lockband(){
+get_lockband(){
     json_add_object "lockband"
     case $platform in
         "qualcomm")
@@ -164,7 +165,7 @@ function get_lockband(){
     json_close_object
 }
 
-function set_lockband(){
+set_lockband(){
     config=$1
     band_class=$(echo $config | jq -r '.band_class')
     lock_band=$(echo $config | jq -r '.lock_band')
@@ -178,17 +179,15 @@ function set_lockband(){
     esac
 }
 
-function sim_info()
+sim_info()
 {
     class="SIM Information"
     
-    at_command="AT!UIMS?"
-	slot=$(at $at_port $at_command | grep -o '!UIMS: [0-9]*' | grep -o '[0-9]*')
+	slot=$(cmd_uims_query "$at_port" | grep -o '!UIMS: [0-9]*' | grep -o '[0-9]*')
     sim_slot=$(($slot+1))
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-	sim_status=$(at $at_port $at_command | grep "+CPIN:")
+	sim_status=$(cmd_cpin_query "$at_port" | grep "+CPIN:")
     sim_status=${sim_status:7:-1}
     #lowercase
     sim_status=$(echo $sim_status | tr  A-Z a-z)
@@ -196,18 +195,15 @@ function sim_info()
     add_plain_info_entry "SIM Slot" "$sim_slot" "SIM Slot"
 }
 
-function base_info(){
+base_info(){
         #Name（名称）
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | sed -n '2p' | sed 's/\r//g')
     #Manufacturer（制造商）
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | sed -n '2p' | sed 's/\r//g')
     #Revision（固件版本）
-    at_command="ATI"
-    revision=$(at $at_port $at_command | grep "Revision:" | sed 's/Revision: //g' | sed 's/\r//g')
+    revision=$(cmd_ati "$at_port" | grep "Revision:" | sed 's/Revision: //g' | sed 's/\r//g')
     # at_command="AT+CGMR"
-    # revision=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    # revision=$(cmd_ati "$at_port" | sed -n '2p' | sed 's/\r//g')
     class="Base Information"
     add_plain_info_entry "name" "$name" "Name"
     add_plain_info_entry "manufacturer" "$manufacturer" "Manufacturer"
@@ -218,21 +214,20 @@ function base_info(){
     _get_voltage
 }
 
-function network_info() {
+network_info(){
     class="Network Information"
-    at_command="AT!GSTATUS?"
-    res=$(at $at_port $at_command  |grep -i -v "!GSTATUS"| grep -v "OK")
+    res=$(cmd_gstatus_query "$at_port" | grep -i -v "!GSTATUS" | grep -v "OK")
     _parse_gstatus "$res"
 }
 
-function vendor_get_disabled_features(){
+vendor_get_disabled_features(){
     json_add_string "" "IMEI"
     json_add_string "" "NeighborCell"
 }
 
-function _get_lockband_nr(){
-    local bandcfg=$(at $at_port "AT!BAND?")
-    local bandtemplate=$(at $at_port "AT!BAND=?")
+_get_lockband_nr(){
+    local bandcfg=$(cmd_band_query "$at_port")
+    local bandtemplate=$(cmd_band_list_query "$at_port")
     local start_flag=0
     IFS=$'\n'
     for line in $bandtemplate; do
@@ -298,7 +293,7 @@ function _get_lockband_nr(){
     unset IFS
 }
 
-function _set_lockband_nr(){
+_set_lockband_nr(){
     case $band_class in
         "GW")
             band_class=0
@@ -316,40 +311,39 @@ function _set_lockband_nr(){
     bandlist=$(_band_list_to_mask $lock_band)
     [ "$band_class" -eq 0 ] && bandlist=${bandlist:0:16}
     cmd="AT!BAND=0F,1,\"Custom\",$band_class,${bandlist}"
-    res=$(at $at_port "$cmd" | xargs)
+    res=$(cmd_band_set_custom "$at_port" "$band_class" "$bandlist" | xargs)
     if [ "$res" == "OK" ]; then
-        set_lockband="AT!BAND=0F"
+        r=$(cmd_band_reset "$at_port" "0F")
     else
-        set_lockband="AT!BAND=00"
+        r=$(cmd_band_reset "$at_port" "00")
     fi
-    r=$(at $at_port "$set_lockband")
     json_add_string "result" "$res"
     json_add_string "cmd" "$cmd"
 }
 
-function _get_voltage(){
-    voltage=$(at $at_port "AT!PCVOLT?" | grep -o 'Power supply voltage: [0-9]* mV'|grep -o '[0-9]*' )
+_get_voltage(){
+    voltage=$(cmd_pcvolt_query "$at_port" | grep -o 'Power supply voltage: [0-9]* mV'|grep -o '[0-9]*' )
     [ -n "$voltage" ] && {
         add_plain_info_entry "voltage" "$voltage mV" "Voltage" 
     }
 }
 
-function _get_temperature(){
-    temperature=$(at $at_port "AT!PCTEMP?" | grep -o 'Temperature: [0-9]*\.[0-9]*'|grep -o '[0-9]*\.[0-9]*' )
+_get_temperature(){
+    temperature=$(cmd_pctemp_query "$at_port" | grep -o 'Temperature: [0-9]*\.[0-9]*'|grep -o '[0-9]*\.[0-9]*' )
     [ -n "$temperature" ] && {
         add_plain_info_entry "temperature" "$temperature C" "Temperature" 
     }
 }
 
-function _add_avalible_band(){
+_add_avalible_band(){
     add_avalible_band_entry $1 $1
 }
 
-function _add_lock_band(){
+_add_lock_band(){
     json_add_string "" $1
 }
 
-function _mask_to_band()
+_mask_to_band()
 {
     func=$1
     low_band=$2
@@ -374,7 +368,7 @@ function _mask_to_band()
 
 }
 
-function _band_list_to_mask()
+_band_list_to_mask()
 {
     local band_list=$1
     local low=0
@@ -399,7 +393,7 @@ function _band_list_to_mask()
     echo "$low,$high"
 }
 
-function _mask_to_mode()
+_mask_to_mode()
 {
     mask=$1
 # RmNet – 0x00000100 bin: 000100000000
@@ -414,7 +408,7 @@ function _mask_to_mode()
     mbim_port=${hex_to_bin: -13:1}
 }
 
-function _parse_gstatus(){
+_parse_gstatus(){
 data=$1
 IFS=$'\t\r\n'
 for line in $data;do
