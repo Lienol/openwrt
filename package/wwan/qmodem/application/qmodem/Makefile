@@ -36,13 +36,13 @@ define Package/$(PKG_NAME)
 		+PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan:kmod-usb-net-qmi-wwan-fibocom \
 		+PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan:kmod-usb-net-qmi-wwan-simcom \
 		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-rmnet-nss \
-		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-qmi_wwan_q_nss \
+		+PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan:kmod-usb-net-qmi-wwan-quectel-nss \
 		+PACKAGE_luci-app-qmodem_VENDOR_MHI_PCIe_DRIVER:kmod-pcie_mhi \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-pci-generic \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-ctrl \
 		+PACKAGE_luci-app-qmodem_GENERIC_MHI_PCIe_DRIVER:kmod-mhi-wwan-mbim \
 		+PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER:kmod-rmnet-nss \
-		+PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER:kmod-pcie_mhi_nss \
+		+PACKAGE_luci-app-qmodem_NSS_MHI_PCIe_DRIVER:kmod-pcie_mhi-nss \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_PCI_SUPPORT:pciutils \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_MTK_T7XX_SUPPORT:umbim \
 		+PACKAGE_luci-app-qmodem_INCLUDE_ADD_MTK_T7XX_SUPPORT:kmod-mtk-t7xx \

@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=qmi_wwan_q_nss
+PKG_NAME:=quectel-qmi-wwan-nss
 PKG_VERSION:=1.2.9
 PKG_RELEASE:=2
 
@@ -9,7 +9,7 @@ include $(INCLUDE_DIR)/package.mk
 
 PKG_BUILD_PARALLEL:=1
 
-define KernelPackage/qmi_wwan_q_nss
+define KernelPackage/usb-net-qmi-wwan-quectel-nss
   SUBMENU:=WWAN Support
   TITLE:=QMI WWAN driver for Quectel modules
   DEPENDS:=+kmod-usb-net +kmod-usb-wdm
@@ -36,4 +36,4 @@ define Build/Compile
 		modules
 endef
 
-$(eval $(call KernelPackage,qmi_wwan_q_nss))
+$(eval $(call KernelPackage,usb-net-qmi-wwan-quectel-nss))
