@@ -728,7 +728,7 @@ error_alloc_fw_table:
 	release_firmware(firmware);
 }
 
-int BhiWrite(struct mhi_controller *mhi_cntrl, void __user *ubuf, size_t size)
+static int BhiWrite(struct mhi_controller *mhi_cntrl, void __user *ubuf, size_t size)
 {
 	int ret;
 	dma_addr_t dma_addr;

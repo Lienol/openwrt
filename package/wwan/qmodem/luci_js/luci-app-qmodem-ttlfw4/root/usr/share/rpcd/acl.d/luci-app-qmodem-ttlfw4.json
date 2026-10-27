@@ -1,0 +1,17 @@
+{
+	"luci-app-qmodem-ttlfw4": {
+		"description": "Grant access to QModem TTL configuration",
+		"read": {
+			"ubus": {
+				"rc": [ "list", "init" ]
+			},
+			"uci": [ "qmodem_ttl" ]
+		},
+		"write": {
+			"ubus": {
+				"luci": [ "setInitAction" ]
+			},
+			"uci": [ "qmodem_ttl" ]
+		}
+	}
+}

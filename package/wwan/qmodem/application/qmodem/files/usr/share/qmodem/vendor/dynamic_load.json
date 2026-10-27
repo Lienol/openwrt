@@ -9,6 +9,8 @@
     "foxconn" : "foxconn.sh",
     "neoway" : "neoway.sh",
     "telit" : "telit.sh",
+    "thales" : "thales.sh",
     "nk" : "nk.sh",
-    "gosuncn" : "gosuncn.sh"
+    "gosuncn" : "gosuncn.sh",
+    "openluat" : "openluat.sh"
 }

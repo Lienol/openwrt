@@ -88,10 +88,11 @@ int check_end_flags(at_port_instance_t *port, const char *line, char *matched_fl
         start++;
     }
     
-    char *end = start + strlen(start) - 1;
-    while (end > start && (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')) {
-        *end = '\0';
-        end--;
+    size_t trimmed_len = strlen(start);
+    while (trimmed_len > 0 &&
+           (start[trimmed_len - 1] == ' ' || start[trimmed_len - 1] == '\t' ||
+            start[trimmed_len - 1] == '\r' || start[trimmed_len - 1] == '\n')) {
+        start[--trimmed_len] = '\0';
     }
     
     // Check each end flag
@@ -106,16 +107,10 @@ int check_end_flags(at_port_instance_t *port, const char *line, char *matched_fl
             return 1;
         }
         
-        // For prefix match flags like "+CMS ERROR:", "+CME ERROR:"
-        if (strncmp(start, flag, strlen(flag)) == 0) {
-            if (matched_flag) {
-                strcpy(matched_flag, flag);
-            }
-            return 1;
-        }
-        
-        // For substring match (fallback for compatibility)
-        if (strstr(start, flag) != NULL) {
+        size_t flag_len = strlen(flag);
+        if (flag_len > 0 && strncmp(start, flag, flag_len) == 0 &&
+            (start[flag_len] == ' ' || start[flag_len] == '\t' ||
+             (flag[flag_len - 1] == ':' && start[flag_len] == '\0'))) {
             if (matched_flag) {
                 strcpy(matched_flag, flag);
             }
@@ -126,7 +121,12 @@ int check_end_flags(at_port_instance_t *port, const char *line, char *matched_fl
 }
 
 int send_at_command_with_response(at_port_instance_t *port, const char *cmd, int timeout, const char *end_flag, int is_raw, at_response_t *response) {
-    if (!port->is_open) {
+    int is_open;
+
+    pthread_mutex_lock(&port->state_mutex);
+    is_open = port->is_open;
+    pthread_mutex_unlock(&port->state_mutex);
+    if (!is_open) {
         // Auto-open with default parameters
         if (open_at_port(port, 115200, 8, 0, 1) != 0) {
             return -1;
@@ -152,6 +152,7 @@ int send_at_command_with_response(at_port_instance_t *port, const char *cmd, int
     // Clear previous response and prepare for new one
     memset(&port->current_response, 0, sizeof(at_response_t));
     port->current_response.start_time = response->start_time;
+    port->active_command_id = ++port->next_command_id;
     port->waiting_for_response = 1;
     
     pthread_mutex_unlock(&port->response_mutex);
@@ -182,7 +183,10 @@ int send_at_command_with_response(at_port_instance_t *port, const char *cmd, int
         strcat(send_data, AT_CMD_TERMINATOR);
     }
     
-    ssize_t written = write(port->fd, send_data, send_len);
+    pthread_mutex_lock(&port->state_mutex);
+    ssize_t written = port->is_open && port->fd >= 0 ?
+        write(port->fd, send_data, send_len) : -1;
+    pthread_mutex_unlock(&port->state_mutex);
     free(send_data);
     
     pthread_mutex_unlock(&port->write_mutex);
@@ -218,6 +222,7 @@ int send_at_command_with_response(at_port_instance_t *port, const char *cmd, int
         response->status = -1;  // timeout
         port->waiting_for_response = 0;
     }
+    port->active_command_id = 0;
     
     pthread_mutex_unlock(&port->response_mutex);
     
@@ -230,7 +235,12 @@ int send_at_command(at_port_instance_t *port, const char *cmd, int timeout, cons
 }
 
 int send_at_command_only(at_port_instance_t *port, const char *cmd, int is_raw) {
-    if (!port->is_open) {
+    int is_open;
+
+    pthread_mutex_lock(&port->state_mutex);
+    is_open = port->is_open;
+    pthread_mutex_unlock(&port->state_mutex);
+    if (!is_open) {
         // Auto-open with default parameters
         if (open_at_port(port, 115200, 8, 0, 1) != 0) {
             return -1;
@@ -260,7 +270,10 @@ int send_at_command_only(at_port_instance_t *port, const char *cmd, int is_raw) 
         strcpy(send_data, cmd);
     }
     
-    ssize_t written = write(port->fd, send_data, send_len);
+    pthread_mutex_lock(&port->state_mutex);
+    ssize_t written = port->is_open && port->fd >= 0 ?
+        write(port->fd, send_data, send_len) : -1;
+    pthread_mutex_unlock(&port->state_mutex);
     free(send_data);
     
     pthread_mutex_unlock(&port->write_mutex);
@@ -276,13 +289,24 @@ void *reader_thread_func(void *arg) {
     at_port_instance_t *port = (at_port_instance_t *)arg;
     char temp_buffer[1024];
     
-    while (!port->should_stop) {
-        if (!port->is_open) {
+    for (;;) {
+        int should_stop;
+        int is_open;
+        int fd;
+        pthread_mutex_lock(&port->state_mutex);
+        should_stop = port->should_stop || !port->reader_thread_valid ||
+            !pthread_equal(pthread_self(), port->reader_thread);
+        is_open = port->is_open;
+        fd = port->fd;
+        pthread_mutex_unlock(&port->state_mutex);
+        if (should_stop)
+            break;
+        if (!is_open || fd < 0) {
             usleep(100000); // 100ms
             continue;
         }
         
-        ssize_t bytes_read = read(port->fd, temp_buffer, sizeof(temp_buffer) - 1);
+        ssize_t bytes_read = read(fd, temp_buffer, sizeof(temp_buffer) - 1);
         if (bytes_read > 0) {
             // First, handle response data if we're waiting for one
             pthread_mutex_lock(&port->response_mutex);
@@ -317,12 +341,17 @@ void *reader_thread_func(void *arg) {
                     // Process the line
                     if (strlen(line_start) > 0) {
                         int is_echo = (strncmp(line_start, "AT", 2) == 0);
+                        int was_waiting = 0;
+                        int is_terminal = 0;
+                        uint64_t command_id = 0;
                         
                         // Check if we're waiting for a response and this line might be end flag
                         int should_check_end_flag = 0;
                         pthread_mutex_lock(&port->response_mutex);
                         if (port->waiting_for_response && !is_echo) {
                             should_check_end_flag = 1;
+                            was_waiting = 1;
+                            command_id = port->active_command_id;
                         }
                         pthread_mutex_unlock(&port->response_mutex);
                         
@@ -330,6 +359,7 @@ void *reader_thread_func(void *arg) {
                             // Check for end flags
                             char matched_flag[64];
                             if (check_end_flags(port, line_start, matched_flag)) {
+                                is_terminal = 1;
                                 pthread_mutex_lock(&port->response_mutex);
                                 if (port->waiting_for_response) {
                                     // Record end time
@@ -343,10 +373,23 @@ void *reader_thread_func(void *arg) {
                                 pthread_mutex_unlock(&port->response_mutex);
                             }
                         }
-                        
-                        // Process for event callbacks (only when not echo)
+
                         if (!is_echo) {
+                            at_correlation_t correlation = AT_CORRELATION_IDLE;
+                            if (is_terminal)
+                                correlation = AT_CORRELATION_TERMINAL;
+                            else if (was_waiting &&
+                                     (!strcmp(line_start, "RING") ||
+                                      !strncmp(line_start, "+CLIP:", 6)))
+                                correlation = AT_CORRELATION_AMBIGUOUS;
+                            else if (was_waiting)
+                                correlation = AT_CORRELATION_RESPONSE;
+                            at_line_event_enqueue(&g_daemon_ctx.line_events, port,
+                                                  line_start, strlen(line_start),
+                                                  command_id, correlation);
+                            pthread_mutex_unlock(&port->queue_mutex);
                             process_incoming_data(port, line_start);
+                            pthread_mutex_lock(&port->queue_mutex);
                         }
                     }
                     
@@ -370,7 +413,13 @@ void *reader_thread_func(void *arg) {
             // Error reading, mark port as closed
             fprintf(stderr, "Error reading from port %s: %s, marking as closed\n", 
                     port->port_path, strerror(errno));
-            port->is_open = 0;
+            pthread_mutex_lock(&port->state_mutex);
+            if (port->reader_thread_valid &&
+                pthread_equal(pthread_self(), port->reader_thread)) {
+                port->is_open = 0;
+                port->should_stop = 1;
+            }
+            pthread_mutex_unlock(&port->state_mutex);
             break;
         }
         

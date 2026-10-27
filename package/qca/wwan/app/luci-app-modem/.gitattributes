@@ -1,4 +1,0 @@
-#指定换行符
-/luasrc/** text eol=lf
-# /old/* text eol=lf
-/root/** text eol=lf

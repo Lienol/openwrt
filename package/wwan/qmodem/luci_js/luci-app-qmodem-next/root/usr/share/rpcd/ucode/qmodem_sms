@@ -1,0 +1,1296 @@
+#!/usr/bin/ucode
+'use strict';
+
+import { open, fdopen, popen, stat } from 'fs';
+import { cursor } from 'uci';
+
+const TOM_MODEM_PATH = '/usr/bin/tom_modem';
+const DEFAULT_SMS_DB_DIR = '/etc/qmodem';
+
+// Initialize SMS database
+function initSmsDb(db_path, config_section) {
+	let db_dir = db_path;
+	let db_file = `${db_dir}/${config_section}_sent.json`;
+	
+	// Create directory if it doesn't exist
+	try {
+		stat(db_dir);
+	} catch (e) {
+		try {
+			system(`mkdir -p ${db_dir}`);
+		} catch (err) {
+			warn(`Failed to create directory ${db_dir}: ${err}\n`);
+			return false;
+		}
+	}
+
+	// Check if file exists
+	try {
+		let file = open(db_file, 'r');
+		if (file) {
+			file.close();
+			return true;
+		}
+	} catch (e) {
+		// File doesn't exist, create it
+		try {
+			let file = open(db_file, 'w');
+			if (file) {
+				file.write('{"sent": [], "next_id": 1}');
+				file.close();
+				return true;
+			}
+		} catch (err) {
+			warn(`Failed to create sent DB file ${db_file}: ${err}\n`);
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+// Initialize received SMS database
+function initReceivedSmsDb(db_path, config_section) {
+	let db_dir = db_path;
+	let db_file = `${db_dir}/${config_section}_received.json`;
+	
+	// Create directory if it doesn't exist
+	try {
+		stat(db_dir);
+	} catch (e) {
+		try {
+			system(`mkdir -p ${db_dir}`);
+		} catch (err) {
+			warn(`Failed to create directory ${db_dir}: ${err}\n`);
+			return false;
+		}
+	}
+
+	// Check if file exists
+	try {
+		let file = open(db_file, 'r');
+		if (file) {
+			file.close();
+			return true;
+		}
+	} catch (e) {
+		// File doesn't exist, create it
+		try {
+			let file = open(db_file, 'w');
+			if (file) {
+				file.write('{"received": [], "next_id": 1}');
+				file.close();
+				return true;
+			}
+		} catch (err) {
+			warn(`Failed to create received DB file ${db_file}: ${err}\n`);
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+// Read SMS database
+function readSmsDb(db_path, config_section) {
+	initSmsDb(db_path, config_section);
+	let db_file = `${db_path}/${config_section}_sent.json`;
+	
+	try {
+		let file = open(db_file, 'r');
+		if (!file)
+			return { sent: [], next_id: 1 };
+		
+		let content = file.read('all');
+		file.close();
+		
+		if (!content || length(content) == 0)
+			return { sent: [], next_id: 1 };
+		
+		let data = json(content);
+		// Ensure next_id exists
+		if (!data.next_id)
+			data.next_id = 1;
+		return data;
+	} catch (e) {
+		warn(`Failed to read sent DB: ${e}\n`);
+		return { sent: [], next_id: 1 };
+	}
+}
+
+// Write SMS database
+function writeSmsDb(db_path, config_section, data) {
+	initSmsDb(db_path, config_section);
+	let db_file = `${db_path}/${config_section}_sent.json`;
+	
+	try {
+		let file = open(db_file, 'w');
+		if (!file)
+			return false;
+		
+		file.write(sprintf('%J', data));
+		file.close();
+		return true;
+	} catch (e) {
+		warn(`Failed to write sent DB: ${e}\n`);
+		return false;
+	}
+}
+
+// Read received SMS database
+function readReceivedSmsDb(db_path, config_section) {
+	initReceivedSmsDb(db_path, config_section);
+	let db_file = `${db_path}/${config_section}_received.json`;
+	
+	try {
+		let file = open(db_file, 'r');
+		if (!file)
+			return { received: [], next_id: 1 };
+		
+		let content = file.read('all');
+		file.close();
+		
+		if (!content || length(content) == 0)
+			return { received: [], next_id: 1 };
+		
+		let data = json(content);
+		// Ensure next_id exists
+		if (!data.next_id)
+			data.next_id = 1;
+		return data;
+	} catch (e) {
+		warn(`Failed to read received DB: ${e}\n`);
+		return { received: [], next_id: 1 };
+	}
+}
+
+// Write received SMS database
+function writeReceivedSmsDb(db_path, config_section, data) {
+	initReceivedSmsDb(db_path, config_section);
+	let db_file = `${db_path}/${config_section}_received.json`;
+	
+	try {
+		let file = open(db_file, 'w');
+		if (!file)
+			return false;
+		
+		file.write(sprintf('%J', data));
+		file.close();
+		return true;
+	} catch (e) {
+		warn(`Failed to write received DB: ${e}\n`);
+		return false;
+	}
+}
+
+// Get modem configuration from UCI
+function getModemConfig(config_section) {
+	let ctx = cursor();
+	if (!ctx)
+		return null;
+	
+	let cfg = ctx.get_all('qmodem', config_section);
+	
+	if (!cfg)
+		return null;
+	
+	let at_port = cfg.override_at_port || cfg.sms_at_port || cfg.at_port;
+	let use_ubus = cfg.use_ubus == '1';
+	let sms_db_path = cfg.sms_db_path || DEFAULT_SMS_DB_DIR;
+	let sms_auto_delete_from_sim = cfg.sms_auto_delete_from_sim != '0'; // Default to true
+	
+	return {
+		at_port: at_port,
+		use_ubus: use_ubus,
+		sms_db_path: sms_db_path,
+		sms_auto_delete_from_sim: sms_auto_delete_from_sim
+	};
+}
+
+// Execute tom_modem command
+function execTomModem(at_port, use_ubus, operation, params) {
+	let cmd = TOM_MODEM_PATH;
+	
+	if (use_ubus)
+		cmd += ' -u';
+	
+	cmd += ` -d "${at_port}" -o ${operation}`;
+	
+	if (params?.pdu)
+		cmd += ` -p "${params.pdu}"`;
+	
+	if (params?.index != null)
+		cmd += ` -i ${params.index}`;
+	
+	try {
+		let proc = popen(cmd, 'r');
+		if (!proc)
+			return null;
+		
+		let output = proc.read('all');
+		proc.close();
+		
+		if (!output || length(output) == 0)
+			return null;
+		
+		// Try to parse as JSON
+		try {
+			return json(output);
+		} catch (e) {
+			// Return raw output if not JSON
+			return { raw: output };
+		}
+	} catch (e) {
+		warn(`Failed to execute tom_modem: ${e}\n`);
+		return null;
+	}
+}
+
+// Execute AT command directly via tom_modem
+function execAtCommand(at_port, use_ubus, at_cmd) {
+	let cmd = TOM_MODEM_PATH;
+	
+	if (use_ubus)
+		cmd += ' -u';
+	
+	// Use single quotes to wrap AT command to preserve internal double quotes
+	// Replace any single quotes in the AT command with '\'' to escape them
+	let safe_cmd = '';
+	for (let i = 0; i < length(at_cmd); i++) {
+		let ch = substr(at_cmd, i, 1);
+		if (ch == "'")
+			safe_cmd += "'\\''";
+		else
+			safe_cmd += ch;
+	}
+	
+	cmd += ` -d '${at_port}' -o a -c '${safe_cmd}'`;
+	
+	try {
+		let proc = popen(cmd, 'r');
+		if (!proc)
+			return null;
+		
+		let output = proc.read('all');
+		proc.close();
+		
+		return output || '';
+	} catch (e) {
+		warn(`Failed to execute AT command: ${e}\n`);
+		return null;
+	}
+}
+
+// Parse AT+CPMS? response
+function parseCpmsResponse(response) {
+	if (!response)
+		return null;
+	
+	// Look for +CPMS: line
+	let lines = split(response, '\n');
+	let cpms_line = null;
+	
+	for (let line in lines) {
+		line = trim(line);
+		if (index(line, '+CPMS:') >= 0) {
+			cpms_line = line;
+			break;
+		}
+	}
+	
+	if (!cpms_line)
+		return null;
+	
+	// Extract the part after +CPMS:
+	let idx = index(cpms_line, '+CPMS:');
+	let data = substr(cpms_line, idx + 6);
+	data = trim(data);
+	
+	// Remove quotes and parse comma-separated values
+	data = replace(data, '"', '');
+	let parts = split(data, ',');
+	
+	if (length(parts) < 6)
+		return null;
+	
+	let mem1 = trim(parts[0]);
+	let used1 = int(trim(parts[1]));
+	let total1 = int(trim(parts[2]));
+	let mem2 = trim(parts[3]);
+	let used2 = int(trim(parts[4]));
+	let total2 = int(trim(parts[5]));
+	let mem3 = length(parts) >= 9 ? trim(parts[6]) : null;
+	let used3 = length(parts) >= 9 ? int(trim(parts[7])) : null;
+	let total3 = length(parts) >= 9 ? int(trim(parts[8])) : null;
+	
+	// Initialize storage info
+	let me_info = { used: 0, total: 0 };
+	let sm_info = { used: 0, total: 0 };
+	
+	// Map storage types to ME or SM
+	for (let i = 1; i <= 3; i++) {
+		let mem = (i == 1) ? mem1 : ((i == 2) ? mem2 : mem3);
+		let used = (i == 1) ? used1 : ((i == 2) ? used2 : used3);
+		let total = (i == 1) ? total1 : ((i == 2) ? total2 : total3);
+		
+		if (!mem)
+			continue;
+		
+		if (mem == 'SM') {
+			sm_info.used = used;
+			sm_info.total = total;
+		} else if (mem == 'MT' || mem == 'ME') {
+			me_info.used = used;
+			me_info.total = total;
+		}
+	}
+	
+	return {
+		mem1: mem1,
+		mem2: mem2,
+		mem3: mem3,
+		ME: me_info,
+		SM: sm_info
+	};
+}
+
+// Check if message already exists in database based on sender, timestamp and content
+function messageExists(db_messages, sender, timestamp, content) {
+	for (let msg in db_messages) {
+		if (msg.sender == sender && msg.timestamp == timestamp && msg.content == content) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// Get or create a unique reference ID for multipart SMS
+// Uses the original reference and sender to identify the group
+// Returns a global unique reference in format: global_<id>
+function getOrCreateGlobalReference(db, original_ref, sender, current_timestamp) {
+	if (!db.ref_mapping)
+		db.ref_mapping = {};
+	if (!db.ref_windows)
+		db.ref_windows = {};
+	
+	// Key to identify this SMS group: original_ref + sender
+	let group_key = `${original_ref}_${sender}`;
+	
+	// Check if we have an existing mapping within time window
+	if (db.ref_mapping[group_key]) {
+		let mapping = db.ref_mapping[group_key];
+		let last_seen = db.ref_windows[group_key] || 0;
+		
+		// Dynamic time window: 5 minutes from last fragment
+		const WINDOW_SECONDS = 300;  // 5 minutes
+		
+		if (current_timestamp - last_seen <= WINDOW_SECONDS) {
+			// Still within window, update last seen time
+			db.ref_windows[group_key] = current_timestamp;
+			return mapping.global_ref;
+		}
+		
+		// Window expired, this is a new SMS with same ref_id
+		// Remove old mapping to create a new one
+		delete db.ref_mapping[group_key];
+		delete db.ref_windows[group_key];
+	}
+	
+	// Create new global reference
+	if (!db.next_global_ref)
+		db.next_global_ref = 1;
+	
+	let global_ref = `global_${db.next_global_ref++}`;
+	
+	// Store mapping
+	db.ref_mapping[group_key] = {
+		global_ref: global_ref,
+		created_at: current_timestamp,
+		original_ref: original_ref
+	};
+	db.ref_windows[group_key] = current_timestamp;
+	
+	return global_ref;
+}
+
+// Clean up expired reference mappings (older than 1 hour)
+function cleanupExpiredReferences(db, current_time) {
+	if (!db.ref_mapping || !db.ref_windows)
+		return;
+	
+	const CLEANUP_THRESHOLD = 3600;  // 1 hour
+	let keys_to_delete = [];
+	
+	for (let key in db.ref_windows) {
+		let last_seen = db.ref_windows[key];
+		if (current_time - last_seen > CLEANUP_THRESHOLD) {
+			push(keys_to_delete, key);
+		}
+	}
+	
+	// Delete expired mappings
+	for (let key in keys_to_delete) {
+		delete db.ref_mapping[key];
+		delete db.ref_windows[key];
+	}
+}
+
+// Save received SMS to database and optionally delete from SIM
+function saveReceivedSms(config, config_section, received_from_sim) {
+	// Read existing received SMS database
+	let db = readReceivedSmsDb(config.sms_db_path, config_section);
+	if (!db.received)
+		db.received = [];
+	if (!db.next_id)
+		db.next_id = 1;
+	
+	// If no messages from SIM, just return existing database
+	// tom_modem returns messages in 'received' field based on your example
+	let sim_messages = received_from_sim?.received || received_from_sim?.msg;
+	if (!sim_messages || type(sim_messages) != 'array')
+		return db.received;
+	
+	let indices_to_delete = [];
+	let current_time = time();
+	
+	// Clean up expired reference mappings
+	cleanupExpiredReferences(db, current_time);
+	
+	// Process each SMS from SIM
+	for (let sms in sim_messages) {
+		// Check if already in database (by sender, timestamp, content)
+		if (!messageExists(db.received, sms.sender, sms.timestamp, sms.content)) {
+			// Get or create global reference for multipart SMS
+			let global_ref = null;
+			if (sms.reference && sms.total > 1) {
+				// Use dynamic window to get/create global reference
+				global_ref = getOrCreateGlobalReference(db, sms.reference, sms.sender, sms.timestamp);
+			}
+			
+			// Add to database with auto-increment ID
+			let msg = {
+				id: db.next_id++,
+				sender: sms.sender,
+				timestamp: sms.timestamp,
+				content: sms.content,
+				reference: global_ref,  // Use global reference for multipart
+				original_reference: sms.reference,  // Keep original for debugging
+				total: sms.total,
+				part: sms.part,
+				is_read: false,
+				forwarded: false
+			};
+			push(db.received, msg);
+		}
+		
+		// Mark index for deletion if auto-delete is enabled
+		if (config.sms_auto_delete_from_sim && sms.index != null)
+			push(indices_to_delete, sms.index);
+	}
+	
+	// Keep only last 5000 received messages
+	if (length(db.received) > 5000) {
+		db.received = slice(db.received, length(db.received) - 5000);
+	}
+	
+	// Write to database
+	writeReceivedSmsDb(config.sms_db_path, config_section, db);
+	
+	// Delete SMS from SIM card if auto-delete is enabled
+	if (config.sms_auto_delete_from_sim) {
+		for (let index in indices_to_delete) {
+			execTomModem(config.at_port, config.use_ubus, 'd', { index: index });
+		}
+	}
+	
+	return db.received;
+}
+
+// Merge received SMS with sent SMS
+function mergeSmsMessages(received_db, sent_db) {
+	let messages = [];
+	
+	// Process received messages from database
+	if (received_db && type(received_db) == 'array') {
+		for (let sms in received_db) {
+			push(messages, {
+				id: sms.id,
+				sender: sms.sender,
+				recipient: null,
+				timestamp: sms.timestamp,
+				content: sms.content,
+				reference: sms.reference,
+				total: sms.total,
+				part: sms.part,
+				is_read: sms.is_read,
+				forwarded: sms.forwarded,
+				type: 'received'
+			});
+		}
+	}
+	
+	// Add sent messages
+	if (sent_db && type(sent_db) == 'array') {
+		for (let sms in sent_db) {
+			push(messages, {
+				id: sms.id,
+				sender: null,
+				recipient: sms.recipient,
+				timestamp: sms.timestamp,
+				content: sms.content,
+				reference: null,
+				total: 1,
+				part: 1,
+				is_success: sms.is_success,
+				type: 'sent'
+			});
+		}
+	}
+	
+	// Sort by timestamp descending
+	messages = sort(messages, (a, b) => b.timestamp - a.timestamp);
+	
+	return messages;
+}
+
+// Group messages by conversation (sender/recipient)
+function groupByConversation(messages) {
+	let conversations = {};
+	
+	for (let msg in messages) {
+		let contact = msg.type == 'received' ? msg.sender : msg.recipient;
+		
+		if (!conversations[contact]) {
+			conversations[contact] = {
+				contact: contact,
+				messages: [],
+				last_timestamp: msg.timestamp,
+				unread_count: 0
+			};
+		}
+		
+		push(conversations[contact].messages, msg);
+		
+		// Update last timestamp
+		if (msg.timestamp > conversations[contact].last_timestamp)
+			conversations[contact].last_timestamp = msg.timestamp;
+		
+		// Count unread messages
+		if (msg.type == 'received' && msg.is_read === false)
+			conversations[contact].unread_count++;
+	}
+	
+	// Convert to array and sort by last message timestamp
+	let result = [];
+	for (let contact in conversations) {
+		push(result, conversations[contact]);
+	}
+	
+	result = sort(result, (a, b) => b.last_timestamp - a.last_timestamp);
+	
+	return result;
+}
+
+// Reconstruct multi-part SMS messages with dynamic time window
+function reconstructMultipartSms(messages) {
+	let multipart = {};
+	let singles = [];
+	
+	for (let msg in messages) {
+		if (msg.total && msg.total > 1 && msg.reference) {
+			// Use reference directly since it's already globally unique
+			let key = msg.reference;
+			
+			if (!multipart[key]) {
+				multipart[key] = {
+					reference: msg.reference,
+					total: msg.total,
+					parts: [],
+					part_ids: [],
+					timestamps: [],
+					sender: msg.sender,
+					recipient: msg.recipient,
+					type: msg.type,
+					is_read: msg.is_read,
+					forwarded: msg.forwarded,
+					is_success: msg.is_success,
+					min_timestamp: msg.timestamp,
+					max_timestamp: msg.timestamp
+				};
+			}
+			
+			// Store part content and metadata
+			if (msg.part && msg.part > 0 && msg.part <= msg.total) {
+				multipart[key].parts[msg.part - 1] = msg.content;
+				multipart[key].part_ids[msg.part - 1] = msg.id;
+				multipart[key].timestamps[msg.part - 1] = msg.timestamp;
+				
+				// Update timestamp range
+				if (msg.timestamp < multipart[key].min_timestamp)
+					multipart[key].min_timestamp = msg.timestamp;
+				if (msg.timestamp > multipart[key].max_timestamp)
+					multipart[key].max_timestamp = msg.timestamp;
+			}
+		} else {
+			push(singles, msg);
+		}
+	}
+	
+	// Reconstruct multi-part messages
+	for (let key in multipart) {
+		let mp = multipart[key];
+		let complete = true;
+		let received_parts = 0;
+		
+		// Check if all parts are present
+		for (let i = 0; i < mp.total; i++) {
+			if (!mp.parts[i]) {
+				complete = false;
+			} else {
+				received_parts++;
+			}
+		}
+		
+		if (complete) {
+			// All parts received, combine them
+			let combined_content = join('', mp.parts);
+			
+			// Use earliest timestamp as the message timestamp
+			push(singles, {
+				id: mp.part_ids[0],  // Use first part's ID
+				part_ids: mp.part_ids,  // Keep track of all part IDs
+				sender: mp.sender,
+				recipient: mp.recipient,
+				timestamp: mp.min_timestamp,  // Use earliest timestamp
+				content: combined_content,
+				reference: mp.reference,
+				total: mp.total,
+				part: null,
+				type: mp.type,
+				is_read: mp.is_read,
+				forwarded: mp.forwarded,
+				is_success: mp.is_success,
+				multipart: true,
+				time_span: mp.max_timestamp - mp.min_timestamp  // Record time span for debugging
+			});
+		} else {
+			// Add incomplete parts individually with warning
+			for (let i = 0; i < length(mp.parts); i++) {
+				if (mp.parts[i]) {
+					push(singles, {
+						id: mp.part_ids[i],
+						sender: mp.sender,
+						recipient: mp.recipient,
+						timestamp: mp.timestamps[i],
+						content: mp.parts[i],
+						reference: mp.reference,
+						total: mp.total,
+						part: i + 1,
+						type: mp.type,
+						is_read: mp.is_read,
+						forwarded: mp.forwarded,
+						is_success: mp.is_success,
+						incomplete: true,
+						received_parts: received_parts  // Show how many parts we have
+					});
+				}
+			}
+		}
+	}
+	
+	return singles;
+}
+
+return {
+	qmodem_sms: {
+		// List all SMS messages grouped by conversation
+		list_sms: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+
+				if (!config.at_port)
+					return { error: 'Missing SMS AT port configuration' };
+				
+				// Read SMS from SIM card
+				let received_from_sim = execTomModem(config.at_port, config.use_ubus, 'r', null);
+				
+				// Save to database (and optionally delete from SIM)
+				let received = saveReceivedSms(config, config_section, received_from_sim);
+				
+				// Read sent SMS from database
+				let sent_db = readSmsDb(config.sms_db_path, config_section);
+				let sent = sent_db.sent || [];
+				
+				// Merge messages
+				let all_messages = mergeSmsMessages(received, sent);
+				
+				// Reconstruct multi-part messages
+				all_messages = reconstructMultipartSms(all_messages);
+				
+				// Group by conversation
+				let conversations = groupByConversation(all_messages);
+				
+				return {
+					modem_config: config,
+					received_from_sim: received_from_sim,
+					conversations: conversations,
+					total: length(all_messages)
+				};
+			}
+		},
+		
+		// Get conversation details with a specific contact
+		get_conversation: {
+			args: {
+				config_section: "",
+				contact: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let contact = request.args.contact;
+				
+				// Read SMS from SIM card
+				let received_from_sim = execTomModem(config.at_port, config.use_ubus, 'r', null);
+				
+				// Save to database (and optionally delete from SIM)
+				let received = saveReceivedSms(config, config_section, received_from_sim);
+				
+				// Read sent SMS from database
+				let sent_db = readSmsDb(config.sms_db_path, config_section);
+				let sent = sent_db.sent || [];
+				
+				// Merge messages
+				let all_messages = mergeSmsMessages(received, sent);
+				
+				// Filter by contact
+				let conversation = [];
+				for (let msg in all_messages) {
+					let msg_contact = msg.type == 'received' ? msg.sender : msg.recipient;
+					if (msg_contact == contact) {
+						push(conversation, msg);
+					}
+				}
+				
+				// Reconstruct multi-part messages
+				conversation = reconstructMultipartSms(conversation);
+				
+				// Sort by timestamp ascending for conversation view
+				conversation = sort(conversation, (a, b) => a.timestamp - b.timestamp);
+				
+				return {
+					contact: contact,
+					messages: conversation,
+					total: length(conversation)
+				};
+			}
+		},
+		
+		// Send SMS (PDU format from frontend)
+		send_sms: {
+			args: {
+				config_section: "",
+				recipient: "",
+				pdu: "",
+				content: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config) {
+					warn("send_sms: Failed to get modem configuration\n");
+					return { error: 'Failed to get modem configuration' };
+				}
+
+				if (!config.at_port) {
+					warn("send_sms: Missing SMS AT port configuration\n");
+					return { error: 'Missing SMS AT port configuration' };
+				}
+				
+				if (!request.args.pdu) {
+					warn("send_sms: Missing PDU parameter\n");
+					return { error: 'Missing PDU parameter' };
+				}
+				
+				if (!request.args.recipient) {
+					warn("send_sms: Missing recipient parameter\n");
+					return { error: 'Missing recipient parameter' };
+				}
+				
+				if (!request.args.content) {
+					warn("send_sms: Missing content parameter\n");
+					return { error: 'Missing content parameter' };
+				}
+				
+				warn(`send_sms: Sending to ${request.args.recipient}, PDU length: ${length(request.args.pdu)}\n`);
+				
+				// Send SMS via tom_modem
+				let result = execTomModem(config.at_port, config.use_ubus, 's', {
+					pdu: request.args.pdu
+				});
+				
+				warn(`send_sms: Result: ${sprintf('%J', result)}\n`);
+
+				// Check status field from tom_modem output
+				// tom_modem returns {"status":"success"} on success or {"status":"failed","reason":"..."} on failure
+				let is_success = (result?.status === 'success' || result?.result?.status === '1');
+				let db = readSmsDb(config.sms_db_path, config_section);
+				if (!db.sent)
+					db.sent = [];
+				if (!db.next_id)
+					db.next_id = 1;
+				
+				// Save to sent database regardless of success/failure
+				let msg_timestamp = time();
+				let msg_id = db.next_id++;
+				
+				push(db.sent, {
+					id: msg_id,
+					recipient: request.args.recipient,
+					content: request.args.content,
+					timestamp: msg_timestamp,
+					pdu: request.args.pdu,
+					is_success: is_success
+				});
+				
+				// Keep only last 1000 sent messages
+				if (length(db.sent) > 1000) {
+					db.sent = slice(db.sent, length(db.sent) - 1000);
+				}
+				
+				writeSmsDb(config.sms_db_path, config_section, db);
+				
+				// Return error if send failed
+				if (!is_success) {
+					let reason = result?.error || result?.reason || result?.raw || sprintf('%J', result);
+					if (reason) {
+						warn(`send_sms: Modem error: ${reason}\n`);
+						return { error: 'Modem error: ' + reason, id: msg_id, result: result };
+					} else {
+						warn("send_sms: tom_modem returned no success status\n");
+						return { error: 'Failed to send SMS - modem returned no success status', id: msg_id, result: result };
+					}
+				}
+				
+				return {
+					success: true,
+					id: msg_id,
+					result: result
+				};
+			}
+		},
+		
+		// Delete SMS by ID(s)
+		delete_sms: {
+			args: {
+				config_section: "",
+				type: "",
+				ids: []
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				if (!request.args.type)
+					return { error: 'Missing message type' };
+				
+				if (!request.args.ids)
+					return { error: 'Missing message IDs' };
+				
+				// Convert ids to array if it's not already
+				let ids_to_delete = [];
+				if (type(request.args.ids) == 'array') {
+					ids_to_delete = request.args.ids;
+				} else {
+					push(ids_to_delete, request.args.ids);
+				}
+				
+				warn(`delete_sms: type=${request.args.type}, ids=${sprintf('%J', ids_to_delete)}\n`);
+				
+				let deleted_count = 0;
+				let original_count = 0;
+				
+				if (request.args.type == 'received') {
+					// Delete from received database
+					let db = readReceivedSmsDb(config.sms_db_path, config_section);
+					if (!db.received)
+						db.received = [];
+
+					original_count = length(db.received);
+					warn(`delete_sms: received DB has ${original_count} messages\n`);
+					
+					let new_received = [];
+					
+					for (let sms in db.received) {
+						let should_delete = false;
+						for (let id in ids_to_delete) {
+							if (sms.id == id) {
+								should_delete = true;
+								deleted_count++;
+								break;
+							}
+						}
+						if (!should_delete) {
+							push(new_received, sms);
+						}
+					}
+					
+					db.received = new_received;
+					writeReceivedSmsDb(config.sms_db_path, config_section, db);
+					
+				} else if (request.args.type == 'sent') {
+					// Delete from sent database
+					let db = readSmsDb(config.sms_db_path, config_section);
+					if (!db.sent)
+						db.sent = [];
+					
+					original_count = length(db.sent);
+					warn(`delete_sms: sent DB has ${original_count} messages\n`);
+					
+					let new_sent = [];
+					
+					for (let sms in db.sent) {
+						let should_delete = false;
+						for (let id in ids_to_delete) {
+							if (sms.id == id) {
+								should_delete = true;
+								deleted_count++;
+								break;
+							}
+						}
+						if (!should_delete) {
+							push(new_sent, sms);
+						}
+					}
+					
+					db.sent = new_sent;
+					writeSmsDb(config.sms_db_path, config_section, db);
+				} else {
+					return { error: 'Invalid message type' };
+				}
+				
+				warn(`delete_sms: Deleted ${deleted_count} messages\n`);
+				
+				return { 
+					success: true,
+					deleted: deleted_count
+				};
+			}
+		},
+		
+		// Mark SMS as read by ID(s)
+		mark_read: {
+			args: {
+				config_section: "",
+				ids: []
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				if (!request.args.ids)
+					return { error: 'Missing message IDs' };
+				
+				// Convert ids to array if it's not already
+				let ids_to_mark = [];
+				if (type(request.args.ids) == 'array') {
+					ids_to_mark = request.args.ids;
+				} else {
+					push(ids_to_mark, request.args.ids);
+				}
+				
+				// Mark messages as read in database
+				let db = readReceivedSmsDb(config.sms_db_path, config_section);
+				if (!db.received)
+					db.received = [];
+				
+				let marked_count = 0;
+				for (let sms in db.received) {
+					for (let id in ids_to_mark) {
+						if (sms.id == id && !sms.is_read) {
+							sms.is_read = true;
+							marked_count++;
+							break;
+						}
+					}
+				}
+				
+				writeReceivedSmsDb(config.sms_db_path, config_section, db);
+				
+				return {
+					success: true,
+					marked: marked_count
+				};
+			}
+		},
+		
+		// Mark SMS as forwarded by ID(s)
+		mark_forwarded: {
+			args: {
+				config_section: "",
+				ids: []
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				if (!request.args.ids)
+					return { error: 'Missing message IDs' };
+				
+				// Convert ids to array if it's not already
+				let ids_to_mark = [];
+				if (type(request.args.ids) == 'array') {
+					ids_to_mark = request.args.ids;
+				} else {
+					push(ids_to_mark, request.args.ids);
+				}
+				
+				// Mark messages as forwarded in database
+				let db = readReceivedSmsDb(config.sms_db_path, config_section);
+				if (!db.received)
+					db.received = [];
+				
+				let marked_count = 0;
+				for (let sms in db.received) {
+					for (let id in ids_to_mark) {
+						if (sms.id == id && !sms.forwarded) {
+							sms.forwarded = true;
+							marked_count++;
+							break;
+						}
+					}
+				}
+				
+				writeReceivedSmsDb(config.sms_db_path, config_section, db);
+				
+				return {
+					success: true,
+					marked: marked_count
+				};
+			}
+		},
+		
+		// Get sent SMS history
+		get_sent_history: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let db = readSmsDb(config.sms_db_path, config_section);
+				return {
+					sent: db.sent || [],
+					total: length(db.sent || [])
+				};
+			}
+		},
+		
+		// Clear sent SMS history
+		clear_sent_history: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let db = { sent: [], next_id: 1 };
+				writeSmsDb(config.sms_db_path, config_section, db);
+				
+				return {
+					success: true
+				};
+			}
+		},
+		
+		// Get received SMS history
+		get_received_history: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let db = readReceivedSmsDb(config.sms_db_path, config_section);
+				return {
+					received: db.received || [],
+					total: length(db.received || [])
+				};
+			}
+		},
+		
+		// Clear received SMS history
+		clear_received_history: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let db = { received: [], next_id: 1 };
+				writeReceivedSmsDb(config.sms_db_path, config_section, db);
+				
+				return {
+					success: true
+				};
+			}
+		},
+		
+		// Get SMS storage capabilities
+		get_sms_storage: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				// Execute AT+CPMS? to query SMS storage
+				let response = execAtCommand(config.at_port, config.use_ubus, 'AT+CPMS?');
+				
+				if (!response)
+					return { error: 'Failed to query SMS storage' };
+				
+				// Parse the response
+				let storage = parseCpmsResponse(response);
+				
+				if (!storage)
+					return { error: 'Failed to parse SMS storage response' };
+				
+				return {
+					success: true,
+					storage: storage
+				};
+			}
+		},
+		
+		// Set SMS storage
+		set_sms_storage: {
+			args: {
+				config_section: "",
+				mem1: "",
+				mem2: "",
+				mem3: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let mem1 = request.args.mem1;
+				let mem2 = request.args.mem2;
+				let mem3 = request.args.mem3;
+				
+				if (!mem1 || !mem2)
+					return { error: 'Missing mem1 or mem2 parameter' };
+				
+				// Build AT+CPMS command
+				let at_cmd = `AT+CPMS="${mem1}","${mem2}"`;
+				if (mem3 && mem3 != 'Loading')
+					at_cmd += `,"${mem3}"`;
+				
+				// Execute the command
+				let response = execAtCommand(config.at_port, config.use_ubus, at_cmd);
+				
+				if (!response)
+					return { error: 'Failed to set SMS storage' };
+				
+				// Check if command was successful (look for OK in response)
+				let success = index(response, 'OK') >= 0;
+				
+				return {
+					success: success,
+					response: response
+				};
+			}
+		},
+		
+		// Get SMS directly from SIM card (without database processing)
+		get_sim_sms: {
+			args: {
+				config_section: ""
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				// Read SMS from SIM card directly
+				let result = execTomModem(config.at_port, config.use_ubus, 'r', null);
+				
+				if (!result)
+					return { error: 'Failed to read SMS from SIM card' };
+				
+				// Return raw messages from SIM
+				let messages = result?.received || result?.msg || [];
+				
+				return {
+					success: true,
+					messages: messages,
+					total: length(messages)
+				};
+			}
+		},
+		
+		// Delete SMS from SIM card by index
+		delete_sim_sms: {
+			args: {
+				config_section: "",
+				index: 0
+			},
+			call: function(request) {
+				let config_section = request.args.config_section;
+				let config = getModemConfig(config_section);
+				if (!config)
+					return { error: 'Failed to get modem configuration' };
+				
+				let index = request.args.index;
+				if (index == null || index < 0)
+					return { error: 'Invalid SMS index' };
+				
+				// Delete SMS from SIM card
+				let result = execTomModem(config.at_port, config.use_ubus, 'd', { index: index });
+				
+				// Check if deletion was successful
+				// tom_modem returns {"status":"success"} on success
+				let success = (result?.status === 'success');
+				
+				return {
+					success: success,
+					result: result
+				};
+			}
+		}
+	}
+};

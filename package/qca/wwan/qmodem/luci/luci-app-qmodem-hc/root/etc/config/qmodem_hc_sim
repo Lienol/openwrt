@@ -1,4 +1,0 @@
-config main main
-        option sim_auto_switch '1'
-        option detect_interval '15'
-        option judge_time '5'

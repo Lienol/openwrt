@@ -100,6 +100,11 @@ module_param( uci_msg_lvl, uint, S_IRUGO | S_IWUSR);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
 #ifdef TCGETS2
+__weak int user_termios_to_kernel_termios(struct ktermios *k, struct termios2 __user *u);
+__weak int kernel_termios_to_user_termios(struct termios2 __user *u, struct ktermios *k);
+__weak int user_termios_to_kernel_termios_1(struct ktermios *k, struct termios __user *u);
+__weak int kernel_termios_to_user_termios_1(struct termios __user *u, struct ktermios *k);
+
 __weak int user_termios_to_kernel_termios(struct ktermios *k,
 						 struct termios2 __user *u)
 {

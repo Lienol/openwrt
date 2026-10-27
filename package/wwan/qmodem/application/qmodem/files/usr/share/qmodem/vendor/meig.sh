@@ -4,7 +4,8 @@
 _Vendor="meig"
 _Author="Siriling,sfwtw"
 _Maintainer="sfwtw <unkown>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/meig.sh"
 debug_subject="meig_ctrl"
 
 vendor_get_disabled_features(){
@@ -14,15 +15,13 @@ vendor_get_disabled_features(){
 
 # Return raw data   
 get_imei(){
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | grep -o "[0-9]\{15\}")
+    imei=$(cmd_cgsn "$at_port" | grep -o "[0-9]\{15\}")
     json_add_string "imei" "$imei"
 }
 
 set_imei(){
     local imei="$1"
-    at_command="AT+LCTSN=1,7,\"$imei\""
-    res=$(at $at_port $at_command)
+    res=$(cmd_lctsn_set_imei "$at_port" "$imei")
     json_select "result"
     json_add_string "set_imei" "$res"
     json_close_object
@@ -32,8 +31,7 @@ set_imei(){
 # Get dial mode
 get_mode()
 {
-    at_command='AT+SER?'
-    local mode_num=$(at ${at_port} ${at_command} | grep "+SER:" | sed 's/+SER: //g' | sed 's/\r//g')
+    local mode_num=$(cmd_ser_query "$at_port" | grep "+SER:" | sed 's/+SER: //g' | sed 's/\r//g')
     local mode
     case "$platform" in
         "qualcomm")
@@ -101,8 +99,7 @@ set_mode()
             mode_num="1"
         ;;
     esac
-    at_command='AT+SER='${mode_num}',1'
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_ser_set "$at_port" "$mode_num")
     json_select "result"
     json_add_string "set_mode" "$res"
     json_close_object
@@ -111,8 +108,7 @@ set_mode()
 # Get network preference
 get_network_prefer()
 {
-    at_command='AT^SYSCFGEX?'
-    local response=$(at ${at_port} ${at_command} | grep "\^SYSCFGEX:" | sed 's/\^SYSCFGEX://g')
+    local response=$(cmd_syscfgex_query "$at_port" | grep "\^SYSCFGEX:" | sed 's/\^SYSCFGEX://g')
     local network_type_num=$(echo "$response" | awk -F'"' '{print $2}')
     
     network_prefer_2g="0"
@@ -172,8 +168,7 @@ set_network_prefer()
     if [ -z "$network_prefer_config" ]; then
         network_prefer_config="00"
     fi
-    at_command='AT^SYSCFGEX="'${network_prefer_config}'",all,0,2,all,all,all,all,1'
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_syscfgex_set "$at_port" "$network_prefer_config")
     json_select "result"
     json_add_string "set_network_prefer" "$res"
     json_close_object
@@ -191,16 +186,15 @@ get_voltage()
 # Get temperature
 get_temperature()
 {   
-    at_command="AT+TEMP"
     local response
     local temp
     local degree_symbol=$(printf "\xc2\xb0")C 
 
 # 根据平台选择不同的AT命令并提取温度值
 if [ "$platform" = "unisoc" ]; then
-    response=$(at ${at_port} ${at_command} | grep 'TEMP: "soc-thmzone"' | awk -F'"' '{print $4}')
+    response=$(cmd_temp "$at_port" | grep 'TEMP: "soc-thmzone"' | awk -F'"' '{print $4}')
 else
-    response=$(at ${at_port} ${at_command} | grep 'TEMP: "cpu0-0-usr"' | awk -F'"' '{print $4}')
+    response=$(cmd_temp "$at_port" | grep 'TEMP: "cpu0-0-usr"' | awk -F'"' '{print $4}')
  fi
 
 # 处理响应值
@@ -225,12 +219,9 @@ base_info()
 {
     m_debug  "Meig base info"
 
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | sed -n '2p' | sed 's/+CGMI: //g' | sed 's/\r//g')
-    at_command="AT+CGMR"
-    revision=$(at $at_port $at_command | grep "+CGMR: " | awk -F': ' '{print $2}' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | sed -n '2p' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | sed -n '2p' | sed 's/+CGMI: //g' | sed 's/\r//g')
+    revision=$(cmd_cgmr "$at_port" | grep "+CGMR: " | awk -F': ' '{print $2}' | sed 's/\r//g')
     class="Base Information"
     add_plain_info_entry "name" "$name" "Name"
     add_plain_info_entry "manufacturer" "$manufacturer" "Manufacturer"
@@ -246,36 +237,29 @@ sim_info()
 {
     m_debug  "Meig sim info"
     
-    at_command="AT^SIMSLOT?"
-    response=$(at ${at_port} ${at_command} | grep "\^SIMSLOT:" | awk -F': ' '{print $2}' | awk -F',' '{print $2}')
+    response=$(cmd_sims_slot_query "$at_port" | grep "\^SIMSLOT:" | awk -F': ' '{print $2}' | awk -F',' '{print $2}')
     if [ "$response" != "0" ]; then
         sim_slot="1"
     else
         sim_slot="2"
     fi
 
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imei=$(cmd_cgsn "$at_port" | sed -n '2p' | sed 's/\r//g')
 
-    at_command="AT+CPIN?"
-    sim_status_flag=$(at $at_port $at_command | sed -n '2p')
+    sim_status_flag=$(cmd_cpin_query "$at_port" | sed -n '2p')
     sim_status=$(get_sim_status "$sim_status_flag")
 
     if [ "$sim_status" != "ready" ]; then
         return
     fi
 
-    at_command="AT+COPS?"
-    isp=$(at $at_port $at_command | sed -n '2p' | awk -F'"' '{print $2}')
+    isp=$(cmd_cops_query "$at_port" | sed -n '2p' | awk -F'"' '{print $2}')
 
-    at_command="AT+CNUM"
-    sim_number=$(at $at_port $at_command | sed -n '2p' | awk -F'"' '{print $4}')
+    sim_number=$(cmd_cnum "$at_port" | sed -n '2p' | awk -F'"' '{print $4}')
 
-    at_command="AT+CIMI"
-    imsi=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | sed -n '2p' | sed 's/\r//g')
 
-    at_command="AT+ICCID"
-    iccid=$(at $at_port $at_command | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
+    iccid=$(cmd_iccid "$at_port" | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
     class="SIM Information"
     case "$sim_status" in
         "ready")
@@ -309,20 +293,16 @@ network_info()
 {
     m_debug  "Meig network info"
 
-    at_command="AT^SYSINFOEX"
-    network_type=$(at ${at_port} ${at_command} | grep "\^SYSINFOEX:" | awk -F'"' '{print $4}')
+    network_type=$(cmd_sysinfoex "$at_port" | grep "\^SYSINFOEX:" | awk -F'"' '{print $4}')
 
     [ -z "$network_type" ] && {
-        at_command='AT+COPS?'
-        local rat_num=$(at ${at_port} ${at_command} | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
+        local rat_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
         network_type=$(get_rat ${rat_num})
     }
 
-    at_command="AT+CSQ"
-    response=$(at ${at_port} ${at_command} | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
+    response=$(cmd_csq "$at_port" | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
 
-    at_command="AT^DSAMBR=${pdp_index:-1}"
-    response=$(at $at_port $at_command | grep "\^DSAMBR:" | awk -F': ' '{print $2}')
+    response=$(cmd_dsambr "$at_port" "${pdp_index:-1}" | grep "\^DSAMBR:" | awk -F': ' '{print $2}')
     
     ambr_ul_tmp="0"
     ambr_dl_tmp="0"
@@ -363,8 +343,7 @@ network_info()
         [ -z "$ambr_dl" ] && ambr_dl="0"
     fi
 
-    at_command='AT^DSFLOWQRY'
-    response=$(at $at_port $at_command | grep "\^DSFLOWRPT:" | sed 's/\^DSFLOWRPT: //g' | sed 's/\r//g')
+    response=$(cmd_dsflowqry "$at_port" | grep "\^DSFLOWRPT:" | sed 's/\^DSFLOWRPT: //g' | sed 's/\r//g')
     
     tx_rate="0"
     rx_rate="0"
@@ -390,8 +369,7 @@ cell_info()
 {
     m_debug  "Meig cell info"
 
-    at_command="AT^CELLINFO=${pdp_index:-1}"
-    response=$(at $at_port $at_command | grep "\^CELLINFO:" | sed 's/\^CELLINFO://')
+    response=$(cmd_cellinfo "$at_port" "${pdp_index:-1}" | grep "\^CELLINFO:" | sed 's/\^CELLINFO://')
     
     local rat=""
     network_mode="Unknown Mode"

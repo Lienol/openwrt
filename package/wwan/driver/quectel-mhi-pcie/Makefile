@@ -8,8 +8,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=quectel-mhi-pcie
-PKG_VERSION:=1.3.8
-PKG_RELEASE:=3
+PKG_VERSION:=1.4
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk

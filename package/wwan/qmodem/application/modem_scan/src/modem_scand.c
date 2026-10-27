@@ -874,7 +874,10 @@ static void normalize_model_name(char *name, size_t len)
 	else if (strstr(lower, "fm190w-gl")) snprintf(name, len, "fm190w-gl");
 	else if (strstr(lower, "rm500u-ea")) snprintf(name, len, "rm500u-ea");
 	else if (strstr(lower, "mv31-w") || strstr(lower, "t99w175")) snprintf(name, len, "t99w175");
+	else if (strstr(lower, "mv32-w-a")) snprintf(name, len, "mv32-w-a");
+	else if (strstr(lower, "mv32-w")) snprintf(name, len, "mv32-w-b");
 	else if (strstr(lower, "t99w373")) snprintf(name, len, "t99w373");
+	else if (strstr(lower, "t99w368")) snprintf(name, len, "t99w368");
 	else if (strstr(lower, "dp25-42843-47")) snprintf(name, len, "t99w640");
 	else if (strstr(lower, "sim8380g")) snprintf(name, len, "SIM8380G-M2");
 	else if (strstr(lower, "rg200u-cn")) snprintf(name, len, "rg200u-cn");
@@ -1092,7 +1095,7 @@ static int add_modem(const char *slot, const char *slot_type)
 		snprintf(modem_count_s, sizeof(modem_count_s), "%d", modem_count);
 		uci_set("qmodem.main.modem_count", modem_count_s);
 		snprintf(key, sizeof(key), "qmodem.%s", section); uci_set(key, "modem-device");
-		if (default_alias[0]) { snprintf(key, sizeof(key), "qmodem.%s.alias", section); uci_set(key, default_alias); }
+		if (default_alias[0] && strcmp(default_alias, "-")) { snprintf(key, sizeof(key), "qmodem.%s.alias", section); uci_set(key, default_alias); }
 		snprintf(metric, sizeof(metric), "%d", modem_count + 10);
 		if (default_metric[0])
 			snprintf(metric, sizeof(metric), "%s", default_metric);

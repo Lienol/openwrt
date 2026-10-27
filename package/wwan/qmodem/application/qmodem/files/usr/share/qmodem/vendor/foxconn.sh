@@ -3,7 +3,8 @@
 _Vendor="foxconn"
 _Author="x-shark"
 _Maintainer="x-shark <unknown>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/foxconn.sh"
 debug_subject="foxconn_ctrl"
 
 name=$(uci -q get qmodem.$config_section.name)
@@ -11,17 +12,20 @@ case "$name" in
     "t99w640")
         at_pre="AT+"
     ;;
+    "t99w368")
+        at_pre="AT+"
+    ;;
     *)
         at_pre="AT^"
     ;;
 esac
 
-function get_imei(){
-    imei=$(at $at_port "ATI" | awk -F': ' '/^IMEI:/ {print $2}' | xargs)
+get_imei(){
+    imei=$(cmd_ati "$at_port" | awk -F': ' '/^IMEI:/ {print $2}' | xargs)
     json_add_string imei $imei
 }
 
-function set_imei(){
+set_imei(){
     imei=$1
     # 添加 80A 前缀
     extended="80A${imei}"
@@ -41,26 +45,25 @@ function set_imei(){
     # 两位分组加逗号，并转小写
     formatted=$(echo "$swapped" | sed 's/../&,/g' | sed 's/,$//' | tr 'A-Z' 'a-z')
 
-    at $at_port $at_pre'nv=550,"0"'
-    at_command=$at_pre'nv=550,9,"'$formatted'"'
-    res=$(at $at_port "$at_command")
+    cmd_nv_550_clear "$at_port" "$at_pre"
+    res=$(cmd_nv_550_set "$at_port" "$at_pre" "$formatted")
     json_select "result"
     json_add_string "set_imei" "$res"
     json_close_object
     get_imei
 }
 
-function get_mode(){
+get_mode(){
     local mode_num
     local mode
-    cfg=$(at $at_port $at_pre"PCIEMODE?")
+    cfg=$(cmd_pciemode_query "$at_port" "$at_pre")
     config_type=`echo -e "$cfg" | grep -o '[0-9]'`
     if [ "$config_type" = "1" ]; then
         mode_num="0"
     json_add_int disable_mode_btn 1
 
     else
-          ucfg=$(at $at_port $at_pre"USBSWITCH?")
+          ucfg=$(cmd_usbswitch_query "$at_port" "$at_pre")
           config_type=$(echo "$ucfg" | grep USBSWITCH: |cut -d':' -f2|xargs)
           if [ "$config_type" = "9025" ]; then
              mode_num="1"
@@ -108,15 +111,14 @@ set_mode(){
         ;;
     esac
     #设置模组
-    at_command=$at_pre"USBSWITCH=${mode_num}"
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_usbswitch_set "$at_port" "$at_pre" "$mode_num")
     json_select "result"
     json_add_string "set_mode" "$res"
     json_close_object
 }
 
-function get_network_prefer(){
-    res=$(at $at_port $at_pre"SLMODE?"| grep -o '[0-9]\+' | tr -d '\n' | tr -d ' ')
+get_network_prefer(){
+    res=$(cmd_slmode_query "$at_port" "$at_pre"| grep -o '[0-9]\+' | tr -d '\n' | tr -d ' ')
 # (RAT index): 
 # 0 Automatically 
 # 1 WCDMA Only
@@ -174,7 +176,7 @@ function get_network_prefer(){
     json_close_array
 }
 
-function set_network_prefer(){
+set_network_prefer(){
     local network_prefer_3g=$(echo $1 |jq -r 'contains(["3G"])')
     local network_prefer_4g=$(echo $1 |jq -r 'contains(["4G"])')
     local network_prefer_5g=$(echo $1 |jq -r 'contains(["5G"])')
@@ -205,14 +207,14 @@ function set_network_prefer(){
             code="10"
             ;;
     esac
-    res=$(at $at_port $at_pre"SLMODE=$(echo "$code" | awk '{print substr($0,1,1) "," substr($0,2,1)}')")
+    res=$(cmd_slmode_set "$at_port" "$at_pre" "$(echo "$code" | awk '{print substr($0,1,1) "," substr($0,2,1)}')")
     json_add_string "code" "$code"
     json_add_string "result" "$res"
 }
 
 
 
-function get_lockband(){
+get_lockband(){
     json_add_object "lockband"
     case $platform in
         "qualcomm")
@@ -222,19 +224,17 @@ function get_lockband(){
     json_close_object
 }
 
-function sim_info()
+sim_info()
 {
     class="SIM Information"
 
     #IMEI（国际移动设备识别码）
-    imei=$(at $at_port "ATI" | awk -F': ' '/^IMEI:/ {print $2}' | xargs)
+    imei=$(cmd_ati "$at_port" | awk -F': ' '/^IMEI:/ {print $2}' | xargs)
     
-    at_command=$at_pre"switch_slot?"
-    sim_slot=$(at $at_port $at_command | grep ENABLE|grep -o 'SIM[0-9]*')
+    sim_slot=$(cmd_switch_slot_query "$at_port" "$at_pre" | grep ENABLE|grep -o 'SIM[0-9]*')
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-    sim_status=$(at $at_port $at_command | grep "+CPIN:")
+    sim_status=$(cmd_cpin_query "$at_port" | grep "+CPIN:")
     sim_status=${sim_status:7:-1}
     #lowercase
     sim_status=$(echo $sim_status | tr  A-Z a-z)
@@ -243,8 +243,15 @@ function sim_info()
         return
     fi
     
-    at_command="AT+COPS?"
-    isp=$(at $at_port $at_command | sed -n '2p' | awk -F'"' '{print $2}')
+    # Only T99W368 returns unreadable text operator names; force numeric COPS
+    # format just for that model so existing Foxconn models keep their current
+    # behaviour.
+    case "$name" in
+        "t99w368")
+            cmd_cops_numeric "$at_port" > /dev/null 2>&1
+            ;;
+    esac
+    isp=$(cmd_cops_query "$at_port" | sed -n '2p' | awk -F'"' '{print $2}')
     if [ "$isp" = "CHN-CMCC" ] || [ "$isp" = "CMCC" ]|| [ "$isp" = "46000" ]; then
          isp="中国移动"
     # # elif [ "$isp" = "CHN-UNICOM" ] || [ "$isp" = "UNICOM" ] || [ "$isp" = "46001" ]; then
@@ -255,16 +262,13 @@ function sim_info()
          isp="中国电信"
     fi
 
-    at_command="AT+CNUM"
-    sim_number=$(at $at_port $at_command | awk -F'"' '{print $2}'|xargs)
+    sim_number=$(cmd_cnum "$at_port" | awk -F'"' '{print $2}'|xargs)
 
     #IMSI（国际移动用户识别码）
-    at_command="AT+CIMI"
-    imsi=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | sed -n '2p' | sed 's/\r//g')
 
     #ICCID（集成电路卡识别码）
-    at_command="AT+ICCID"
-    iccid=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g'|sed 's/[^0-9]*//g')
+    iccid=$(cmd_iccid "$at_port" | sed -n '2p' | sed 's/\r//g'|sed 's/[^0-9]*//g')
     case "$sim_status" in
         "ready")
             add_plain_info_entry "SIM Status" "$sim_status" "SIM Status" 
@@ -292,10 +296,9 @@ function sim_info()
     esac
 }
 
-function base_info(){
+base_info(){
         #Name（名称）
-    at_command="ATI"
-    baseinfos=$(at $at_port $at_command)
+    baseinfos=$(cmd_ati "$at_port")
     name=$(echo "$baseinfos"| awk -F': ' '/^Manufacturer:/ {print $2}' |xargs)
     #Manufacturer（制造商）
     manufacturer=$(echo "$baseinfos"|awk -F': ' '/^Manufacturer:/ {print $2}' |xargs)
@@ -310,11 +313,10 @@ function base_info(){
     _get_voltage
 }
 
-function network_info() {
+network_info() {
     class="Network Information"
     [ -z "$network_type" ] && {
-        at_command='AT+COPS?'
-        local rat_num=$(at ${at_port} ${at_command} | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
+        local rat_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F',' '{print $4}' | sed 's/\r//g')
         network_type=$(get_rat ${rat_num})
     }
     #at_command='AT+debug?'
@@ -323,15 +325,14 @@ function network_info() {
     add_plain_info_entry "Network Type" "$network_type" "Network Type"
 }
 
-function vendor_get_disabled_features(){
+vendor_get_disabled_features(){
     json_add_string "" "NeighborCell"
 }
 
 get_lockband_nr()
 {
     m_debug  "Quectel sdx55 get lockband info"
-    bands_command=$at_pre"BAND_PREF?"
-    get_lockbans=$(at $at_port $bands_command)
+    get_lockbans=$(cmd_band_pref_query "$at_port" "$at_pre")
 
     # WCDMA
     wcdma_enable=$(echo "$get_lockbans" | grep "WCDMA,Enable Bands" | cut -d':' -f2 | tr -d ' ' | tr ',' ' ')
@@ -423,16 +424,13 @@ set_lockband_nr(){
     case "$band_class" in
         "UMTS") 
         lock_band=$(echo $lock_band)
-            at_command=$at_pre"BAND_PREF=WCDMA,2,$lock_band"
-            res=$(at $at_port $at_command)
+            res=$(cmd_band_pref_lock "$at_port" "$at_pre" WCDMA "$lock_band")
             ;;
         "LTE") 
-            at_command=$at_pre"BAND_PREF=LTE,2,$lock_band"
-            res=$(at $at_port $at_command)
+            res=$(cmd_band_pref_lock "$at_port" "$at_pre" LTE "$lock_band")
             ;;
         "NR")
-            at_command=$at_pre"BAND_PREF=NR5G,2,$lock_band"
-            res=$(at $at_port $at_command)
+            res=$(cmd_band_pref_lock "$at_port" "$at_pre" NR5G "$lock_band")
             ;;
     esac
 }
@@ -457,29 +455,29 @@ set_lockband()
     json_close_object
 }
 
-function _get_voltage(){
-    voltage=$(at $at_port "AT!PCVOLT?" | grep -o 'Power supply voltage: [0-9]* mV'|grep -o '[0-9]*' )
+_get_voltage(){
+    voltage=$(cmd_pcvolt_query "$at_port" | grep -o 'Power supply voltage: [0-9]* mV'|grep -o '[0-9]*' )
     [ -n "$voltage" ] && {
         add_plain_info_entry "voltage" "$voltage mV" "Voltage" 
     }
 }
 
-function _get_temperature(){
-    temperature=$(at $at_port $at_pre"temp?" | sed -n 's/.*TSENS: \([0-9]*\)C.*/\1/p' )
+_get_temperature(){
+    temperature=$(cmd_temp_query "$at_port" "$at_pre" | sed -n 's/.*TSENS: \([0-9]*\)C.*/\1/p' )
     [ -n "$temperature" ] && {
         add_plain_info_entry "temperature" "$temperature C" "Temperature" 
     }
 }
 
-function _add_avalible_band(){
+_add_avalible_band(){
     add_avalible_band_entry $1 $1
 }
 
-function _add_lock_band(){
+_add_lock_band(){
     json_add_string "" $1
 }
 
-function _mask_to_band()
+_mask_to_band()
 {
     func=$1
     low_band=$2
@@ -504,7 +502,7 @@ function _mask_to_band()
 
 }
 
-function _band_list_to_mask()
+_band_list_to_mask()
 {
     local band_list=$1
     local low=0
@@ -529,7 +527,7 @@ function _band_list_to_mask()
     echo "$low,$high"
 }
 
-function process_signal_value() {
+process_signal_value() {
     local value="$1"
     local numbers=$(echo "$value" | grep -oE '[-+]?[0-9]+(\.[0-9]+)?')
     local count=0
@@ -549,8 +547,7 @@ function process_signal_value() {
 
 cell_info(){
     class="Cell Information"
-    at_command=$at_pre"debug?"
-    response=$(at $at_port $at_command)
+    response=$(cmd_debug_query "$at_port" "$at_pre")
     network_mode=$(echo "$response"|awk -F'RAT:' '{print $2}'|xargs)
     #add_plain_info_entry "network_mode" "$network_mode" "Network Mode"
 

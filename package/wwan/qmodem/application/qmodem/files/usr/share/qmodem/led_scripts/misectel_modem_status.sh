@@ -23,7 +23,7 @@ update_cfg()
 update_netdev()
 {
 	config_load network
-	if [ -n "$ALIAS" ]; then
+	if [ -n "$ALIAS" ] && [ "$ALIAS" != "-" ]; then
 		config_get NET_DEV "$ALIAS" ifname
 	else
 		config_get NET_DEV "$MODEM_CFG" ifname

@@ -1,6 +1,6 @@
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -2719,6 +2719,25 @@ netif_napi_add(struct net_device *dev, s
+@@ -2734,6 +2734,25 @@ netif_napi_add(struct net_device *dev, s
  	netif_napi_add_weight(dev, napi, poll, NAPI_POLL_WEIGHT);
  }
  
@@ -26,7 +26,7 @@
  static inline void
  netif_napi_add_tx_weight(struct net_device *dev,
  			 struct napi_struct *napi,
-@@ -2729,6 +2748,16 @@ netif_napi_add_tx_weight(struct net_devi
+@@ -2744,6 +2763,16 @@ netif_napi_add_tx_weight(struct net_devi
  	netif_napi_add_weight(dev, napi, poll, weight);
  }
  
@@ -43,7 +43,7 @@
  /**
   * netif_napi_add_tx() - initialize a NAPI context to be used for Tx only
   * @dev:  network device
-@@ -2746,6 +2775,13 @@ static inline void netif_napi_add_tx(str
+@@ -2761,6 +2790,13 @@ static inline void netif_napi_add_tx(str
  	netif_napi_add_tx_weight(dev, napi, poll, NAPI_POLL_WEIGHT);
  }
  

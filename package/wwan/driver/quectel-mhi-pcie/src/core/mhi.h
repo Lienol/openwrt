@@ -4,7 +4,7 @@
 #ifndef _MHI_H_
 #define _MHI_H_
 
-#define PCIE_MHI_DRIVER_VERSION "V1.3.8"
+#define PCIE_MHI_DRIVER_VERSION "V1.4"
 #define ENABLE_MHI_MON
 //#define ENABLE_IP_SW0
 
@@ -826,6 +826,13 @@ int mhi_get_remote_time_sync(struct mhi_device *mhi_dev,
 			     u64 *t_host,
 			     u64 *t_dev);
 
+int mhi_get_remote_time(struct mhi_device *mhi_dev,
+			u32 sequence,
+			void (*cb_func)(struct mhi_device *mhi_dev,
+					u32 sequence,
+					u64 local_time,
+					u64 remote_time));
+
 /**
  * mhi_get_mhi_state - Return MHI state of device
  * @mhi_cntrl: MHI controller
@@ -891,6 +898,19 @@ void mhi_debug_reg_dump(struct mhi_controller *mhi_cntrl);
 
 int mhi_register_mhi_controller(struct mhi_controller *mhi_cntrl);
 void mhi_unregister_mhi_controller(struct mhi_controller *mhi_cntrl);
+
+int mhi_device_uci_init(void);
+void mhi_device_uci_exit(void);
+
+int mhi_netdev_mbin_enabled(void);
+int mhi_netdev_use_xfer_type_dma(unsigned chan);
+
+int mhi_dtr_init(void);
+void mhi_dtr_exit(void);
+int mhi_device_netdev_init(struct dentry *parent);
+void mhi_device_netdev_exit(void);
+int mhi_controller_qcom_init(void);
+void mhi_controller_qcom_exit(void);
 
 #ifndef MHI_NAME_SIZE
 #define MHI_NAME_SIZE 32

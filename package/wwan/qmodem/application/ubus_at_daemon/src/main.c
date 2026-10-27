@@ -258,16 +258,32 @@ static int ubus_list_method(struct ubus_context *ctx, struct ubus_object *obj,
     at_port_instance_t *current = g_daemon_ctx.ports;
     
     while (current) {
+        uint64_t restart_epoch;
+        uint64_t line_sequence;
+        int is_open;
+        int fd;
+        int baudrate;
+        int databits;
+        int parity;
+        int stopbits;
         void *port_obj = blobmsg_open_table(&b, NULL);
         blobmsg_add_string(&b, "port", current->port_path);
-        blobmsg_add_u32(&b, "is_open", current->is_open);
-        if (current->is_open) {
-            blobmsg_add_u32(&b, "fd", current->fd);
-            if (current->configured_baudrate > 0) {
-                blobmsg_add_u32(&b, "baudrate", current->configured_baudrate);
-                blobmsg_add_u32(&b, "databits", current->configured_databits);
-                blobmsg_add_u32(&b, "parity", current->configured_parity);
-                blobmsg_add_u32(&b, "stopbits", current->configured_stopbits);
+        pthread_mutex_lock(&current->state_mutex);
+        is_open = current->is_open;
+        fd = current->fd;
+        baudrate = current->configured_baudrate;
+        databits = current->configured_databits;
+        parity = current->configured_parity;
+        stopbits = current->configured_stopbits;
+        pthread_mutex_unlock(&current->state_mutex);
+        blobmsg_add_u32(&b, "is_open", is_open);
+        if (is_open) {
+            blobmsg_add_u32(&b, "fd", fd);
+            if (baudrate > 0) {
+                blobmsg_add_u32(&b, "baudrate", baudrate);
+                blobmsg_add_u32(&b, "databits", databits);
+                blobmsg_add_u32(&b, "parity", parity);
+                blobmsg_add_u32(&b, "stopbits", stopbits);
             }
         } else {
             // Check if file exists for closed ports
@@ -278,6 +294,13 @@ static int ubus_list_method(struct ubus_context *ctx, struct ubus_object *obj,
             }
         }
         blobmsg_add_u32(&b, "last_check", (uint32_t)current->last_check_time);
+        at_port_event_state_snapshot(current, &restart_epoch, &line_sequence);
+        blobmsg_add_u64(&b, "restart_epoch", restart_epoch);
+        blobmsg_add_u64(&b, "line_sequence", line_sequence);
+        pthread_mutex_lock(&g_daemon_ctx.line_events.mutex);
+        blobmsg_add_u64(&b, "event_drop_count",
+                        g_daemon_ctx.line_events.drop_count);
+        pthread_mutex_unlock(&g_daemon_ctx.line_events.mutex);
         blobmsg_close_table(&b, port_obj);
         current = current->next;
     }
@@ -346,6 +369,10 @@ static struct ubus_object at_daemon_object = {
 
 static void server_main(void) {
     uloop_init();
+    if (at_line_events_register_uloop(&g_daemon_ctx.line_events) != 0) {
+        fprintf(stderr, "Failed to register AT line event pipe\n");
+        return;
+    }
     
     g_daemon_ctx.ctx = ubus_connect(NULL);
     if (!g_daemon_ctx.ctx) {
@@ -377,10 +404,19 @@ static void server_main(void) {
 }
 
 int main(int argc, char **argv) {
+    struct timespec started;
     // Initialize global context
     memset(&g_daemon_ctx, 0, sizeof(g_daemon_ctx));
+    clock_gettime(CLOCK_REALTIME, &started);
+    g_daemon_ctx.daemon_epoch = (uint64_t)started.tv_sec * 1000000000U +
+                                (uint64_t)started.tv_nsec;
     g_daemon_ctx.ports = NULL;
     pthread_mutex_init(&g_daemon_ctx.ports_mutex, NULL);
+    if (at_line_events_init(&g_daemon_ctx.line_events) != 0) {
+        fprintf(stderr, "Failed to initialize AT line event queue\n");
+        pthread_mutex_destroy(&g_daemon_ctx.ports_mutex);
+        return 1;
+    }
     
     server_main();
     
@@ -395,6 +431,7 @@ int main(int argc, char **argv) {
     pthread_mutex_unlock(&g_daemon_ctx.ports_mutex);
     
     pthread_mutex_destroy(&g_daemon_ctx.ports_mutex);
+    at_line_events_cleanup(&g_daemon_ctx.line_events);
     
     return 0;
 }

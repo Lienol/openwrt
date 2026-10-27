@@ -3,7 +3,8 @@
 _Vendor="Gosuncn"
 _Author="Fujr"
 _Maintainer="Fujr <fjrcn@outlook.com>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/gosuncn.sh"
 debug_subject="gosuncn_ctrl"
 
 #获取LTE带宽
@@ -57,13 +58,13 @@ convert2hex()
 }
 
 get_imei(){
-    imei=$(at $at_port "AT+CGSN" | grep -o '[0-9]\{15\}')
+    imei=$(cmd_cgsn "$at_port" | grep -o '[0-9]\{15\}')
     json_add_string imei "$imei"
 }
 
 set_imei(){
     local imei="$1"
-    at $at_port "AT+EGMR=1,7,\"$imei\""
+    cmd_egmr_set_imei "$at_port" "$imei"
 }
 
 #获取拨号模式
@@ -71,7 +72,7 @@ get_mode()
 {
     case "$platform" in
         "qualcomm")
-            local mode_raw=$(at $at_port "AT+ZSWITCH?" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
+            local mode_raw=$(cmd_zswitch_query "$at_port" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
             case "$mode_raw" in
                 "e") mode="mbim" ;;
                 "x") mode="rmnet" ;;
@@ -81,7 +82,7 @@ get_mode()
             esac
         ;;
         "lte")
-            local mode_raw=$(at $at_port "AT+ZSWITCH?" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
+            local mode_raw=$(cmd_zswitch_query "$at_port" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
             case "$mode_raw" in
                 "e") mode="mbim" ;;
                 "x") mode="rmnet" ;;
@@ -91,7 +92,7 @@ get_mode()
             esac
         ;;
         *)
-            local mode_raw=$(at $at_port "AT+ZSWITCH?" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
+            local mode_raw=$(cmd_zswitch_query "$at_port" | grep -o "+ZSWITCH: [a-zA-Z]" | cut -d' ' -f2)
             case "$mode_raw" in
                 "e") mode="mbim" ;;
                 "x") mode="rmnet" ;;
@@ -119,16 +120,16 @@ set_mode()
     local mode=$1
     case $mode in
         "mbim")
-            at $at_port "AT+ZSWITCH=e"
+            cmd_zswitch_set "$at_port" "e"
             ;;
         "rmnet")
-            at $at_port "AT+ZSWITCH=x"
+            cmd_zswitch_set "$at_port" "x"
             ;;
         "rndis")
-            at $at_port "AT+ZSWITCH=r"
+            cmd_zswitch_set "$at_port" "r"
             ;;
         "ecm")
-            at $at_port "AT+ZSWITCH=E"
+            cmd_zswitch_set "$at_port" "E"
             ;;
         *)
             echo "Invalid mode"
@@ -157,7 +158,7 @@ get_network_prefer_lte()
 {
     # AT+ZSNT? 返回格式: +ZSNT: cm_mode,net_sel_mode,pref_acq
     # cm_mode: 0=自动, 2=WCDMA, 6=LTE
-    local res=$(at $at_port "AT+ZSNT?" | grep -o "+ZSNT: [0-9,]*" | cut -d' ' -f2)
+    local res=$(cmd_zsnt_query "$at_port" | grep -o "+ZSNT: [0-9,]*" | cut -d' ' -f2)
     local cm_mode=$(echo $res | cut -d',' -f1)
 
     network_prefer_3g="0"
@@ -177,7 +178,7 @@ get_network_prefer_lte()
 
 get_network_prefer_qualcomm()
 {
-    local res=$(at $at_port "AT+ZSNT?" | grep -o "+ZSNT: [0-9,]*" | cut -d' ' -f2)
+    local res=$(cmd_zsnt_query "$at_port" | grep -o "+ZSNT: [0-9,]*" | cut -d' ' -f2)
     local cm_mode=$(echo $res | cut -d',' -f1)
 
     network_prefer_3g="0"
@@ -239,7 +240,7 @@ set_network_prefer_lte()
             ;;
     esac
 
-    at $at_port "AT+ZSNT=$zsnt_mode"
+    cmd_zsnt_set "$at_port" "$zsnt_mode"
 }
 
 set_network_prefer_qualcomm()
@@ -260,13 +261,13 @@ set_network_prefer_qualcomm()
             ;;
     esac
 
-    at $at_port "AT+ZSNT=$zsnt_mode"
+    cmd_zsnt_set "$at_port" "$zsnt_mode"
 }
 
 #获取温度
 get_temperature()
 {
-    local temp=$(at $at_port "AT+MTSM=1" | grep '+MTSM:' | cut -d: -f2 | tr -d ' \r')
+    local temp=$(cmd_mtsm "$at_port" | grep '+MTSM:' | cut -d: -f2 | tr -d ' \r')
     if [ -n "$temp" ]; then
         temp="${temp}$(printf "\xc2\xb0")C"
     fi
@@ -296,8 +297,8 @@ get_lockband_lte()
     m_debug "Gosuncn LTE get lockband info"
     # AT+ZBAND? 返回当前锁定的LTE频段
     # AT+ZBAND=? 返回支持的LTE频段
-    local modem_info=$(at $at_port 'AT+ZBAND?' | grep -i 'LTE' | cut -d: -f2 | tr -d '\r ')
-    local LTE_LOCK_SUPPORTBAND=$(at $at_port 'AT+ZBAND=?' | grep -i 'LTE' | cut -d: -f2 | tr -d '() \r')
+    local modem_info=$(cmd_zband_query "$at_port" | grep -i 'LTE' | cut -d: -f2 | tr -d '\r ')
+    local LTE_LOCK_SUPPORTBAND=$(cmd_zband_list_query "$at_port" | grep -i 'LTE' | cut -d: -f2 | tr -d '() \r')
 
     local lte_avalible_band=""
     [ -n "$(uci -q get qmodem.$config_section.lte_band)" ] && lte_avalible_band=$(uci -q get qmodem.$config_section.lte_band | tr '/' ',')
@@ -328,8 +329,8 @@ get_lockband_lte()
 get_lockband_qualcomm()
 {
     m_debug "Gosuncn qualcomm get lockband info"
-    local modem_info=$(at $at_port 'AT+ZBAND?' | grep -i 'LTE' | cut -d: -f2 | tr -d '\r ')
-    local LTE_LOCK_SUPPORTBAND=$(at $at_port 'AT+ZBAND=?' | grep -i 'LTE' | cut -d: -f2 | tr -d '() \r')
+    local modem_info=$(cmd_zband_query "$at_port" | grep -i 'LTE' | cut -d: -f2 | tr -d '\r ')
+    local LTE_LOCK_SUPPORTBAND=$(cmd_zband_list_query "$at_port" | grep -i 'LTE' | cut -d: -f2 | tr -d '() \r')
 
     local lte_avalible_band=""
     [ -n "$(uci -q get qmodem.$config_section.lte_band)" ] && lte_avalible_band=$(uci -q get qmodem.$config_section.lte_band | tr '/' ',')
@@ -392,11 +393,11 @@ set_lockband_lte()
 
     if [ -z "$lock_band" ] || [ "$lock_band" = "null" ]; then
         # 解锁所有频段
-        res=$(at $at_port "AT+ZBAND=all,all,all,all")
+        res=$(cmd_zband_reset_all "$at_port")
     else
         local hex=$(convert2hex "$lock_band")
         m_debug "Lock LTE band hex: $hex"
-        res=$(at $at_port "AT+ZBAND=all,all,all,${hex}")
+        res=$(cmd_zband_set_nr "$at_port" "$hex")
     fi
 }
 
@@ -406,11 +407,11 @@ set_lockband_qualcomm()
     local lock_band="$2"
 
     if [ -z "$lock_band" ] || [ "$lock_band" = "null" ]; then
-        res=$(at $at_port "AT+ZBAND=all,all,all,all")
+        res=$(cmd_zband_reset_all "$at_port")
     else
         local hex=$(convert2hex "$lock_band")
         m_debug "Lock LTE band hex: $hex"
-        res=$(at $at_port "AT+ZBAND=all,all,all,${hex}")
+        res=$(cmd_zband_set_nr "$at_port" "$hex")
     fi
 }
 
@@ -421,12 +422,10 @@ sim_info()
     class="SIM Information"
 
     #IMEI
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | grep -o "[0-9]\{15\}")
+    imei=$(cmd_cgsn "$at_port" | grep -o "[0-9]\{15\}")
 
     #SIM Status
-    at_command="AT+CPIN?"
-    sim_status_flag=$(at $at_port $at_command | sed -n '2p')
+    sim_status_flag=$(cmd_cpin_query "$at_port" | sed -n '2p')
     sim_status=$(get_sim_status "$sim_status_flag")
 
     if [ "$sim_status" != "ready" ]; then
@@ -436,21 +435,17 @@ sim_info()
     fi
 
     #ISP
-    at $at_port "AT+COPS=3,2" > /dev/null 2>&1
-    at_command="AT+COPS?"
-    isp=$(at $at_port $at_command | sed -n '2p' | awk -F'"' '{print $2}')
+    cmd_cops_numeric "$at_port" > /dev/null 2>&1
+    isp=$(cmd_cops_query "$at_port" | sed -n '2p' | awk -F'"' '{print $2}')
 
     #SIM Number
-    at_command="AT+CNUM"
-    sim_number=$(at $at_port $at_command | grep "+CNUM:" | grep -o "[0-9]\{9,\}")
+    sim_number=$(cmd_cnum "$at_port" | grep "+CNUM:" | grep -o "[0-9]\{9,\}")
 
     #IMSI
-    at_command="AT+CIMI"
-    imsi=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | sed -n '2p' | sed 's/\r//g')
 
     #ICCID
-    at_command="AT+ICCID"
-    iccid=$(at $at_port $at_command | grep -o "+ICCID:[ ]*[-0-9A-Fa-f]\+" | awk -F': ' '{print $2}' | tr -d ' ')
+    iccid=$(cmd_iccid "$at_port" | grep -o "+ICCID:[ ]*[-0-9A-Fa-f]\+" | awk -F': ' '{print $2}' | tr -d ' ')
 
     add_plain_info_entry "SIM Status" "$sim_status" "SIM Status"
     add_plain_info_entry "ISP" "$isp" "Internet Service Provider"
@@ -468,16 +463,13 @@ base_info()
     class="Base Information"
 
     #Name
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | sed -n '2p' | sed 's/\r//g')
 
     #Manufacturer
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | sed -n '2p' | sed 's/\r//g')
 
     #Revision
-    at_command="AT+CGMR"
-    revision=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    revision=$(cmd_cgmr "$at_port" | sed -n '2p' | sed 's/\r//g')
 
     add_plain_info_entry "name" "$name" "Name"
     add_plain_info_entry "manufacturer" "$manufacturer" "Manufacturer"
@@ -493,15 +485,13 @@ network_info()
     m_debug "Gosuncn network info"
 
     #Network Type（网络类型）
-    at_command="AT+COPS?"
-    local cops_response=$(at $at_port $at_command | grep "+COPS:")
+    local cops_response=$(cmd_cops_query "$at_port" | grep "+COPS:")
     local carrier=$(echo "$cops_response" | awk -F'"' '{print $2}')
     local rat_num=$(echo "$cops_response" | awk -F',' '{print $4}' | sed 's/\r//g')
     local network_type=$(get_rat $rat_num)
 
     #CSQ
-    at_command="AT+CSQ"
-    response=$(at $at_port $at_command | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
+    response=$(cmd_csq "$at_port" | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
 
     class="Network Information"
     add_plain_info_entry "Network Type" "$network_type" "Network Type"
@@ -529,8 +519,8 @@ cell_info()
 cell_info_lte()
 {
     # AT+ZCELLINFO? 返回 +ZCELLINFO: <TAC>,cellid:<CellID>,pci:<PCI>,band:<Band>
-    local zcellinfo=$(at $at_port "AT+ZCELLINFO?" | grep '+ZCELLINFO:' | cut -d: -f2-)
-    local cops_response=$(at $at_port "AT+COPS?" | grep "+COPS:")
+    local zcellinfo=$(cmd_zcellinfo_query "$at_port" | grep '+ZCELLINFO:' | cut -d: -f2-)
+    local cops_response=$(cmd_cops_query "$at_port" | grep "+COPS:")
     local rat_num=$(echo "$cops_response" | awk -F',' '{print $4}' | sed 's/\r//g')
     local network_type=$(get_rat $rat_num)
 
@@ -545,7 +535,7 @@ cell_info_lte()
     local lband=$(echo "$zcellinfo" | cut -d',' -f4 | tr -d '\r' | tr -d '\n')
 
     # 获取信号质量
-    local cesq_response=$(at $at_port "AT+CESQ" | grep "+CESQ:")
+    local cesq_response=$(cmd_cesq "$at_port" | grep "+CESQ:")
     local rsrp="" rsrq="" sinr=""
     if [ -n "$cesq_response" ]; then
         # +CESQ: rxlev,ber,rscp,ecno,rsrq,rsrp
@@ -566,7 +556,7 @@ cell_info_lte()
     fi
 
     # 获取 RSSI/SINR（通过CSQ）
-    local csq_response=$(at $at_port "AT+CSQ" | grep "+CSQ:")
+    local csq_response=$(cmd_csq "$at_port" | grep "+CSQ:")
     local rssi=""
     if [ -n "$csq_response" ]; then
         local csq_num=$(echo "$csq_response" | awk -F'[:,]' '{print $2}' | tr -d ' ')
@@ -576,8 +566,8 @@ cell_info_lte()
     fi
 
     # 获取MCC/MNC
-    at $at_port "AT+COPS=3,2" > /dev/null 2>&1
-    local cops_num=$(at $at_port "AT+COPS?" | grep "+COPS:" | awk -F'"' '{print $2}')
+    cmd_cops_numeric "$at_port" > /dev/null 2>&1
+    local cops_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F'"' '{print $2}')
     local mcc="" mnc=""
     if [ -n "$cops_num" ] && [ ${#cops_num} -ge 5 ]; then
         mcc=${cops_num:0:3}
@@ -615,8 +605,8 @@ cell_info_lte()
 
 cell_info_qualcomm()
 {
-    local zcellinfo=$(at $at_port "AT+ZCELLINFO?" | grep '+ZCELLINFO:' | cut -d: -f2-)
-    local cops_response=$(at $at_port "AT+COPS?" | grep "+COPS:")
+    local zcellinfo=$(cmd_zcellinfo_query "$at_port" | grep '+ZCELLINFO:' | cut -d: -f2-)
+    local cops_response=$(cmd_cops_query "$at_port" | grep "+COPS:")
     local rat_num=$(echo "$cops_response" | awk -F',' '{print $4}' | sed 's/\r//g')
     local network_type=$(get_rat $rat_num)
 
@@ -629,7 +619,7 @@ cell_info_qualcomm()
     local pci=$(echo "$zcellinfo" | grep -o 'pci:[^,]*' | cut -d: -f2)
     local lband=$(echo "$zcellinfo" | grep -o 'band:[^,]*' | cut -d: -f2 | tr -d '\r ')
 
-    local cesq_response=$(at $at_port "AT+CESQ" | grep "+CESQ:")
+    local cesq_response=$(cmd_cesq "$at_port" | grep "+CESQ:")
     local rsrp="" rsrq=""
     if [ -n "$cesq_response" ]; then
         rsrq=$(echo "$cesq_response" | awk -F',' '{print $5}' | tr -d ' ')
@@ -646,7 +636,7 @@ cell_info_qualcomm()
         fi
     fi
 
-    local csq_response=$(at $at_port "AT+CSQ" | grep "+CSQ:")
+    local csq_response=$(cmd_csq "$at_port" | grep "+CSQ:")
     local rssi=""
     if [ -n "$csq_response" ]; then
         local csq_num=$(echo "$csq_response" | awk -F'[:,]' '{print $2}' | tr -d ' ')
@@ -655,8 +645,8 @@ cell_info_qualcomm()
         fi
     fi
 
-    at $at_port "AT+COPS=3,2" > /dev/null 2>&1
-    local cops_num=$(at $at_port "AT+COPS?" | grep "+COPS:" | awk -F'"' '{print $2}')
+    cmd_cops_numeric "$at_port" > /dev/null 2>&1
+    local cops_num=$(cmd_cops_query "$at_port" | grep "+COPS:" | awk -F'"' '{print $2}')
     local mcc="" mnc=""
     if [ -n "$cops_num" ] && [ ${#cops_num} -ge 5 ]; then
         mcc=${cops_num:0:3}
@@ -720,13 +710,13 @@ vendor_get_disabled_features()
 #重启模组
 soft_reboot()
 {
-    at $at_port "AT+CFUN=1,1"
+    cmd_cfun_soft_reboot "$at_port"
 }
 
 #重置模组
 reset_module()
 {
-    at $at_port "AT+ZSNT=0,0,0" 2>&1 > /dev/null
-    at $at_port "AT+ZBAND=all,all,all,all" 2>&1 > /dev/null
-    at $at_port "AT&F" 2>&1 > /dev/null
+    cmd_zsnt_reset "$at_port" 2>&1 > /dev/null
+    cmd_zband_reset_all "$at_port" 2>&1 > /dev/null
+    cmd_atf_factory "$at_port" 2>&1 > /dev/null
 }

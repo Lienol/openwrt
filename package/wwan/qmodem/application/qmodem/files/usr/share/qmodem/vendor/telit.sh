@@ -3,7 +3,8 @@
 _Vendor="telit"
 _Author="sfwtw"
 _Maintainer="sfwtw <sfwtw@qq.com>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/telit.sh"
 debug_subject="telit_ctrl"
 
 vendor_get_disabled_features()
@@ -14,8 +15,7 @@ vendor_get_disabled_features()
 
 get_mode()
 {
-    at_command='AT#USBCFG?'
-    local mode_num=$(at ${at_port} ${at_command} | grep -o "#USBCFG:" | awk -F': ' '{print $2}')
+    local mode_num=$(cmd_usbcfg_query "$at_port" | grep -o "#USBCFG:" | awk -F': ' '{print $2}')
     case "$mode_num" in
         "0") mode="rndis" ;;
         "1") mode="qmi" ;;
@@ -45,8 +45,7 @@ set_mode()
         "ecm") mode="3" ;;
         *) echo "Invalid mode" && return 1;;
     esac
-    at_command='AT#USBCFG='${mode}
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_usbcfg_set "$at_port" "$mode")
     json_select "result"
     json_add_string "set_mode" "$res"
     json_close_object
@@ -54,8 +53,7 @@ set_mode()
 
 get_network_prefer()
 {
-    at_command='AT+WS46?'
-    local response=$(at ${at_port} ${at_command} | grep "+WS46:" | awk -F': ' '{print $2}' | sed 's/\r//g')
+    local response=$(cmd_ws46_query "$at_port" | grep "+WS46:" | awk -F': ' '{print $2}' | sed 's/\r//g')
     
     network_prefer_3g="0";
     network_prefer_4g="0";
@@ -118,14 +116,12 @@ set_network_prefer()
         *) network_prefer_config="38" ;;
     esac
 
-    at_command='AT+WS46='${network_prefer_config}
-    at "${at_port}" "${at_command}"
+    cmd_ws46_set "$at_port" "$network_prefer_config"
 }
 
 get_voltage()
 {
-    at_command="AT#CBC"
-    local voltage=$(at ${at_port} ${at_command} | grep "#CBC:" | awk -F',' '{print $2}' | sed 's/\r//g')
+    local voltage=$(cmd_cbc "$at_port" | grep "#CBC:" | awk -F',' '{print $2}' | sed 's/\r//g')
     [ -n "$voltage" ] && {
         voltage=$(awk "BEGIN {printf \"%.2f\", $voltage / 100}")
         add_plain_info_entry "voltage" "$voltage V" "Voltage" 
@@ -134,9 +130,8 @@ get_voltage()
 
 get_temperature()
 {   
-    at_command="AT#TEMPSENS=2"
     local temp
-    QTEMP=$(at ${at_port} ${at_command} | grep "#TEMPSENS: TSENS,")
+    QTEMP=$(cmd_tempsens "$at_port" | grep "#TEMPSENS: TSENS,")
     temp=$(echo $QTEMP | awk -F',' '{print $2}' | sed 's/\r//g')
     if [ -n "$temp" ]; then
         temp="${temp}$(printf "\xc2\xb0")C"
@@ -149,14 +144,11 @@ base_info()
     m_debug  "Telit base info"
 
     #Name（名称）
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | sed -n '3p' | sed 's/\r//g')
     #Manufacturer（制造商）
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | sed -n '3p' | sed 's/\r//g')
     #Revision（固件版本）
-    at_command="AT+CGMR"
-    revision=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+    revision=$(cmd_cgmr "$at_port" | sed -n '3p' | sed 's/\r//g')
     class="Base Information"
     add_plain_info_entry "name" "$name" "Name"
     add_plain_info_entry "manufacturer" "$manufacturer" "Manufacturer"
@@ -172,20 +164,17 @@ sim_info()
     m_debug  "Telit sim info"
     
     #SIM Slot（SIM卡卡槽）
-    at_command="AT#QSS?"
-    sim_slot=$(at $at_port $at_command | grep "#QSS:" | awk -F',' '{print $3}' | sed 's/\r//g')
+    sim_slot=$(cmd_qss_query "$at_port" | grep "#QSS:" | awk -F',' '{print $3}' | sed 's/\r//g')
     if [ "$sim_slot" = "0" ]; then
         sim_slot="1"
     elif [ "$sim_slot" = "1" ]; then
         sim_slot="2"
     fi
     #IMEI（国际移动设备识别码）
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+    imei=$(cmd_cgsn "$at_port" | sed -n '3p' | sed 's/\r//g')
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-    sim_status_flag=$(at $at_port $at_command | sed -n '3p')
+    sim_status_flag=$(cmd_cpin_query "$at_port" | sed -n '3p')
     sim_status=$(get_sim_status "$sim_status_flag")
 
     if [ "$sim_status" != "ready" ]; then
@@ -193,8 +182,7 @@ sim_info()
     fi
 
     #ISP（互联网服务提供商）
-    at_command="AT+COPS?"
-    isp=$(at $at_port $at_command | sed -n '3p' | awk -F'"' '{print $2}')
+    isp=$(cmd_cops_query "$at_port" | sed -n '3p' | awk -F'"' '{print $2}')
     # if [ "$isp" = "CHN-CMCC" ] || [ "$isp" = "CMCC" ]|| [ "$isp" = "46000" ]; then
     #     isp="中国移动"
     # # elif [ "$isp" = "CHN-UNICOM" ] || [ "$isp" = "UNICOM" ] || [ "$isp" = "46001" ]; then
@@ -206,12 +194,10 @@ sim_info()
     # fi
 
     #IMSI（国际移动用户识别码）
-    at_command="AT+CIMI"
-    imsi=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+    imsi=$(cmd_cimi "$at_port" | sed -n '3p' | sed 's/\r//g')
 
     #ICCID（集成电路卡识别码）
-    at_command="AT+ICCID"
-    iccid=$(at $at_port $at_command | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
+    iccid=$(cmd_iccid "$at_port" | grep -o "+ICCID:[ ]*[-0-9]\+" | grep -o "[-0-9]\{1,4\}")
     class="SIM Information"
     case "$sim_status" in
         "ready")
@@ -243,11 +229,9 @@ network_info()
 {
     m_debug  "Telit network info"
 
-    at_command="AT#CAMETRICS=1;#CAMETRICS?"
-    network_type=$(at ${at_port} ${at_command} | grep "#CAMETRICS:" | awk -F',' '{print $3}')
+    network_type=$(cmd_cametrics "$at_port" | grep "#CAMETRICS:" | awk -F',' '{print $3}')
 
-    at_command="AT#CQI"
-    response=$(at ${at_port} ${at_command} | grep "#CQI:" | sed 's/#CQI: //g' | sed 's/\r//g')
+    response=$(cmd_cqi "$at_port" | grep "#CQI:" | sed 's/#CQI: //g' | sed 's/\r//g')
 
     if [ -n "$response" ]; then
         cqi=$(echo "$response" | cut -d',' -f1)
@@ -338,10 +322,8 @@ get_lockband()
 {
     json_add_object "lockband"
     m_debug "Telit get lockband info"
-    get_lockband_config_command="AT#BND?"
-    get_available_band_command="AT#BND=?"
-    get_lockband_config_res=$(at $at_port $get_lockband_config_command)
-    get_available_band_res=$(at $at_port $get_available_band_command)
+    get_lockband_config_res=$(cmd_bnd_query "$at_port")
+    get_available_band_res=$(cmd_bnd_list_query "$at_port")
     json_add_object "LTE"
     json_add_array "available_band"
     json_close_array
@@ -440,11 +422,10 @@ set_lockband()
     case "$band_class" in
         "LTE") 
             lock_band=$(lte_bands_to_hex "$lock_band")
-            at_command="AT#BND=0,22,$lock_band"
-            res=$(at $at_port $at_command)
+            res=$(cmd_bnd_set "$at_port" "$lock_band")
             ;;
         "NR_NSA")
-            orig=$(at $at_port "AT#BND?")
+            orig=$(cmd_bnd_query "$at_port")
             orig_lte=$(echo $orig | awk -F "," '{print $3}')
             orig_lte_ext=$(echo $orig | awk -F "," '{print $4}')
 
@@ -465,11 +446,10 @@ set_lockband()
             [ -z "$nsa_nr_1_64" ] && nsa_nr_1_64=$orig_nsa_nr_1_64
             [ -z "$nsa_nr_65_128" ] && nsa_nr_65_128=$orig_nsa_nr_65_128
             
-            at_command="AT#BND=0,22,$orig_lte,$orig_lte_ext,$nsa_nr_1_64,$nsa_nr_65_128"
-            res=$(at $at_port $at_command)
+            res=$(cmd_bnd_set "$at_port" "$orig_lte,$orig_lte_ext,$nsa_nr_1_64,$nsa_nr_65_128")
             ;;
         "NR")
-            orig=$(at $at_port "AT#BND?")
+            orig=$(cmd_bnd_query "$at_port")
             orig_lte=$(echo $orig | awk -F "," '{print $3}')
             orig_lte_ext=$(echo $orig | awk -F "," '{print $4}')
             orig_nsa_nr_1_64=$(echo $orig | awk -F "," '{print $5}')
@@ -492,8 +472,7 @@ set_lockband()
 
             [ -z "$nr_1_64" ] && nr_1_64=$orig_sa_nr_1_64
             [ -z "$nr_65_128" ] && nr_65_128=$orig_sa_nr_65_128
-            at_command="AT#BND=0,22,$orig_lte,$orig_lte_ext,$orig_nsa_nr_1_64,$orig_nsa_nr_65_128,$nr_1_64,$nr_65_128"
-            res=$(at $at_port $at_command)
+            res=$(cmd_bnd_set "$at_port" "$orig_lte,$orig_lte_ext,$orig_nsa_nr_1_64,$orig_nsa_nr_65_128,$nr_1_64,$nr_65_128")
             ;;
     esac
     json_select "result"
@@ -628,8 +607,7 @@ cell_info()
 {
     m_debug  "Telit cell info"
 
-    at_command="AT#CAINFOEXT?"
-    ca_response=$(at ${at_port} ${at_command})
+    ca_response=$(cmd_cainfoext_query "$at_port")
 
     info_line=$(echo "$ca_response" | grep -o "#CAINFOEXT: [^$]*" | head -1)
     ca_count=$(echo "$info_line" | awk -F',' '{print $1}' | awk -F': ' '{print $2}')

@@ -1,0 +1,397 @@
+#!/usr/bin/ucode
+'use strict';
+
+import { cursor } from 'uci';
+import { readfile, popen } from 'fs';
+import * as ubus from 'ubus';
+
+const SCRIPT_DIR = '/usr/share/sms_forwarder';
+const LOG_PREFIX = '[SMS_FORWARDER]';
+
+// Log levels
+const LOG_LEVEL = {
+	ERROR: 0,
+	WARN: 1,
+	INFO: 2,
+	DEBUG: 3
+};
+
+let current_log_level = LOG_LEVEL.DEBUG;
+let should_exit = false;
+
+// Signal handler for graceful shutdown
+function handleSignal(signo) {
+	log(LOG_LEVEL.INFO, `Received signal ${signo}, shutting down...`);
+	should_exit = true;
+}
+
+function log(level, message) {
+	if (level <= current_log_level) {
+		let level_str = 'INFO';
+		if (level == LOG_LEVEL.ERROR) level_str = 'ERROR';
+		else if (level == LOG_LEVEL.WARN) level_str = 'WARN';
+		else if (level == LOG_LEVEL.DEBUG) level_str = 'DEBUG';
+		
+		warn(`${LOG_PREFIX} [${level_str}] ${message}\n`);
+	}
+}
+
+// Read SMS forwarder configuration
+function readConfig() {
+	let ctx = cursor();
+	if (!ctx) {
+		log(LOG_LEVEL.ERROR, 'Failed to initialize UCI cursor');
+		return null;
+	}
+	
+	// Read global config
+	let global_cfg = ctx.get_all('sms_forwarder', 'sms_forward');
+	if (!global_cfg) {
+		log(LOG_LEVEL.ERROR, 'Failed to read sms_forward configuration');
+		return null;
+	}
+	
+	let enabled = global_cfg.enable == '1';
+	if (!enabled) {
+		log(LOG_LEVEL.INFO, 'SMS forwarder is disabled');
+		return null;
+	}
+	
+	// Set log level
+	let log_level_str = global_cfg.log_level || 'info';
+	if (log_level_str == 'error') current_log_level = LOG_LEVEL.ERROR;
+	else if (log_level_str == 'warn') current_log_level = LOG_LEVEL.WARN;
+	else if (log_level_str == 'info') current_log_level = LOG_LEVEL.INFO;
+	else if (log_level_str == 'debug') current_log_level = LOG_LEVEL.DEBUG;
+	
+	// Read all instances
+	let instances = [];
+	ctx.foreach('sms_forwarder', 'sms_forward_instance', (section) => {
+		if (section['.type'] != 'sms_forward_instance')
+			return;
+		
+		let enabled = section.enable == '1';
+		if (!enabled) {
+			log(LOG_LEVEL.DEBUG, `Instance ${section['.name']} is disabled`);
+			return;
+		}
+		
+		if (!section.modem_cfg) {
+			log(LOG_LEVEL.WARN, `Instance ${section['.name']} has no modem_cfg`);
+			return;
+		}
+		
+		if (!section.api_type) {
+			log(LOG_LEVEL.WARN, `Instance ${section['.name']} has no api_type`);
+			return;
+		}
+		
+		let poll_interval = int(section.poll_interval || 30);
+		if (poll_interval < 5) poll_interval = 5;
+		
+		push(instances, {
+			name: section['.name'],
+			modem_cfg: section.modem_cfg,
+			poll_interval: poll_interval,
+			api_type: section.api_type,
+			api_config: section.api_config || '{}'
+		});
+	});
+	
+	if (length(instances) == 0) {
+		log(LOG_LEVEL.INFO, 'No enabled instances found');
+		return null;
+	}
+	
+	log(LOG_LEVEL.INFO, `Loaded ${length(instances)} instance(s)`);
+	return instances;
+}
+
+// Merge instances with same modem_cfg and api_type
+function mergeInstances(instances) {
+	let merged = {};
+	
+	for (let inst in instances) {
+		let key = `${inst.modem_cfg}`;
+		
+		if (!merged[key]) {
+			merged[key] = {
+				modem_cfg: inst.modem_cfg,
+				api_configs:[
+					{api_type: inst.api_type, api_config: inst.api_config}	
+				],
+				poll_interval: inst.poll_interval,
+				instances: [inst.name]
+			};
+		} else {
+			// Use minimum poll interval
+			if (inst.poll_interval < merged[key].poll_interval) {
+				merged[key].poll_interval = inst.poll_interval;
+			}
+			push(merged[key].instances, inst.name);
+			push(merged[key].api_configs, {api_type: inst.api_type, api_config: inst.api_config});
+		}
+	}
+	
+	let result = [];
+	for (let key in merged) {
+		push(result, merged[key]);
+		log(LOG_LEVEL.INFO, `Merged group: modem=${merged[key].modem_cfg},  interval=${merged[key].poll_interval}s, instances=[${join(',', merged[key].instances)}]`);
+	}
+	
+	return result;
+}
+
+// Get unforwarded SMS messages
+function getUnforwardedSms(modem_cfg) {
+	let conn = ubus.connect();
+	if (!conn) {
+		log(LOG_LEVEL.ERROR, 'Failed to connect to ubus');
+		return null;
+	}
+	
+	let result = conn.call('qmodem_sms', 'list_sms', {
+		config_section: modem_cfg
+	});
+	
+	conn.disconnect();
+	
+	if (!result || !result.conversations) {
+		log(LOG_LEVEL.DEBUG, `No conversations found for modem ${modem_cfg}`);
+		return [];
+	}
+	
+	// Extract unforwarded messages
+	let unforwarded = [];
+	for (let conv in result.conversations) {
+		for (let msg in conv.messages) {
+			if (msg.type == 'received' && !msg.forwarded) {
+				push(unforwarded, msg);
+			}
+		}
+	}
+	
+	log(LOG_LEVEL.DEBUG, `Found ${length(unforwarded)} unforwarded message(s) for modem ${modem_cfg}`);
+	return unforwarded;
+}
+
+// Mark messages as forwarded
+function markAsForwarded(modem_cfg, ids) {
+	if (!ids || length(ids) == 0)
+		return true;
+	
+	let conn = ubus.connect();
+	if (!conn) {
+		log(LOG_LEVEL.ERROR, 'Failed to connect to ubus');
+		return false;
+	}
+	
+	let result = conn.call('qmodem_sms', 'mark_forwarded', {
+		config_section: modem_cfg,
+		ids: ids
+	});
+	
+	conn.disconnect();
+	
+	if (!result || !result.success) {
+		log(LOG_LEVEL.ERROR, `Failed to mark messages as forwarded for modem ${modem_cfg}`);
+		return false;
+	}
+	
+	log(LOG_LEVEL.INFO, `Marked ${result.marked} message(s) as forwarded for modem ${modem_cfg}`);
+	return true;
+}
+
+// Helper function to quote shell arguments
+function shellquote(str) {
+	if (!str)
+		return "''";
+	
+	// Replace single quotes with '\''
+	let escaped = replace(sprintf('%s', str), "'", "'\\''");
+	return sprintf("'%s'", escaped);
+}
+
+// Format timestamp
+function formatTimestamp(timestamp) {
+	if (!timestamp)
+		return 'Unknown';
+	
+	let cmd = `date -d @${timestamp} '+%Y-%m-%d %H:%M:%S'`;
+	let proc = popen(cmd, 'r');
+	if (!proc)
+		return sprintf('%d', timestamp);
+	
+	let output = rtrim(proc.read('all') || '');
+	proc.close();
+	return output || sprintf('%d', timestamp);
+}
+
+// Execute forward script
+function executeForward(msg, api_configs) {
+	let total_success = 0, total_count = 0;
+	let retries_total = 3;
+	for (let api in api_configs) {
+		total_count++;
+		log(LOG_LEVEL.INFO, `Forwarding message ID ${msg.id} using API type: ${api.api_type} （${total_count}/${length(api_configs)}）`);
+		let api_type = api.api_type;
+		let api_config = api.api_config;
+		let script_path = `${SCRIPT_DIR}/sms_forward_${api_type}.sh`;
+		
+		// Format timestamp
+		let time_str = formatTimestamp(msg.timestamp);
+		
+		// Build command with environment variables
+		let cmd = sprintf(
+			'SMS_SENDER=%s SMS_TIME=%s SMS_CONTENT=%s %s %s',
+			shellquote(msg.sender || ''),
+			shellquote(time_str),
+			shellquote(msg.content || ''),
+			shellquote(script_path),
+			shellquote(api_config)
+		);
+		
+		log(LOG_LEVEL.DEBUG, `Executing: ${script_path} for message from ${msg.sender}`);
+		for (let retries = 0; retries < retries_total; retries++) {
+			let proc = popen(cmd, 'r');
+			if (!proc) {
+				log(LOG_LEVEL.ERROR, `Failed to execute forward script ${api_type}: ${script_path}`);
+				//not continue to retry if popen fails
+				break;
+			}
+			
+			let output = proc.read('all') || '';
+			let exit_code = proc.close();
+			
+			if (exit_code != 0) {
+				log(LOG_LEVEL.ERROR, `Forward script failed with exit code ${exit_code} for ${api_type}: ${output}`);
+				log(LOG_LEVEL.INFO, `Retrying... (${retries + 1}/${retries_total})`);
+				continue;  // Retry
+			}
+		
+			log(LOG_LEVEL.INFO, `Forward ${api_type} script output: ${output}`);
+			total_success++;
+			break;  // Success, exit retry loop
+		}
+	}
+	return (total_success > 0);
+}
+
+// Process messages for a merged instance
+function processInstance(inst, is_recurring)
+{
+	log(LOG_LEVEL.DEBUG, `Processing instance: modem=${inst.modem_cfg}, type=${inst.api_configs}, interval=${inst.poll_interval}s`);
+	
+	let messages = getUnforwardedSms(inst.modem_cfg);
+	if (!messages || length(messages) == 0) {
+		return;
+	}
+	
+	log(LOG_LEVEL.INFO, `Processing ${length(messages)} unforwarded message(s) for modem ${inst.modem_cfg}`);
+	
+	let forwarded_ids = [];
+	let success_count = 0;
+	let fail_count = 0;
+
+	
+	
+	for (let msg in messages) {
+				
+		// 如果是递归调用，只处理指定的消息
+		if (is_recurring > 0 && msg.id != is_recurring) {
+			log(LOG_LEVEL.DEBUG, `Skipping message ID ${msg.id} (only processing ${is_recurring})`);
+			continue;
+		}
+
+		// Check for multipart message completeness
+		// 递归调用时强制发送，不再检查完整性
+		if (msg.total > 1 && length(msg.part_ids) < msg.total && is_recurring < 0) {
+			log(LOG_LEVEL.WARN, `Skipping incomplete multipart message ID ${msg.id} (${length(msg.part_ids)}/${msg.total} parts received)`);
+			// 延迟后递归处理此消息，递归时强制发送
+			sleep(500);
+			processInstance(inst, msg.id);
+			// 不完整的消息可能有多段，因此不能继续处理其他消息，否则会调用多次递归
+			break;
+		}
+	
+		let success = executeForward(msg, inst.api_configs);
+		
+		
+		if (success) {
+			// Use part_ids if available (for multipart messages), otherwise use id
+			if (msg.part_ids && length(msg.part_ids) > 0) {
+				for (let part_id in msg.part_ids) {
+					push(forwarded_ids, part_id);
+				}
+			} else {
+				push(forwarded_ids, msg.id);
+			}
+			success_count++;
+		} else {
+			fail_count++;
+		}
+	}
+	
+	// Mark successfully forwarded messages
+	if (length(forwarded_ids) > 0) {
+		markAsForwarded(inst.modem_cfg, forwarded_ids);
+        log(LOG_LEVEL.INFO, `Marked ${length(forwarded_ids)} message(s) as forwarded for modem ${inst.modem_cfg}`);
+	}
+	
+	log(LOG_LEVEL.INFO, `Forwarding complete: ${success_count} success, ${fail_count} failed`);
+}
+
+// Sleep in small intervals to allow quick response to signals
+function interruptibleSleep(seconds) {
+	let remaining = seconds;
+	while (remaining > 0 && !should_exit) {
+		let sleep_time = remaining > 1 ? 1 : remaining;
+		sleep(sleep_time * 1000);  // sleep() takes milliseconds
+		remaining -= sleep_time;
+	}
+}
+
+// Main loop
+function mainLoop() {
+	log(LOG_LEVEL.INFO, 'SMS Forwarder started');
+	
+	while (!should_exit) {
+		// Read and merge configuration
+		let instances = readConfig();
+		if (!instances) {
+			log(LOG_LEVEL.DEBUG, 'No valid configuration, sleeping...');
+			interruptibleSleep(30);
+			continue;
+		}
+		
+		let merged = mergeInstances(instances);
+		
+		// Process each merged instance
+		for (let inst in merged) {
+			if (should_exit) break;
+			processInstance(inst , -1);
+		}
+		
+		if (should_exit) break;
+		
+		// Find minimum poll interval
+		let min_interval = 30;
+		for (let inst in merged) {
+			if (inst.poll_interval < min_interval) {
+				min_interval = inst.poll_interval;
+			}
+		}
+		
+		log(LOG_LEVEL.DEBUG, `Sleeping for ${min_interval} seconds`);
+		interruptibleSleep(min_interval);
+	}
+	
+	log(LOG_LEVEL.INFO, 'SMS Forwarder stopped');
+}
+
+// Register signal handlers
+signal('SIGINT', handleSignal);
+signal('SIGTERM', handleSignal);
+
+// Start main loop
+mainLoop();

@@ -20,7 +20,7 @@ LDFLAGS += -L$(TARGET_DIR)/lib
 LDFLAGS += -lubus -lubox -lblobmsg_json -ljson-c -lpthread
 
 TARGET = ubus-at-daemon
-SOURCES = main.c port_manager.c at_handler.c event_callback.c config_loader.c
+SOURCES = main.c port_manager.c at_handler.c event_callback.c config_loader.c line_events.c
 OBJECTS = $(SOURCES:.c=.o)
 
 .PHONY: all clean install debug

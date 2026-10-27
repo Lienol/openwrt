@@ -14,3 +14,5 @@ config main 'main'
 	option add_retry_max '5'
 	option usage_stats_nvram_save '0'
 	option usage_stats_nvram_interval '300'
+	#collect AT command fixtures to /tmp/qmodem/testcases for qmodem_collect pack
+	option testcase_collect '0'

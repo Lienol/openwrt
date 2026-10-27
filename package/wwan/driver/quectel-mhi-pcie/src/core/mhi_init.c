@@ -93,8 +93,7 @@ struct mhi_bus mhi_bus;
 
 const char *to_mhi_pm_state_str(enum MHI_PM_STATE state)
 {
-	unsigned long value = state;
-	int index = find_last_bit(&value, 32);
+	int index = find_last_bit((unsigned long *)&state, 32);
 
 	if (index >= ARRAY_SIZE(mhi_pm_state_str))
 		return "Invalid State";
@@ -1655,12 +1654,12 @@ static int of_parse_ev_cfg(struct mhi_controller *mhi_cntrl,
 
 #ifdef ENABLE_ADPL
 		if (i == ADPL_EVT_RING)
-			mhi_event->intmod = 0;
+			mhi_event->intmod = 5;
 #endif
 
 #ifdef ENABLE_QDSS
 		if (i == QDSS_EVT_RING)
-			mhi_event->intmod = 0;
+			mhi_event->intmod = 5;
 #endif
 
 		mhi_event->msi = 1 + i + mhi_cntrl->msi_irq_base;  //MSI associated with this event ring
@@ -1830,8 +1829,6 @@ static struct chan_cfg_t chan_cfg[] = {
 #endif
 };
 
-extern int mhi_netdev_mbin_enabled(void);
-extern int mhi_netdev_use_xfer_type_dma(unsigned chan);
 static int of_parse_ch_cfg(struct mhi_controller *mhi_cntrl,
 			   struct device_node *of_node)
 {
@@ -2017,11 +2014,11 @@ static int of_parse_ch_cfg(struct mhi_controller *mhi_cntrl,
 
 #ifdef ENABLE_ADPL
  			if (chan == MHI_CLIENT_ADPL)
- 				mhi_chan->db_cfg.brstmode = MHI_BRSTMODE_DISABLE;
+ 				mhi_chan->db_cfg.brstmode = MHI_BRSTMODE_ENABLE;
 #endif
 #ifdef ENABLE_QDSS
 			if (chan == MHI_CLIENT_IP_HW_QDSS)
-				mhi_chan->db_cfg.brstmode = MHI_BRSTMODE_DISABLE;
+				mhi_chan->db_cfg.brstmode = MHI_BRSTMODE_ENABLE;
 #endif
 			if (MHI_INVALID_BRSTMODE(mhi_chan->db_cfg.brstmode))
 				goto error_chan_cfg;
@@ -2372,7 +2369,7 @@ void mhi_unprepare_after_power_down(struct mhi_controller *mhi_cntrl)
 }
 
 /* match dev to drv */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 12, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
 static int mhi_match(struct device *dev, const struct device_driver *drv)
 #else
 static int mhi_match(struct device *dev, struct device_driver *drv)
@@ -2630,8 +2627,6 @@ static int mhi_cntrl_release(struct inode *inode, struct file *f)
 
 #define IOCTL_BHI_GETDEVINFO 0x8BE0 + 1
 #define IOCTL_BHI_WRITEIMAGE 0x8BE0 + 2
-long bhi_get_dev_info(struct mhi_controller *mhi_cntrl, void __user *to);
-long bhi_write_image(struct mhi_controller *mhi_cntrl, void __user *from);
 
 static long mhi_cntrl_ioctl(struct file *f, unsigned int cmd, unsigned long __arg)
 {
@@ -2698,20 +2693,11 @@ static int __init mhi_cntrl_init(void)
 	return 0;
 }
 
-void mhi_cntrl_exit(void)
+static void mhi_cntrl_exit(void)
 {
 	class_destroy(mhi_cntrl_drv.class);
 	unregister_chrdev(mhi_cntrl_drv.major, MHI_CNTRL_DRIVER_NAME);
 }
-
-extern int mhi_dtr_init(void);
-extern void mhi_dtr_exit(void);
-extern int mhi_device_netdev_init(struct dentry *parent);
-extern void mhi_device_netdev_exit(void);
-extern int mhi_device_uci_init(void);
-extern void mhi_device_uci_exit(void);
-extern int mhi_controller_qcom_init(void);
-extern void mhi_controller_qcom_exit(void);
 
 static char mhi_version[] = "Quectel_Linux_PCIE_MHI_Driver_"PCIE_MHI_DRIVER_VERSION;
 module_param_string(mhi_version, mhi_version, sizeof(mhi_version), S_IRUGO);

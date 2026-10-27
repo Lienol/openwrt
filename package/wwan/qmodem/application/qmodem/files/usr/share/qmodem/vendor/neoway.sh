@@ -3,7 +3,8 @@
 _Vendor="neoway"
 _Author="sfwtw"
 _Maintainer="sfwtw <unknown>"
-source /usr/share/qmodem/generic.sh
+source "${QMODEM_HOME:-/usr/share/qmodem}/generic.sh"
+source "${QMODEM_HOME:-/usr/share/qmodem}/cmds/neoway.sh"
 debug_subject="neoway_ctrl"
 
 vendor_get_disabled_features(){
@@ -12,15 +13,13 @@ vendor_get_disabled_features(){
 }
 
 get_imei(){
-    at_command="AT+CGSN"
-    imei=$(at $at_port $at_command | grep -o "[0-9]\{15\}")
+    imei=$(cmd_cgsn "$at_port" | grep -o "[0-9]\{15\}")
     json_add_string "imei" "$imei"
 }
 
 set_imei(){
     local imei="$1"
-    at_command="AT+SPIMEI=0,\"$imei\""
-    res=$(at $at_port $at_command)
+    res=$(cmd_spimei_set "$at_port" "$imei")
     json_select "result"
     json_add_string "set_imei" "$res"
     json_close_object
@@ -31,8 +30,7 @@ set_imei(){
 # $1:AT串口
 get_network_prefer()
 {
-    at_command='AT$MYSYSINFO'
-    local response=$(at ${at_port} ${at_command} | grep '$MYSYSINFO:' | awk -F',' '{print $1}' | awk '{print $2}' | sed 's/\r//g')
+    local response=$(cmd_mysysinfo_query "$at_port" | grep '$MYSYSINFO:' | awk -F',' '{print $1}' | awk '{print $2}' | sed 's/\r//g')
 
     network_prefer_3g="0";
     network_prefer_4g="0";
@@ -130,8 +128,7 @@ set_network_prefer()
         ;;
     esac
 
-    at_command='AT$MYSYSINFO='${config_mode}
-    res=$(at "${at_port}" "${at_command}")
+    res=$(cmd_mysysinfo_set "$at_port" "$config_mode")
 
     json_select "result"
     json_add_string "set_network_prefer" "$res"
@@ -144,14 +141,11 @@ base_info()
     m_debug  "Neoway base info"
 
     #Name（名称）
-    at_command="AT+CGMM"
-    name=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
+    name=$(cmd_cgmm "$at_port" | sed -n '2p' | sed 's/\r//g')
     #Manufacturer（制造商）
-    at_command="AT+CGMI"
-    manufacturer=$(at $at_port $at_command | grep "+CGMI:" | sed 's/+CGMI: //g' | sed 's/\r//g')
+    manufacturer=$(cmd_cgmi "$at_port" | grep "+CGMI:" | sed 's/+CGMI: //g' | sed 's/\r//g')
     #Revision（固件版本）
-    at_command="ATI"
-    revision=$(at $at_port $at_command | sed -n '5p' | sed 's/\r//g')
+    revision=$(cmd_ati "$at_port" | sed -n '5p' | sed 's/\r//g')
     # at_command="AT+CGMR"
     # revision=$(at $at_port $at_command | sed -n '2p' | sed 's/\r//g')
     class="Base Information"
@@ -168,23 +162,19 @@ sim_info()
     m_debug  "Neoway sim info"
     
     #SIM Slot（SIM卡卡槽）
-    at_command="AT+SIMCROSS?"
-    sim_slot=$(at $at_port $at_command | grep "+SIMCROSS:" | awk -F'[ ,]' '{print $2}' | sed 's/\r//g')
+    sim_slot=$(cmd_simcross_query "$at_port" | grep "+SIMCROSS:" | awk -F'[ ,]' '{print $2}' | sed 's/\r//g')
     # m_debug "SIM Slot: $sim_slot"
     #IMEI（国际移动设备识别码）
-    at_command="AT+CGSN"
-	imei=$(at $at_port $at_command | sed -n '3p' | awk -F'"' '{print $2}')
+	imei=$(cmd_cgsn "$at_port" | sed -n '3p' | awk -F'"' '{print $2}')
 
     #SIM Status（SIM状态）
-    at_command="AT+CPIN?"
-	sim_status_flag=$(at $at_port $at_command | sed -n '3p')
+	sim_status_flag=$(cmd_cpin_query "$at_port" | sed -n '3p')
     sim_status=$(get_sim_status "$sim_status_flag")
 
     [ "$sim_status" != "ready" ] && return
 
     #ISP（互联网服务提供商）
-    at_command="AT+COPS?"
-    isp=$(at $at_port $at_command | sed -n '2p' | awk -F'"' '{print $2}')
+    isp=$(cmd_cops_query "$at_port" | sed -n '2p' | awk -F'"' '{print $2}')
     # if [ "$isp" = "CHN-CMCC" ] || [ "$isp" = "CMCC" ]|| [ "$isp" = "46000" ]; then
     #     isp="中国移动"
     # # elif [ "$isp" = "CHN-UNICOM" ] || [ "$isp" = "UNICOM" ] || [ "$isp" = "46001" ]; then
@@ -196,15 +186,13 @@ sim_info()
     # fi
 
     #SIM Number（SIM卡号码，手机号）
-    at_command="AT+CNUM"
-	sim_number=$(at $at_port $at_command | sed -n '3p' | awk -F'"' '{print $4}')
+	sim_number=$(cmd_cnum "$at_port" | sed -n '3p' | awk -F'"' '{print $4}')
 
     #IMSI（国际移动用户识别码）
-    at_command="AT+CIMI"
-	imsi=$(at $at_port $at_command | sed -n '3p' | sed 's/\r//g')
+	imsi=$(cmd_cimi "$at_port" | sed -n '3p' | sed 's/\r//g')
 
     #ICCID（集成电路卡识别码）
-    iccid=$(at $at_port 'AT$MYCCID' | grep '$MYCCID:' | awk -F' "' '{print $2}' | sed 's/"//g')
+    iccid=$(cmd_myccid "$at_port" | grep '$MYCCID:' | awk -F' "' '{print $2}' | sed 's/"//g')
     [ -n "$iccid" ] || return
     class="SIM Information"
     case "$sim_status" in
@@ -264,12 +252,10 @@ network_info()
     m_debug  "Neoway network info"
 
     #CSQ（信号强度）
-    at_command="AT+CSQ"
-    response=$(at ${at_port} ${at_command} | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
+    response=$(cmd_csq "$at_port" | grep "+CSQ:" | sed 's/+CSQ: //g' | sed 's/\r//g')
 
     #最大比特率，信道质量指示
-    at_command='AT+C5GQOSRDP'
-    response=$(at $at_port $at_command | grep "+C5GQOSRDP:")
+    response=$(cmd_c5gqosrdp "$at_port" | grep "+C5GQOSRDP:")
 
     if [ -n "$response" ]; then
         # Parse 5G QoS parameters
@@ -328,8 +314,7 @@ convert_readable_band_to_neoway() {
 get_lockband() {
     json_add_object "lockband"
     
-    at_command="AT+NWSETBAND?"
-    response=$(at $at_port $at_command)
+    response=$(cmd_nwsetband_query "$at_port")
     
     local band_num=$(echo "$response" | grep "+NWSETBAND:" | awk '{print $2}' | sed 's/\r//g')
     m_debug "Band number: $band_num"
@@ -355,8 +340,7 @@ get_lockband() {
     json_close_array
     json_close_object
 
-    at_command="AT+NWSETBAND=?"
-    available_bands=$(at $at_port $at_command | grep "+" | awk -F',' '{for(i=2;i<=NF;i++) print $i}' | sed 's/\r//g')
+    available_bands=$(cmd_nwsetband_list_query "$at_port" | grep "+" | awk -F',' '{for(i=2;i<=NF;i++) print $i}' | sed 's/\r//g')
     m_debug "Available bands: $available_bands"
     for band in $available_bands; do
         if [[ "$band" == WB* ]]; then
@@ -444,8 +428,7 @@ set_lockband() {
     lock_band=$(echo $config | jq -r '.lock_band')
 
     if [ -z "$lock_band" ] || [ "$lock_band" = "null" ]; then
-        at_command="AT+NWSETBAND=0"
-        res=$(at $at_port $at_command)
+        res=$(cmd_nwsetband_reset "$at_port")
         json_select "result"
         json_add_string "set_lockband" "$res"
         json_close_object
@@ -462,13 +445,13 @@ set_lockband() {
 
     IFS=','; set -- $lock_band
     band_num=$#
-    at_command="AT+NWSETBAND=$act,$band_num"
+    band_suffix=""
     for band in "$@"; do
-        at_command="$at_command,$band"
+        band_suffix="$band_suffix,$band"
     done
     unset IFS
 
-    res=$(at $at_port $at_command)
+    res=$(cmd_nwsetband_set "$at_port" "$act" "$band_num" "$band_suffix")
     
     json_select "result"
     json_add_string "set_lockband" "$res"
@@ -563,8 +546,7 @@ cell_info()
 {
     m_debug "Neoway cell info"
 
-    at_command='AT+NETDMSGEX'
-    response=$(at $at_port $at_command)
+    response=$(cmd_netdmsgex "$at_port")
     
     if [ -n "$(echo "$response" | grep "+NETDMSGEX:")" ]; then
 

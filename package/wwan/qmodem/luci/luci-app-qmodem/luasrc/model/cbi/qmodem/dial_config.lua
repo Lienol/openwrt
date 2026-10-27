@@ -114,6 +114,7 @@ pdp_type.rmempty = false
 pdp_type:value("ip", translate("IPv4"))
 pdp_type:value("ipv6", translate("IPv6"))
 pdp_type:value("ipv4v6", translate("IPv4/IPv6"))
+pdp_type:value("ethernet", translate("Ethernet"))
 
 
 -- 接入点

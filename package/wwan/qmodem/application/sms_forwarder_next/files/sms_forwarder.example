@@ -1,0 +1,60 @@
+# SMS 转发服务配置
+# SMS Forwarder Configuration
+
+# 全局配置 / Global Configuration
+config sms_forward 'sms_forward'
+	option enable '0'           # 启用服务 / Enable service (0=disabled, 1=enabled)
+	option log_level 'info'     # 日志级别 / Log level (error/warn/info/debug)
+
+# Telegram Bot 转发示例 / Telegram Bot Example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_1'           # 调制解调器 UCI 配置段 / Modem UCI config section
+	option poll_interval '30'            # 轮询间隔(秒) / Poll interval in seconds
+	option api_type 'tgbot'              # API 类型 / API type
+	option api_config '{"bot_token":"123456:ABC-DEF","chat_id":"123456789"}'
+
+# Webhook 转发示例 / Webhook Example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_1'
+	option poll_interval '60'
+	option api_type 'webhook'
+	# POST 请求示例 / POST request example
+	option api_config '{"webhook_url":"https://example.com/webhook","request_method":"POST","format":"{\"sender\":\"{SENDER}\",\"time\":\"{TIME}\",\"content\":\"{CONTENT}\"}"}'
+
+# GET 请求示例 / GET request example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_1'
+	option poll_interval '60'
+	option api_type 'webhook'
+	# URL 中的占位符会被自动替换 / Placeholders in URL will be replaced
+	option api_config '{"webhook_url":"https://example.com/sms?from={SENDER}&time={TIME}","request_method":"GET","format":"{CONTENT}"}'
+
+# Server酱 转发示例 / ServerChan Example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_1'
+	option poll_interval '60'
+	option api_type 'serverchan'
+	option api_config '{"token":"SCT123456","channel":"","noip":"0","openid":""}'
+
+# 飞书 转发示例 / Feishu Example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_2'
+	option poll_interval '30'
+	option api_type 'feishu'
+	option api_config '{"webhook_url":"https://open.feishu.cn/open-apis/bot/v2/hook/xxxxx"}'
+
+# PushDeer 转发示例 / PushDeer Example
+config sms_forward_instance
+	option enable '0'
+	option modem_cfg 'modem_2'
+	option poll_interval '30'
+	option api_type 'pushdeer'
+	option api_config '{"server":"https://api2.pushdeer.com","pushkey":"PDU123456"}'
+
+# 注意：相同 modem_cfg 和 api_type 的实例会被自动合并，使用最小的 poll_interval
+# Note: Instances with same modem_cfg and api_type will be automatically merged, using minimum poll_interval

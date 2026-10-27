@@ -1,5 +1,6 @@
 #!/bin/sh
-source /usr/share/libubox/jshn.sh
+source "${QMODEM_JSHN:-/usr/share/libubox/jshn.sh}"
+qmodem_home="${QMODEM_HOME:-/usr/share/qmodem}"
 method=$1
 config_section=$2
 at_port=$(uci -q get qmodem.$config_section.at_port)
@@ -21,12 +22,12 @@ modem_slot=$(basename $modem_path)
 [ "${use_ubus:-0}" -eq 1 ] && use_ubus_flag="-u"
 
 #please update dynamic_load.json to add new vendor
-vendor_script_prefix="/usr/share/qmodem/vendor"
+vendor_script_prefix="$qmodem_home/vendor"
 dynamic_load_json="$vendor_script_prefix/dynamic_load.json"
 vendor_file="${vendor_script_prefix}/`jq -r --arg vendor $vendor '.[$vendor]' $dynamic_load_json`"
 if [ -z "$vendor" ] || [ ! -f "$vendor_file" ]; then
     logger -t modem_ctrl "vendor $vendor not support"
-    . /usr/share/qmodem/generic.sh
+    . "$qmodem_home/generic.sh"
 fi
 . $vendor_file
 
@@ -58,13 +59,16 @@ get_sms(){
     cache_timeout=$1
     cache_file=$2
     current_time=$(date +%s)
-    file_time=$(stat -t $cache_file | awk '{print $14}')
-    [ -z "$file_time" ] && file_time=0
+    file_time=0
+    if [ -f "$cache_file" ]; then
+        file_time=$(stat -c %Y "$cache_file" 2>/dev/null)
+        [ -z "$file_time" ] && file_time=0
+    fi
     get_sms_capabilities
     if [ ! -f $cache_file ] || [ $(($current_time - $file_time)) -gt $cache_timeout ]; then
         touch $cache_file
         #sms_tool_q -d $at_port -j recv > $cache_file
-        tom_modem $use_ubus_flag  -d $at_port -o r > $cache_file
+        tom_modem $use_ubus_flag -d $at_port -t 10 -g -o r > $cache_file
         echo $(cat $cache_file ; json_dump) | jq -s 'add'
     else
         echo $(cat $cache_file ; json_dump) | jq -s 'add'
@@ -165,7 +169,7 @@ case $method in
             touch /tmp/cache_sms_$2
             if [ "$?" == 0 ]; then
                 json_add_string status "1"
-                json_add_string "index$i" "tom_modem $use_ubus_flag  -d $at_port -o d -i $i"
+                json_add_string "index$i" "tom_modem $use_ubus_flag -d $at_port -t 10 -g -o d -i $i"
             else
                 json_add_string status "0"
             fi
@@ -232,7 +236,7 @@ case $method in
         get_usage_stats
         ;;
     "get_sms")
-        get_sms 10 /tmp/cache_sms_$2
+        get_sms 20 /tmp/cache_sms_$2
         exit
         ;;
     "info")
@@ -318,4 +322,11 @@ case $method in
         set_sim_slot $3
         ;;
 esac
-json_dump
+#optionally keep a golden snapshot of the final JSON for fixture tests
+if qmodem_testcase_collect_enabled; then
+    expected_dir="$(qmodem_testcase_profile_dir)/expected"
+    mkdir -p "$expected_dir" 2>/dev/null
+    json_dump | tee "$expected_dir/$method.json"
+else
+    json_dump
+fi

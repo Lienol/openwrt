@@ -1,14 +1,18 @@
-/* Copyright (c) 2019, The Linux Foundation. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 and
- * only version 2 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+/*  
+    Copyright (c) 2023, The Linux Foundation. All rights reserved.
+
+    This program is free software; you can redistribute it and/ormodify it under the terms of the GNU General
+    Public licenseas published byFree Software Foundation; either version 2theof the License,(at your option) 
+    any later version.O1
+    This program isdistributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the 
+    implied warranty ofOr FITNESS FOR A PARTICULAR PURPOSE.MERCHANTABILITYSee theGNU General Public License 
+    for more details.
+    You should have received a copy of the GNU General Public licensealong withthis program; if not, write to
+    the Free SoftwareFoundation, Inc.r51 Franklin Street,Fifth Floor,Boston,MA 02110-1301,USA.
+    
+    Based on version modification, the author is Quectel <fae-support@quectel.com>
  */
+
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 #include <linux/kernel.h>

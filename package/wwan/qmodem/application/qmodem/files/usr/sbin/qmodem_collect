@@ -1,0 +1,291 @@
+#!/bin/sh
+# qmodem_collect - pack collected AT command testcases (fixtures) for submission
+#
+# workflow:
+#   uci set qmodem.main.testcase_collect=1 && uci commit qmodem
+#   (exercise modem features via LuCI/ubus/CLI)
+#   qmodem_collect pack                 # encrypted when qmodem-seal is available
+#   qmodem_collect pack --unencrypted   # explicitly create a plaintext tarball
+#   qmodem_collect pack --raw           # keep identifiers (still encrypted by default)
+# then scp the tarball off the device and run scripts/import_testcases.sh in the repo.
+
+COLLECT_DIR="${QMODEM_COLLECT_DIR:-/tmp/qmodem/testcases}"
+SEAL_CONFIG="${QMODEM_SEAL_CONFIG:-/usr/share/qmodem/feedback-recipient.conf}"
+PACK_PLAINTEXT=
+PACK_WORK=
+
+cleanup_pack()
+{
+    [ -z "$PACK_PLAINTEXT" ] || rm -f "$PACK_PLAINTEXT"
+    [ -z "$PACK_WORK" ] || rm -rf "$PACK_WORK"
+}
+
+trap cleanup_pack EXIT
+trap 'exit 1' HUP INT TERM
+
+usage()
+{
+    echo "usage: qmodem_collect <status|pack [--raw] [--unencrypted]|clear>" >&2
+    exit 1
+}
+
+collect_enabled()
+{
+    [ "$(uci -q get qmodem.main.testcase_collect 2>/dev/null)" = "1" ]
+}
+
+#mask long digit runs (IMEI/IMSI/ICCID/phone numbers), keeping length and
+#first/last 2 digits so parsers still see plausible values
+mask_digits()
+{
+    awk '{
+        line=$0; out=""
+        while (match(line, /[0-9]{11,20}/)) {
+            num=substr(line, RSTART, RLENGTH)
+            zeros=""
+            for (i=0; i<RLENGTH-4; i++) zeros=zeros "0"
+            out=out substr(line, 1, RSTART-1) substr(num, 1, 2) zeros substr(num, RLENGTH-1, 2)
+            line=substr(line, RSTART+RLENGTH)
+        }
+        print out line
+    }'
+}
+
+path_segment()
+{
+    local value="$1" fallback="$2" slug
+    [ -n "$value" ] || value="$fallback"
+    slug=$(printf '%s' "$value" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9._-' '_' | cut -c1-40)
+    printf '%s' "${slug:-$fallback}"
+}
+
+# Resolve recognition fixtures after modem discovery has populated UCI.
+# Prints: output-relative-path<TAB>vendor<TAB>platform<TAB>model
+resolve_recognition_fixture()
+{
+    local file="$1" rel="$2" section vendor platform model
+    local vendor_slug platform_slug model_slug model_hash
+    if [ "$(jq -r '.phase // "vendor"' "$file")" != "recognition" ]; then
+        printf '%s\t\t\t\n' "$rel"
+        return
+    fi
+    section=$(jq -r '.config_section // empty' "$file")
+    vendor=$(uci -q get "qmodem.$section.manufacturer" 2>/dev/null)
+    platform=$(uci -q get "qmodem.$section.platform" 2>/dev/null)
+    model=$(uci -q get "qmodem.$section.name" 2>/dev/null)
+    if [ -z "$vendor" ] || [ -z "$platform" ] || [ -z "$model" ]; then
+        printf '%s\t\t\t\n' "$rel"
+        return
+    fi
+    vendor_slug=$(path_segment "$vendor" unknown)
+    platform_slug=$(path_segment "$platform" unknown)
+    model_slug=$(path_segment "$model" unknown)
+    model_hash=$(printf '%s' "$model" | md5sum | cut -c1-8)
+    printf 'recognition/%s/%s/%s-%s/%s\t%s\t%s\t%s\n' \
+        "$vendor_slug" "$platform_slug" "$model_slug" "$model_hash" "$(basename "$rel")" \
+        "$vendor" "$platform" "$model"
+}
+
+cmd_status()
+{
+    local seal_bin recipient_id
+    if collect_enabled; then
+        echo "testcase_collect: on"
+    else
+        echo "testcase_collect: off (enable: uci set qmodem.main.testcase_collect=1 && uci commit qmodem)"
+    fi
+    if [ -d "$COLLECT_DIR" ]; then
+        echo "collect dir: $COLLECT_DIR ($(find "$COLLECT_DIR" -name '*.json' 2>/dev/null | wc -l) fixture files)"
+    else
+        echo "collect dir: $COLLECT_DIR (empty)"
+    fi
+    seal_bin="${QMODEM_SEAL_BIN:-qmodem-seal}"
+    if command -v "$seal_bin" >/dev/null 2>&1; then
+        recipient_id="${QMODEM_SEAL_RECIPIENT_ID:-$(sed -n 's/^recipient_id=//p' "$SEAL_CONFIG" 2>/dev/null | head -n 1)}"
+        if [ -n "$recipient_id" ]; then
+            echo "feedback encryption: ready ($recipient_id)"
+        else
+            echo "feedback encryption: qmodem-seal installed, recipient not configured"
+        fi
+    else
+        echo "feedback encryption: unavailable (pack falls back to plaintext)"
+    fi
+}
+
+cmd_clear()
+{
+    [ -d "$COLLECT_DIR" ] && rm -rf "$COLLECT_DIR"
+    echo "cleared $COLLECT_DIR"
+}
+
+cmd_pack()
+{
+    local raw=0 unencrypted=0
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --raw) raw=1 ;;
+            --unencrypted) unencrypted=1 ;;
+            *) usage ;;
+        esac
+        shift
+    done
+    [ -d "$COLLECT_DIR" ] || {
+        echo "nothing collected in $COLLECT_DIR" >&2
+        exit 1
+    }
+    local work out_file file count timestamp inner_file seal_work seal_bin
+    local rel resolved target_rel expected_vendor expected_platform expected_model prepared
+    local recipient recipient_id seal_output review_key wrapped_key_hex
+    work=$(mktemp -d) || exit 1
+    PACK_WORK="$work"
+    count=0
+    #copy fixtures, sanitizing unless --raw
+    for file in $(find "$COLLECT_DIR" -name '*.json' | sort); do
+        rel="${file#$COLLECT_DIR/}"
+        resolved=$(resolve_recognition_fixture "$file" "$rel")
+        target_rel=${resolved%%	*}
+        expected_vendor=$(printf '%s' "$resolved" | cut -f2)
+        expected_platform=$(printf '%s' "$resolved" | cut -f3)
+        expected_model=$(printf '%s' "$resolved" | cut -f4)
+        prepared="$file"
+        if [ -n "$expected_vendor" ]; then
+            prepared="$work/.fixture.$count.json"
+            jq --arg vendor "$expected_vendor" --arg platform "$expected_platform" --arg model "$expected_model" \
+                '.expected_identity={vendor:$vendor, platform:$platform, model:$model}' "$file" > "$prepared" || exit 1
+        fi
+        mkdir -p "$work/$(dirname "$target_rel")"
+        if [ "$raw" = "1" ]; then
+            cp "$prepared" "$work/$target_rel"
+        elif [ "${target_rel#*/expected/}" != "$target_rel" ]; then
+            mask_digits < "$prepared" > "$work/$target_rel"
+            jq -e . "$work/$target_rel" >/dev/null 2>&1 || {
+                rm -rf "$work"
+                echo "failed to sanitize expected snapshot: $file" >&2
+                exit 1
+            }
+        else
+            local cmd_masked resp_hex raw_response sanitized_response
+            cmd_masked=$(jq -r '.command // ""' "$prepared" | mask_digits)
+            raw_response="$work/.response.raw"
+            sanitized_response="$work/.response.sanitized"
+            resp_hex=$(jq -r '.response_hex // empty' "$prepared")
+            if [ -n "$resp_hex" ]; then
+                printf '%s' "$resp_hex" | xxd -r -p > "$raw_response" || {
+                    rm -rf "$work"
+                    echo "invalid response_hex in fixture: $file" >&2
+                    exit 1
+                }
+            else
+                jq -j '.response // ""' "$prepared" > "$raw_response"
+            fi
+            mask_digits < "$raw_response" > "$sanitized_response"
+            resp_hex=$(xxd -p "$sanitized_response" | tr -d '\n') || {
+                rm -rf "$work"
+                echo "failed to encode fixture response: $file" >&2
+                exit 1
+            }
+            jq --arg c "$cmd_masked" --arg h "$resp_hex" \
+                '.command=$c | .response_hex=$h | del(.response) | .sanitized=true' "$prepared" > "$work/$target_rel" || {
+                rm -rf "$work"
+                echo "failed to sanitize fixture: $file" >&2
+                exit 1
+            }
+            rm -f "$raw_response" "$sanitized_response"
+        fi
+        [ "$prepared" = "$file" ] || rm -f "$prepared"
+        count=$((count + 1))
+    done
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    inner_file="/tmp/qmodem_testcases_${timestamp}.tar.gz"
+    PACK_PLAINTEXT="$inner_file"
+    tar -czf "$inner_file" -C "$work" . || {
+        rm -rf "$work"
+        echo "failed to create tarball" >&2
+        exit 1
+    }
+    rm -rf "$work"
+    PACK_WORK=
+    [ "$raw" = "1" ] || echo "sanitized: long digit sequences (including expected snapshots) are masked"
+
+    seal_bin="${QMODEM_SEAL_BIN:-qmodem-seal}"
+    if [ "$unencrypted" = "0" ] && ! command -v "$seal_bin" >/dev/null 2>&1; then
+        echo "WARNING: qmodem-seal is not installed; creating an UNENCRYPTED feedback archive" >&2
+        echo "WARNING: review the archive before uploading it" >&2
+        unencrypted=1
+    fi
+
+    if [ "$unencrypted" = "1" ]; then
+        out_file="$inner_file"
+        PACK_PLAINTEXT=
+        echo "encryption: OFF"
+        echo "packed $count fixture files -> $out_file"
+        echo "next: inspect the archive, then upload it to the testcase feedback issue"
+        return
+    fi
+
+    recipient="${QMODEM_SEAL_RECIPIENT:-$(sed -n 's/^recipient=//p' "$SEAL_CONFIG" 2>/dev/null | head -n 1)}"
+    recipient_id="${QMODEM_SEAL_RECIPIENT_ID:-$(sed -n 's/^recipient_id=//p' "$SEAL_CONFIG" 2>/dev/null | head -n 1)}"
+    [ -n "$recipient" ] || {
+        rm -f "$inner_file"
+        echo "qmodem-seal is installed but no feedback recipient is configured" >&2
+        echo "use --unencrypted only after reviewing the privacy warning" >&2
+        exit 1
+    }
+
+    seal_work=$(mktemp -d) || { rm -f "$inner_file"; exit 1; }
+    PACK_WORK="$seal_work"
+    seal_output=$("$seal_bin" seal --recipient "$recipient" --input "$inner_file" \
+        --payload "$seal_work/payload.enc" --key "$seal_work/key.enc") || {
+        rm -rf "$seal_work"
+        rm -f "$inner_file"
+        echo "failed to encrypt feedback archive" >&2
+        exit 1
+    }
+    review_key=$(printf '%s\n' "$seal_output" | sed -n 's/^review_key=//p')
+    [ -n "$review_key" ] || {
+        rm -rf "$seal_work"
+        rm -f "$inner_file"
+        echo "qmodem-seal did not return a review key" >&2
+        exit 1
+    }
+    wrapped_key_hex=$(xxd -p "$seal_work/key.enc" | tr -d '\n') || {
+        rm -rf "$seal_work"
+        rm -f "$inner_file"
+        echo "failed to encode wrapped feedback key" >&2
+        exit 1
+    }
+    jq -n --arg created "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --arg recipient_id "$recipient_id" --arg wrapped_key_hex "$wrapped_key_hex" \
+        --argjson sanitized "$([ "$raw" = 1 ] && echo false || echo true)" \
+        '{format:"qmodem-feedback-v1", encrypted:true, recipient_id:$recipient_id,
+          created_at:$created, sanitized:$sanitized, payload:"payload.enc",
+          wrapped_key_hex:$wrapped_key_hex}' \
+        > "$seal_work/manifest.json" || {
+        rm -rf "$seal_work"
+        rm -f "$inner_file"
+        exit 1
+    }
+    out_file="/tmp/qmodem_feedback_${timestamp}.tar"
+    tar -cf "$out_file" -C "$seal_work" manifest.json payload.enc || {
+        rm -rf "$seal_work"
+        rm -f "$inner_file"
+        echo "failed to create encrypted feedback package" >&2
+        exit 1
+    }
+    rm -rf "$seal_work"
+    PACK_WORK=
+    rm -f "$inner_file"
+    PACK_PLAINTEXT=
+    echo "encryption: ON ($recipient_id)"
+    echo "packed $count fixture files -> $out_file"
+    echo "review password/key (keep private): $review_key"
+    echo "verify: qmodem-seal decrypt --review-key --input $out_file --output /tmp/qmodem_review.tar.gz"
+    echo "upload only $out_file; do not post the review key"
+}
+
+case "$1" in
+    status) cmd_status ;;
+    pack) shift; cmd_pack "$@" ;;
+    clear) cmd_clear ;;
+    *) usage ;;
+esac

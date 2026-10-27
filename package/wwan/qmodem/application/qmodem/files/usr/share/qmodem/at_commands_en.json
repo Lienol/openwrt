@@ -547,6 +547,34 @@
             }
         ]
     },
+    "thales": {
+        "qualcomm": [
+            {
+                "Switch USB Data Mode (MBIM/RMNET) > AT+SETCONFIG=0/1": "AT+SETCONFIG?"
+            },
+            {
+                "Switch USB/PCIe Mode > AT+MODESWITCH?": "AT+MODESWITCH?"
+            },
+            {
+                "Get SIM Card Slot Status > AT+SWITCH_SLOT?": "AT+SWITCH_SLOT?"
+            },
+            {
+                "Set Current SIM to Slot 1 > at+switch_slot=0": "at+switch_slot=0"
+            },
+            {
+                "Set Current SIM to Slot 2 > at+switch_slot=1": "at+switch_slot=1"
+            },
+            {
+                "Query Network and Carrier Information > AT^DEBUG?": "AT^DEBUG?"
+            },
+            {
+                "Get Module Temperature > AT^TEMP?": "AT^TEMP?"
+            },
+            {
+                "Restart Module > AT+RESET": "AT+RESET"
+            }
+        ]
+    },
     "huawei": {
         "hisilicon": [
             {
@@ -667,6 +695,73 @@
             {
                 "Set Module Function > Offline Mode": "AT+CFUN=7"
             }
+        ]
+    },
+    "openluat": {
+        "unisoc": [
+                {
+                    "Restart Modem > AT+RESET": "AT+RESET"
+                },
+                {
+                    "Disable Network Connection > AT+RNDISCALL=0,1": "AT+RNDISCALL=0,1"
+                },
+                {
+                    "Query Local Phone Number > AT+CNUM": "AT+CNUM"
+                },
+                {
+                    "Query VoLTE Registration Status > AT+CIREG?": "AT+CIREG?"
+                },
+                {
+                    "Query SMS Storage and Message Count > AT+CPMS?": "AT+CPMS?"
+                },
+                {
+                    "List All SMS Messages in Current Storage > AT+CMGL=\"ALL\"": "AT+CMGL=\"ALL\""
+                },
+                {
+                    "Switch to SIM SMS Storage > AT+CPMS=\"SM\",\"SM\",\"SM\"": "AT+CPMS=\"SM\",\"SM\",\"SM\""
+                },
+                {
+                    "Switch to Device SMS Storage > AT+CPMS=\"ME\",\"ME\",\"ME\"": "AT+CPMS=\"ME\",\"ME\",\"ME\""
+                },
+                {
+                    "Query Incoming SMS Storage > AT+CNMI?": "AT+CNMI?"
+                },
+                {
+                    "Enable Incoming SMS Storage > AT+CNMI=2,1,0,0,0": "AT+CNMI=2,1,0,0,0"
+                },
+                {
+                    "Query PDP Address Details > AT+CGCONTRDP=5": "AT+CGCONTRDP=5"
+                },
+                {
+                    "Query Current USB Network Mode > AT+SETUSB?": "AT+SETUSB?"
+                },
+                {
+                    "Switch to RNDIS Network Mode > AT+SETUSB=1": "AT+SETUSB=1"
+                },
+                {
+                    "Switch to ECM Network Mode > AT+SETUSB=2": "AT+SETUSB=2"
+                },
+                {
+                    "Enable Network Indicator Light > AT+CNETLIGHT=1": "AT+CNETLIGHT=1"
+                },
+                {
+                    "Disable Network Indicator Light > AT+CNETLIGHT=0": "AT+CNETLIGHT=0"
+                },
+                {
+                    "Manually Register with China Telecom LTE > AT+COPS=1,2,\"46011\",7": "AT+COPS=1,2,\"46011\",7"
+                },
+                {
+                    "Manually Register with China Unicom LTE > AT+COPS=1,2,\"46001\",7": "AT+COPS=1,2,\"46001\",7"
+                },
+                {
+                    "Manually Register with China Mobile LTE > AT+COPS=1,2,\"46000\",7": "AT+COPS=1,2,\"46000\",7"
+                },
+                {
+                    "Restore Automatic Operator Selection > AT+COPS=0": "AT+COPS=0"
+                },
+                {
+                    "Save Current User Settings > AT&W": "AT&W"
+                }
         ]
     }
 }

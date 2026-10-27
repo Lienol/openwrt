@@ -1,6 +1,94 @@
 #!/bin/sh
 # Copyright (C) 2024 Tom <fjrcn@outlook.com>
-. /lib/functions.sh
+. "${QMODEM_LIB_FUNCTIONS:-/lib/functions.sh}"
+. "${QMODEM_HOME:-/usr/share/qmodem}/cmds/modem_util.sh"
+
+#testcase collection (fixture) support
+#switch: uci set qmodem.main.testcase_collect=1 (cached per process)
+#env overrides (used by tests): QMODEM_COLLECT_TESTCASE / QMODEM_COLLECT_DIR
+qmodem_testcase_collect_enabled()
+{
+  if [ -n "${QMODEM_COLLECT_TESTCASE:-}" ]; then
+    [ "$QMODEM_COLLECT_TESTCASE" = "1" ]
+    return
+  fi
+  if [ -z "${_testcase_collect_cache:-}" ]; then
+    local switch
+    switch=$(uci -q get qmodem.main.testcase_collect 2>/dev/null)
+    [ "$switch" = "1" ] && _testcase_collect_cache=1 || _testcase_collect_cache=0
+  fi
+  [ "$_testcase_collect_cache" = "1" ]
+}
+
+#record one AT exchange as a fixture json file; never fails the caller
+#$1: tool (at/fastat)  $2: command  $3: raw response file  $4: exit code
+qmodem_testcase_path_segment()
+{
+  local value="$1" fallback="$2" slug
+  [ -n "$value" ] || value="$fallback"
+  slug=$(printf '%s' "$value" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9._-' '_' | cut -c1-40)
+  [ -n "$slug" ] || slug="$fallback"
+  printf '%s' "$slug"
+}
+
+qmodem_testcase_profile_dir()
+{
+  local collect_dir="${QMODEM_COLLECT_DIR:-/tmp/qmodem/testcases}"
+  local vendor_name="${vendor:-${manufacturer:-core}}"
+  local platform_name="${platform:-unknown}"
+  local model_name="${QMODEM_TESTCASE_MODEL:-}"
+  local vendor_slug platform_slug model_slug model_hash section_slug
+  [ -n "$model_name" ] || model_name=$(uci -q get "qmodem.${config_section:-}.name" 2>/dev/null)
+  [ -n "$model_name" ] || model_name="unknown"
+  if [ "$vendor_name" = "core" ] || [ "$vendor_name" = "unknown" ] || [ "$model_name" = "unknown" ]; then
+    section_slug=$(qmodem_testcase_path_segment "${config_section:-unknown}" unknown)
+    printf '%s/recognition/pending/%s' "$collect_dir" "$section_slug"
+    return
+  fi
+  vendor_slug=$(qmodem_testcase_path_segment "$vendor_name" core)
+  platform_slug=$(qmodem_testcase_path_segment "$platform_name" unknown)
+  model_slug=$(qmodem_testcase_path_segment "$model_name" unknown)
+  if [ "$model_name" != "unknown" ]; then
+    model_hash=$(printf '%s' "$model_name" | md5sum | cut -c1-8)
+    model_slug="${model_slug}-${model_hash}"
+  fi
+  printf '%s/%s/%s/%s' "$collect_dir" "$vendor_slug" "$platform_slug" "$model_slug"
+}
+
+qmodem_record_testcase_file()
+{
+  local tool="$1" atcmd="$2" response_file="$3" rc="$4" response_hex
+  local vendor_name="${vendor:-${manufacturer:-core}}"
+  local platform_name="${platform:-unknown}"
+  local model_name="${QMODEM_TESTCASE_MODEL:-}" dir phase=vendor
+  local slug hash file
+  [ -n "$model_name" ] || model_name=$(uci -q get "qmodem.${config_section:-}.name" 2>/dev/null)
+  [ -n "$model_name" ] || model_name="unknown"
+  if [ "$vendor_name" = "core" ] || [ "$vendor_name" = "unknown" ] || [ "$model_name" = "unknown" ]; then
+    phase=recognition
+  fi
+  dir=$(qmodem_testcase_profile_dir)
+  mkdir -p "$dir" 2>/dev/null || return 0
+  slug=$(printf '%s' "$atcmd" | tr -c 'A-Za-z0-9' '_' | cut -c1-40)
+  hash=$(printf '%s' "$atcmd" | md5sum | cut -c1-8)
+  file="${dir}/${slug}-${hash}.json"
+  response_hex=$(xxd -p "$response_file" | tr -d '\n') || return 0
+  jq -n \
+    --arg vendor "$vendor_name" \
+    --arg platform "$platform_name" \
+    --arg model "$model_name" \
+    --arg command "$atcmd" \
+    --arg response_hex "$response_hex" \
+    --arg tool "$tool" \
+    --arg phase "$phase" \
+    --arg config_section "${config_section:-unknown}" \
+    --argjson rc "$rc" \
+    --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{vendor:$vendor, platform:$platform, model:$model, phase:$phase,
+      config_section:$config_section, command:$command,
+      response_hex:$response_hex, tool:$tool, rc:$rc, timestamp:$timestamp}' \
+    > "$file" 2>/dev/null || rm -f "$file"
+}
 
 at()
 {
@@ -9,6 +97,27 @@ at()
   local atcmd="${new_str/\"/\"}"
   [ "$clear_buffer" == "1" ] && options="$options -M"
   #过滤空行
+  if qmodem_testcase_collect_enabled; then
+    local response_file rc
+    response_file=$(mktemp /tmp/qmodem_at_response.XXXXXX) || {
+      if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
+        sms_tool_q -d $at_port at "$atcmd"
+      else
+        tom_modem $use_ubus_flag -d $at_port -o a -c "$atcmd" $options
+      fi
+      return $?
+    }
+    if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
+     sms_tool_q -d $at_port at "$atcmd" > "$response_file"
+    else
+     tom_modem $use_ubus_flag -d $at_port -o a -c "$atcmd" $options > "$response_file"
+    fi
+    rc=$?
+    qmodem_record_testcase_file "at" "$atcmd" "$response_file" "$rc"
+    cat "$response_file"
+    rm -f "$response_file"
+    return $rc
+  fi
   if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
    sms_tool_q -d $at_port at "$atcmd"
   else
@@ -22,6 +131,27 @@ fastat()
   local new_str="${2/[$]/$}"
   local atcmd="${new_str/\"/\"}"
   #过滤空行
+  if qmodem_testcase_collect_enabled; then
+    local response_file rc
+    response_file=$(mktemp /tmp/qmodem_at_response.XXXXXX) || {
+      if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
+        sms_tool_q -t 1 -d $at_port at "$atcmd"
+      else
+        tom_modem -d $at_port -o a -c "$atcmd" -t 1
+      fi
+      return $?
+    }
+    if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
+     sms_tool_q -t 1 -d $at_port at "$atcmd" > "$response_file"
+    else
+     tom_modem -d $at_port -o a -c "$atcmd" -t 1 > "$response_file"
+    fi
+    rc=$?
+    qmodem_record_testcase_file "fastat" "$atcmd" "$response_file" "$rc"
+    cat "$response_file"
+    rm -f "$response_file"
+    return $rc
+  fi
   if [ "$(uci get qmodem.main.at_tool 2>/dev/null)" == "1" ]; then
    sms_tool_q -t 1 -d $at_port at "$atcmd"
   else
@@ -49,9 +179,9 @@ log2sys()
 
 m_debug ()
 {
-	[ -z "$debug_subject" ] && subject="modem_util" || subject="$debug_subject"
-	[ -n "$direct_debug" ] && echo "$subject" "$1"
-	if [ -n "$log_file" ];then
+	[ -z "${debug_subject:-}" ] && subject="modem_util" || subject="$debug_subject"
+	[ -n "${direct_debug:-}" ] && echo "$subject" "$1"
+	if [ -n "${log_file:-}" ];then
 		log2file "$subject" "$1" "$log_file"
 	else
 		log2sys "$subject" "$1"
@@ -179,7 +309,7 @@ at_get_slot()
 {
 	case $vendor in
 		"quectel")
-			at_res=$(at "$at_port" "AT+QUIMSLOT?" | awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
+			at_res=$(cmd_util_quimslot_query "$at_port" | awk -F':' '/\+(QUIMSLOT|QUSIMSLOT):/ {
 				value=$2
 				gsub(/[^0-9]/, "", value)
 				print value
@@ -198,7 +328,7 @@ at_get_slot()
 			esac
 			;;
 		"fibocom")
-			at_res=$(at $at_port AT+GTDUALSIM? |grep +GTDUALSIM: |awk -F: '{print $2}')
+			at_res=$(cmd_util_gtdualsim_query "$at_port" |grep +GTDUALSIM: |awk -F: '{print $2}')
 			case $at_res in
 				"0")
 					sim_slot="1"
@@ -215,7 +345,7 @@ at_get_slot()
 			esac
 			;;
 		"simcom")
-			at_res=$(at $at_port AT+SMSIMCFG? | grep "+SMSIMCFG:" | awk -F',' '{print $2}' | sed 's/\r//g')
+			at_res=$(cmd_util_smsimcfg_query "$at_port" | grep "+SMSIMCFG:" | awk -F',' '{print $2}' | sed 's/\r//g')
 			case $at_res in
 				"1")
 					sim_slot="1"
@@ -232,7 +362,7 @@ at_get_slot()
 			esac
 			;;
 		"meig")
-			at_res=$(at $at_port AT^SIMSLOT? | grep "\^SIMSLOT:" | awk -F': ' '{print $2}' | awk -F',' '{print $2}')
+			at_res=$(cmd_util_simslot_query "$at_port" | grep "\^SIMSLOT:" | awk -F': ' '{print $2}' | awk -F',' '{print $2}')
 			case $at_res in
 				"1")
 					sim_slot="1"
@@ -249,7 +379,7 @@ at_get_slot()
 			esac
 			;;
 		"neoway")
-			at_res=$(at $at_port 'AT+SIMCROSS?' | grep "+SIMCROSS:" | awk -F'[ ,]' '{print $2}' | sed 's/\r//g')
+			at_res=$(cmd_util_simcross_query "$at_port" | grep "+SIMCROSS:" | awk -F'[ ,]' '{print $2}' | sed 's/\r//g')
 			case $at_res in
 				"1")
 					sim_slot="1"
@@ -266,7 +396,7 @@ at_get_slot()
 			esac
 			;;
 		"telit")
-			at_res=$(at $at_port AT#QSS? | grep "#QSS:" | awk -F',' '{print $3}' | sed 's/\r//g')
+			at_res=$(cmd_util_qss_query "$at_port" | grep "#QSS:" | awk -F',' '{print $3}' | sed 's/\r//g')
 			case $at_res in
 				"0")
 					sim_slot="1"
@@ -283,8 +413,8 @@ at_get_slot()
 			esac
 			;;
 		*)
-			at_q_res=$(at $at_port AT+QSIMDET? |grep +QSIMDET: |awk -F: '{print $2}')
-			at_f_res=$(at $at_port AT+GTDUALSIM? |grep +GTDUALSIM: |awk -F: '{print $2}')
+			at_q_res=$(cmd_util_qsimdet_query "$at_port" |grep +QSIMDET: |awk -F: '{print $2}')
+			at_f_res=$(cmd_util_gtdualsim_query "$at_port" |grep +GTDUALSIM: |awk -F: '{print $2}')
 			[ "$at_q_res" == "1" ] && sim_slot="1" && return
 			[ "$at_q_res" == "2" ] && sim_slot="2" && return
 			[ "$at_f_res" == "0" ] && sim_slot="1" && return

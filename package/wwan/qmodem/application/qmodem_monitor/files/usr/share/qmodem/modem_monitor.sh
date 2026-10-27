@@ -74,7 +74,7 @@ update_cfg(){
 update_netcfg(){
 	# if alias is set, network config name is alias else modem_cfg name
 	config_load network
-	if [ -n "$ALIAS" ]; then
+	if [ -n "$ALIAS" ] && [ "$ALIAS" != "-" ]; then
 		config_get NET_DEV "$ALIAS" ifname
         Ifv4="$ALIAS"
 	else

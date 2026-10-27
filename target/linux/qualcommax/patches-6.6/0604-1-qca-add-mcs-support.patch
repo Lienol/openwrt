@@ -177,7 +177,7 @@
  	}
 @@ -213,6 +242,13 @@ int br_handle_frame_finish(struct net *n
  			WRITE_ONCE(dst->used, now);
- 		br_forward(dst->dst, skb, local_rcv, false);
+ 		br_forward(READ_ONCE(dst->dst), skb, local_rcv, false);
  	} else {
 +	  /* QCA qca-mcs support - Start */
 +		if (pdst) {

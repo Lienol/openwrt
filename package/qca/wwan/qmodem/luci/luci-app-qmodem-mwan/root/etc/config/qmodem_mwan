@@ -1,2 +1,0 @@
-config global 'global'
-        option enable_mwan '0'
